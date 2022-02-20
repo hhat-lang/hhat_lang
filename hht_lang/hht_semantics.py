@@ -12,7 +12,7 @@ s = [
     ("value_expr : COLON OPEN value CLOSE", ValueExpr, [2]),
     ("value_expr : ", ValueExpr, []),
     ("value : value_assign | INT_NUMBER | FLOAT_NUMBER | STRING | SYMBOL", Value, [0]),
-    ("data_assign : SYMBOL value_expr", DataAssignment, [0, 1]),
+    ("data_assign : SYMBOL value_expr", DataAssign, [0, 1]),
     ("value_assign : opt_assign COLON value_ret value_assign", ValueAssign, [0, 2, 3]),
     ("value_assign : opt_assign COLON value_ret", ValueAssign, [0, 2]),
     ("expr_assign : OPEN opt_assign COLON value inner_assign CLOSE", ExprAssign, [3, 1, 4]),

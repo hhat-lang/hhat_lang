@@ -7,13 +7,20 @@ tokens.update({"CLOSE": r"\)"})
 
 tokens.update({"COLON": r":"})
 tokens.update({"STAR": r"\*"})
+tokens.update({"COMMA": r"\,"})
 
 tokens.update({"MAIN": r"main(?!\w)"})
 tokens.update({"FUNCTION": r"func(?!\w)"})
 tokens.update({"RETURN": r"return(?!\w)"})
 
 tokens.update({"IF": r"if(?!\w)"})
+tokens.update({"ELIF": r"elif(?!\w)"})
 tokens.update({"ELSE": r"else(?!\w)"})
+
+tokens.update({"AND": r"\+"})
+tokens.update({"OR": r"\-"})
+tokens.update({"NOT": r"not(?!\w)"})
+
 tokens.update({"FOR": r"for(?!\w)"})
 tokens.update({"IN": r"in(?!\w)"})
 tokens.update({"RANGE": r"\.\."})
@@ -35,7 +42,7 @@ tokens.update({"GATES_TYPE": r"gates(?!\w)"})
 tokens.update({"QUBITS_TYPE": r"qubits(?!\w)"})
 tokens.update({"REGISTER_TYPE": r"register(?!\w)"})
 tokens.update({"LIST_TYPE": r"list(?!\w)"})
-tokens.update({"HASHMAP": r"hashmap(?!\w)"})
+tokens.update({"HASHMAP_TYPE": r"hashmap(?!\w)"})
 tokens.update({"MEAS_TYPE": r"measurement(?!\w)"})
 
 tokens.update({"H": r"@h(?!\w)"})
@@ -51,11 +58,11 @@ tokens.update({"RY": r"@ry(?!\w)"})
 tokens.update({"T": r"@t(?!\w)"})
 tokens.update({"T_DAG": r"@tdag(?!\w)"})
 tokens.update({"S": r"@s(?!\w)"})
-tokens.update({"S": r"@sdag(?!\w)"})
+tokens.update({"S_DAG": r"@sdag(?!\w)"})
 tokens.update({"CR": r"@cr(?!\w)"})
 tokens.update({"TOFFOLI": r"@toffoli(?!\w)"})
 
-tokens.update({"SUPERPOSN": r"@sposn(?!\w)"})
+tokens.update({"SUPERPOSN": r"@superposn(?!\w)"})
 tokens.update({"AMPLIFICATION": r"@ampl(?!\w)"})
 
 tokens.update({"RESET": r"@reset(?!\w)"})

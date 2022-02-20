@@ -6,7 +6,7 @@ from networkx import Graph
 
 class TypesRKW(BaseBox):
     def __init__(self, entity):
-        self.value = entity.value
+        self.value = entity.value_expr
         self.self_atype = TypesRKW
         self.atype = self.get_atype(entity.atype)
 

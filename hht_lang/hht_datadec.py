@@ -7,17 +7,18 @@ class Data(BaseBox):
         self.atype = type_rkw
         self.symbol = symbol
         self.size = size
-        self.value = value
+        self.value_expr = value
         self.property = prop
+        self.value = (value,) if value else ()
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(atype={self.atype} symbol={self.symbol} size={self.size} value={self.value})"
+        return f"{self.__class__.__name__}(atype={self.atype} symbol={self.symbol} size={self.size} value={self.value_expr})"
 
     def get_symbol(self):
         return self.symbol
 
     def get_value(self):
-        return self.value
+        return self.value_expr
 
     def get_prop(self):
         return self.property
@@ -31,19 +32,28 @@ class Data(BaseBox):
 
 class DataDeclaration(Data):
     def __init__(self, type_rkw, symbol, size=None, value_expr=None):
-        print('datadec?')
-        super().__init__(type_rkw=type_rkw, symbol=symbol, size=size,value=value_expr)
+        super().__init__(type_rkw=type_rkw, symbol=symbol, size=size, value=value_expr)
+        data_vals = {'type': self.atype, 'symbol': self.symbol}
+        if size is not None:
+            data_vals.update({'size_decl': size.value})
+        if value_expr is not None:
+            data_vals.update({'assign_expr': value_expr.value})
+        self.value += (data_vals,)
+        print(f'datadec? {self.value}')
 
     def store_mem(self):
         mem_ref = {'atype': self.atype}
-        if self.value:
-            mem_ref.update({'data': self.value})
+        if self.value_expr:
+            mem_ref.update({'data': self.value_expr})
         return mem_ref
 
 
-class DataAssignment(Data):
+class DataAssign(Data):
     def __init__(self, symbol, value_expr):
+        print('dataassign?')
         super().__init__(symbol=symbol, value=value_expr)
+        data_vals = {'symbol': self.symbol, 'assign_expr': value_expr.value}
+        self.value += (data_vals,)
 
     @staticmethod
     def check_valid_value(mem_data, data):
@@ -58,9 +68,12 @@ class DataAssignment(Data):
         raise TypeError("Wrong datatype.")
 
 
-class DataRetrieval(Data):
-    def __init__(self, symbol, prop=None):
-        super().__init__(symbol=symbol, prop=prop)
+class DataCall(Data):
+    def __init__(self, symbol, value):
+        print(f'datacall? (symbol={symbol}, value={value} ... value.value=({value.value}))')
+        super().__init__(symbol=symbol, value=value.value)
+        data_vals = {'symbol': self.symbol, 'call': self.value}
+        self.value += (data_vals,)
 
     def read_mem(self, mem_data):
         if self.property:

@@ -329,6 +329,14 @@ def function_52(p):
 @pg.production("arkw : SUPERPOSN")
 @pg.production("arkw : AMPLIFICATION")
 @pg.production("arkw : RESET")
+@pg.production("arkw : ADD")
+@pg.production("arkw : MULT")
+@pg.production("arkw : DIV")
+@pg.production("arkw : POWER")
+@pg.production("arkw : LENGTH")
+@pg.production("arkw : SQRT")
+@pg.production("arkw : INT_SQRT")
+@pg.production("arkw : PRINT")
 def function_53(p):
     return ARKW(p[0])
 

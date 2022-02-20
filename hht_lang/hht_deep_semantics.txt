@@ -51,4 +51,4 @@
 "bool_value : data_call | avalue"
 "append_test : AND | OR"
 "comparison : EQ | GT | LT | GET | LET | NEQ"
-"arkw : H | X | Z | Y | CNOT | SWAP | CZ | RX | RZ | RY | T | T_DAG | S | S_DAG | CR | TOFFOLI | SUPERPOSN | AMPLIFICATION | RESET"
+"arkw : H | X | Z | Y | CNOT | SWAP | CZ | RX | RZ | RY | T | T_DAG | S | S_DAG | CR | TOFFOLI | SUPERPOSN | AMPLIFICATION | RESET | ADD | MULT | DIV | POWER | LENGTH | SQRT | INT_SQRT | PRINT"

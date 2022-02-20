@@ -54,5 +54,5 @@ s = [
     ("bool_value : data_call | avalue", BoolValue, [0]),
     ("append_test : AND | OR", AppendIfTest, [0]),
     ("comparison : EQ | GT | LT | GET | LET | NEQ", ComparisonIfTest, [0]),
-    ("arkw : H | X | Z | Y | CNOT | SWAP | CZ | RX | RZ | RY | T | T_DAG | S | S_DAG | CR | TOFFOLI | SUPERPOSN | AMPLIFICATION | RESET", ARKW, [0]),
+    ("arkw : H | X | Z | Y | CNOT | SWAP | CZ | RX | RZ | RY | T | T_DAG | S | S_DAG | CR | TOFFOLI | SUPERPOSN | AMPLIFICATION | RESET | ADD | MULT | DIV | POWER | LENGTH | SQRT | INT_SQRT | PRINT", ARKW, [0]),
     ]

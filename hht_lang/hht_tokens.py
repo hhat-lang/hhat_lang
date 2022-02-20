@@ -68,11 +68,23 @@ tokens.update({"AMPLIFICATION": r"@ampl(?!\w)"})
 tokens.update({"RESET": r"@reset(?!\w)"})
 tokens.update({"MEASURE": r"@return(?!\w)"})
 
+tokens.update({"ADD": r"add(?!\w)"})
+tokens.update({"MULT": r"mult(?!\w)"})
+tokens.update({"DIV": r"div(?!\w)"})
+tokens.update({"POWER": r"power(?!\w)"})
+tokens.update({"SQRT": r"sqrt(?!\w)"})
+tokens.update({"INT_SQRT": r"int_sqrt(?!\w)"})
+tokens.update({"LENGTH": r"len(?!\w)"})
+
+tokens.update({"PRINT": r"print(?!\w)"})
+
+
 tokens.update({"SYMBOL": r"[a-zA-Z_]+[a-zA-Z_0-9]*"})
 tokens.update({"QSYMBOL": r"@[a-zA-Z_]+[a-zA-Z_0-9]*"})
 
 tokens.update({"INT_NUMBER": r"[-+]?[0-9]+"})
 tokens.update({"FLOAT_NUMBER": r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?"})
+tokens.update({"IMAG_NUMBER": r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?j(?!\w)"})
 tokens.update({"STRING": r"(\".*\")|(\'.*\')"})
 
 

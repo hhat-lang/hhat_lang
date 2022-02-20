@@ -15,22 +15,20 @@ class Program(SuperBox):
     def __init__(self, f1, f2=None):
         print('program!')
         super().__init__()
-        self.value += (f1.value,)
-        self.value_str += str(f1)
+        self.value += (f1.value,) if not isinstance(f1.value, tuple) else f1.value
         if f2:
-            self.value += (f2.value,)
-            self.value_str += str(f2)
+            self.value += (f2.value,) if not isinstance(f2.value, tuple) else f2.value
+        self.value_str += str(self.value)
 
 
 class Functions(SuperBox):
     def __init__(self, function=None, functions=None):
         super().__init__()
         if function:
-            self.value += (function.value,)
-            self.value_str += str(function)
+            self.value += (function.value,) if not isinstance(function.value, tuple) else function.value
         if functions:
             self.value += functions.value
-            self.value_str += str(functions)
+        self.value_str += str(self.value)
 
 
 #####################
@@ -56,12 +54,15 @@ class FuncTempl(SuperBox):
         super().__init__()
         func_vals = {'type': atype.value, 'symbol': symbol.value}
         if func_params:
-            func_vals.update({'params': func_params.value})
+            if func_params.value:
+                func_vals.update({'params': func_params.value})
         if func_body:
-            func_vals.update({'body': func_body.value})
+            if func_body.value:
+                func_vals.update({'body': func_body.value})
         if func_return:
-            func_vals.update({'return': func_return.value})
-        self.value += (func_vals,)
+            if func_return.value:
+                func_vals.update({'return': func_return.value})
+        self.value = func_vals
         self.value_str += str(self.value)
 
 
@@ -79,15 +80,12 @@ class FuncParams(SuperBox):
 
 
 class FuncBody(SuperBox):
-    def __init__(self, f1=None, f2=None):
-        print(f'funcbody? ({f1}, {f2})')
+    def __init__(self, f1=None):
+        print(f'funcbody? {f1}')
         super().__init__()
         if f1:
-            self.value += (f1.value,)
-            self.value_str += str(f1)
-        if f2:
-            self.value += (f2.value,)
-            self.value_str += str(f2)
+            self.value = f1.value
+            self.value_str += str(self.value)
 
 
 class FuncReturn(SuperBox):
@@ -95,7 +93,7 @@ class FuncReturn(SuperBox):
         print(f'return? {func_return}')
         super().__init__()
         if func_return:
-            self.value += (func_return.value,)
+            self.value = func_return.value
             self.value_str += str(func_return)
 
 
@@ -105,10 +103,10 @@ class GenExpr(SuperBox):
         super().__init__()
         if expr:
             self.value += (expr.value,) if not isinstance(expr.value, tuple) else expr.value
-            self.value_str += str(expr)
+            self.value_str += str(self.value)
         if extra:
             self.value += (extra.value,) if not isinstance(extra.value, tuple) else extra.value
-            self.value_str += str(extra)
+            self.value_str += str(self.value)
 
 
 ###########
@@ -119,9 +117,9 @@ class ValueCallExpr(SuperBox):
         print(f'valuecallexpr? {value}')
         super().__init__()
         if isinstance(value, (Token,)):
-            self.value += (value,)
+            self.value = {'call': value}
         else:
-            self.value += (value.value,)
+            self.value = {'call': value.value}
         self.value_str += str(value)
 
 
@@ -130,23 +128,26 @@ class ValueAssign(SuperBox):
         print(f'valueassign? {value}')
         super().__init__()
         if isinstance(value, (Token,)):
-            self.value += ({'assign': value},)
+            self.value += (value,)
         else:
-            self.value += ({'assign': value.value},)
-        self.value_str += str(value)
+            self.value += (value.value,) if not isinstance(value.value, tuple) else value.value
+        self.value_str += str(self.value)
 
 
 class ExtValueAssign(SuperBox):
     def __init__(self, value, opt=None, extra=None):
         print(f'extvalueassign? ({value}, {opt}, {extra})')
         super().__init__()
-        ext_vals = {}
-        ext_vals.update({'value': value if isinstance(value, (Token,)) else value.value})
+        # ext_vals = {}
+        # ext_vals.update({'value': value if isinstance(value, (Token,)) else value.value})
+        ext_vals = value if isinstance(value, Token) else value.value
         if opt:
-            ext_vals.update({'opt_assign': opt})
+            if opt.value:
+                ext_vals.update({'opt_assign': opt.value})
         self.value += (ext_vals,)
         if extra:
-            self.value += extra.value
+            if extra.value:
+                self.value += (extra.value,) if not isinstance(extra.value, tuple) else extra.value
         self.value_str += str(self.value)
 
 
@@ -155,19 +156,19 @@ class ValueCallExpr2(SuperBox):
         print(f'valuecallexpr2? ({value1}, {value2})')
         super().__init__()
         if value1:
-            self.value += (value1.value,)
-            self.value_str += str(value1)
+            self.value += (value1.value,) if not isinstance(value1.value, tuple) else value1.value
+            self.value_str += str(self.value)
         if value2:
-            self.value += (value2.value,)
-            self.value_str += str(value2)
+            self.value += (value2.value,) if not isinstance(value2.value, tuple) else value2.value
+            self.value_str += str(self.value)
 
 
 class SuperValue(SuperBox):
     def __init__(self, value):
         print(f'supervalue? {value}')
         super().__init__()
-        self.value += (value.value,)
-        self.value_str += str(value)
+        self.value = value.value
+        self.value_str += str(self.value)
 
 
 ##################
@@ -263,9 +264,10 @@ class LoopExpr(SuperBox):
     def __init__(self, loop_range, func_body, loop_var=None):
         print(f'loopexpr? (loop_var={loop_var}, loop_range={loop_range}, func_body={func_body})')
         super().__init__()
-        loop_vals = {'range': loop_range.value, 'body': func_body.value}
+        loop_vals = {'loop': {'range': loop_range.value, 'body': func_body.value}}
         if loop_var:
-            loop_vals.update({'loop_var': loop_var if isinstance(loop_var, Token) else loop_var.value})
+            loop_vals.update(
+                {'loop_var': loop_var if isinstance(loop_var, Token) else loop_var.value})
         self.value += (loop_vals,)
         self.value_str = str(self.value)
 
@@ -277,9 +279,8 @@ class LoopRange(SuperBox):
         lrange_vals = {'start': v1 if isinstance(v1, Token) else v1.value}
         if v2:
             lrange_vals.update({'end': v2 if isinstance(v2, Token) else v2.value})
-        self.value += (lrange_vals,)
+        self.value = lrange_vals
         self.value_str = str(self.value)
-
 
 
 #################
@@ -305,8 +306,8 @@ class AValue(SuperBox):
     def __init__(self, value):
         print(f'avalue? {value}')
         super().__init__()
-        self.value = value
-        self.value_str += str(value)
+        self.value = value if isinstance(value, Token) else value.value
+        self.value_str += str(self.value)
 
 
 class OptAssign(SuperBox):
@@ -315,10 +316,10 @@ class OptAssign(SuperBox):
         super().__init__()
         if value:
             if isinstance(value, Token):
-                self.value += (value,)
+                self.value = value
             else:
-                self.value += (value.value,)
-        self.value_str += str(value)
+                self.value = value.value
+        self.value_str += str(self.value)
 
 
 class ARKW(SuperBox):

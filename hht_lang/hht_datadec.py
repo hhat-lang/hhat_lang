@@ -1,15 +1,16 @@
 from hht_lang.hht_errorhandler import error_handler_wrapper as hht_error
 from rply.token import BaseBox, Token
+from typing import Union, Any
 
 
 class Data(BaseBox):
-    def __init__(self, symbol, type_rkw=None, size=None, value=None, prop=None):
-        self.atype = type_rkw
-        self.symbol = symbol
-        self.size = size
+    def __init__(self, symbol, type_rkw=None, size=None, value: Union[Any, None] = None, prop=None):
+        self.atype = type_rkw.value if type_rkw else type_rkw
+        self.symbol = symbol.value
+        self.size = size.value if size else size
         self.value_expr = value
-        self.property = prop
-        self.value = (value,) if value else ()
+        self.property = prop.value if prop else prop
+        self.value = value.value if not isinstance(value, tuple) and value is not None else value
 
     def __repr__(self):
         return f"{self.__class__.__name__}(atype={self.atype} symbol={self.symbol} size={self.size} value={self.value_expr})"
@@ -38,7 +39,7 @@ class DataDeclaration(Data):
             data_vals.update({'size_decl': size.value})
         if value_expr is not None:
             data_vals.update({'assign_expr': value_expr.value})
-        self.value += (data_vals,)
+        self.value = data_vals
         print(f'datadec? {self.value}')
 
     def store_mem(self):
@@ -53,7 +54,7 @@ class DataAssign(Data):
         print('dataassign?')
         super().__init__(symbol=symbol, value=value_expr)
         data_vals = {'symbol': self.symbol, 'assign_expr': value_expr.value}
-        self.value += (data_vals,)
+        self.value = data_vals
 
     @staticmethod
     def check_valid_value(mem_data, data):
@@ -72,8 +73,8 @@ class DataCall(Data):
     def __init__(self, symbol, value):
         print(f'datacall? (symbol={symbol}, value={value} ... value.value=({value.value}))')
         super().__init__(symbol=symbol, value=value.value)
-        data_vals = {'symbol': self.symbol, 'call': self.value}
-        self.value += (data_vals,)
+        data_vals = {'caller': self.symbol, 'args': self.value}
+        self.value = data_vals
 
     def read_mem(self, mem_data):
         if self.property:

@@ -16,8 +16,10 @@ def run_parser(data):
     return parser.parse(data)
 
 
-def just_run():
-    _d = test_hht("test.hht")
+def just_run(file_=""):
+    if not file_:
+        file_ = "test.hht"
+    _d = test_hht(file_)
     _ld = run_lex(_d)
     print(run_parser(_ld))
 

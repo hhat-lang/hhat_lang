@@ -1,7 +1,12 @@
-from hht_core_ast import *
+from core_ast import *
+from data_ast import (DataDeclaration, DataAssign, DataCall)
 
 s = [
-    ("program : functions main", Program, [0, 1]),
+    ("program : importing functions main", Program, [1, 2, 0]),
+    ("importing : ", Imports, []),
+    ("importing : IMPORTS OPEN import_symbol CLOSE", Imports, [2]),
+    ("import_symbol : ", ImportSymbol, []),
+    ("import_symbol : DSYMBOL import_symbol | STRING import_symbol", ImportSymbol, [0, 1]),
     ("functions : function functions", Functions, [0, 1]),
     ("functions : ", Functions, []),
     ("function : FUNCTION func_template", Function, [1]),
@@ -9,7 +14,7 @@ s = [
     ("main : ", Main, []),
     ("func_template : atype asymbol func_params COLON OPEN func_body func_return CLOSE", FuncTempl, [0, 1, 2, 5, 6]),
     ("atype : NULL_TYPE | BOOL_TYPE | INTEGER_TYPE | FLOAT_TYPE | STRING_TYPE | GATES_TYPE | REGISTER_TYPE | LIST_TYPE | HASHMAP_TYPE | MEAS_TYPE", TypeRKW, [0]),
-    ("asymbol : SYMBOL | QSYMBOL", ASymbol, [0]),
+    ("asymbol : SYMBOL | QSYMBOL | PSYMBOL", ASymbol, [0]),
     ("func_params : OPEN atype asymbol func_params2 CLOSE", FuncParams, [1, 2, 3]),
     ("func_params :  ", FuncParams, []),
     ("func_params2 : COMMA atype asymbol func_params2", FuncParams, [1, 2, 3]),

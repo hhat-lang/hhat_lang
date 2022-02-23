@@ -1,4 +1,4 @@
-from hht_lang.hht_errorhandler import error_handler_wrapper as hht_error
+from error_handler import error_handler_wrapper as hht_error
 from rply.token import BaseBox, Token
 from typing import Union, Any
 

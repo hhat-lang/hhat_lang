@@ -9,6 +9,7 @@ tokens.update({"COLON": r":"})
 tokens.update({"STAR": r"\*"})
 tokens.update({"COMMA": r"\,"})
 
+tokens.update({"IMPORTS": r"imports(?!\w)"})
 tokens.update({"MAIN": r"main(?!\w)"})
 tokens.update({"FUNCTION": r"func(?!\w)"})
 tokens.update({"RETURN": r"return(?!\w)"})
@@ -39,11 +40,13 @@ tokens.update({"FLOAT_TYPE": r"float(?!\w)"})
 tokens.update({"BOOL_TYPE": r"bool(?!\w)"})
 tokens.update({"STRING_TYPE": r"str(?!\w)"})
 tokens.update({"GATES_TYPE": r"gates(?!\w)"})
-tokens.update({"QUBITS_TYPE": r"qubits(?!\w)"})
 tokens.update({"REGISTER_TYPE": r"register(?!\w)"})
 tokens.update({"LIST_TYPE": r"list(?!\w)"})
 tokens.update({"HASHMAP_TYPE": r"hashmap(?!\w)"})
 tokens.update({"MEAS_TYPE": r"measurement(?!\w)"})
+
+tokens.update({"TRUE": r"T(?!\w)"})
+tokens.update({"FALSE": r"F(?!\w)"})
 
 tokens.update({"H": r"@h(?!\w)"})
 tokens.update({"X": r"@x(?!\w)"})
@@ -78,13 +81,14 @@ tokens.update({"LENGTH": r"len(?!\w)"})
 
 tokens.update({"PRINT": r"print(?!\w)"})
 
-
 tokens.update({"SYMBOL": r"[a-zA-Z_]+[a-zA-Z_0-9]*"})
 tokens.update({"QSYMBOL": r"@[a-zA-Z_]+[a-zA-Z_0-9]*"})
+tokens.update({"PSYMBOL": r"\?[a-zA-Z_]+"})
+tokens.update({"DSYMBOL": r"\#[a-zA-Z_0-9\.\-]+"})
 
 tokens.update({"INT_NUMBER": r"[-+]?[0-9]+"})
 tokens.update({"FLOAT_NUMBER": r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?"})
-tokens.update({"IMAG_NUMBER": r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?j(?!\w)"})
+# tokens.update({"IMAG_NUMBER": r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?j(?!\w)"})
 tokens.update({"STRING": r"(\".*\")|(\'.*\')"})
 
 

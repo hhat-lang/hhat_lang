@@ -1,5 +1,5 @@
 from rply import LexerGenerator
-from hht_lang.hht_tokens import tokens
+from tokens import tokens
 
 # generate lexer
 lg = LexerGenerator()

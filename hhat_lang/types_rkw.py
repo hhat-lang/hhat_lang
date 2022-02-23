@@ -1,4 +1,4 @@
-from hht_errorhandler import error_handler_wrapper as hht_error
+from error_handler import error_handler_wrapper as hht_error
 from rply.token import BaseBox
 from typing import List
 from networkx import Graph

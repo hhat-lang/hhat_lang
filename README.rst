@@ -1,0 +1,117 @@
+==============
+:math:`\hat{H}` quantum language
+==============
+
+
+.. image:: https://img.shields.io/pypi/v/hhat_lang.svg
+        :target: https://pypi.python.org/pypi/hhat_lang
+
+.. image:: https://img.shields.io/travis/Doomsk/hhat_lang.svg
+        :target: https://travis-ci.com/Doomsk/hhat_lang
+
+.. image:: https://readthedocs.org/projects/hhat-lang/badge/?version=latest
+        :target: https://hhat-lang.readthedocs.io/en/latest/?version=latest
+        :alt: Documentation Status
+
+
+.. image:: https://pyup.io/repos/github/Doomsk/hhat_lang/shield.svg
+     :target: https://pyup.io/repos/github/Doomsk/hhat_lang/
+     :alt: Updates
+
+
+The core quantum language for :math:`C^{\dagger}`` programming language.
+
+*Disclaimer*: This is a work still in very early stages and may be seeing as such, so errors, inconsistencies, tons of experimentation, modifications and trials will happen.
+
+--------
+Summary
+--------
+
+* A (high level) quantum algorithms builder
+* Handling output data with context meaning
+* Debugging results and quantum processes through post-measurement analysis
+* Convert high level languages commands into low level quantum instructions for quantum languages such as openQASM, cQASM, NetQASM, Q1ASM to be execute on their respective hardware/simulator
+* Gates approach - no directed qubit relation since it will be handled by the language, its interpreter/compiler and subsequently by the low level quantum languages compiler
+
+
+-----------
+Objectives
+-----------
+
+* Provide an intermediate picture between high-level and QASM-like programming languages
+* Make use of basic quantum gates and complex quantum instructions in a dummy-qubit environment
+* Bring light to measurement results and their analysis
+* Debugging through (partial) quantum analysis of measurement results for results and inner processes comparing them to simulated ones (using fisher information, linear entropy, entanglement measurements, etc)
+
+--------
+Features
+--------
+
+* simple syntax
+* static-typed
+* quantum commands are referred with :code:`@` before the word, i.e. :code:`@h`, :code:`@cnot`
+
+
+Data Types
+------
+
+- **null**: no data
+- **bool**: binary data, i.e. true and false, full and empty; represented as :code:`T` and :code:`F`
+- **register**: sequence of natural amount of enumerated (indexed) single binary data; :code:`hashmap` with integer keys and single binary values. It is intended to store the output collected from each single measurement operation (aka :code:`@return`)
+- **int**: integer numbers
+- **float**: floating point numbers
+- **str**: sequence of 0 or more characters between quotes :code:`""`
+- **list**: sequence of any enumerated data
+- **gates**: sequence of 1 or more quantum gates for 1 or more qubits in 1 or more steps
+- **hashmap**: an unordered associative array of keys and values
+- **measurement**: a :code:`hashmap` containing relevant data output from the qubits measurement, such as: unique bits sequences final counting, number of shots, some special grouping of bits sequences counting (depending on extra arguments passed)
+
+
+TODOs:
+-----
+
+* include built-in error handler
+* include debugger mode
+* create evaluators
+* emulate data types and memory
+
+
+------
+How to Use
+------
+
+So far, you can:
+
+* Run the :code:`test_run.py` to see the *lexer* and the *parser* results.
+* [*At your own risk*] In case you are confident to make some changes in the language semantics, to generate the parser you need to change the :code:`prod_semantics.txt` and :code:`semantics_class_list.txt` files. Both files must need the same number of lines and each line is directly connected between them. The intended changes will be subject to the existing classes at :code:`core_ast.py` and :code:`data_ast.py` to handle them.
+
+TODOs:
+-----
+
+* Include explanation over the current language syntax, semantics and features
+
+
+-------
+License
+-------
+
+Although this code is still private, it will be available as MIT license (free software) once its repository is made public* by Doomsk_.
+
+.. * Documentation: https://hhat-lang.readthedocs.io.
+
+-------
+Credits
+-------
+Code is being developed by Doomsk_, Kaonan_ and T1t0_.
+
+----
+
+This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+
+
+
+.. _Doomsk: https://github.com/Doomsk
+.. _Kaonan: https://github.com/kaosmicadei
+.. _T1t0: https://github.com/adauto6
+.. _Cookiecutter: https://github.com/audreyr/cookiecutter
+.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage

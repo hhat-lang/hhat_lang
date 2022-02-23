@@ -1,0 +1,15 @@
+pip
+wheel
+watchdog
+flake8
+tox
+coverage
+Sphinx
+twine
+Click==7.1.2
+pytest~=7.0.0
+black==21.12b0
+
+setuptools~=58.0.4
+rply~=0.7.8
+networkx~=2.6.3

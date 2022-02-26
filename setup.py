@@ -10,7 +10,8 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['Click>=7.0', ]
+with open("requirements_dev.txt", "r") as req_dev_file:
+    requirements_dev = req_dev_file.read().splitlines()
 
 test_requirements = ['pytest>=3', ]
 
@@ -34,13 +35,14 @@ setup(
             'hhat_lang=hhat_lang.cli:main',
         ],
     },
-    install_requires=requirements,
+    install_requires=requirements_dev,
     license="MIT license",
     long_description=readme + '\n\n' + history,
     include_package_data=True,
     keywords='hhat_lang',
     name='hhat_lang',
     packages=find_packages(include=['hhat_lang', 'hhat_lang.*']),
+    package_data={"": ["*.hht", "prod_semantics.txt", "semantics_class_list.txt"]},
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/Doomsk/hhat_lang',

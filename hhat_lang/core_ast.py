@@ -1,6 +1,9 @@
-from data_ast import (DataDeclaration, DataAssign, DataCall)
+try:
+    from hhat_lang.data_ast import (DataDeclaration, DataAssign, DataCall)
+except ImportError:
+    from data_ast import (DataDeclaration, DataAssign, DataCall)
 from rply.token import BaseBox, Token
-from typing import Any
+from typing import Union
 
 
 class SuperBox(BaseBox):
@@ -30,14 +33,14 @@ class ASymbol(SuperBox):
 
 
 class AValue(SuperBox):
-    def __init__(self, value: Any[Token, ASymbol]):
+    def __init__(self, value: Union[Token, ASymbol]):
         super().__init__()
         self.value = value if isinstance(value, Token) else value.value
         self.value_str += str(self.value)
 
 
 class OptAssign(SuperBox):
-    def __init__(self, value: Any[Token, 'ValueCallExpr2'] = None):
+    def __init__(self, value: Union[Token, 'ValueCallExpr2'] = None):
         super().__init__()
         if value:
             if isinstance(value, Token):
@@ -58,7 +61,7 @@ class ARKW(SuperBox):
 # VCALLS #
 ##########
 class SuperValue(SuperBox):
-    def __init__(self, value: Any[AValue, DataCall, 'IfStmtExpr', 'LoopExpr']):
+    def __init__(self, value: Union[AValue, DataCall, 'IfStmtExpr', 'LoopExpr']):
         super().__init__()
         self.value = value.value
         self.value_str += str(self.value)
@@ -105,7 +108,7 @@ class ValueAssign(SuperBox):
 
 
 class ValueCallExpr(SuperBox):
-    def __init__(self, value: Any[Token, ASymbol, DataCall, ARKW]):
+    def __init__(self, value: Union[Token, ASymbol, DataCall, ARKW]):
         super().__init__()
         if isinstance(value, Token):
             self.value = {'call': value}
@@ -116,7 +119,7 @@ class ValueCallExpr(SuperBox):
 
 class GenExpr(SuperBox):
     def __init__(self,
-                 expr: Any[DataDeclaration, DataAssign, DataCall] = None,
+                 expr: Union[DataDeclaration, DataAssign, DataCall] = None,
                  extra: 'GenExpr' = None):
         super().__init__()
         if expr:
@@ -166,9 +169,9 @@ class FuncTempl(SuperBox):
     def __init__(self,
                  atype: TypeRKW,
                  symbol: ASymbol,
-                 func_params: Any[tuple, dict, FuncParams] = None,
-                 func_body: Any[tuple, dict, FuncBody] = None,
-                 func_return: Any[tuple, dict, FuncReturn] = None):
+                 func_params: Union[tuple, dict, FuncParams] = None,
+                 func_body: Union[tuple, dict, FuncBody] = None,
+                 func_return: Union[tuple, dict, FuncReturn] = None):
         super().__init__()
         func_vals = {'type': atype.value, 'symbol': symbol.value}
         if not isinstance(func_params, tuple) and func_params is not None:
@@ -201,7 +204,7 @@ class Function(SuperBox):
 
 class Functions(SuperBox):
     def __init__(self,
-                 function: Any[dict, tuple, Function] = None,
+                 function: Union[dict, tuple, Function] = None,
                  functions: 'Functions' = None):
         super().__init__()
         if not isinstance(function, (tuple, dict)) and function is not None:
@@ -217,7 +220,7 @@ class Functions(SuperBox):
 #########
 class LoopRange(SuperBox):
     def __init__(self,
-                 v1: Any[ValueCallExpr, ASymbol, DataCall],
+                 v1: Union[ValueCallExpr, ASymbol, DataCall],
                  v2: ValueCallExpr = None):
         super().__init__()
         lrange_vals = {'start': v1 if isinstance(v1, Token) else v1.value}
@@ -260,7 +263,7 @@ class AppendIfTest(SuperBox):
 
 class BoolValue(SuperBox):
     def __init__(self,
-                 value: Any[DataCall, AValue],
+                 value: Union[DataCall, AValue],
                  negative: Token = None):
         super().__init__()
         if negative:
@@ -367,7 +370,7 @@ class Program(SuperBox):
     def __init__(self,
                  functions: Functions,
                  main: Main = None,
-                 importing: Any[dict, tuple, Imports] = None):
+                 importing: Union[dict, tuple, Imports] = None):
         super().__init__()
         if not isinstance(importing, tuple) and importing is not None:
             if importing.value:

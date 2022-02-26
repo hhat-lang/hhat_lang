@@ -1,5 +1,8 @@
-from core_ast import *
-from data_ast import (DataDeclaration, DataAssign, DataCall)
+try:
+    from hhat_lang.core_ast import *
+except ImportError:
+    from core_ast import *
+
 
 s = [
     ("program : importing functions main", Program, [1, 2, 0]),

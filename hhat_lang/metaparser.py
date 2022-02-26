@@ -1,4 +1,21 @@
+try:
+    from hhat_lang.core_ast import *
+except ImportError:
+    from core_ast import *
 import click
+import os
+
+prod_semantics = "prod_semantics.txt"
+semantics_list = "semantics_class_list.txt"
+semantics_py = "semantics.py"
+parser_py = "parser.py"
+
+
+def split_class_list(str2split):
+    splitted_str = str2split.split(" ")
+    class_str = splitted_str[0].strip(',')
+    list_str = eval(''.join(splitted_str[1:]))
+    return class_str, list_str
 
 
 def create_semantics(semantics_prod_path, semantics_list_path):
@@ -6,14 +23,23 @@ def create_semantics(semantics_prod_path, semantics_list_path):
         file1 = f1.read().splitlines()
     with open(semantics_list_path, "r") as f2:
         file2 = f2.read().splitlines()
-
-    meta_semantics = """from core_ast import *
-
-s = [\n    """
+    meta_semantics = []
     for v0, v1 in zip(file1, file2):
-        if v0 and v1:
-            meta_semantics += f"({v0}, {v1}),\n    "
-    meta_semantics += "]\n"
+        prod_str = v0.strip('"')
+        class_str, list_literal = split_class_list(v1)
+        meta_semantics.append((prod_str, class_str, list_literal))
+    return meta_semantics
+
+
+def semantics_py_template(data):
+    meta_semantics = f"""try:
+    from hhat_lang.core_ast import *
+except ImportError:
+    from core_ast import *
+\n\ns = [\n"""
+    for k in data:
+        meta_semantics += f"    (\"{k[0]}\", {eval(k[1]).__name__}, {k[2]}),\n"
+    meta_semantics += f"    ]\n"
     return meta_semantics
 
 
@@ -44,10 +70,14 @@ def meta_prod(values):
 
 
 def create_parser_file(data):
-    _meta_script = f"""from core_ast import *
+    _meta_script = f"""try:
+    from hhat_lang.core_ast import *
+    from hhat_lang.tokens import tokens
+except ImportError:
+    from core_ast import *
+    from tokens import tokens
 from rply import ParserGenerator
-from tokens import tokens
-\n
+\n\n
 pg = ParserGenerator(list(tokens.keys()))\n
 """
 
@@ -56,35 +86,53 @@ pg = ParserGenerator(list(tokens.keys()))\n
         _meta_script += f"""
 {meta_prod(k[0])}
 def function_{k0}(p):
-    return {k[1].__name__}({words_list})\n
+    return {eval(k[1]).__name__}({words_list})\n
 """
 
-    _meta_script += """\nparser = pg.build()\n#fim!"""
+    _meta_script += """\nparser = pg.build()\n"""
     return _meta_script
+
+
+def get_path(file_name):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                        file_name)
+
+
+def create_parser(sem_prod=prod_semantics,
+                  class_list=semantics_list,
+                  sem_py=semantics_py,
+                  par_py=parser_py):
+    sem_prod = get_path(sem_prod)
+    class_list = get_path(class_list)
+    sem_py = get_path(sem_py)
+    par_py = get_path(par_py)
+
+    semantics_data = create_semantics(sem_prod, class_list)
+    sem_str_data = semantics_py_template(semantics_data)
+    save_semantics(sem_str_data, sem_py)
+    meta_script = create_parser_file(semantics_data)
+    save_parser(par_py, meta_script)
+    title = ' H-hat lang Metaparser '
+    header = f'{"=" * len(title)}\n{title}\n{"=" * len(title)}'
+    print(f'{header}\n\n* Parser generated on file: {par_py}\n')
 
 
 @click.command()
 @click.option("--sem_prod",
-              default="prod_semantics.txt",
+              default=prod_semantics,
               help="semantics production file name")
 @click.option("--class_list",
-              default="semantics_class_list.txt",
+              default=semantics_list,
               help="classes and args list input file name for semantics production")
 @click.option("--sem_py",
-              default="semantics.py",
+              default=semantics_py,
               help="the new semantics py file name according to prod and class list data")
 @click.option("--parser_py",
-              default="parser.py",
+              default=parser_py,
               help="parser py file name")
-def create_parser(sem_prod, class_list, sem_py, parser_py):
-    semantics_data = create_semantics(sem_prod, class_list)
-    s = []
-    exec(semantics_data)
-    save_semantics(semantics_data, sem_py)
-    meta_script = create_parser_file(s)
-    save_parser(parser_py, meta_script)
-    print(f'{"-"*10}\nMetaparser\n{"-"*10}\n* Parser generated on file: {parser_py}\n')
+def call_parser(sem_prod, class_list, sem_py, parser_py):
+    create_parser(sem_prod, class_list, sem_py, parser_py)
 
 
 if __name__ == '__main__':
-    create_parser()
+    call_parser()

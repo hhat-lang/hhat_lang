@@ -28,7 +28,7 @@ tokens.update({"IN": r"in(?!\w)"})
 tokens.update({"RANGE": r"\.\."})
 tokens.update({"AS": r"as(?!\w)"})
 
-tokens.update({"EQ": r"="})
+tokens.update({"EQ": r"=="})
 tokens.update({"GT": r">"})
 tokens.update({"LT": r"<"})
 tokens.update({"GET": r">="})

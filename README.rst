@@ -80,9 +80,31 @@ TODOs:
 How to Use
 ------
 
+To set up the language in your package manager you can:
+
+* Run :code:`python3 setup.py install` in the root folder :code:`hhat_lang`; or
+* Run :code:`pip3 install -e .` in the root folder
+
 So far, you can:
 
-* Run the :code:`test_run.py` to see the *lexer* and the *parser* results.
+* Run the lexer and the parser
+
+How?
+
+* Run the :code:`test_run.py` (on the folder :code:`examples`) to see the *lexer* and the *parser* results.
+* Run your own code through:
+.. code-block:: python
+
+    from hhat_lang.metaparser import create_parser
+    from hhat_lang.lexer import lexer
+    from hhat_lang.parser import parser
+
+    create_parser()
+    c = "main null C: (int res: (:add(1 1), :print))"  # include your code in this line
+    lc = lexer.lex(c)
+    parser.parse(lc)  # this will print the parsed code
+
+
 * [*At your own risk*] In case you are confident to make some changes in the language semantics, to generate the parser you need to change the :code:`prod_semantics.txt` and :code:`semantics_class_list.txt` files. Both files must need the same number of lines and each line is directly connected between them. The intended changes will be subject to the existing classes at :code:`core_ast.py` and :code:`data_ast.py` to handle them.
 
 TODOs:

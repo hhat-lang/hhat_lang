@@ -1,1 +1,1 @@
-main null C: (int res: (:add(1 1), :print))
+main null C : (int res : (:add(1 1), :print))

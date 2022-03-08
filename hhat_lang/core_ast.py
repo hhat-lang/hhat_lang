@@ -1,9 +1,11 @@
+"""Core AST"""
+
 try:
-    from hhat_lang.data_ast import (DataDeclaration, DataAssign, DataCall)
-except ImportError:
     from data_ast import (DataDeclaration, DataAssign, DataCall)
-from rply.token import BaseBox, Token
+except ImportError:
+    from hhat_lang.data_ast import (DataDeclaration, DataAssign, DataCall)
 from typing import Union
+from rply.token import BaseBox, Token
 
 
 class SuperBox(BaseBox):
@@ -90,6 +92,11 @@ class ExtValueAssign(SuperBox):
         if opt:
             if opt.value:
                 ext_vals.update({'opt_assign': opt.value})
+            else:
+                # print(f'-CORE AST: opt={opt} | No opt.value')
+                ext_vals.update({'opt_assign': Token("ASSIGN_NULL", "all")})
+        else:
+            ext_vals.update({'opt_assign': Token("ASSIGN_NULL", "all")})
         self.value += (ext_vals,)
         if extra:
             if extra.value:
@@ -319,7 +326,7 @@ class ElifStmtExpr(SuperBox):
         super().__init__()
         expr_vals = {}
         if tests and func_body:
-            expr_vals.update({'tests': tests.value, 'body': func_body.value})
+            expr_vals.update({'test': tests.value, 'body': func_body.value})
         self.value += (expr_vals,)
         if extra:
             self.value += extra
@@ -333,10 +340,10 @@ class IfStmtExpr(SuperBox):
                  elif_body: ElifStmtExpr = None,
                  else_body: ElseStmtExpr = None):
         super().__init__()
-        expr_vals = {'if': {'tests': tests.value,
+        expr_vals = {'if': {'test': tests.value,
                             'body': func_body.value}}
         if elif_body:
-            expr_vals.update({'elifs': elif_body})
+            expr_vals.update({'elif': elif_body})
         if else_body:
             expr_vals.update({'else': {'body': else_body}})
         self.value += (expr_vals,)
@@ -358,9 +365,9 @@ class ImportSymbol(SuperBox):
     def __init__(self, s1=None, s2=None):
         super().__init__()
         if s1:
-            self.value += (s1.value,)
+            self.value += (s1.value,) if not isinstance(s1.value, tuple) else s1.value
         if s2:
-            self.value += (s2.value,)
+            self.value += (s2.value,) if not isinstance(s2.value, tuple) else s2.value
 
 
 #################

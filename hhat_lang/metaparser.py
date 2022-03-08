@@ -1,7 +1,7 @@
 try:
-    from hhat_lang.core_ast import *
-except ImportError:
     from core_ast import *
+except ImportError:
+    from hhat_lang.core_ast import *
 import click
 import os
 
@@ -33,9 +33,9 @@ def create_semantics(semantics_prod_path, semantics_list_path):
 
 def semantics_py_template(data):
     meta_semantics = f"""try:
-    from hhat_lang.core_ast import *
-except ImportError:
     from core_ast import *
+except ImportError:
+    from hhat_lang.core_ast import *
 \n\ns = [\n"""
     for k in data:
         meta_semantics += f"    (\"{k[0]}\", {eval(k[1]).__name__}, {k[2]}),\n"
@@ -71,11 +71,11 @@ def meta_prod(values):
 
 def create_parser_file(data):
     _meta_script = f"""try:
-    from hhat_lang.core_ast import *
-    from hhat_lang.tokens import tokens
-except ImportError:
     from core_ast import *
     from tokens import tokens
+except ImportError:
+    from hhat_lang.core_ast import *
+    from hhat_lang.tokens import tokens
 from rply import ParserGenerator
 \n\n
 pg = ParserGenerator(list(tokens.keys()))\n

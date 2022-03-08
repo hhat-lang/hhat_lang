@@ -62,7 +62,7 @@ Data Types
 - **float**: floating point numbers
 - **str**: sequence of 0 or more characters between quotes :code:`""`
 - **list**: sequence of any enumerated data
-- **gates**: sequence of 1 or more quantum gates for 1 or more qubits in 1 or more steps
+- **circuit**: sequence of 1 or more quantum gates for 1 or more qubits in 1 or more steps (can include other circuits as well)
 - **hashmap**: an unordered associative array of keys and values
 - **measurement**: a :code:`hashmap` containing relevant data output from the qubits measurement, such as: unique bits sequences final counting, number of shots, some special grouping of bits sequences counting (depending on extra arguments passed)
 

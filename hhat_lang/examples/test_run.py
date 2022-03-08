@@ -2,13 +2,13 @@ import click
 import os
 from copy import deepcopy
 try:
-    from hhat_lang.lexer import lexer
-    from hhat_lang.parser import parser
-    from hhat_lang.metaparser import create_parser
-except ImportError:
     from ..lexer import lexer
     from ..parser import parser
     from ..metaparser import create_parser
+except ImportError:
+    from hhat_lang.lexer import lexer
+    from hhat_lang.parser import parser
+    from hhat_lang.metaparser import create_parser
 
 
 TEST_FILE_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test.hht")

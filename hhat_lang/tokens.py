@@ -48,7 +48,7 @@ tokens.update({"HASHMAP_TYPE": r"hashmap(?!\w)"})
 tokens.update({"MEAS_TYPE": r"measurement(?!\w)"})
 
 tokens.update({"TRUE_LITERAL": r"T(?!\w)"})
-tokens.update({"TRUE_LITERAL": r"F(?!\w)"})
+tokens.update({"FALSE_LITERAL": r"F(?!\w)"})
 
 tokens.update({"H_GATE": r"@h(?!\w)"})
 tokens.update({"X_GATE": r"@x(?!\w)"})
@@ -84,9 +84,9 @@ tokens.update({"LENGTH": r"len(?!\w)"})
 tokens.update({"PRINT": r"print(?!\w)"})
 
 tokens.update({"SYMBOL": r"[a-zA-Z_]+[a-zA-Z_0-9]*"})
-tokens.update({"QSYMBOL": r"@[a-zA-Z_]+[a-zA-Z_0-9]*"})
-tokens.update({"PSYMBOL": r"\?[a-zA-Z_]+"})
-tokens.update({"DSYMBOL": r"\#[a-zA-Z_0-9\.\-]+"})
+tokens.update({"Q_SYMBOL": r"@[a-zA-Z_]+[a-zA-Z_0-9]*"})
+tokens.update({"P_SYMBOL": r"\?[a-zA-Z_]+"})
+tokens.update({"D_SYMBOL": r"\#[a-zA-Z_0-9\.\-]+"})
 
 tokens.update({"INT_LITERAL": r"[-+]?[0-9]+"})
 tokens.update({"FLOAT_LITERAL": r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?"})

@@ -1,6 +1,7 @@
 """Memory emulator"""
 
 import time
+import yaml
 
 
 class BiHashMap:
@@ -49,9 +50,7 @@ class Memory:
 
     ----------------------
     ref should look like:
-    key = ( 'origin_program_name',  # not necessary for now
-            'current_program_name',  # not necessary for now
-            'func_or_main_name',
+    key = ( 'func_or_main_name',
             'attribute_name',
             'type'
             )
@@ -62,30 +61,60 @@ class Memory:
     value = data
     ----------------------
     """
-    def __init__(self, program_name: str = None, do_stats: bool = False):
-        self.count = 0
+    def __init__(self, do_debug=False):
+        self.count = 1
         self.mem_ref = {}
         self.mem_data = {}
-        self.metadata = self.gen_metadata(program_name)
-        if do_stats:
-            self.stats = self.gen_stats()
+        self.do_debug = do_debug
+
+    def dprint(self, *msg, **msgs):
+        if self.do_debug:
+            print(*msg, **msgs)
+
+    def place_right_value(self, key):
+        if key[-1] == int:
+            return 0
+        if key[-1] == str:
+            return ''
+        if key[-1] == float:
+            return 0.0
+        if key[-1] == None:
+            return None
+        if key[-1] in [list, 'any']:
+            return 0
+
+    def enforce_mem_creation(self, key):
+        if key[1] is None or key[2] is None:
+            return True
+        return False
 
     def __setitem__(self, key, value):
-        if isinstance(value, key[-1]):
-            self.mem_ref[key] = self.count
-            self.mem_data[self.count] = value
-            self.count += 1
+        if isinstance(value, key[-1]) or key[-1] in ['any', list] or self.enforce_mem_creation(key):
+            self.dprint(f'MEMORY WARNING SET: MEM_REF KEY={key}', end='')
+            _no_key = not self.mem_ref.get(key)
+            if self.mem_ref.get(key):
+                self.mem_data[self.mem_ref[key]] = value
+            else:
+                self.mem_ref[key] = self.count
+                self.mem_data[self.count] = value
+            self.dprint(f' TO VALUE={value} ON MEMORY DATA SLOT={self.mem_ref[key]}')
+            if _no_key:
+                self.dprint(f'MEMORY WARNING SET: INCREMENTING COUNT')
+                self.count += 1
         else:
             raise ValueError("Wrong value type for the attribute.")
 
     def __getitem__(self, item):
         if isinstance(item, tuple):
             if self.mem_ref.get(item):
-                return self.mem_ref[item]
+                self.dprint(f'MEMORY WARNING GET: MEM_REF KEY={item} ATTEMPT TO RETRIEVE | VALUE={self.mem_data[self.mem_ref[item]]} | SLOT={self.mem_ref[item]}')
+                return self.mem_data[self.mem_ref[item]]
             self.mem_ref[item] = self.count
-            self.mem_data[self.count] = None
+            self.mem_data[self.count] = self.place_right_value(item)
+            self.dprint(f'MEMORY WARNING GET: MEM_REF KEY={item} ATTEMPT TO RETRIEVE | VALUE={self.mem_data[self.mem_ref[item]]} | SLOT={self.mem_ref[item]}')
+            self.dprint(f'MEMORY WARNING SET: INCREMENTING COUNT')
             self.count += 1
-            return None
+            return self.mem_data[self.mem_ref[item]]
         if isinstance(item, int):
             return self.mem_data[item]
         raise ValueError("Wrong value for memory reference.")
@@ -102,16 +131,23 @@ class Memory:
         else:
             raise ValueError("Wrong value for memory reference.")
 
+    def __repr__(self):
+        _mem_state = f'| MEMORY STATE |'
+        _mem_title = '-'*len(_mem_state) + '\n' + _mem_state + '\n' + '-'*len(_mem_state)
+        _mem_ref = f'\nMEM_REF' + '-'*43 + f'\n{self.format_mem_str()}\n' + '-'*50
+        _mem_data = f'MEM_DATA' + '-'*42 + f'\n{yaml.dump(self.mem_data, default_flow_style=False)}' + '-'*50
+        return f"\n{_mem_title}\n{_mem_ref}\n{_mem_data}\n"
+
+    def format_mem_str(self):
+        _format = ""
+        for k, v in self.mem_ref.items():
+            _format += f"{k}: {v}\n"
+        return _format
+
     def pop(self, item):
         self.__delitem__(item)
 
-    def gen_metadata(self, program_name):
-        _metadata = {'program': program_name if program_name else hex(time.time_ns())}
-        _metadata.update({'imports': ()})
-        _metadata.update({'functions': ()})
-        _metadata.update({'main': ()})
-        return _metadata
-
-    def gen_stats(self):
-        _stats = {}
-        return _stats
+    def get(self, item):
+        res = self.mem_ref.get(item, False)
+        self.dprint(f'** Memory.get({item}) => {res} **')
+        return res

@@ -31,7 +31,7 @@ def function_3(p):
     return ImportSymbol()
 
 
-@pg.production("import_symbol : DSYMBOL import_symbol")
+@pg.production("import_symbol : D_SYMBOL import_symbol")
 @pg.production("import_symbol : STRING_LITERAL import_symbol")
 def function_4(p):
     return ImportSymbol(p[0], p[1])
@@ -82,8 +82,8 @@ def function_11(p):
 
 
 @pg.production("asymbol : SYMBOL")
-@pg.production("asymbol : QSYMBOL")
-@pg.production("asymbol : PSYMBOL")
+@pg.production("asymbol : Q_SYMBOL")
+@pg.production("asymbol : P_SYMBOL")
 def function_12(p):
     return ASymbol(p[0])
 

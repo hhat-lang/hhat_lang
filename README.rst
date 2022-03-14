@@ -49,7 +49,9 @@ Features
 
 * simple syntax
 * static-typed
+* quantum functions for quantum data
 * quantum commands are referred with :code:`@` before the word, i.e. :code:`@h`, :code:`@cnot`
+* measurements automatically made with :code:`@return`
 
 
 Data Types
@@ -57,7 +59,7 @@ Data Types
 
 - **null**: no data
 - **bool**: binary data, i.e. true and false, full and empty; represented as :code:`T` and :code:`F`
-- **register**: sequence of natural amount of enumerated (indexed) single binary data; :code:`hashmap` with integer keys and single binary values. It is intended to store the output collected from each single measurement operation (aka :code:`@return`)
+- (*to be revised*) **register**: sequence of natural amount of enumerated (indexed) single binary data; :code:`hashmap` with integer keys and single binary values. It is intended to store the output collected from each single measurement operation (aka :code:`@return`)
 - **int**: integer numbers
 - **float**: floating point numbers
 - **str**: sequence of 0 or more characters between quotes :code:`""`
@@ -70,42 +72,52 @@ Data Types
 TODOs:
 -----
 
-* include built-in error handler
-* include debugger mode
-* create evaluators
-* emulate data types and memory
+- [x] create evaluators
+- [/] include built-in error handler
+- [/] include debugger mode
+- [ ] emulate data types and memory
 
 
 ------
 How to Use
 ------
 
-To set up the language in your package manager you can:
+To set up the language in your package manager you can use one of the following methods.
 
-* Run :code:`python3 setup.py install` in the root folder :code:`hhat_lang`; or
+**Method 1**:
+
+* Run :code:`python3 setup.py install` in the root folder :code:`hhat_lang`
+
+**Method 2**:
+
 * Run :code:`pip3 install -e .` in the root folder
+
+-----
 
 So far, you can:
 
-* Run the lexer and the parser
+* Run the lexer, the parser and the evaluator ("interpreter") for:
+    - Variables of type: :code:`int`, :code:`str`, :code:`float`
+    - Built-in functions :code:`add` and :code:`print`
 
 How?
 
-* Run the :code:`test_run.py` (on the folder :code:`examples`) to see the *lexer* and the *parser* results.
+* Run the :code:`test_run.py` (on the folder :code:`examples`, moved to inside of :code:`hhat_lang` folder) to see the *lexer* and the *parser* results.
 * Run your own code through:
 .. code-block:: python
 
-    from hhat_lang.metaparser import create_parser
-    from hhat_lang.lexer import lexer
-    from hhat_lang.parser import parser
+    from hhat_lang.evaluator import Code
 
-    create_parser()
     c = "main null C: (int res: (:add(1 1), :print))"  # include your code in this line
-    lc = lexer.lex(c)
-    parser.parse(lc)  # this will print the parsed code
+    code_exec = Code(c)
+    code_exec.run() # it will run all the processes and evaluate the code
 
 
 * [*At your own risk*] In case you are confident to make some changes in the language semantics, to generate the parser you need to change the :code:`prod_semantics.txt` and :code:`semantics_class_list.txt` files. Both files must need the same number of lines and each line is directly connected between them. The intended changes will be subject to the existing classes at :code:`core_ast.py` and :code:`data_ast.py` to handle them.
+
+Got an error?
+------
+Open an issue!
 
 TODOs:
 -----

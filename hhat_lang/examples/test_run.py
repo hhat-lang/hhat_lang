@@ -1,6 +1,6 @@
-import click
 import os
 from copy import deepcopy
+import click
 try:
     from ..lexer import lexer
     from ..parser import parser

@@ -19,6 +19,7 @@ except ImportError:
 import time
 import ast
 import pprint
+from copy import deepcopy
 from typing import Union, Dict, Tuple, Optional
 from rply.token import Token
 
@@ -80,7 +81,8 @@ class PreEval:
                         tmp_code += (res,)
                     tmp_scope = None
                 tmp_code += (f'end:{start_scope}',)
-                self.dprint(f'[dict] scope={scope} | tmp_scope={tmp_scope} | scope_name={scope_name} | tmp_name={tmp_name}')
+                self.dprint(
+                    f'[dict] scope={scope} | tmp_scope={tmp_scope} | scope_name={scope_name} | tmp_name={tmp_name}')
                 if scope and tmp_name:
                     self.dprint(f'[dict] got scope={scope} | tmp_name={tmp_name}')
                     if scope == 'main':
@@ -551,19 +553,82 @@ class Eval:
         return _val(code, kwargs)
 
     def eval_run(self, code):
-        print(f'-Running H-hat code:\n')
-        t0 = time.process_time()
+        print('-Running H-hat code:\n')
+        t_0 = time.process_time()
         self.eval_exec(code)
-        tf = time.process_time()
-        print(f'\n- Finished.\n- Done in {round(tf - t0, 6)}s')
+        t_f = time.process_time()
+        print(f'\n- Finished.\n- Done in {round(t_f - t_0, 6)}s')
+
+
+class Code:
+    """
+    Execution the code from text to evaluation/interpreting code
+    """
+
+    def __init__(self, code, debug=False):
+        self.code = code
+        self.debug = debug
+        self.lex_code = None
+        self.parse_code = None
+        self.ir_code = None
+
+    def lex(self):
+        """
+        Provides the tokens sequence for the given code.
+
+        Returns
+        -------
+        iterable containing the tokens
+        """
+        self.lex_code = lexer.lex(self.code)
+        return deepcopy(self.lex_code)
+
+    def parse(self):
+        """
+        Parse the data, structuring the tokens into data.
+
+        Returns
+        -------
+        tuple of dictionaries, tuples and tokens
+        """
+        lex_code = deepcopy(self.lex_code)
+        parse_code = parser.parse(lex_code)
+        self.parse_code = parse_code.value
+        return self.parse_code
+
+    def pre_eval(self):
+        """
+        Pre-evaluate the parsed code.
+
+        Returns
+        -------
+        tuples of strings
+        """
+        pre_code = PreEval(debug=self.debug)
+        ir = pre_code.run(self.parse_code)
+        self.ir_code = ir[0]
+        return ir[1]
+
+    def eval(self):
+        """
+        Evaluate the intermediate representation code
+        and execute the code
+        """
+        ev = Eval(self.ir_code, debug=self.debug)
+        ev.eval_run(self.ir_code)
+        del ev.mem
+
+    def run(self):
+        """
+        Bundle function to run all the previous functions
+        """
+        self.lex()
+        self.parse()
+        self.pre_eval()
+        self.eval()
 
 
 if __name__ == '__main__':
     c = "main null C: (int res: (:add(1 1), :print))"
-    lc = lexer.lex(c)
-    pc = parser.parse(lc)
-    pe = PreEval(False)
-    pcode = pe.print_run(pc.value)
-    # elu = Evalu(False)
-    # elu.eval_exec(pcode)
-    # print(f'- builtin = {[k for k in dir(btin) if "__" not in k and k.startswith("builtin")]}')
+    code_exec = Code(c)
+    code_exec.run()

@@ -1,9 +1,9 @@
 try:
-    from hhat_lang.core_ast import *
-    from hhat_lang.tokens import tokens
-except ImportError:
     from core_ast import *
     from tokens import tokens
+except ImportError:
+    from hhat_lang.core_ast import *
+    from hhat_lang.tokens import tokens
 from rply import ParserGenerator
 
 
@@ -31,8 +31,8 @@ def function_3(p):
     return ImportSymbol()
 
 
-@pg.production("import_symbol : DSYMBOL import_symbol")
-@pg.production("import_symbol : STRING import_symbol")
+@pg.production("import_symbol : D_SYMBOL import_symbol")
+@pg.production("import_symbol : STRING_LITERAL import_symbol")
 def function_4(p):
     return ImportSymbol(p[0], p[1])
 
@@ -82,8 +82,8 @@ def function_11(p):
 
 
 @pg.production("asymbol : SYMBOL")
-@pg.production("asymbol : QSYMBOL")
-@pg.production("asymbol : PSYMBOL")
+@pg.production("asymbol : Q_SYMBOL")
+@pg.production("asymbol : P_SYMBOL")
 def function_12(p):
     return ASymbol(p[0])
 
@@ -153,11 +153,11 @@ def function_24(p):
     return DataDeclaration(p[0], p[1], None, p[4])
 
 
-@pg.production("value_call_expr : INT_NUMBER")
+@pg.production("value_call_expr : INT_LITERAL")
 @pg.production("value_call_expr : asymbol")
 @pg.production("value_call_expr : data_call")
-@pg.production("value_call_expr : FLOAT_NUMBER")
-@pg.production("value_call_expr : STRING")
+@pg.production("value_call_expr : FLOAT_LITERAL")
+@pg.production("value_call_expr : STRING_LITERAL")
 @pg.production("value_call_expr : arkw")
 def function_25(p):
     return ValueCallExpr(p[0])
@@ -168,9 +168,9 @@ def function_26(p):
     return ValueAssign(p[0])
 
 
-@pg.production("avalue : INT_NUMBER")
-@pg.production("avalue : FLOAT_NUMBER")
-@pg.production("avalue : STRING")
+@pg.production("avalue : INT_LITERAL")
+@pg.production("avalue : FLOAT_LITERAL")
+@pg.production("avalue : STRING_LITERAL")
 @pg.production("avalue : asymbol")
 def function_27(p):
     return AValue(p[0])
@@ -193,8 +193,8 @@ def function_30(p):
 
 @pg.production("opt_assign : STAR")
 @pg.production("opt_assign : asymbol")
-@pg.production("opt_assign : INT_NUMBER")
-@pg.production("opt_assign : STRING")
+@pg.production("opt_assign : INT_LITERAL")
+@pg.production("opt_assign : STRING_LITERAL")
 def function_31(p):
     return OptAssign(p[0])
 
@@ -238,12 +238,12 @@ def function_38(p):
     return SuperValue(p[0])
 
 
-@pg.production("if_stmt_expr : IF OPEN tests CLOSE COLON OPEN func_body CLOSE elif_stmt_expr else_stmt_expr")
+@pg.production("if_stmt_expr : IF_COND OPEN tests CLOSE COLON OPEN func_body CLOSE elif_stmt_expr else_stmt_expr")
 def function_39(p):
     return IfStmtExpr(p[2], p[6], p[8], p[9])
 
 
-@pg.production("elif_stmt_expr : ELIF OPEN tests CLOSE COLON OPEN func_body CLOSE elif_stmt_expr")
+@pg.production("elif_stmt_expr : ELIF_COND OPEN tests CLOSE COLON OPEN func_body CLOSE elif_stmt_expr")
 def function_40(p):
     return ElifStmtExpr(p[2], p[6], p[8])
 
@@ -253,7 +253,7 @@ def function_41(p):
     return ElifStmtExpr()
 
 
-@pg.production("else_stmt_expr : ELSE COLON OPEN func_body CLOSE")
+@pg.production("else_stmt_expr : ELSE_COND COLON OPEN func_body CLOSE")
 def function_42(p):
     return ElseStmtExpr(p[3])
 
@@ -263,22 +263,22 @@ def function_43(p):
     return ElseStmtExpr()
 
 
-@pg.production("loop_expr : FOR asymbol IN loop_range COLON OPEN func_body CLOSE")
+@pg.production("loop_expr : FOR_LOOP asymbol IN_LOOP loop_range COLON OPEN func_body CLOSE")
 def function_44(p):
     return LoopExpr(p[3], p[6], p[1])
 
 
-@pg.production("loop_expr : FOR loop_range AS asymbol COLON OPEN func_body CLOSE")
+@pg.production("loop_expr : FOR_LOOP loop_range AS asymbol COLON OPEN func_body CLOSE")
 def function_45(p):
     return LoopExpr(p[1], p[6], p[3])
 
 
-@pg.production("loop_expr : FOR loop_range COLON OPEN func_body CLOSE")
+@pg.production("loop_expr : FOR_LOOP loop_range COLON OPEN func_body CLOSE")
 def function_46(p):
     return LoopExpr(p[1], p[4])
 
 
-@pg.production("loop_range : OPEN value_call_expr RANGE value_call_expr CLOSE")
+@pg.production("loop_range : OPEN value_call_expr RANGE_LOOP value_call_expr CLOSE")
 def function_47(p):
     return LoopRange(p[1], p[3])
 
@@ -309,8 +309,8 @@ def function_52(p):
     return InsideIfTest(p[0], p[1], p[2])
 
 
-@pg.production("bool_value : NOT data_call")
-@pg.production("bool_value : NOT avalue")
+@pg.production("bool_value : NOT_LOGOP data_call")
+@pg.production("bool_value : NOT_LOGOP avalue")
 def function_53(p):
     return BoolValue(p[1], p[0])
 
@@ -321,41 +321,41 @@ def function_54(p):
     return BoolValue(p[0])
 
 
-@pg.production("append_test : AND")
-@pg.production("append_test : OR")
+@pg.production("append_test : AND_LOGOP")
+@pg.production("append_test : OR_LOGOP")
 def function_55(p):
     return AppendIfTest(p[0])
 
 
-@pg.production("comparison : EQ")
-@pg.production("comparison : GT")
-@pg.production("comparison : LT")
-@pg.production("comparison : GET")
-@pg.production("comparison : LET")
-@pg.production("comparison : NEQ")
+@pg.production("comparison : EQ_SIGN")
+@pg.production("comparison : GT_SIGN")
+@pg.production("comparison : LT_SIGN")
+@pg.production("comparison : GET_SIGN")
+@pg.production("comparison : LET_SIGN")
+@pg.production("comparison : NEQ_SIGN")
 def function_56(p):
     return ComparisonIfTest(p[0])
 
 
-@pg.production("arkw : H")
-@pg.production("arkw : X")
-@pg.production("arkw : Z")
-@pg.production("arkw : Y")
-@pg.production("arkw : CNOT")
-@pg.production("arkw : SWAP")
-@pg.production("arkw : CZ")
-@pg.production("arkw : RX")
-@pg.production("arkw : RZ")
-@pg.production("arkw : RY")
-@pg.production("arkw : T")
-@pg.production("arkw : T_DAG")
-@pg.production("arkw : S")
-@pg.production("arkw : S_DAG")
-@pg.production("arkw : CR")
-@pg.production("arkw : TOFFOLI")
-@pg.production("arkw : SUPERPOSN")
-@pg.production("arkw : AMPLIFICATION")
-@pg.production("arkw : RESET")
+@pg.production("arkw : H_GATE")
+@pg.production("arkw : X_GATE")
+@pg.production("arkw : Z_GATE")
+@pg.production("arkw : Y_GATE")
+@pg.production("arkw : CNOT_GATE")
+@pg.production("arkw : SWAP_GATE")
+@pg.production("arkw : CZ_GATE")
+@pg.production("arkw : RX_GATE")
+@pg.production("arkw : RZ_GATE")
+@pg.production("arkw : RY_GATE")
+@pg.production("arkw : T_GATE")
+@pg.production("arkw : T_DAG_GATE")
+@pg.production("arkw : S_GATE")
+@pg.production("arkw : S_DAG_GATE")
+@pg.production("arkw : CR_GATE")
+@pg.production("arkw : TOFFOLI_GATE")
+@pg.production("arkw : SUPERPOSN_GATE")
+@pg.production("arkw : AMPLIFICATION_GATE")
+@pg.production("arkw : RESET_GATE")
 @pg.production("arkw : ADD")
 @pg.production("arkw : MULT")
 @pg.production("arkw : DIV")

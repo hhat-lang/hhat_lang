@@ -1,13 +1,16 @@
-from error_handler import error_handler_wrapper as hht_error
+try:
+    from error_handler import error_handler_wrapper as hht_error
+except ImportError:
+    from hhat_lang.error_handler import error_handler_wrapper as hht_error
 from rply.token import BaseBox
-from typing import List
+from typing import List, Dict
 from networkx import Graph
 
 
-class TypesRKW(BaseBox):
+class Types(BaseBox):
     def __init__(self, entity):
         self.value = entity.value_expr
-        self.self_atype = TypesRKW
+        self.self_atype = Types
         self.atype = self.get_atype(entity.atype)
 
     @hht_error
@@ -20,62 +23,62 @@ class TypesRKW(BaseBox):
         return 0
 
 
-class NullRKW(TypesRKW):
+class NullType(Types):
     def __init__(self, entity):
         self.self_atype = None
         super().__init__(entity)
 
 
-class BoolRKW(TypesRKW):
+class BoolType(Types):
     def __init__(self, entity):
         self.self_atype = bool
         super().__init__(entity)
 
 
-class RegisterRKW(TypesRKW):
+class RegisterType(Types):
     def __init__(self, entity):
-        self.self_atype = List[int]
+        self.self_atype = Dict[str, int]
         super().__init__(entity)
 
 
-class IntRKW(TypesRKW):
+
+class IntType(Types):
     def __init__(self, entity):
         self.self_atype = int
         super().__init__(entity)
 
 
-class FloatRKW(TypesRKW):
+class FloatType(Types):
     def __init__(self, entity):
         self.self_atype = float
         super().__init__(entity)
 
 
-class StrRKW(TypesRKW):
+class StrType(Types):
     def __init__(self, entity):
         self.self_atype = str
         super().__init__(entity)
 
 
-class ListRKW(TypesRKW):
+class ListType(Types):
     def __init__(self, entity):
         self.self_atype = list
         super().__init__(entity)
 
 
-class GatesRKW(TypesRKW):
+class CircuitType(Types):
     def __init__(self, entity):
         self.self_atype = list
         super().__init__(entity)
 
 
-class HashmapRKW(TypesRKW):
+class HashmapType(Types):
     def __init__(self, entity):
         self.self_atype = dict
         super().__init__(entity)
 
 
-class MeasurementRKW(TypesRKW):
+class MeasurementType(Types):
     def __init__(self, entity):
         self.self_atype = dict
         super().__init__(entity)
-

@@ -9,4 +9,8 @@
     <option name="requirementsPath" value="requirements_dev.txt" />
     <option name="removeUnused" value="true" />
   </component>
+  <component name="PyDocumentationSettings">
+    <option name="format" value="NUMPY" />
+    <option name="myDocStringFormat" value="NumPy" />
+  </component>
 </module>

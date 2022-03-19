@@ -1,393 +1,264 @@
 """Core AST"""
 
-try:
-    from data_ast import (DataDeclaration, DataAssign, DataCall)
-except ImportError:
-    from hhat_lang.data_ast import (DataDeclaration, DataAssign, DataCall)
-from typing import Union
 from rply.token import BaseBox, Token
+
+# PREFIX
+SCOPE = 'scope'
+MAIN = 'main'
+CODE = 'code'
+PARAMS = 'params'
+BODY = 'body'
+SYMBOL = 'symbol'
+QSYMBOL = 'qsymbol'
+TYPE = 'type'
+INDICES = 'indices'
+BUILTIN = 'builtin'
+LOOP = 'loop'
+END = 'end'
+
+# SUFFIX
+ATTR_DECL = 'attr_decl'
+SIZE_DECL = 'size_decl'
+ASSIGN_EXPR = 'assign_expr'
+OPT_ASSIGN = 'opt_assign'
+NO_OPT = 'all'
+OPT_STAR = 'self'
+CALL = 'call'
+CALLER = 'caller'
+CALLER_ARGS = 'caller_args'
+ATTR_ASSIGN = 'attr_assign'
+LOOP_START = 'loop_start'
+LOOP_END = 'loop_end'
 
 
 class SuperBox(BaseBox):
     def __init__(self):
         self.value = ()
         self.value_str = ""
+        self.name = self.__class__.__name__
+
+    @staticmethod
+    def check_grammar_obj(grammar_obj):
+        if grammar_obj is None:
+            return False
+        if grammar_obj.value:
+            return True
+        return False
+
+    def get_value(self, grammar_obj):
+        if isinstance(grammar_obj, Token):
+            g_name = grammar_obj.name.split('_')[-1]
+            if g_name in ['BUILTIN', 'GATE']:
+                _prefix = g_name.lower()
+            elif g_name in ['LITERAL']:
+                _prefix = grammar_obj.name.split('_')[0].lower()
+            elif g_name in ['SYMBOL']:
+                return self.get_right_symbol(grammar_obj)
+            else:
+                _prefix = grammar_obj.name.lower()
+            return f'{_prefix}:{grammar_obj.value}'
+        return grammar_obj.value
+
+    @staticmethod
+    def get_right_symbol(symbol):
+        if isinstance(symbol, Token):
+            _sym_name = symbol.name
+            _sym_val = symbol.value
+        else:
+            _sym_name = symbol.value.name
+            _sym_val = symbol.value.value
+        if _sym_name == 'QSYMBOL':
+            return f'{QSYMBOL}:{_sym_val}'
+        if _sym_name == 'SYMBOL':
+            return f'{SYMBOL}:{_sym_val}'
+        return ''
+
+    def get_grammar_obj(self, grammar_obj, prefix=CODE, suffix=None):
+        if suffix:
+            if self.check_grammar_obj(grammar_obj):
+                _code = f'{prefix}:{suffix}'
+                _end = f'{END}:{suffix}'
+                return _code, grammar_obj.value, _end
+            return ()
+        raise AttributeError("Suffix object must not be None.")
+
+    def set_str_code(self, grammar_obj, prefix=None):
+        if grammar_obj:
+            if prefix is None or prefix in ['QSYMBOL', 'SYMBOL']:
+                res = self.get_right_symbol(grammar_obj)
+                if res:
+                    return res
+                raise AttributeError("prefix object must not be None.")
+            return f'{prefix}:{grammar_obj.value.value}'
+        return ''
+
+    def build_value_str(self, *args):
+        _val = ''
+        for k in args:
+            if isinstance(k, Token):
+                _val += f'{k}=('
+                _val += f'line: {k.source_pos.lineno}, col: {k.source_pos.colno})\n'
+            else:
+                _val += f'{k}\n'
+        self.value_str += _val
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.value_str})"
-
-
-#################
-# ROOT CLASSES #
-################
-class TypeRKW(SuperBox):
-    def __init__(self, atype: Token):
-        super().__init__()
-        self.value = atype
-        self.value_str += str(self.value)
-
-
-class ASymbol(SuperBox):
-    def __init__(self, symbol: Token):
-        super().__init__()
-        self.value = symbol
-        self.value_str += str(self.value)
-
-
-class AValue(SuperBox):
-    def __init__(self, value: Union[Token, ASymbol]):
-        super().__init__()
-        self.value = value if isinstance(value, Token) else value.value
-        self.value_str += str(self.value)
-
-
-class OptAssign(SuperBox):
-    def __init__(self, value: Union[Token, 'ValueCallExpr2'] = None):
-        super().__init__()
-        if value:
-            if isinstance(value, Token):
-                self.value = value
-            else:
-                self.value = value.value
-        self.value_str += str(self.value)
-
-
-class ARKW(SuperBox):
-    def __init__(self, value: Token):
-        super().__init__()
-        self.value = value
-        self.value_str = str(value)
-
-
-###########
-# VCALLS #
-##########
-class SuperValue(SuperBox):
-    def __init__(self, value: Union[AValue, DataCall, 'IfStmtExpr', 'LoopExpr']):
-        super().__init__()
-        self.value = value.value
-        self.value_str += str(self.value)
-
-
-class ValueCallExpr2(SuperBox):
-    def __init__(self,
-                 value1: SuperValue = None,
-                 value2: 'ValueCallExpr2' = None):
-        super().__init__()
-        if value1:
-            self.value += (value1.value,) if not isinstance(value1.value, tuple) else value1.value
-            self.value_str += str(self.value)
-        if value2:
-            self.value += (value2.value,) if not isinstance(value2.value, tuple) else value2.value
-            self.value_str += str(self.value)
-
-
-class ExtValueAssign(SuperBox):
-    def __init__(self,
-                 value: 'ValueCallExpr',
-                 opt: OptAssign = None,
-                 extra: 'ExtValueAssign' = None):
-        super().__init__()
-        ext_vals = value if isinstance(value, Token) else value.value
-        if opt:
-            if opt.value:
-                ext_vals.update({'opt_assign': opt.value})
-            else:
-                # print(f'-CORE AST: opt={opt} | No opt.value')
-                ext_vals.update({'opt_assign': Token("ASSIGN_NULL", "all")})
-        else:
-            ext_vals.update({'opt_assign': Token("ASSIGN_NULL", "all")})
-        self.value += (ext_vals,)
-        if extra:
-            if extra.value:
-                self.value += (extra.value,) if not isinstance(extra.value, tuple) else extra.value
-        self.value_str += str(self.value)
-
-
-class ValueAssign(SuperBox):
-    def __init__(self, value: ExtValueAssign):
-        super().__init__()
-        if isinstance(value, Token):
-            self.value += (value,)
-        else:
-            self.value += (value.value,) if not isinstance(value.value, tuple) else value.value
-        self.value_str += str(self.value)
-
-
-class ValueCallExpr(SuperBox):
-    def __init__(self, value: Union[Token, ASymbol, DataCall, ARKW]):
-        super().__init__()
-        if isinstance(value, Token):
-            self.value = {'call': value}
-        else:
-            self.value = {'call': value.value}
-        self.value_str += str(value)
-
-
-class GenExpr(SuperBox):
-    def __init__(self,
-                 expr: Union[DataDeclaration, DataAssign, DataCall] = None,
-                 extra: 'GenExpr' = None):
-        super().__init__()
-        if expr:
-            self.value += (expr.value,) if not isinstance(expr.value, tuple) else expr.value
-            self.value_str += str(self.value)
-        if extra:
-            self.value += (extra.value,) if not isinstance(extra.value, tuple) else extra.value
-            self.value_str += str(self.value)
-
-
-#####################
-# FUNCTION CLASSES #
-####################
-class FuncReturn(SuperBox):
-    def __init__(self, func_return: ValueCallExpr2 = None):
-        super().__init__()
-        if func_return:
-            self.value = func_return.value
-            self.value_str += str(func_return)
-
-
-class FuncBody(SuperBox):
-    def __init__(self, f1: GenExpr = None):
-        super().__init__()
-        if f1:
-            self.value = f1.value
-            self.value_str += str(self.value)
-
-
-class FuncParams(SuperBox):
-    def __init__(self,
-                 atype: TypeRKW = None,
-                 symbol: ASymbol = None,
-                 params: 'FuncParams' = None):
-        super().__init__()
-        func_vals = {}
-        if atype and symbol:
-            func_vals.update({'type': atype.value, 'symbol': symbol.value})
-            self.value += (func_vals,)
-            self.value_str += str(func_vals)
-        if params:
-            self.value += params.value
-            self.value_str += str(params)
-
-
-class FuncTempl(SuperBox):
-    def __init__(self,
-                 atype: TypeRKW,
-                 symbol: ASymbol,
-                 func_params: Union[tuple, dict, FuncParams] = None,
-                 func_body: Union[tuple, dict, FuncBody] = None,
-                 func_return: Union[tuple, dict, FuncReturn] = None):
-        super().__init__()
-        func_vals = {'type': atype.value, 'symbol': symbol.value}
-        if not isinstance(func_params, tuple) and func_params is not None:
-            if func_params.value:
-                func_vals.update({'params': func_params.value})
-        if not isinstance(func_body, tuple) and func_body is not None:
-            if func_body.value:
-                func_vals.update({'body': func_body.value})
-        if not isinstance(func_return, tuple) and func_return is not None:
-            if func_return.value:
-                if atype.value.gettokentype() == 'MEAS_TYPE':
-                    func_vals.update({'@return': func_return.value})
-                else:
-                    func_vals.update({'return': func_return.value})
-        self.value = func_vals
-        self.value_str += str(self.value)
+        return f"{self.__class__.__name__}(\n  {self.value_str}\n )"
 
 
 class Main(SuperBox):
-    def __init__(self, func: FuncTempl = None):
+    def __init__(self, any_type, any_symbol, func_params=None, body_exprs=None):
         super().__init__()
-        if func:
-            self.value += ({'main': func.value},)
-            self.value_str += str(func)
+        _code_main = f'{SCOPE}:{MAIN}'
+        _end_main = f'{END}:{MAIN}'
+        _type = f'{TYPE}:{any_type.value.value}'
+        _symbol = self.get_value(any_symbol)  # self.get_right_symbol(any_symbol)
+        self.value += (_code_main, _symbol, _type)
+        self.value += self.get_grammar_obj(func_params, CODE, PARAMS)
+        self.value += self.get_grammar_obj(body_exprs, CODE, BODY)
+        self.value += (_end_main,)
 
 
-class Function(SuperBox):
-    def __init__(self, func: FuncTempl):
+class AnyType(SuperBox):
+    def __init__(self, any_type: Token):
         super().__init__()
-        self.value += ({'function': func.value},)
-        self.value_str += str(func)
+        self.value = any_type
 
 
-class Functions(SuperBox):
-    def __init__(self,
-                 function: Union[dict, tuple, Function] = None,
-                 functions: 'Functions' = None):
+class AnySymbol(SuperBox):
+    def __init__(self, any_symbol: Token):
         super().__init__()
-        if not isinstance(function, (tuple, dict)) and function is not None:
-            self.value += (function.value,) if not isinstance(function.value,
-                                                              tuple) else function.value
-        if functions:
-            self.value += functions.value
-        self.value_str += str(self.value)
+        self.value = self.get_right_symbol(any_symbol)
 
 
-##########
-# LOOPS #
-#########
-class LoopRange(SuperBox):
-    def __init__(self,
-                 v1: Union[ValueCallExpr, ASymbol, DataCall],
-                 v2: ValueCallExpr = None):
+class FuncParams(SuperBox):
+    def __init__(self, any_type=None, any_symbol=None, func_args=None):
         super().__init__()
-        lrange_vals = {'start': v1 if isinstance(v1, Token) else v1.value}
-        if v2:
-            lrange_vals.update({'end': v2 if isinstance(v2, Token) else v2.value})
-        self.value = lrange_vals
-        self.value_str = str(self.value)
+        _type = self.set_str_code(any_type, TYPE)
+        _symbol = self.get_value(any_symbol) # self.set_str_code(any_symbol, SYMBOL)
+        if self.check_grammar_obj(any_type) and self.check_grammar_obj(any_symbol):
+            self.value += ((_symbol, _type,),)
+        if self.check_grammar_obj(func_args):
+            self.value += self.get_value(func_args)
 
 
-class LoopExpr(SuperBox):
-    def __init__(self,
-                 loop_range: LoopRange,
-                 func_body: FuncBody,
-                 loop_var: ASymbol = None):
+class Empty(SuperBox):
+    def __init__(self):
         super().__init__()
-        loop_vals = {'loop': {'range': loop_range.value, 'body': func_body.value}}
-        if loop_var:
-            loop_vals.update(
-                {'loop_var': loop_var if isinstance(loop_var, Token) else loop_var.value})
-        self.value += (loop_vals,)
-        self.value_str = str(self.value)
+        self.value = ()
 
 
-##################
-# IF STATEMENTS #
-#################
-class ComparisonIfTest(SuperBox):
-    def __init__(self, comparison: Token):
+class BodyExprs(SuperBox):
+    def __init__(self, first_expr, other_exprs):
         super().__init__()
-        self.value = comparison
-        self.value_str += str(comparison)
+        self.value += (self.get_value(first_expr),)
+        if self.check_grammar_obj(other_exprs):
+            self.value += self.get_value(other_exprs)
 
 
-class AppendIfTest(SuperBox):
-    def __init__(self, logical_op: Token):
+class AttrDecl(SuperBox):
+    def __init__(self, any_type, any_symbol, size_decl, assign_exprs):
         super().__init__()
-        self.value += logical_op
-        self.value_str += str(self.value)
+        _start0 = f'{CODE}:{ATTR_DECL}'
+        _end0 = f'{END}:{ATTR_DECL}'
+        _type = f'{TYPE}:{any_type.value.value}'
+        _symbol = self.get_value(any_symbol)  # self.get_right_symbol(any_symbol)
+        self.value += (_start0, _symbol, _type)
+        if self.check_grammar_obj(size_decl):
+            _start = f'{CODE}:{SIZE_DECL}'
+            _end = f'{END}:{SIZE_DECL}'
+            self.value += (_start, self.get_value(size_decl), _end)
+        if self.check_grammar_obj(assign_exprs):
+            _start = f'{CODE}:{ASSIGN_EXPR}'
+            _end = f'{END}:{ASSIGN_EXPR}'
+            self.value += (_start, self.get_value(assign_exprs), _end)
+        self.value += (_end0,)
 
 
-class BoolValue(SuperBox):
-    def __init__(self,
-                 value: Union[DataCall, AValue],
-                 negative: Token = None):
+class GenericExprs1(SuperBox):
+    def __init__(self, param1):
         super().__init__()
-        if negative:
-            self.value += (negative,)
-        self.value += value if isinstance(value, (Token,)) else value.value
-        self.value_str += str(value)
+        self.value = self.get_value(param1)
 
 
-class InsideIfTest(SuperBox):
-    def __init__(self,
-                 value1: BoolValue,
-                 comparison: Token = None,
-                 value2: BoolValue = None):
+class AssignValues(SuperBox):
+    def __init__(self, opt_assign, any_call, assign_values):
         super().__init__()
-        self.value += (value1.value,)
-        self.value_str += str(value1)
-        if comparison:
-            self.value += (comparison.value,)
-        self.value_str += str(comparison)
-        if value2:
-            self.value += (value2.value,)
-        self.value_str += str(value2)
+        self.value = self.get_value(opt_assign) + self.get_value(any_call)
+        if self.check_grammar_obj(assign_values):
+            self.value += self.get_value(assign_values)
 
 
-class IfTests(SuperBox):
-    def __init__(self,
-                 test: 'IfTests',
-                 append_test: AppendIfTest = None,
-                 extra: 'IfTests' = None):
+class OptAssign(SuperBox):
+    def __init__(self, opt_value=None):
         super().__init__()
-        self.value += ({'test': test.value},)
-        if append_test:
-            self.value += ({'logical_operator': append_test.value},)
-        self.value_str += str(self.value)
-        if extra:
-            self.value += extra.value
-        self.value_str += str(extra)
+        _val = f'{CODE}:{OPT_ASSIGN}'
+        if self.check_grammar_obj(opt_value):
+            if isinstance(opt_value, Token):
+                if opt_value.value.name == 'STAR':
+                    _val2 = f'{INDICES}:{OPT_STAR}'
+                else:
+                    _val2 = self.get_value(opt_value)
+            else:
+                _val2 = self.get_value(opt_value)
+        else:
+            _val2 = f'{INDICES}:{NO_OPT}'
+        _val3 = f'{END}:{OPT_ASSIGN}'
+        self.value = (_val, _val2, _val3)
 
 
-class ElseStmtExpr(SuperBox):
-    def __init__(self, func_body: FuncBody = None):
+class AnyCall(SuperBox):
+    def __init__(self, param1, param2=None):
         super().__init__()
-        if func_body:
-            self.value = func_body.value
-        self.value_str += str(func_body)
+        if param1.name != self.name:
+            _start = f'{CODE}:{CALL}'
+            _end = f'{END}:{CALL}'
+            self.value = (_start, self.get_value(param1), _end)
+            if self.check_grammar_obj(param2):
+                self.value += self.get_value(param2)
+            # self.value += (_end,)
+        else:
+            self.value = self.get_value(param1)
+            if self.check_grammar_obj(param2):
+                self.value += self.get_value(param2)
 
 
-class ElifStmtExpr(SuperBox):
-    def __init__(self,
-                 tests: IfTests = None,
-                 func_body: FuncBody = None,
-                 extra: 'ElifStmtExpr' = None):
+class InsideCall(SuperBox):
+    def __init__(self, param1, param2=None):
         super().__init__()
-        expr_vals = {}
-        if tests and func_body:
-            expr_vals.update({'test': tests.value, 'body': func_body.value})
-        self.value += (expr_vals,)
-        if extra:
-            self.value += extra
-        self.value_str += str(self.value)
+        if self.check_grammar_obj(param2):
+            _start2 = f'{CODE}:{CALLER_ARGS}'
+            _end2 = f'{END}:{CALLER_ARGS}'
+            self.value = (_start2, self.get_value(param2), _end2)
+        if param1.name != self.name:
+            _start1 = f'{CODE}:{CALLER}'
+            _end1 = f'{END}:{CALLER}'
+            self.value += (_start1, self.get_value(param1), _end1)
+        else:
+            self.value += self.get_value(param1)
 
 
-class IfStmtExpr(SuperBox):
-    def __init__(self,
-                 tests: InsideIfTest,
-                 func_body: FuncBody,
-                 elif_body: ElifStmtExpr = None,
-                 else_body: ElseStmtExpr = None):
+class AttrAssign(SuperBox):
+    def __init__(self, any_symbol, assign_values):
         super().__init__()
-        expr_vals = {'if': {'test': tests.value,
-                            'body': func_body.value}}
-        if elif_body:
-            expr_vals.update({'elif': elif_body})
-        if else_body:
-            expr_vals.update({'else': {'body': else_body}})
-        self.value += (expr_vals,)
-        self.value_str += str(self.value)
+        _start = f'{CODE}:{ATTR_ASSIGN}'
+        _end = f'{END}:{ATTR_ASSIGN}'
+        _symbol = self.get_value(any_symbol)  # self.get_right_symbol(any_symbol)
+        self.value = (_start, _symbol, _end)
+        _start = f'{CODE}:{ASSIGN_EXPR}'
+        _end = f'{END}:{ASSIGN_EXPR}'
+        self.value += (_start, self.get_value(assign_values), _end)
 
 
-############
-# IMPORTS #
-###########
-class Imports(SuperBox):
-    def __init__(self, value=None):
+class ShortLoopExprs(SuperBox):
+    def __init__(self, start, end):
         super().__init__()
-        if value:
-            self.value = {'imports': value.value}
-            self.value_str = str(self.value)
-
-
-class ImportSymbol(SuperBox):
-    def __init__(self, s1=None, s2=None):
-        super().__init__()
-        if s1:
-            self.value += (s1.value,) if not isinstance(s1.value, tuple) else s1.value
-        if s2:
-            self.value += (s2.value,) if not isinstance(s2.value, tuple) else s2.value
-
-
-#################
-# MAIN PROGRAM #
-################
-class Program(SuperBox):
-    def __init__(self,
-                 functions: Functions,
-                 main: Main = None,
-                 importing: Union[dict, tuple, Imports] = None):
-        super().__init__()
-        if not isinstance(importing, tuple) and importing is not None:
-            if importing.value:
-                self.value += (importing.value,)
-        self.value += (functions.value,) if not isinstance(functions.value,
-                                                           tuple) else functions.value
-        if main:
-            self.value += (main.value,) if not isinstance(main.value, tuple) else main.value
-        self.value_str += str(self.value)
-        self.value_str = str(self.value)
+        _start = f'{CODE}:{LOOP}'
+        _end = f'{END}:{LOOP}'
+        _startl = f'{LOOP}:{LOOP_START}'
+        _endl = f'{LOOP}:{LOOP_END}'
+        self.value = (_start, (_startl,
+                               self.get_value(start),
+                               _endl,
+                               self.get_value(end)),
+                      _end)

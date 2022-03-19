@@ -40,7 +40,7 @@ class PreEval:
                                        'Q_SYMBOL': 'qsymbol',
                                        'P_SYMBOL': 'psymbol',
                                        'D_SYMBOL': 'dsymbol',
-                                       'MEASURE': self.format_qtype,
+                                       #'MEASURE': '@return',  # self.format_qtype,
                                        'STAR': 'indices'}
         self.token_other_handlers = {'TYPE': 'type',
                                      'GATE': self.format_qtype,
@@ -107,8 +107,7 @@ class PreEval:
         tmp_scope = scope
         tmp_name = scope_name
         token_t = code.gettokentype()
-        # TODO: will need to change this token_v
-        # approach when including circuits and etc
+        # TODO: will need to change this token_v approach when including circuits and etc
         token_v = f'{code.value}'
         if token_t.endswith('SYMBOL') and tmp_scope in ['function', 'main']:
             self.dprint(f'[token](tmp_name) symbol={token_v}')

@@ -189,7 +189,10 @@ class FuncTempl(SuperBox):
                 func_vals.update({'body': func_body.value})
         if not isinstance(func_return, tuple) and func_return is not None:
             if func_return.value:
-                func_vals.update({'return': func_return.value})
+                if atype.value.gettokentype() == 'MEAS_TYPE':
+                    func_vals.update({'@return': func_return.value})
+                else:
+                    func_vals.update({'return': func_return.value})
         self.value = func_vals
         self.value_str += str(self.value)
 

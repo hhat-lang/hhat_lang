@@ -20,6 +20,7 @@ END = 'end'
 ATTR_DECL = 'attr_decl'
 SIZE_DECL = 'size_decl'
 ASSIGN_EXPR = 'assign_expr'
+ASSIGN_VALUE = 'assign_value'
 OPT_ASSIGN = 'opt_assign'
 NO_OPT = 'all'
 OPT_STAR = 'self'
@@ -162,17 +163,17 @@ class AttrDecl(SuperBox):
         _start0 = f'{CODE}:{ATTR_DECL}'
         _end0 = f'{END}:{ATTR_DECL}'
         _type = f'{TYPE}:{any_type.value.value}'
-        _symbol = self.get_value(any_symbol)  # self.get_right_symbol(any_symbol)
+        _symbol = self.get_value(any_symbol)
         self.value += (_start0, _symbol, _type)
         if self.check_grammar_obj(size_decl):
             _start = f'{CODE}:{SIZE_DECL}'
             _end = f'{END}:{SIZE_DECL}'
             self.value += (_start, self.get_value(size_decl), _end)
+        self.value += (_end0,)
         if self.check_grammar_obj(assign_exprs):
             _start = f'{CODE}:{ASSIGN_EXPR}'
             _end = f'{END}:{ASSIGN_EXPR}'
             self.value += (_start, self.get_value(assign_exprs), _end)
-        self.value += (_end0,)
 
 
 class GenericExprs1(SuperBox):
@@ -184,7 +185,11 @@ class GenericExprs1(SuperBox):
 class AssignValues(SuperBox):
     def __init__(self, opt_assign, any_call, assign_values):
         super().__init__()
-        self.value = self.get_value(opt_assign) + self.get_value(any_call)
+        _start = f'{CODE}:{ASSIGN_VALUE}'
+        _end = f'{END}:{ASSIGN_VALUE}'
+        _opt = self.get_value(opt_assign)
+        _assignee = self.get_value(any_call)
+        self.value = ((_opt, _start, _assignee, _end),)
         if self.check_grammar_obj(assign_values):
             self.value += self.get_value(assign_values)
 
@@ -195,7 +200,7 @@ class OptAssign(SuperBox):
         _val = f'{CODE}:{OPT_ASSIGN}'
         if self.check_grammar_obj(opt_value):
             if isinstance(opt_value, Token):
-                if opt_value.value.name == 'STAR':
+                if opt_value.name == 'STAR':
                     _val2 = f'{INDICES}:{OPT_STAR}'
                 else:
                     _val2 = self.get_value(opt_value)
@@ -216,7 +221,6 @@ class AnyCall(SuperBox):
             self.value = (_start, self.get_value(param1), _end)
             if self.check_grammar_obj(param2):
                 self.value += self.get_value(param2)
-            # self.value += (_end,)
         else:
             self.value = self.get_value(param1)
             if self.check_grammar_obj(param2):
@@ -243,7 +247,7 @@ class AttrAssign(SuperBox):
         super().__init__()
         _start = f'{CODE}:{ATTR_ASSIGN}'
         _end = f'{END}:{ATTR_ASSIGN}'
-        _symbol = self.get_value(any_symbol)  # self.get_right_symbol(any_symbol)
+        _symbol = self.get_value(any_symbol)
         self.value = (_start, _symbol, _end)
         _start = f'{CODE}:{ASSIGN_EXPR}'
         _end = f'{END}:{ASSIGN_EXPR}'

@@ -20,8 +20,8 @@ tokens.update({"IF_COND": r"if(?!\w)"})
 tokens.update({"ELIF_COND": r"elif(?!\w)"})
 tokens.update({"ELSE_COND": r"else(?!\w)"})
 
-tokens.update({"AND_LOGOP": r"\+"})
-tokens.update({"OR_LOGOP": r"\-"})
+tokens.update({"AND_LOGOP": r"\&"})
+tokens.update({"OR_LOGOP": r"\|"})
 tokens.update({"NOT_LOGOP": r"not(?!\w)"})
 
 tokens.update({"FOR_LOOP": r"for(?!\w)"})

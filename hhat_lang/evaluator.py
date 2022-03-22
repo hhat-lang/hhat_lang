@@ -3,560 +3,344 @@ Perform a pre-evaluation and evaluation on the parsed code
 """
 
 try:
-    # import builtin as btin
     from lexer import lexer
     from parser import parser
-    from memory import Memory
-    import parse_keys as pk
     from tokens import tokens
 except ImportError:
     from hhat_lang.lexer import lexer
     from hhat_lang.parser import parser
-    # import hhat_lang.builtin as btin
-    from hhat_lang.memory import Memory
-    import hhat_lang.parse_keys as pk
     from hhat_lang.tokens import tokens
-import time
 import ast
-import pprint
 from copy import deepcopy
-from typing import Union, Dict, Tuple, Optional
-from rply.token import Token
-
-BUILTIN_FUNCS = ['ADD', 'PRINT']
 
 
-class PreEval:
-    def __init__(self, debug=True):
-        self.mem = {'scope': {'main': None, 'function': {}}}
-        self.debug = debug
-        self.pe_handlers = {dict: self.dict_handler,
-                            tuple: self.tuple_handler,
-                            Token: self.token_handler}
-        self.token_literal_handlers = {'INT_LITERAL': 'int',
-                                       'STRING_LITERAL': 'str',
-                                       'FLOAT_LITERAL': 'float',
-                                       'SYMBOL': 'symbol',
-                                       'Q_SYMBOL': 'qsymbol',
-                                       'P_SYMBOL': 'psymbol',
-                                       'D_SYMBOL': 'dsymbol',
-                                       #'MEASURE': '@return',  # self.format_qtype,
-                                       'STAR': 'indices'}
-        self.token_other_handlers = {'TYPE': 'type',
-                                     'GATE': self.format_qtype,
-                                     'NULL': 'indices'}
+def btin_print(vals):
+    args, attr = vals
+    print(*args, *attr)
+    return None
 
-    def dprint(self, *msg, **msgs):
-        if self.debug:
-            print('* [pre_eval:debug]=', *msg, **msgs)
-
-    @staticmethod
-    def format_qtype(text):
-        return 'builtin:q_' + text[1:]
-
-    @staticmethod
-    def format_start():
-        return 'indices:self'
-
-    def dict_handler(self, code, scope=None, scope_name=None):
-        self.dprint(f'>> dict called')
-        tmp_code = ()
-        tmp_scope = scope
-        tmp_name = scope_name
-        for k in pk.PROGRAM_LIST_EXPRS:
-            if not set(code.keys()).symmetric_difference(set(k)):
-                start_scope = ''
-                for v0, v in enumerate(k):
-                    if v0 == 0:
-                        start_scope = v
-                    self.dprint(f'[dict] code={v} | value={code[v]} | tmp_scope={tmp_scope}')
-                    tmp_scope = v if v in ['main', 'function'] else tmp_scope
-                    res, tmp_scope, tmp_name = self.pre_eval_exec(code[v], tmp_scope, tmp_name)
-                    if v not in ['symbol', 'type', 'main', 'function']:
-                        tmp_code += (f'code:{v}', res)
-                    elif v in ['main', 'function']:
-                        tmp_code += (f'scope:{v}', res)
-                        scope = v
-                    else:
-                        tmp_code += (res,)
-                    tmp_scope = None
-                tmp_code += (f'end:{start_scope}',)
-                self.dprint(
-                    f'[dict] scope={scope} | tmp_scope={tmp_scope} | scope_name={scope_name} | tmp_name={tmp_name}')
-                if scope and tmp_name:
-                    self.dprint(f'[dict] got scope={scope} | tmp_name={tmp_name}')
-                    if scope == 'main':
-                        mem_save = self.mem['scope'][scope] = tmp_code[1]
-                    elif scope == 'function':
-                        mem_save = self.mem['scope'][scope][tmp_name] = tmp_code[1]
-        return tmp_code, tmp_scope, tmp_name
-
-    def tuple_handler(self, code, scope=None, scope_name=None):
-        self.dprint(f'>> tuple called')
-        tmp_code = ()
-        tmp_scope = scope
-        tmp_name = scope_name
-        for k in code:
-            self.dprint(f'[tuple] iter code={k}')
-            res, tmp_scope, tmp_name = self.pre_eval_exec(k, scope, scope_name)
-            tmp_code += (res,)
-        return tmp_code, tmp_scope, tmp_name
-
-    def token_handler(self, code, scope=None, scope_name=None):
-        self.dprint(f'>> token called')
-        tmp_scope = scope
-        tmp_name = scope_name
-        token_t = code.gettokentype()
-        # TODO: will need to change this token_v approach when including circuits and etc
-        token_v = f'{code.value}'
-        if token_t.endswith('SYMBOL') and tmp_scope in ['function', 'main']:
-            self.dprint(f'[token](tmp_name) symbol={token_v}')
-            tmp_name = token_v
-        _token_res = self.token_literal_handlers.get(token_t, False)
-        if not _token_res:
-            for k in self.token_other_handlers.keys():
-                if token_t.endswith(k):
-                    _token_res = self.token_other_handlers[k]
-                    if isinstance(_token_res, str):
-                        return ':'.join([_token_res, token_v]), tmp_scope, tmp_name
-                    else:
-                        return _token_res(token_v), tmp_scope, tmp_name
-        if token_t in BUILTIN_FUNCS:
-            return ':'.join(['builtin', token_v]), tmp_scope, tmp_name
-        if isinstance(_token_res, str):
-            return ':'.join([_token_res, token_v]), tmp_scope, tmp_name
-        return _token_res(token_v), tmp_scope, tmp_name
-
-    def pre_eval_exec(self, code, scope=None, scope_name=None):
-        self.dprint(f'>> eval called')
-        _val = self.pe_handlers[type(code)]
-        res, tmp_scope, tmp_name = _val(code, scope, scope_name)
-        tmp_code = res
-        return tmp_code, tmp_scope, tmp_name
-
-    def run(self, code):
-        res = self.pre_eval_exec(code)
-        return self.mem, res[0]
-
-    def print_run(self, code, show_mem=True, show_code=False):
-        print()
-        print(f'###########')
-        print(f'# PreEval #')
-        print(f'###########')
-        print()
-        print('- Running pre-evaluation on code...')
-        t0 = time.process_time()
-        res_mem, res_code = self.run(code)
-        tf = time.process_time()
-        print(f'- Done.')
-        print(f'- Finished in {round(tf - t0, 7)}s.')
-        print()
-        if show_mem:
-            print(f'## Code Organization ##')
-            print()
-            pprint.pprint(res_mem)
-            print('-' * 80)
-            print()
-        if show_code:
-            print(f'## Code Pre-Evaluated ##')
-            print()
-            pprint.pprint(res_code)
-            print('-' * 80)
-            print()
-        print('End.')
-        print()
-
-
-def builtin_add(vals):
-    _types = [type(k) for k in vals]
-    if set(_types).issubset({int, float}):
-        return sum(vals),
-    elif set(_types).issubset({str}):
-        return ''.join(vals),
+def btin_add(vals):
+    args, attr = vals
+    _num_types = set([type(k) for k in args])
+    _total = ()
+    if len(_num_types) == 1:
+        if _num_types.issubset({int, float, str, tuple, list}):
+            _res = 0 if _num_types.issubset({int, float}) else '' if _num_types.issubset({str}) else ()
+            for k in args:
+                _res += k
+            for k in attr:
+                _total += (k + _res,)
+        else:
+            _total = None
     else:
-        return vals,
-
-
-def builtin_print(vals):
-    print(*vals)
-    return ()
+        _res = ()
+        for k in vals:
+            _res += (k,)
+        for k in attr:
+            _total += (_res,)
+    return _total
 
 
 class Eval:
-    # TODO: improve code clarity and readability
-    def __init__(self, code, debug=False):
+    def __init__(self, debug=False):
         self.debug = debug
-        self.print_debug_flag = False
-        self.code = code
-        self.mem = {'main': {}, 'function': code['scope']['function'], 'current': {}}
-        self.eval_handlers = {dict: self.dict_handler,
-                              tuple: self.tuple_handler,
-                              str: self.str_handler}
-        self.preffix_handlers = {'code': self.preffix_code,
-                                 'symbol': self.preffix_symbol,
-                                 'type': self.preffix_type,
-                                 'indices': self.preffix_indices,
-                                 'builtin': self.preffix_builtin,
-                                 'end': self.preffix_end}
-        self.preffix_types = {'int': self.type_int,
-                              'str': self.type_str,
-                              'float': self.type_float}
-        self.suffix_types = {'int': (int, 1, 0),
-                             'str': (str, 1, ''),
-                             'float': (float, 1, 0.0),
-                             'null': (None, 0, None),
-                             'list': (list, None, None)}
-        self.builtin_handlers = {'add': builtin_add,
-                                 'print': builtin_print}
-        self.suffix_handlers = {'params': self.suffix_params,
-                                'body': self.suffix_body,
-                                'attr_decl': self.suffix_attr_decl,
-                                'assign_expr': self.suffix_assign_expr,
-                                'opt_assign': self.suffix_opt_assign,
-                                'call': self.suffix_call,
-                                'size_decl': self.suffix_size_decl,
-                                'caller_args': self.suffix_caller_args,
-                                'caller': self.suffix_caller,
-                                'return': self.suffix_return}
+        self.mem = {'cur': {}}
+        self.kws = self.start_kwargs()
+        self.main_handlers = {tuple: self.tuple_handler, str: self.str_handler}
+        self.block_prefix = {'scope': self.prefix_scope,
+                             'symbol': self.prefix_symbol,
+                             'qsymbol': self.prefix_qsymbol,
+                             'type': self.prefix_type,
+                             'int': self.prefix_int,
+                             'float': self.prefix_float,
+                             'str': self.prefix_str,
+                             'indices': self.prefix_indices,
+                             'builtin': self.prefix_builtin,
+                             'loop': self.prefix_loop,
+                             'code': self.prefix_code,
+                             'end': self.prefix_end}
+        self.default_len = {'int': 1, 'str': 1, 'float': 1, 'null': 0, 'circuit': 1, 'measurement': 1, 'hashmap': 1, 'bool': 1}
+        self.default_val = {'int': 0,
+                            'str': '',
+                            'float': 0.0,
+                            'null': None,
+                            'circuit': None,
+                            'measurement': {},
+                            'hashmap': {},
+                            'bool': None}
+        self.builtin_funcs = {'print': btin_print, 'add': btin_add}
 
-    def dprint(self, *msg, **msgs):
+    def dprint(self, origin, *msg, **msgs):
         if self.debug:
-            if self.print_debug_flag:
-                print(*msg, **msgs)
-            else:
-                print('* [eval:debug]', *msg, **msgs)
-            if 'end' in msgs.keys():
-                self.print_debug_flag = True
-            else:
-                self.print_debug_flag = False
+            print(f'* [debug:eval]: [{origin}]:')
+            for k in msg:
+                print(f'   ----> {k}', **msgs)
+            if 'end' not in msgs.keys():
+                print()
 
     @staticmethod
-    def str_vals(attr):
-        _idx = attr.index(':')
-        return attr[:_idx], attr[_idx + 1:]
+    def start_kwargs():
+        return {'scope': None,
+                'attr_name': None,
+                'attr_type': None,
+                'attr_size': None,
+                'idx_or_val': None,
+                'prev_cmd': None,
+                'cur_cmd': None,
+                'return_flag': False,
+                'loop_pos': None,
+                'loop_range': (),
+                'args': (),
+                'tmp_args': (),
+                'attr_idx': (),
+                'from_attr': (),
+                'to_attr': (),
+                'attr_data': ()}
+
+    def scope_handler(self, old_kws):
+        # print(f'scope={old_kws["cur_cmd"]}')
+        if old_kws['cur_cmd'] in ['caller_args', 'assign_value', 'caller', 'call', 'opt_assign', 'loop', 'assign_expr']:
+            old_kws['to_attr'] = self.kws['to_attr']
+            old_kws['from_attr'] = self.kws['from_attr']
+            old_kws['args'] = self.kws['args']
+            old_kws['attr_idx'] = self.kws['attr_idx']
+            old_kws['loop_range'] = self.kws['loop_range']
+            old_kws['loop_pos'] = self.kws['loop_pos']
+            # old_kws['prev_cmd'] = self.kws['prev_cmd']
+            # old_kws['cur_cmd'] = self.kws['cur_cmd']
+        return old_kws
 
     @staticmethod
-    def check_value_type(values):
-        res = [type(k) for k in values]
-        if len(res) > 1:
-            return list
-        return tuple(set(res))[0] if res else None
+    def split_str_code(code):
+        _idx = code.index(':')
+        return code[:_idx], code[_idx+1:]
 
-    def create_mem_slot(self, kwargs):
-        self.dprint(f'[create mem slot] kwargs={kwargs}')
-        _mem = self.mem['current'].get(kwargs['scope'], False)
-        if _mem:
-            _mem1 = _mem.get(kwargs['attr_name'], False)
-            if not _mem1:
-                self.mem['current'][kwargs['scope']][
-                    kwargs['attr_name']] = {'data': {}, 'type': None, 'size': 0}
-        else:
-            self.mem['current'] = {kwargs['scope']:
-                                       {kwargs['attr_name']:
-                                            {'data': {}, 'type': None, 'size': 0}}}
-        self.dprint(
-            f'[create mem slot](mem check) attr={kwargs["attr_name"]} | data={self.mem["current"][kwargs["scope"]][kwargs["attr_name"]]}')
+    # MEMORY FUNCS
 
-    def type_int(self, code, kwargs):
-        res = ast.literal_eval(code)
-        self.dprint(f'[type int](start) code={code} | kwargs={kwargs}')
-        if kwargs['cur_attr'] == 'call':
-            if kwargs['prev_attr'] == 'size_decl':
-                self.mem['current'][kwargs['scope']][kwargs['attr_name']]['size'] = res
-            elif kwargs['prev_attr'] == 'opt_assign':
-                if self.mem['current'][kwargs['scope']][kwargs['attr_name']]['type'] in [int, list]:
-                    if kwargs['attr_pos']:
-                        for k in kwargs['attr_pos']:
-                            self.mem['current'][kwargs['scope']][kwargs['attr_name']]['data'][
-                                k] = res
-                    else:
-                        self.mem['current'][kwargs['scope']][kwargs['attr_name']]['data'][0] = res
-                else:
-                    raise ValueError("Attribute not of type 'int'.")
+    def store_data(self):
+        if self.kws['attr_name']:
+            _mem_data = self.mem['cur'][self.kws['scope']][self.kws['attr_name']]['data']
+            _attr_indx = self.kws['attr_idx']
+            data = self.kws['to_attr']
+            # print(f'* * [store data] data={data} | attr idx={_attr_indx}')
+            #if self.kws['idx_or_val'] == 'val':
+            if len(data) == len(_attr_indx):
+                # print('store okay!')
+                for k, d in zip(_attr_indx, data):
+                    _mem_data[k] = d
             else:
-                if self.mem['current'][kwargs['scope']][kwargs['attr_name']]['type'] in [int, list]:
-                    if kwargs['attr_pos']:
-                        _vals = self.mem['current'][kwargs['scope']][kwargs['attr_name']][
-                            'data'].keys()
-                        for k1, k2 in zip(_vals, kwargs['attr_pos']):
-                            self.mem['current'][kwargs['scope']][kwargs['attr_name']]['data'][
-                                k1] = k2
-                    else:
-                        self.mem['current'][kwargs['scope']][kwargs['attr_name']]['data'][0] = res
-                else:
-                    raise ValueError("Attribute not of type 'int'.")
-        elif kwargs['cur_attr'] in ['caller', 'caller_args']:
-            kwargs['indices'] += (res,)
-        elif kwargs['cur_attr'] == 'opt_assign':
-            kwargs['attr_pos'] += (res,)
-        self.dprint(f'[type int](end) code={code} | kwargs={kwargs}')
-        return kwargs
+                if len(data) == 1:
+                    # print('one to many')
+                    for p in data:
+                        for k in _attr_indx:
+                            _mem_data[k] = p
+            if self.kws['idx_or_val'] == 'idx':
+                raise NotImplemented("Idx for Store Data not implemented yet.")
 
-    def type_float(self, code, kwargs):
-        res = ast.literal_eval(code)
-        if kwargs['cur_attr'] == 'call':
-            if self.mem['current'][kwargs['scope']][kwargs['attr_name']]['type'] in [float, list]:
-                self.mem['current'][kwargs['scope']][kwargs['attr_name']]['data'][0] = res
+
+    # PREFIX TYPES
+
+    def prefix_int(self, code):
+        literal_code = ast.literal_eval(code)
+        if self.kws['cur_cmd'] == 'size_decl':
+            self.kws['attr_size'] = literal_code
+        elif self.kws['cur_cmd'] == 'call':
+            if self.kws['prev_cmd'] == 'opt_assign':
+                # self.kws['to_attr'] += (literal_code,)
+                self.kws['attr_idx'] += (literal_code,)
+            elif self.kws['prev_cmd'] == 'caller_args':
+                self.kws['args'] += (literal_code,)
+            elif self.kws['prev_cmd'] == 'assign_value':
+                self.kws['to_attr'] += (literal_code,)
+        elif self.kws['cur_cmd'] == 'loop':
+            # print('int loop?')
+            if self.kws['prev_cmd'] in ['opt_assign', 'assign_value', 'assign_expr']:
+                if self.kws['loop_pos'] == 'loop_start':
+                    self.kws['loop_range'] += (literal_code,)
+                elif self.kws['loop_pos'] == 'loop_end':
+                    self.kws['loop_range'] += (literal_code,)
+                else:
+                    raise NotImplemented("Other loop option not implemented yet.")
+        elif self.kws['cur_cmd'] == 'opt_assign':
+            # print('here', literal_code)
+            # print('int opt')
+            self.kws['attr_idx'] += (literal_code,)
+        elif self.kws['cur_cmd'] == 'assign_value':
+            # print('int assign val')
+            self.kws['to_attr'] += (literal_code,)
+        # print(f'prev_cmd={self.kws["prev_cmd"]} | cur_cmd={self.kws["cur_cmd"]}')
+        # print(self.kws)
+
+
+    def prefix_float(self, code):
+        pass
+
+    def prefix_str(self, code):
+        literal_code = ast.literal_eval(code)
+        if self.kws['cur_cmd'] == 'call':
+            if self.kws['prev_cmd'] == 'caller_args':
+                self.kws['args'] += (literal_code,)
+
+    # PREFIX FUNCS
+
+    def prefix_scope(self, code):
+        self.kws['cur_cmd'] = code
+
+    def prefix_symbol(self, code):
+        # print(f'got symbol? {code}')
+        if self.kws['cur_cmd'] == 'main':
+            self.kws['scope'] = code
+        elif self.kws['cur_cmd'] == 'attr_decl':
+            self.kws['attr_name'] = code
+        elif self.kws['cur_cmd'] == 'call':
+            if self.kws['prev_cmd'] == 'assign_value':
+                self.kws['to_attr'] += tuple(k for k in self.mem['cur'][self.kws['scope']][code]['data'].values())
             else:
-                raise ValueError("Attribute not of type 'float'.")
-        elif kwargs['cur_attr'] == 'caller_args':
-            kwargs['indices'] += (res,)
-        return kwargs
+                self.kws['args'] += tuple(k for k in self.mem['cur'][self.kws['scope']][code]['data'].values())
+        elif self.kws['cur_cmd'] == 'caller':
+            # print(f'symb caller: {code} | prev={self.kws["prev_cmd"]}')
+            if self.kws['prev_cmd'] == 'call':
+                # print(f'sym caller {code} + (caller_args)? args={self.kws["args"]}')
+                self.kws['to_attr'] += tuple(v for k, v in self.mem['cur'][self.kws['scope']][code]['data'].items() if k in self.kws['args'])
+                # print(self.kws['to_attr'])
+            elif self.kws['prev_cmd'] == 'caller_args':
+                # print('sym caller + caller_args')
+                self.kws['to_attr'] += tuple(v for k, v in self.mem['cur'][self.kws['scope']][code]['data'].items() if k in self.kws['args'])
 
-    def type_str(self, code, kwargs):
-        res = ast.literal_eval(code)
-        if kwargs['cur_attr'] == 'call':
-            if self.mem['current'][kwargs['scope']][kwargs['attr_name']]['type'] in [str, list]:
-                self.mem['current'][kwargs['scope']][kwargs['attr_name']]['data'][0] += res
-            else:
-                raise ValueError("Attribute not of type 'str'.")
-        elif kwargs['cur_attr'] in ['caller', 'caller_args']:
-            kwargs['indices'] += (res,)
-        return kwargs
+    def prefix_qsymbol(self, code):
+        self.prefix_symbol(code)
 
-    def suffix_params(self, code, kwargs):
-        return kwargs
+    def prefix_type(self, code):
+        if self.kws['cur_cmd'] != 'main':
+            self.kws['attr_type'] = code
 
-    def suffix_body(self, code, kwargs):
-        kwargs['cur_attr'] = code
-        type_val, type_size, _ = self.suffix_types[kwargs['attr_type']]
-        self.mem['current'][kwargs['scope']] = {'data': {},
-                                                'type': type_val,
-                                                'size': type_size}
-        kwargs['attr_type'] = None
-        kwargs['attr_name'] = None
-        return kwargs
+    def prefix_indices(self, code):
+        _data = self.mem['cur'][self.kws['scope']][self.kws['attr_name']]['data']
+        if code == 'all':
+            self.dprint(f'[pfx-idx]', f'code={code}', f'data={_data}')
+            self.kws['attr_idx'] = tuple(_data.keys())
+        elif code == 'self':
+            self.kws['attr_idx'] = tuple(_data.keys())
+            self.kws['idx_or_val'] = 'idx'
 
-    def suffix_attr_decl(self, code, kwargs):
-        kwargs['prev_attr'] = kwargs['cur_attr']
-        kwargs['cur_attr'] = code
-        return kwargs
-
-    def suffix_assign_expr(self, code, kwargs):
-        size = self.mem['current'][kwargs['scope']][kwargs['attr_name']]['size']
-        default_value = self.suffix_types[kwargs['attr_type']][2]
-        self.mem['current'][kwargs['scope']][kwargs['attr_name']]['data'] = {k: default_value for k
-                                                                             in range(size)}
-        kwargs['prev_attr'] = kwargs['cur_attr']
-        kwargs['cur_attr'] = code
-        return kwargs
-
-    def suffix_opt_assign(self, code, kwargs):
-        kwargs['prev_attr'] = kwargs['cur_attr']
-        kwargs['cur_attr'] = code
-        return kwargs
-
-    def suffix_call(self, code, kwargs):
-        kwargs['prev_attr'] = kwargs['cur_attr']
-        kwargs['cur_attr'] = code
-        return kwargs
-
-    def suffix_size_decl(self, code, kwargs):
-        kwargs['prev_attr'] = kwargs['cur_attr']
-        kwargs['cur_attr'] = code
-        return kwargs
-
-    def suffix_caller_args(self, code, kwargs):
-        kwargs['prev_attr'] = kwargs['cur_attr']
-        kwargs['cur_attr'] = code
-        if kwargs['prev_attr'] == kwargs['cur_attr']:
-            kwargs['assign_flag'] = True
-            kwargs['tmp_indices'] = kwargs['indices']
-            kwargs['indices'] = ()
+    def prefix_builtin(self, code):
+        _data = self.mem['cur'][self.kws['scope']][self.kws['attr_name']]['data']
+        _attr_idx = tuple(v for k, v in _data.items() if k in self.kws['attr_idx'])
+        _vals = (self.kws['args'] + self.kws['from_attr'], _attr_idx)
+        # print(f'builtin vals! ={_vals}')
+        _res = self.builtin_funcs[code](_vals)
+        if self.kws['idx_or_val'] == 'idx':
+            raise NotImplemented("Builtin result in Index not implemented yet.")
+        #elif self.kws['idx_or_val'] == 'val':
         else:
-            kwargs['assign_flag'] = False
-            kwargs['tmp_indices'] = ()
-        return kwargs
+            # print(f'builtin? {code} | res={_res}')
+            if _res:
+                self.kws['to_attr'] = _res
 
-    def suffix_caller(self, code, kwargs):
-        kwargs['prev_attr'] = kwargs['cur_attr']
-        kwargs['cur_attr'] = code
-        return kwargs
+    def prefix_loop(self, code):
+        # print(f'loop {code}')
+        self.kws['loop_pos'] = code
 
-    def suffix_return(self, code, kwargs):
-        kwargs['return_flag'] = True
-        return kwargs
-
-    def preffix_code(self, code, kwargs):
-        _vals = self.suffix_handlers[code]
-        return _vals(code, kwargs)
-
-    def preffix_symbol(self, code, kwargs):
-        self.dprint(f'[pffx sym](start) code={code} | kwargs={kwargs}')
-        if kwargs['scope'] is None:
-            kwargs['scope'] = code
-        if kwargs['cur_attr'] == 'attr_decl':
-            kwargs['attr_name'] = code
-            self.create_mem_slot(kwargs)
-        elif kwargs['cur_attr'] == 'call':
-            if kwargs['prev_attr'] == 'size_decl':
-                if self.mem['current'][kwargs['scope']][code]['type'] == int:
-                    self.mem['current'][kwargs['scope']][kwargs['attr_name']]['size'] = \
-                        self.mem['current'][kwargs['scope']][code]['data'][0]
-            try:
-                res = self.mem['current'][kwargs['scope']][code]['data']
-                for k, v in res.items():
-                    kwargs['indices'] += (v,)
-            except Exception:
-                # TODO: implement function control flow
-                try:
-                    res = self.mem['function'][code]['data']
-                except Exception:
-                    raise AttributeError(f"Attribute '{code}' not found.")
-        elif kwargs['cur_attr'] == 'opt_assign':
-            try:
-                res = self.mem['current'][kwargs['scope']][code]['data']
-                for k, v in res.items():
-                    kwargs['attr_pos'] += (v,)
-            except Exception:
-                # TODO: implement function control flow
-                raise AttributeError(f"Attribute '{code}' not found.")
-        elif kwargs['cur_attr'] == 'caller':
-            raise NotImplemented("Caller for symbol not implemented yet.")
-        elif kwargs['cur_attr'] == 'caller_args':
-            has_scope = self.mem['current'].get(kwargs['scope'], False)
-            if has_scope:
-                has_attr_mem = self.mem['current'][kwargs['scope']].get(code, False)
-                if has_attr_mem:
-                    for k, v in self.mem['current'][kwargs['scope']][code]['data'].items():
-                        kwargs['indices'] += (v,)
-        self.dprint(f'[pffx sym](end) kwargs={kwargs}')
-        return kwargs
-
-    def preffix_type(self, code, kwargs):
-        kwargs['attr_type'] = code
-        if kwargs['cur_attr'] == 'attr_decl':
-            # kwargs['attr_type'] = code
-            self.create_mem_slot(kwargs)
-            val_type, type_size, default_value = self.suffix_types[code]
-            self.mem['current'][kwargs['scope']][kwargs['attr_name']]['type'] = val_type
-            if type_size is not None:
-                self.mem['current'][kwargs['scope']][kwargs['attr_name']]['size'] = type_size
-        return kwargs
-
-    def preffix_indices(self, code, kwargs):
-        self.dprint(f'[pffx indices] >> called | code={code}', end=' ')
-        if code in ['all', 'self']:
-            _vals = self.mem['current'][kwargs['scope']][kwargs['attr_name']]['data']
-            self.dprint(f'| got vals={_vals}')
-            for k, v in _vals.items():
-                kwargs['attr_pos'] += (k,)
-        return kwargs
-
-    def preffix_builtin(self, code, kwargs):
-        self.dprint(f'[{code.upper()}] = ', end='')
-        btn_hdlr = self.builtin_handlers.get(code, False)
-        if btn_hdlr:
-            if kwargs['cur_attr'] in ['call', 'caller']:
-                if kwargs['prev_attr'] == 'caller_args' and not kwargs['assign_flag']:
-                    self.dprint(f'[pffx btn](caller_args) tmp_indices={kwargs["tmp_indices"]}')
-                    kwargs['indices'] = kwargs['tmp_indices'] + kwargs['indices']
-                    kwargs['tmp_indices'] = ()
-                    kwargs['assign_flag'] = False
-                params = kwargs['indices']
-                if kwargs['attr_name']:
-                    _vals = self.mem['current'][kwargs['scope']][kwargs['attr_name']]['data']
-                    for k, v in _vals.items():
-                        if k in kwargs['attr_pos']:
-                            params += (v,)
-                self.dprint(f'[pffx btn]({code}) PARAMS={params}')
-                res = btn_hdlr(params)
-                self.dprint(f'[pffx btn]({code}) res={res}')
-                if res:
-                    if kwargs['attr_name']:
-                        for k1, k2 in zip(res, kwargs['attr_pos']):
-                            self.mem['current'][kwargs['scope']][kwargs['attr_name']]['data'][
-                                k2] = k1
-                    else:
-                        kwargs['indices'] = res
-                else:
-                    kwargs['indices'] = res
-        return kwargs
-
-    def preffix_end(self, code, kwargs):
-        self.dprint('[pffx end]', end=' ')
-        if not kwargs['return_flag']:
-            if code == 'opt_assign':
-                kwargs['attr_pos'] = ()
-                kwargs['indices'] = ()
-            elif code == 'attr_decl':
-                kwargs['attr_name'] = None
-                kwargs['attr_type'] = None
-                kwargs['attr_pos'] = ()
-                kwargs['tmp_indices'] += kwargs['indices']
-                kwargs['indices'] = ()
-            elif code == 'caller_args':
-                kwargs['assign_flag'] = False
-                kwargs['indices'] = kwargs['tmp_indices'] + kwargs['indices']
-                kwargs['tmp_indices'] = ()
-            kwargs['cur_attr'] = code
+    def prefix_code(self, code):
+        # print(f'current codes: prev={self.kws["prev_cmd"]} | cur={self.kws["cur_cmd"]}')
+        if code == 'loop':
+            # print('is loop?')
+            if self.kws['prev_cmd'] in ['opt_assign', 'assign_value']:
+                # print('prev opt or assign val')
+                self.kws['cur_cmd'] = code
+            elif self.kws['cur_cmd'] in ['opt_assign', 'assign_value']:
+                # print('cur opt or assign val')
+                self.kws['cur_cmd'] = code
         else:
-            if code == 'symbol':
-                type_scope = self.mem['current'][kwargs['scope']]['type']
-                type_value = self.check_value_type(kwargs['indices'])
-                if type_scope == type_value:
-                    for k0, k in enumerate(kwargs['indices']):
-                        self.mem['current'][kwargs['scope']]['data'][k0] = k
-                    # self.mem['current'][kwargs['scope']]['data'] = kwargs['indices']
-                    self.mem['current'][kwargs['scope']]['size'] = len(kwargs['indices'])
-                else:
-                    raise ValueError(
-                        f"Value(s) {kwargs['indices']} with type '{type_value}' different from scope's '{type_scope}'.")
-        self.dprint('>> called')
-        return kwargs
+            self.kws['prev_cmd'] = self.kws['cur_cmd']
+            self.kws['cur_cmd'] = code
+        # print(f'changed codes: prev={self.kws["prev_cmd"]} | cur={self.kws["cur_cmd"]}')
+        if self.kws['prev_cmd'] == 'opt_assign':
+            if self.kws['cur_cmd'] == 'call':
+                self.kws['idx_or_val'] = 'val'
+        if self.kws['cur_cmd'] == 'body':
+            self.mem['cur'].update({self.kws['scope']: {}})
 
-    def dict_handler(self, code, kwargs):
-        res = code.get('scope', False)
-        if res:
-            res = res.get('main', False)
-            if res:
-                return self.eval_exec(res, kwargs)
-        return {}
+    def prefix_end(self, code):
+        # print(f'=> code={code} | kws={self.kws}')
+        # print(f'* * [mem]={self.mem["cur"]}')
+        if self.kws['cur_cmd'] == 'attr_decl':
+            _len = self.kws['attr_size'] if self.kws['attr_size'] else self.default_len[self.kws['attr_type']]
+            self.mem['cur'][self.kws['scope']].update(
+                {self.kws['attr_name']:
+                     {'data': {k: self.default_val[self.kws['attr_type']] for k in range(_len)},
+                      'type': self.kws['attr_type'],
+                      'len': _len}})
+        elif self.kws['cur_cmd'] == 'assign_value':
+            self.store_data()
+            self.kws['args'] = ()
+            self.kws['tmp_args'] = ()
+            self.kws['attr_data'] = ()
+            self.kws['from_attr'] = ()
+            self.kws['to_attr'] = ()
+            self.kws['attr_idx'] = ()
+            self.kws['loop_range'] = ()
+        elif self.kws['cur_cmd'] == 'assign_expr':
+            self.kws['attr_name'] = None
+            self.kws['attr_type'] = None
+            self.kws['attr_size'] = None
+            self.kws['idx_or_val'] = None
+            self.kws['loop_pos'] = None
+            self.kws['args'] = ()
+            self.kws['tmp_args'] = ()
+            self.kws['attr_data'] = ()
+            self.kws['from_attr'] = ()
+            self.kws['to_attr'] = ()
+            self.kws['attr_idx'] = ()
+            self.kws['loop_range'] = ()
+        elif self.kws['cur_cmd'] == 'loop':
+            _start, _end = self.kws['loop_range']
+            # print('loop?')
+            if self.kws['prev_cmd'] == 'opt_assign':
+                # print(f'loop + opt={_start, _end}')
+                self.kws['attr_idx'] += tuple(k for k in range(_start, _end))
+            elif self.kws['prev_cmd'] == 'assign_value':
+                # print(f'loop + assign val={_start, _end}')
+                self.kws['to_attr'] += tuple(k for k in range(_start, _end))
+            elif self.kws['prev_cmd'] == 'assign_expr':
+                # print(f'loop + assign expr={_start, _end}')
+                self.kws['to_attr'] += tuple(k for k in range(_start, _end))
+                # print(self.kws['to_attr'])
+            self.kws['loop_pos'] = None
+            self.kws['loop_range'] = ()
+        elif self.kws['cur_cmd'] == 'main':
+            self.kws = self.start_kwargs()
+        # ... continue conditional execution above until the very end.
+        # these last lines below must be the last ones.
+        if self.kws['cur_cmd'] == 'call' and self.kws['prev_cmd'] == 'caller_args':
+            self.kws['cur_cmd'] = 'caller_args'
+        # if code == 'assign_expr':
+        #     self.kws['cur_cmd'] = self.kws['prev_cmd']
+        #     self.kws['prev_cmd'] = None
+        else:
+            self.kws['cur_cmd'] = self.kws['prev_cmd']
+            self.kws['prev_cmd'] = None
 
-    def tuple_handler(self, code, kwargs):
-        self.dprint(f'[tuple hndlr](start) kwargs={kwargs}')
-        old_kwargs = kwargs
+
+    # MAIN HANDLERS
+
+    def tuple_handler(self, code):
+        self.dprint('[tuple]', f'kws={self.kws}')
+        old_kws = deepcopy(self.kws)
         for k in code:
-            kwargs = self.eval_exec(k, kwargs)
-            self.dprint(f'[tuple iter]({k}) kwargs={kwargs}')
-        self.dprint(f'[tuple hndlr](end) kwargs={old_kwargs}')
-        return old_kwargs
+            self.dprint(f'[tuple] [iter]', f'kws={self.kws}', f'code={k}')
+            self.main_handlers[type(k)](k)
+        self.kws = deepcopy(self.scope_handler(old_kws))
+        # print(f'-> kws={self.kws}')
 
-    def str_handler(self, code, kwargs):
-        self.dprint(f'[str hndlr](start) code={code} | kwargs={kwargs}')
-        code_vals = self.str_vals(code)
-        self.dprint(f'[str hndlr] code_vals={code_vals}')
-        _pfx_code = self.preffix_handlers.get(code_vals[0], False)
-        if _pfx_code:
-            kwargs = _pfx_code(code_vals[1], kwargs)
-        else:
-            _pfx_code = self.preffix_types.get(code_vals[0], False)
-            if _pfx_code:
-                kwargs = _pfx_code(code_vals[1], kwargs)
-        self.dprint(f'[str hndlr](end) kwargs={kwargs}')
-        return kwargs
+    def str_handler(self, code):
+        self.dprint(f'[str]', f'kws={self.kws}')
+        prefix, suffix = self.split_str_code(code)
+        # print(f'prev={self.kws["prev_cmd"]} | cur={self.kws["cur_cmd"]}')
+        self.block_prefix[prefix](suffix)
 
-    def eval_exec(self, code, kwargs=None):
-        if kwargs is None:
-            kwargs = {'scope': None,
-                      'attr_name': None,
-                      'attr_type': None,
-                      'return_flag': False,
-                      'attr_pos': (),
-                      'cur_attr': None,
-                      'prev_attr': None,
-                      'assign_flag': False,
-                      'tmp_indices': (),
-                      'indices': ()}
-        _val = self.eval_handlers[type(code)]
-        return _val(code, kwargs)
-
-    def eval_run(self, code):
-        print('-Running H-hat code:\n')
-        t_0 = time.process_time()
-        self.eval_exec(code)
-        t_f = time.process_time()
-        print(f'\n- Finished.\n- Done in {round(t_f - t_0, 6)}s')
+    def eval_exec(self, code):
+        self.main_handlers[type(code)](code)
 
 
 class Code:

@@ -106,18 +106,24 @@ def function_14(p):
     return GenericExprs1(p[2])
 
 
-@pg.production("assign_values : opt_assign COLON any_call assign_values2")
+@pg.production("assign_exprs : ")
 def function_15(p):
+    return Empty()
+
+
+@pg.production("assign_values : opt_assign COLON any_call assign_values2")
+@pg.production("assign_values : opt_assign COLON short_loop_exprs assign_values2 ")
+def function_16(p):
     return AssignValues(p[0], p[2], p[3])
 
 
 @pg.production("assign_values2 : COMMA assign_values")
-def function_16(p):
+def function_17(p):
     return GenericExprs1(p[1])
 
 
 @pg.production("assign_values2 : ")
-def function_17(p):
+def function_18(p):
     return Empty()
 
 
@@ -127,45 +133,46 @@ def function_17(p):
 @pg.production("any_call : STR_LITERAL")
 @pg.production("any_call : attr_call")
 @pg.production("any_call : func_call")
-def function_18(p):
-    return AnyCall(p[0])
-
-
-@pg.production("any_call : opt_assign_exprs")
 def function_19(p):
     return AnyCall(p[0])
 
 
-@pg.production("attr_call : any_symbol OPEN call CLOSE")
+@pg.production("any_call : opt_assign_exprs")
 def function_20(p):
+    return AnyCall(p[0])
+
+
+@pg.production("attr_call : any_symbol OPEN call CLOSE")
+def function_21(p):
     return InsideCall(p[0], p[2])
 
 
 @pg.production("func_call : builtin_funcs OPEN call CLOSE")
+@pg.production("func_call : other_builtin_funcs OPEN call3 CLOSE")
 @pg.production("func_call : special_builtin_funcs OPEN special_call CLOSE")
-def function_21(p):
+def function_22(p):
     return InsideCall(p[0], p[2])
 
 
 @pg.production("func_call : special_builtin_funcs")
 @pg.production("func_call : other_builtin_funcs")
-def function_22(p):
+def function_23(p):
     return InsideCall(p[0])
 
 
 @pg.production("other_builtin_funcs : PRINT_BUILTIN")
-def function_23(p):
+def function_24(p):
     return InsideCall(p[0])
 
 
 @pg.production("special_builtin_funcs : OUTPUT_BUILTIN")
 @pg.production("special_builtin_funcs : INPUT_BUILTIN")
-def function_24(p):
+def function_25(p):
     return InsideCall(p[0])
 
 
 @pg.production("special_call : assign_values")
-def function_25(p):
+def function_26(p):
     return AssignValues(p[0])
 
 
@@ -173,27 +180,46 @@ def function_25(p):
 @pg.production("call : any_symbol call2")
 @pg.production("call : func_call call2")
 @pg.production("call : attr_call call2")
-def function_26(p):
+def function_27(p):
     return AnyCall(p[0], p[1])
 
 
 @pg.production("call2 : call")
-def function_27(p):
+def function_28(p):
     return AnyCall(p[0])
 
 
 @pg.production("call2 : ")
-def function_28(p):
+def function_29(p):
+    return Empty()
+
+
+@pg.production("call3 : INT_LITERAL call4")
+@pg.production("call3 : STR_LITERAL call4")
+@pg.production("call3 : any_symbol call4")
+@pg.production("call3 : func_call call4")
+@pg.production("call3 : attr_call call4")
+def function_30(p):
+    return AnyCall(p[0], p[1])
+
+
+@pg.production("call4 : call3")
+def function_31(p):
+    return AnyCall(p[0])
+
+
+@pg.production("call4 : ")
+def function_32(p):
     return Empty()
 
 
 @pg.production("attr_assign : any_symbol OPEN assign_values CLOSE")
-def function_29(p):
+def function_33(p):
     return AttrAssign(p[0], p[2])
 
 
 @pg.production("opt_assign : ")
-def function_30(p):
+def function_34(p):
     return OptAssign()
 
 
@@ -202,7 +228,8 @@ def function_30(p):
 @pg.production("opt_assign : INT_LITERAL")
 @pg.production("opt_assign : STR_LITERAL")
 @pg.production("opt_assign : opt_assign_exprs")
-def function_31(p):
+@pg.production("opt_assign : short_loop_exprs")
+def function_35(p):
     return OptAssign(p[0])
 
 
@@ -231,22 +258,17 @@ def function_31(p):
 @pg.production("builtin_funcs : DIV_BUILTIN")
 @pg.production("builtin_funcs : POWER_BUILTIN")
 @pg.production("builtin_funcs : SQRT_BUILTIN")
-def function_32(p):
+def function_36(p):
     return InsideCall(p[0])
 
 
 @pg.production("opt_assign_exprs : OPEN call call2 CLOSE")
-def function_33(p):
-    return AnyCall(p[0], p[1])
-
-
-@pg.production("opt_assign_exprs : short_loop_exprs")
-def function_34(p):
-    return AnyCall(p[0])
+def function_37(p):
+    return AnyCall(p[1], p[2])
 
 
 @pg.production("short_loop_exprs : loop_range RANGE_LOOP loop_range")
-def function_35(p):
+def function_38(p):
     return ShortLoopExprs(p[0], p[2])
 
 
@@ -254,7 +276,7 @@ def function_35(p):
 @pg.production("loop_range : SYMBOL")
 @pg.production("loop_range : attr_call")
 @pg.production("loop_range : func_call")
-def function_36(p):
+def function_39(p):
     return GenericExprs1(p[0])
 
 

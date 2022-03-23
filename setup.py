@@ -42,7 +42,7 @@ setup(
     keywords='hhat_lang',
     name='hhat_lang',
     packages=find_packages(include=['hhat_lang', 'hhat_lang.*']),
-    package_data={"": ["*.hht", "prod_semantics.txt", "semantics_class_list.txt"]},
+    package_data={"": ["*.hht", "new_grammar.txt"]},
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/Doomsk/hhat_lang',

@@ -6,38 +6,13 @@ import time
 try:
     from lexer import lexer
     from parser import parser
-except ImportError:
+    from builtin import (btin_add, btin_print)
+except (ImportError, ModuleNotFoundError):
     from hhat_lang.lexer import lexer
     from hhat_lang.parser import parser
+    from hhat_lang.builtin import (btin_add, btin_print)
 import ast
 from copy import deepcopy
-
-
-def btin_print(vals):
-    args, attr = vals
-    print(*args, *attr)
-    return None
-
-def btin_add(vals):
-    args, attr = vals
-    _num_types = set([type(k) for k in args])
-    _total = ()
-    if len(_num_types) == 1:
-        if _num_types.issubset({int, float, str, tuple, list}):
-            _res = 0 if _num_types.issubset({int, float}) else '' if _num_types.issubset({str}) else ()
-            for k in args:
-                _res += k
-            for k in attr:
-                _total += (k + _res,)
-        else:
-            _total = None
-    else:
-        _res = ()
-        for k in vals:
-            _res += (k,)
-        for k in attr:
-            _total += (_res,)
-    return _total
 
 
 class Eval:
@@ -156,12 +131,13 @@ class Eval:
                         if p in cond:
                             _res += (self.mem['cur'][self.k['scope']][attr][p],)
         else:
-            for key, value in self.mem['cur'][self.k['scope']][attr]['data'].items():
-                if not cond:
-                    _res += (value,)
-                else:
-                    if key in cond:
+            if not isinstance(data, (int, float, str, tuple)):
+                for key, value in self.mem['cur'][self.k['scope']][attr]['data'].items():
+                    if not cond:
                         _res += (value,)
+                    else:
+                        if key in cond:
+                            _res += (value,)
         return _res
 
     def get_data(self, attr=None):
@@ -196,7 +172,7 @@ class Eval:
             self.k['attr_size'] = lit_code
         elif self.k['cur_cmd'] == 'opt_assign':
             self.k['attr_idx'] += (lit_code,)
-            self.k['from_attr'] += self.read_data(data=(lit_code),)
+            self.k['from_attr'] += self.read_data(data=(lit_code,))
         elif self.k['cur_cmd'] == 'loop':
             self.k['loop_range'] += (lit_code,)
 
@@ -279,6 +255,8 @@ class Eval:
             self.k['to_attr'] = ()
             self.k['from_attr'] = ()
             self.dprint(f'[pfx--end] [{code}]', f'mem: {self.mem}')
+        elif code == 'opt_assign':
+            self.k['to_attr'] = ()
         elif code == 'assign_expr':
             self.k['attr_name'] = None
             self.k['attr_type'] = None

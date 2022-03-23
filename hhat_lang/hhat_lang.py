@@ -1,9 +1,9 @@
 """Main module."""
-import metaparser
+import new_metaparser
 
 
 def start():
-    metaparser.create_parser()
+    new_metaparser.create_parser()
 
 
 if __name__ == '__main__':

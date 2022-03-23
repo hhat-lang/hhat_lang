@@ -73,8 +73,38 @@ TODOs:
 -----
 
 - [x] create evaluators
-- [/] include built-in error handler
-- [/] include debugger mode
+    - [ ] create built-in functions
+        - [x] print
+        - [x] add
+        - [ ] mult
+        - [ ] div
+        - [ ] pow
+        - [ ] sqrt
+        - [ ] @h
+        - [ ] @x
+        - [ ] @z
+        - [ ] @y
+        - [ ] @cnot
+        - [ ] @swap
+        - [ ] @cz
+        - [ ] @rx
+        - [ ] @rz
+        - [ ] @ry
+        - [ ] @t
+        - [ ] @tdag
+        - [ ] @s
+        - [ ] @sdag
+        - [ ] @cr
+        - [ ] @toffoli
+        - [ ] @superposn
+        - [ ] @ampl
+        - [ ] @reset
+    - [ ] create functions handler
+        - [ ] function calling
+        - [ ] scope variables
+        - [ ]
+- [ ] include built-in error handler
+- [ ] include debugger mode
 - [ ] emulate data types and memory
 
 
@@ -82,7 +112,7 @@ TODOs:
 How to Use
 ------
 
-To set up the language in your package manager you can use one of the following methods.
+To set up the language in your package manager you can use one of the following methods. (It is recommended to have anaconda_ installed with Python 3+ (preferably Python 3.8).)
 
 **Method 1**:
 
@@ -108,7 +138,7 @@ How?
 
     from hhat_lang.evaluator import Code
 
-    c = "main null C: (int res: (:add(1 1), :print))"  # include your code in this line
+    c = "main null C: (int a= (:add(1 1), :print))"  # include your code in this line
     code_exec = Code(c)
     code_exec.run() # it will run all the processes and evaluate the code
 
@@ -143,7 +173,7 @@ Code is being developed by Doomsk_, Kaonan_ and T1t0_.
 This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
 
 
-
+.. _anaconda: https://www.anaconda.com/products/individual
 .. _Doomsk: https://github.com/Doomsk
 .. _Kaonan: https://github.com/kaosmicadei
 .. _T1t0: https://github.com/adauto6

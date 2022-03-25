@@ -81,6 +81,8 @@ class Eval:
 
     def check_type(self, data):
         _attr_type = self.k['attr_type']
+        if not _attr_type:
+            _attr_type = self.mem['cur'][self.k['scope']][self.k['attr_name']]['type']
         _data_type = self.type2type[type(data)]
         if _data_type == _attr_type:
             return data
@@ -196,7 +198,7 @@ class Eval:
         self.dprint('[pfx--sym]', code)
         if self.k['cur_cmd'] == None and self.k['attr_name'] == None:
             self.k['scope'] = code
-        elif self.k['cur_cmd'] == 'attr_decl':
+        elif self.k['cur_cmd'] in ['attr_decl', 'attr_assign']:
             self.k['attr_name'] = code
         elif self.k['cur_cmd'] == 'call':
             _caller_idx = self.k['args']

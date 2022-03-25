@@ -1,0 +1,2 @@
+[console_scripts]
+hhat_lang = hhat_lang.cli:main

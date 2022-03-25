@@ -1,0 +1,29 @@
+
+func measurement @grover2 : (
+    int sys_size : (:20)
+    list enum (sys_size) : (:add (sys_size))
+    circuit @test(sys_size) : (0:@h, 1:@x, 2:@z)
+    measurement @result(sys_size) : (num_shots: 1024)
+    @test (0:@x, 2:@h, (0 1):@cnot)
+    @test (*:map (enum))
+    @result (*:map (enum))
+    @return (@test @result)
+)
+
+func measurement @grover (circuit @oracle, int shots) : (
+    int sys_size : (:@oracle(indices_size))
+    list enum (sys_size) : (:map (@oracle(indices_list)))
+    circuit @gates (sys_size) : (*:map (enum))
+    measurement @result (sys_size) : (num_shots:shots)
+    @gates (:@superposn)
+    for k in (0..div(int_sqrt(sys_size) 2)): (@circuit (:@oracle, :@diffusion(@oracle)))
+    @result (*:map (enum))
+    @return (@gates @result)
+)
+
+main null C : (
+    register p(2) : (0:1, 1:1)
+    register r(2)
+    r (0:0, 1:0)
+)
+

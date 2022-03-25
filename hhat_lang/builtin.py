@@ -1,26 +1,33 @@
 """Builtin functions"""
 
 
-def builtin_print(memory, reference, indices=None, *values):
-    if indices:
-        print(memory[reference][indices])
-    else:
-        print(reference,
-              ':\n',
-              *[str(k) + ': ' + str(v) + '\n' for k, v in memory[reference].items()])
+def btin_print(vals):
+    args, attr = vals
+    print(*args, *attr)
+    return None
 
 
-def builtin_add(*values):
-    values_types = [type(k) for k in values]
-    svt = set(values_types)
-    if len(svt) == 1:
-        if int in svt or float in svt:
-            return sum(*values)
-        if str in svt:
-            return ''.join(values)
-        raise TypeError("Wrong type for function.")
+def btin_add(vals):
+    args, attr = vals
+    _num_types = set([type(k) for k in args])
+    _total = ()
+    if len(_num_types) == 1:
+        if _num_types.issubset({int, float, str, tuple, list}):
+            _res = 0 if _num_types.issubset({int, float}) else '' if _num_types.issubset(
+                {str}) else ()
+            for k in args:
+                _res += k
+            for k in attr:
+                _total += (k + _res,)
+        else:
+            _total = None
     else:
-        return list(values)
+        _res = ()
+        for k in vals:
+            _res += (k,)
+        for k in attr:
+            _total += (_res,)
+    return _total
 
 
 def builtin_mult():

@@ -1,371 +1,283 @@
+
 try:
-    from core_ast import *
+    from core_ast import (Main, AnyType, AnySymbol, FuncParams,
+                          Empty, BodyExprs, AttrDecl, GenericExprs1,
+                          AssignValues, AnyCall, InsideCall, AttrAssign,
+                          OptAssign, ShortLoopExprs,)
     from tokens import tokens
 except ImportError:
-    from hhat_lang.core_ast import *
+    from hhat_lang.core_ast import (Main, AnyType, AnySymbol, FuncParams,
+                                    Empty, BodyExprs, AttrDecl, GenericExprs1,
+                                    AssignValues, AnyCall, InsideCall, AttrAssign,
+                                    OptAssign, ShortLoopExprs,)
     from hhat_lang.tokens import tokens
 from rply import ParserGenerator
-
 
 
 pg = ParserGenerator(list(tokens.keys()))
 
 
-@pg.production("program : importing functions main")
+@pg.production("main : MAIN any_type any_symbol func_params OPEN body_exprs CLOSE")
 def function_0(p):
-    return Program(p[1], p[2], p[0])
+    return Main(p[1], p[2], p[3], p[5])
 
 
-@pg.production("importing : ")
+@pg.production("any_type : NULL_TYPE")
+@pg.production("any_type : BOOL_TYPE")
+@pg.production("any_type : INTEGER_TYPE")
+@pg.production("any_type : FLOAT_TYPE")
+@pg.production("any_type : STR_TYPE")
+@pg.production("any_type : GATES_TYPE")
+@pg.production("any_type : HASHMAP_TYPE")
+@pg.production("any_type : MEAS_TYPE")
 def function_1(p):
-    return Imports()
+    return AnyType(p[0])
 
 
-@pg.production("importing : IMPORTS OPEN import_symbol CLOSE")
+@pg.production("any_symbol : SYMBOL")
+@pg.production("any_symbol : QSYMBOL")
 def function_2(p):
-    return Imports(p[2])
+    return AnySymbol(p[0])
 
 
-@pg.production("import_symbol : ")
+@pg.production("func_params : OPEN any_type any_symbol func_args CLOSE")
 def function_3(p):
-    return ImportSymbol()
+    return FuncParams(p[1], p[2], p[3])
 
 
-@pg.production("import_symbol : D_SYMBOL import_symbol")
-@pg.production("import_symbol : STRING_LITERAL import_symbol")
+@pg.production("func_params : OPEN CLOSE")
 def function_4(p):
-    return ImportSymbol(p[0], p[1])
+    return Empty()
 
 
-@pg.production("functions : function functions")
+@pg.production("func_params : COLON")
 def function_5(p):
-    return Functions(p[0], p[1])
+    return Empty()
 
 
-@pg.production("functions : ")
+@pg.production("func_args : COMMA any_type any_symbol func_args")
 def function_6(p):
-    return Functions()
+    return FuncParams(p[1], p[2], p[3])
 
 
-@pg.production("function : FUNCTION func_template")
+@pg.production("func_args : ")
 def function_7(p):
-    return Function(p[1])
+    return Empty()
 
 
-@pg.production("main : MAIN func_template")
+@pg.production("body_exprs : attr_decl body_exprs")
+@pg.production("body_exprs : attr_assign body_exprs")
+@pg.production("body_exprs : attr_call body_exprs")
+@pg.production("body_exprs : func_call body_exprs")
 def function_8(p):
-    return Main(p[1])
+    return BodyExprs(p[0], p[1])
 
 
-@pg.production("main : ")
+@pg.production("body_exprs : ")
 def function_9(p):
-    return Main()
+    return Empty()
 
 
-@pg.production("func_template : atype asymbol func_params COLON OPEN func_body func_return CLOSE")
+@pg.production("attr_decl : any_type any_symbol size_decl assign_exprs")
 def function_10(p):
-    return FuncTempl(p[0], p[1], p[2], p[5], p[6])
+    return AttrDecl(p[0], p[1], p[2], p[3])
 
 
-@pg.production("atype : NULL_TYPE")
-@pg.production("atype : BOOL_TYPE")
-@pg.production("atype : INTEGER_TYPE")
-@pg.production("atype : FLOAT_TYPE")
-@pg.production("atype : STRING_TYPE")
-@pg.production("atype : GATES_TYPE")
-@pg.production("atype : REGISTER_TYPE")
-@pg.production("atype : LIST_TYPE")
-@pg.production("atype : HASHMAP_TYPE")
-@pg.production("atype : MEAS_TYPE")
+@pg.production("size_decl : OPEN size_exprs CLOSE")
 def function_11(p):
-    return TypeRKW(p[0])
+    return GenericExprs1(p[1])
 
 
-@pg.production("asymbol : SYMBOL")
-@pg.production("asymbol : Q_SYMBOL")
-@pg.production("asymbol : P_SYMBOL")
+@pg.production("size_decl : ")
 def function_12(p):
-    return ASymbol(p[0])
+    return Empty()
 
 
-@pg.production("func_params : OPEN atype asymbol func_params2 CLOSE")
+@pg.production("size_exprs : INT_LITERAL")
+@pg.production("size_exprs : any_symbol")
+@pg.production("size_exprs : func_call")
+@pg.production("size_exprs : attr_call")
 def function_13(p):
-    return FuncParams(p[1], p[2], p[3])
+    return GenericExprs1(p[0])
 
 
-@pg.production("func_params :  ")
+@pg.production("assign_exprs : ASSIGN OPEN assign_values CLOSE")
 def function_14(p):
-    return FuncParams()
+    return GenericExprs1(p[2])
 
 
-@pg.production("func_params2 : COMMA atype asymbol func_params2")
+@pg.production("assign_exprs : ")
 def function_15(p):
-    return FuncParams(p[1], p[2], p[3])
+    return Empty()
 
 
-@pg.production("func_params2 : ")
+@pg.production("assign_values : opt_assign COLON any_call assign_values2")
+@pg.production("assign_values : opt_assign COLON short_loop_exprs assign_values2 ")
 def function_16(p):
-    return FuncParams()
+    return AssignValues(p[0], p[2], p[3])
 
 
-@pg.production("func_body : gen_expr")
+@pg.production("assign_values2 : COMMA assign_values")
 def function_17(p):
-    return FuncBody(p[0])
+    return GenericExprs1(p[1])
 
 
-@pg.production("func_return : RETURN OPEN value_call_expr2 CLOSE")
-@pg.production("func_return : MEASURE OPEN value_call_expr2 CLOSE")
+@pg.production("assign_values2 : ")
 def function_18(p):
-    return FuncReturn(p[2])
+    return Empty()
 
 
-@pg.production("func_return : ")
+@pg.production("any_call : INT_LITERAL")
+@pg.production("any_call : any_symbol")
+@pg.production("any_call : FLOAT_LITERAL")
+@pg.production("any_call : STR_LITERAL")
+@pg.production("any_call : attr_call")
+@pg.production("any_call : func_call")
 def function_19(p):
-    return FuncReturn()
+    return AnyCall(p[0])
 
 
-@pg.production("gen_expr : data_decl gen_expr")
-@pg.production("gen_expr : data_assign gen_expr")
-@pg.production("gen_expr : data_call gen_expr")
-@pg.production("gen_expr : if_stmt_expr gen_expr")
-@pg.production("gen_expr : loop_expr gen_expr")
+@pg.production("any_call : opt_assign_exprs")
 def function_20(p):
-    return GenExpr(p[0], p[1])
+    return AnyCall(p[0])
 
 
-@pg.production("gen_expr : ")
+@pg.production("attr_call : any_symbol OPEN call CLOSE")
 def function_21(p):
-    return GenExpr()
+    return InsideCall(p[0], p[2])
 
 
-@pg.production("data_decl : atype asymbol OPEN value_call_expr CLOSE COLON OPEN value_assign CLOSE")
+@pg.production("func_call : builtin_funcs OPEN call CLOSE")
+@pg.production("func_call : other_builtin_funcs OPEN call3 CLOSE")
+@pg.production("func_call : special_builtin_funcs OPEN special_call CLOSE")
 def function_22(p):
-    return DataDeclaration(p[0], p[1], p[3], p[7])
+    return InsideCall(p[0], p[2])
 
 
-@pg.production("data_decl : atype asymbol OPEN value_call_expr CLOSE")
+@pg.production("func_call : special_builtin_funcs")
+@pg.production("func_call : other_builtin_funcs")
 def function_23(p):
-    return DataDeclaration(p[0], p[1], p[3])
+    return InsideCall(p[0])
 
 
-@pg.production("data_decl : atype asymbol COLON OPEN value_assign CLOSE ")
+@pg.production("other_builtin_funcs : PRINT_BUILTIN")
 def function_24(p):
-    return DataDeclaration(p[0], p[1], None, p[4])
+    return InsideCall(p[0])
 
 
-@pg.production("value_call_expr : INT_LITERAL")
-@pg.production("value_call_expr : asymbol")
-@pg.production("value_call_expr : data_call")
-@pg.production("value_call_expr : FLOAT_LITERAL")
-@pg.production("value_call_expr : STRING_LITERAL")
-@pg.production("value_call_expr : arkw")
+@pg.production("special_builtin_funcs : OUTPUT_BUILTIN")
+@pg.production("special_builtin_funcs : INPUT_BUILTIN")
 def function_25(p):
-    return ValueCallExpr(p[0])
+    return InsideCall(p[0])
 
 
-@pg.production("value_assign : extvalue_assign")
+@pg.production("special_call : assign_values")
 def function_26(p):
-    return ValueAssign(p[0])
+    return AssignValues(p[0])
 
 
-@pg.production("avalue : INT_LITERAL")
-@pg.production("avalue : FLOAT_LITERAL")
-@pg.production("avalue : STRING_LITERAL")
-@pg.production("avalue : asymbol")
+@pg.production("call : INT_LITERAL call2")
+@pg.production("call : any_symbol call2")
+@pg.production("call : func_call call2")
+@pg.production("call : attr_call call2")
 def function_27(p):
-    return AValue(p[0])
+    return AnyCall(p[0], p[1])
 
 
-@pg.production("extvalue_assign : opt_assign COLON value_call_expr COMMA extvalue_assign")
+@pg.production("call2 : call")
 def function_28(p):
-    return ExtValueAssign(p[2], p[0], p[4])
+    return AnyCall(p[0])
 
 
-@pg.production("extvalue_assign : opt_assign COLON value_call_expr")
+@pg.production("call2 : ")
 def function_29(p):
-    return ExtValueAssign(p[2], p[0])
+    return Empty()
+
+
+@pg.production("call3 : INT_LITERAL call4")
+@pg.production("call3 : STR_LITERAL call4")
+@pg.production("call3 : any_symbol call4")
+@pg.production("call3 : func_call call4")
+@pg.production("call3 : attr_call call4")
+def function_30(p):
+    return AnyCall(p[0], p[1])
+
+
+@pg.production("call4 : call3")
+def function_31(p):
+    return AnyCall(p[0])
+
+
+@pg.production("call4 : ")
+def function_32(p):
+    return Empty()
+
+
+@pg.production("attr_assign : any_symbol OPEN assign_values CLOSE")
+def function_33(p):
+    return AttrAssign(p[0], p[2])
 
 
 @pg.production("opt_assign : ")
-def function_30(p):
+def function_34(p):
     return OptAssign()
 
 
 @pg.production("opt_assign : STAR")
-@pg.production("opt_assign : asymbol")
+@pg.production("opt_assign : any_symbol")
 @pg.production("opt_assign : INT_LITERAL")
-@pg.production("opt_assign : STRING_LITERAL")
-def function_31(p):
+@pg.production("opt_assign : STR_LITERAL")
+@pg.production("opt_assign : opt_assign_exprs")
+@pg.production("opt_assign : short_loop_exprs")
+def function_35(p):
     return OptAssign(p[0])
 
 
-@pg.production("opt_assign : OPEN value_call_expr2 CLOSE")
-def function_32(p):
-    return OptAssign(p[1])
-
-
-@pg.production("data_assign : asymbol OPEN value_assign CLOSE")
-def function_33(p):
-    return DataAssign(p[0], p[2])
-
-
-@pg.production("data_call : asymbol OPEN value_call_expr2 CLOSE")
-@pg.production("data_call : arkw OPEN value_call_expr2 CLOSE")
-def function_34(p):
-    return DataCall(p[0], p[2])
-
-
-@pg.production("value_call_expr2 : super_value value_call_expr2 ")
-def function_35(p):
-    return ValueCallExpr2(p[0], p[1])
-
-
-@pg.production("value_call_expr2 : COMMA super_value")
+@pg.production("builtin_funcs : H_GATE")
+@pg.production("builtin_funcs : X_GATE")
+@pg.production("builtin_funcs : Z_GATE")
+@pg.production("builtin_funcs : Y_GATE")
+@pg.production("builtin_funcs : CNOT_GATE")
+@pg.production("builtin_funcs : SWAP_GATE")
+@pg.production("builtin_funcs : CZ_GATE")
+@pg.production("builtin_funcs : RX_GATE")
+@pg.production("builtin_funcs : RZ_GATE")
+@pg.production("builtin_funcs : RY_GATE")
+@pg.production("builtin_funcs : T_GATE")
+@pg.production("builtin_funcs : T_DAG_GATE")
+@pg.production("builtin_funcs : S_GATE")
+@pg.production("builtin_funcs : S_DAG_GATE")
+@pg.production("builtin_funcs : CR_GATE")
+@pg.production("builtin_funcs : TOFFOLI_GATE")
+@pg.production("builtin_funcs : SUPERPOSN_GATE")
+@pg.production("builtin_funcs : AMPLIFICATION_GATE")
+@pg.production("builtin_funcs : RESET_GATE")
+@pg.production("builtin_funcs : ADD_BUILTIN")
+@pg.production("builtin_funcs : SUB_BUILTIN")
+@pg.production("builtin_funcs : MULT_BUILTIN")
+@pg.production("builtin_funcs : DIV_BUILTIN")
+@pg.production("builtin_funcs : POWER_BUILTIN")
+@pg.production("builtin_funcs : SQRT_BUILTIN")
 def function_36(p):
-    return ValueCallExpr2(p[1])
+    return InsideCall(p[0])
 
 
-@pg.production("value_call_expr2 : ")
+@pg.production("opt_assign_exprs : OPEN call call2 CLOSE")
 def function_37(p):
-    return ValueCallExpr2()
+    return AnyCall(p[1], p[2])
 
 
-@pg.production("super_value : avalue")
-@pg.production("super_value : data_call")
-@pg.production("super_value : if_stmt_expr")
-@pg.production("super_value : loop_expr")
+@pg.production("short_loop_exprs : loop_range RANGE_LOOP loop_range")
 def function_38(p):
-    return SuperValue(p[0])
+    return ShortLoopExprs(p[0], p[2])
 
 
-@pg.production("if_stmt_expr : IF_COND OPEN tests CLOSE COLON OPEN func_body CLOSE elif_stmt_expr else_stmt_expr")
+@pg.production("loop_range : INT_LITERAL")
+@pg.production("loop_range : SYMBOL")
+@pg.production("loop_range : attr_call")
+@pg.production("loop_range : func_call")
 def function_39(p):
-    return IfStmtExpr(p[2], p[6], p[8], p[9])
-
-
-@pg.production("elif_stmt_expr : ELIF_COND OPEN tests CLOSE COLON OPEN func_body CLOSE elif_stmt_expr")
-def function_40(p):
-    return ElifStmtExpr(p[2], p[6], p[8])
-
-
-@pg.production("elif_stmt_expr : ")
-def function_41(p):
-    return ElifStmtExpr()
-
-
-@pg.production("else_stmt_expr : ELSE_COND COLON OPEN func_body CLOSE")
-def function_42(p):
-    return ElseStmtExpr(p[3])
-
-
-@pg.production("else_stmt_expr : ")
-def function_43(p):
-    return ElseStmtExpr()
-
-
-@pg.production("loop_expr : FOR_LOOP asymbol IN_LOOP loop_range COLON OPEN func_body CLOSE")
-def function_44(p):
-    return LoopExpr(p[3], p[6], p[1])
-
-
-@pg.production("loop_expr : FOR_LOOP loop_range AS asymbol COLON OPEN func_body CLOSE")
-def function_45(p):
-    return LoopExpr(p[1], p[6], p[3])
-
-
-@pg.production("loop_expr : FOR_LOOP loop_range COLON OPEN func_body CLOSE")
-def function_46(p):
-    return LoopExpr(p[1], p[4])
-
-
-@pg.production("loop_range : OPEN value_call_expr RANGE_LOOP value_call_expr CLOSE")
-def function_47(p):
-    return LoopRange(p[1], p[3])
-
-
-@pg.production("loop_range : OPEN asymbol CLOSE")
-@pg.production("loop_range : OPEN data_call CLOSE")
-def function_48(p):
-    return LoopRange(p[1])
-
-
-@pg.production("tests : inside_test append_test tests")
-def function_49(p):
-    return IfTests(p[0], p[1], p[2])
-
-
-@pg.production("tests : inside_test")
-def function_50(p):
-    return IfTests(p[0])
-
-
-@pg.production("inside_test : bool_value")
-def function_51(p):
-    return InsideIfTest(p[0])
-
-
-@pg.production("inside_test : bool_value comparison bool_value")
-def function_52(p):
-    return InsideIfTest(p[0], p[1], p[2])
-
-
-@pg.production("bool_value : NOT_LOGOP data_call")
-@pg.production("bool_value : NOT_LOGOP avalue")
-def function_53(p):
-    return BoolValue(p[1], p[0])
-
-
-@pg.production("bool_value : data_call")
-@pg.production("bool_value : avalue")
-def function_54(p):
-    return BoolValue(p[0])
-
-
-@pg.production("append_test : AND_LOGOP")
-@pg.production("append_test : OR_LOGOP")
-def function_55(p):
-    return AppendIfTest(p[0])
-
-
-@pg.production("comparison : EQ_SIGN")
-@pg.production("comparison : GT_SIGN")
-@pg.production("comparison : LT_SIGN")
-@pg.production("comparison : GET_SIGN")
-@pg.production("comparison : LET_SIGN")
-@pg.production("comparison : NEQ_SIGN")
-def function_56(p):
-    return ComparisonIfTest(p[0])
-
-
-@pg.production("arkw : H_GATE")
-@pg.production("arkw : X_GATE")
-@pg.production("arkw : Z_GATE")
-@pg.production("arkw : Y_GATE")
-@pg.production("arkw : CNOT_GATE")
-@pg.production("arkw : SWAP_GATE")
-@pg.production("arkw : CZ_GATE")
-@pg.production("arkw : RX_GATE")
-@pg.production("arkw : RZ_GATE")
-@pg.production("arkw : RY_GATE")
-@pg.production("arkw : T_GATE")
-@pg.production("arkw : T_DAG_GATE")
-@pg.production("arkw : S_GATE")
-@pg.production("arkw : S_DAG_GATE")
-@pg.production("arkw : CR_GATE")
-@pg.production("arkw : TOFFOLI_GATE")
-@pg.production("arkw : SUPERPOSN_GATE")
-@pg.production("arkw : AMPLIFICATION_GATE")
-@pg.production("arkw : RESET_GATE")
-@pg.production("arkw : ADD")
-@pg.production("arkw : MULT")
-@pg.production("arkw : DIV")
-@pg.production("arkw : POWER")
-@pg.production("arkw : LENGTH")
-@pg.production("arkw : SQRT")
-@pg.production("arkw : INT_SQRT")
-@pg.production("arkw : PRINT")
-def function_57(p):
-    return ARKW(p[0])
+    return GenericExprs1(p[0])
 
 
 parser = pg.build()

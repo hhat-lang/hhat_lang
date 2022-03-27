@@ -70,7 +70,7 @@ class Eval:
                 'attr_idx': (),
                 'caller_idx': (),
                 'from_attr': (),
-                'to_attr': ()}
+                'to_target': ()}
 
     # MISC
 
@@ -104,13 +104,13 @@ class Eval:
                 _attr_mem['size'] = self.k['attr_size'] if self.k['attr_size'] else None
             if _scope[self.k['attr_name']]['size']:
                 _attr_mem = _scope[self.k['attr_name']]
-                if self.k['to_attr'] and self.k['attr_idx']:
-                    if len(self.k['to_attr']) == len(self.k['attr_idx']):
-                        _attr_mem['data'].update({key: self.check_type(value) for key, value in zip(self.k['attr_idx'], self.k['to_attr'])})
-                    elif len(self.k['to_attr']) == 1:
-                        _attr_mem['data'].update({key: self.check_type(self.k['to_attr'][0]) for key in self.k['attr_idx']})
+                if self.k['to_target'] and self.k['attr_idx']:
+                    if len(self.k['to_target']) == len(self.k['attr_idx']):
+                        _attr_mem['data'].update({key: self.check_type(value) for key, value in zip(self.k['attr_idx'], self.k['to_target'])})
+                    elif len(self.k['to_target']) == 1:
+                        _attr_mem['data'].update({key: self.check_type(self.k['to_target'][0]) for key in self.k['attr_idx']})
                     else:
-                        raise ValueError(f"Cannot write data {self.k['to_attr']} into {self.k['scope']}.{self.k['attr_name']}: too many args.")
+                        raise ValueError(f"Cannot write data {self.k['to_target']} into {self.k['scope']}.{self.k['attr_name']}: too many args.")
                 else:
                     _attr_mem['data'].update({p: self.default_val[_attr_mem['type']] for p in range(_attr_mem['size'])})
 
@@ -169,7 +169,7 @@ class Eval:
             elif self.k['prev_cmd'] == 'caller_args':
                 self.k['args'] += (lit_code,)
             elif self.k['prev_cmd'] == 'assign_value':
-                self.k['to_attr'] += (lit_code,)
+                self.k['to_target'] += (lit_code,)
         elif self.k['cur_cmd'] == 'size_decl':
             self.k['attr_size'] = lit_code
         elif self.k['cur_cmd'] == 'opt_assign':
@@ -204,11 +204,11 @@ class Eval:
             _caller_idx = self.k['args']
             _vals = self.read_data(attr=code, cond=_caller_idx)
             if self.k['prev_cmd'] == 'assign_value':
-                self.k['to_attr'] += _vals
+                self.k['to_target'] += _vals
             elif self.k['prev_cmd'] == 'caller_args':
                 self.k['args'] += _vals
         elif self.k['cur_cmd'] == 'caller':
-            self.k['to_attr'] += self.read_data(attr=code, data=self.k['args'])
+            self.k['to_target'] += self.read_data(attr=code, data=self.k['args'])
 
     def prefix_qsymbol(self, code):
         self.dprint('[pfx--qsym]', code)
@@ -232,8 +232,11 @@ class Eval:
         self.dprint(f'[pfx--btin] [{code}]', f'args={_args}')
         _res = self.builtin_funcs[code](_args)
         if _res:
-            self.k['to_attr'] = _res
-        self.k['args'] = ()
+            if self.k['attr_name']:
+                self.k['to_target'] = _res
+                self.k['args'] = ()
+            else:
+                self.k['args'] = _res
 
     def prefix_loop(self, code):
         self.dprint('[pfx--loop]', code)
@@ -250,15 +253,15 @@ class Eval:
     def prefix_end(self, code):
         self.dprint('[pfx--end]', code)
         if code == 'assign_value':
-            if self.k['to_attr']:
+            if self.k['to_target']:
                 self.store_data()
             self.k['args'] = ()
             self.k['attr_idx'] = ()
-            self.k['to_attr'] = ()
+            self.k['to_target'] = ()
             self.k['from_attr'] = ()
             self.dprint(f'[pfx--end] [{code}]', f'mem: {self.mem}')
         elif code == 'opt_assign':
-            self.k['to_attr'] = ()
+            self.k['to_target'] = ()
         elif code == 'assign_expr':
             self.k['attr_name'] = None
             self.k['attr_type'] = None
@@ -274,7 +277,7 @@ class Eval:
                 self.k['attr_idx'] += _loop_vals
                 self.k['from_attr'] += self.read_data(data=_loop_vals)
             elif self.k['prev_cmd'] == 'assign_value':
-                self.k['to_attr'] += _loop_vals
+                self.k['to_target'] += _loop_vals
             self.k['loop_range'] = ()
             self.k['loop_flag'] = False
             self.k['loop_pos'] = ()

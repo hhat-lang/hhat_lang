@@ -17,16 +17,22 @@ def btin_add(vals):
                 {str}) else ()
             for k in args:
                 _res += k
-            for k in attr:
-                _total += (k + _res,)
+            if attr:
+                for k in attr:
+                    _total += (k + _res,)
+            else:
+                _total = (_res,)
         else:
             _total = None
     else:
         _res = ()
         for k in vals:
             _res += (k,)
-        for k in attr:
-            _total += (_res,)
+        if attr:
+            for k in attr:
+                _total += (_res,)
+        else:
+            _total = (_res,)
     return _total
 
 

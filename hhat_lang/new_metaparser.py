@@ -20,12 +20,16 @@ grammar_dict = {'Main': Main,
                 'BodyExprs': BodyExprs,
                 'AttrDecl': AttrDecl,
                 'GenericExprs1': GenericExprs1,
+                'GenericExprs2': GenericExprs2,
                 'AssignValues': AssignValues,
                 'AnyCall': AnyCall,
                 'InsideCall': InsideCall,
                 'AttrAssign': AttrAssign,
                 'OptAssign': OptAssign,
-                'ShortLoopExprs': ShortLoopExprs}
+                'ShortLoopExprs': ShortLoopExprs, 
+                'IfStmt': IfStmt,
+                'ElifStmt': ElifStmt, 
+                'ElseStmt': ElseStmt}
 
 
 def read_grammar(grammar_file=GRAMMAR_FILE):

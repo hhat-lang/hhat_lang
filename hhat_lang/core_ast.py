@@ -14,6 +14,9 @@ TYPE = 'type'
 INDICES = 'indices'
 BUILTIN = 'builtin'
 LOOP = 'loop'
+IF = 'if'
+ELIF = 'elif'
+ELSE = 'else'
 END = 'end'
 
 # SUFFIX
@@ -30,6 +33,10 @@ CALLER_ARGS = 'caller_args'
 ATTR_ASSIGN = 'attr_assign'
 LOOP_START = 'loop_start'
 LOOP_END = 'loop_end'
+COND = 'conditional'
+IF_TEST = 'test'
+IF_BODY = 'if_body'
+LOOP_BODY = 'loop_body'
 
 
 class SuperBox(BaseBox):
@@ -150,7 +157,7 @@ class Empty(SuperBox):
 
 
 class BodyExprs(SuperBox):
-    def __init__(self, first_expr, other_exprs):
+    def __init__(self, first_expr, other_exprs=None):
         super().__init__()
         self.value += (self.get_value(first_expr),)
         if self.check_grammar_obj(other_exprs):
@@ -180,6 +187,13 @@ class GenericExprs1(SuperBox):
     def __init__(self, param1):
         super().__init__()
         self.value = self.get_value(param1)
+
+
+class GenericExprs2(SuperBox):
+    def __init__(self, param1, param2):
+        super().__init__()
+        self.value = self.get_value(param1)
+        self.value += self.get_value(param2)
 
 
 class AssignValues(SuperBox):
@@ -266,3 +280,33 @@ class ShortLoopExprs(SuperBox):
                                _endl,
                                self.get_value(end)),
                       _end)
+
+
+class IfStmt(SuperBox):
+    def __init__(self, tests, if_body, elif_stmt=None, else_stmt=None):
+        super().__init__()
+        _start = f'{CODE}:{COND}'
+        _end = f'{END}:{COND}'
+        self.value = (_start, self.get_grammar_obj(tests, IF, IF_TEST),)
+        self.value += (self.get_grammar_obj(if_body, IF, IF_BODY),)
+        if self.check_grammar_obj(elif_stmt):
+            self.value += self.get_value(elif_stmt)
+        if self.check_grammar_obj(else_stmt):
+            self.value += self.get_value(else_stmt)
+        self.value += (_end,)
+
+
+class ElifStmt(SuperBox):
+    def __init__(self, tests, elif_body, elif_stmts=None):
+        super().__init__()
+        self.value = (self.get_grammar_obj(tests, ELIF, IF_TEST),)
+        self.value += (self.get_grammar_obj(elif_body, ELIF, IF_BODY),)
+        if self.check_grammar_obj(elif_stmts):
+            self.value += self.get_value(elif_stmts)
+
+
+class ElseStmt(SuperBox):
+    def __init__(self, else_body):
+        super().__init__()
+        self.value = (self.get_grammar_obj(else_body, ELSE, IF_BODY),)
+

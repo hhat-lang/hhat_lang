@@ -116,6 +116,7 @@ class Eval:
 
     def read_data(self, attr=None, data=None, cond=None):
         _res = ()
+        self.dprint('[read_data]', f'data={data} cond={cond}')
         if attr is None:
             attr = self.k['attr_name']
         if data:
@@ -201,11 +202,12 @@ class Eval:
         elif self.k['cur_cmd'] in ['attr_decl', 'attr_assign']:
             self.k['attr_name'] = code
         elif self.k['cur_cmd'] == 'call':
-            _caller_idx = self.k['args']
-            _vals = self.read_data(attr=code, cond=_caller_idx)
             if self.k['prev_cmd'] == 'assign_value':
+                _caller_idx = self.k['args']
+                _vals = self.read_data(attr=code, cond=_caller_idx)
                 self.k['to_target'] += _vals
             elif self.k['prev_cmd'] == 'caller_args':
+                _vals = self.read_data(attr=code)
                 self.k['args'] += _vals
         elif self.k['cur_cmd'] == 'caller':
             self.k['to_target'] += self.read_data(attr=code, data=self.k['args'])
@@ -262,6 +264,11 @@ class Eval:
             self.dprint(f'[pfx--end] [{code}]', f'mem: {self.mem}')
         elif code == 'opt_assign':
             self.k['to_target'] = ()
+        elif code == 'call':
+            if self.k['prev_cmd'] == 'caller_args':
+                pass
+            elif self.k['prev_cmd'] == 'caller':
+                pass
         elif code == 'assign_expr':
             self.k['attr_name'] = None
             self.k['attr_type'] = None

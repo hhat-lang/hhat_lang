@@ -34,8 +34,9 @@ ATTR_ASSIGN = 'attr_assign'
 LOOP_START = 'loop_start'
 LOOP_END = 'loop_end'
 COND = 'conditional'
-IF_TEST = 'test'
-IF_BODY = 'if_body'
+COND_TEST = 'cond_test'
+COND_BODY = 'cond_body'
+ELSE_BODY = 'else_body'
 LOOP_BODY = 'loop_body'
 
 
@@ -62,6 +63,8 @@ class SuperBox(BaseBox):
                 _prefix = grammar_obj.name.split('_')[0].lower()
             elif g_name in ['SYMBOL']:
                 return self.get_right_symbol(grammar_obj)
+            elif g_name in ['OP']:
+                _prefix = 'op'
             else:
                 _prefix = grammar_obj.name.lower()
             return f'{_prefix}:{grammar_obj.value}'
@@ -287,26 +290,26 @@ class IfStmt(SuperBox):
         super().__init__()
         _start = f'{CODE}:{COND}'
         _end = f'{END}:{COND}'
-        self.value = (_start, self.get_grammar_obj(tests, IF, IF_TEST),)
-        self.value += (self.get_grammar_obj(if_body, IF, IF_BODY),)
+        self.value = (_start, self.get_grammar_obj(tests, CODE, COND_TEST),)
+        self.value += self.get_grammar_obj(if_body, CODE, COND_BODY)
         if self.check_grammar_obj(elif_stmt):
-            self.value += self.get_value(elif_stmt)
+            self.value += (self.get_value(elif_stmt),)
         if self.check_grammar_obj(else_stmt):
-            self.value += self.get_value(else_stmt)
+            self.value += (self.get_value(else_stmt),)
         self.value += (_end,)
 
 
 class ElifStmt(SuperBox):
     def __init__(self, tests, elif_body, elif_stmts=None):
         super().__init__()
-        self.value = (self.get_grammar_obj(tests, ELIF, IF_TEST),)
-        self.value += (self.get_grammar_obj(elif_body, ELIF, IF_BODY),)
+        self.value = (self.get_grammar_obj(tests, CODE, COND_TEST),)
+        self.value += self.get_grammar_obj(elif_body, CODE, COND_BODY)
         if self.check_grammar_obj(elif_stmts):
-            self.value += self.get_value(elif_stmts)
+            self.value += (self.get_value(elif_stmts),)
 
 
 class ElseStmt(SuperBox):
     def __init__(self, else_body):
         super().__init__()
-        self.value = (self.get_grammar_obj(else_body, ELSE, IF_BODY),)
+        self.value = (self.get_grammar_obj(else_body, CODE, ELSE_BODY),)
 

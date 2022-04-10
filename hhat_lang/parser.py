@@ -3,15 +3,15 @@ try:
     from core_ast import (Main, AnyType, AnySymbol, FuncParams,
                           Empty, BodyExprs, AttrDecl, GenericExprs1,
                           AssignValues, AnyCall, InsideCall, AttrAssign,
-                          OptAssign, ShortLoopExprs, IfStmt, GenericExprs2,
-                          ElifStmt, ElseStmt,)
+                          OptAssign, ShortLoopExprs, IfStmt, ElifStmt,
+                          ElseStmt,)
     from tokens import tokens
 except ImportError:
     from hhat_lang.core_ast import (Main, AnyType, AnySymbol, FuncParams,
                                     Empty, BodyExprs, AttrDecl, GenericExprs1,
                                     AssignValues, AnyCall, InsideCall, AttrAssign,
-                                    OptAssign, ShortLoopExprs, IfStmt, GenericExprs2,
-                                    ElifStmt, ElseStmt,)
+                                    OptAssign, ShortLoopExprs, IfStmt, ElifStmt,
+                                    ElseStmt,)
     from hhat_lang.tokens import tokens
 from rply import ParserGenerator
 
@@ -290,7 +290,7 @@ def function_40(p):
 
 @pg.production("tests : tests_logops OPEN tests_values CLOSE")
 def function_41(p):
-    return GenericExprs2(p[0], p[2])
+    return InsideCall(p[0], p[2])
 
 
 @pg.production("tests_logops : AND_LOGOP")
@@ -308,17 +308,17 @@ def function_42(p):
 
 @pg.production("tests_values : any_call")
 def function_43(p):
-    return GenericExprs1(p[0])
+    return AnyCall(p[0])
 
 
 @pg.production("tests_values : any_call tests_values")
 def function_44(p):
-    return GenericExprs2(p[0], p[1])
+    return AnyCall(p[0], p[1])
 
 
 @pg.production("tests_values : tests_logops OPEN tests_values CLOSE")
 def function_45(p):
-    return GenericExprs2(p[0], p[2])
+    return InsideCall(p[0], p[2])
 
 
 @pg.production("if_body : body_exprs")

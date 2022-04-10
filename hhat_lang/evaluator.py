@@ -10,7 +10,7 @@ try:
 except (ImportError, ModuleNotFoundError):
     from hhat_lang.lexer import lexer
     from hhat_lang.parser import parser
-    from hhat_lang.builtin import (btin_add, btin_print)
+    from hhat_lang.builtin import (btin_add, btin_print, btin_and, btin_or, btin_not, btin_eq, btin_neq, btin_gt, btin_gte, btin_lt, btin_lte)
 import ast
 from copy import deepcopy
 
@@ -30,6 +30,7 @@ class Eval:
                              'str': self.prefix_str,
                              'indices': self.prefix_indices,
                              'builtin': self.prefix_builtin,
+                             'op': self.prefix_op,
                              'loop': self.prefix_loop,
                              'code': self.prefix_code,
                              'end': self.prefix_end}
@@ -44,6 +45,7 @@ class Eval:
                             'bool': None}
         self.type2type = {int: 'int', str: 'str', float: 'float'}
         self.builtin_funcs = {'print': btin_print, 'add': btin_add}
+        self.op_funcs = {'and': btin_and, 'or': btin_or, 'eq': btin_eq, 'neq': btin_neq, 'gt': btin_gt, 'gte': btin_gte, 'lt': btin_lt, 'lte': btin_lte}
 
     def dprint(self, origin, *msg, **msgs):
         if self.debug:
@@ -63,6 +65,7 @@ class Eval:
                 'prev_cmd': None,
                 'cur_cmd': None,
                 'return_flag': False,
+                'cond_test': None,
                 'loop_flag': False,
                 'loop_pos': None,
                 'loop_range': (),
@@ -240,10 +243,34 @@ class Eval:
             else:
                 self.k['args'] = _res
 
+    def prefix_op(self, code):
+        self.dprint('[pfx--op]', code)
+        _args = (self.k['args'], self.k['from_attr'])
+        self.dprint(f'[pfx--op] [{code}]', f'args={_args}')
+        _res = self.op_funcs[code](_args)
+        if _res:
+            if self.k['attr_name']:
+                self.k['to_target'] = _res
+                self.k['args'] = ()
+            else:
+                self.k['args'] = _res
+
     def prefix_loop(self, code):
         self.dprint('[pfx--loop]', code)
         self.k['loop_pos'] = (code,)
         self.k['loop_flag'] = True
+
+    def prefix_if(self, code):
+        if code == 'cond_test':
+            self.k[]
+        elif code == 'cond_body':
+            pass
+
+    def prefix_elif(self, code):
+        pass
+
+    def prefix_else(self, code):
+        pass
 
     def prefix_code(self, code):
         self.dprint('[pfx--code]', code)
@@ -251,6 +278,8 @@ class Eval:
         self.k['cur_cmd'] = code
         if self.k['cur_cmd'] == 'body':
             self.store_data()
+        elif self.k['cur_cmd'] == 'conditional':
+            self.k['cond_test'] = None
 
     def prefix_end(self, code):
         self.dprint('[pfx--end]', code)
@@ -288,6 +317,13 @@ class Eval:
             self.k['loop_range'] = ()
             self.k['loop_flag'] = False
             self.k['loop_pos'] = ()
+        elif code == 'conditional':
+            self.k['cond_test'] = None
+        elif code == 'cond_test':
+            if self.k['cond_test']:
+                pass
+            else:
+
         elif code == 'main':
             self.dprint('[pfx--end] [main]', f'mem={self.mem}')
         self.k['cur_cmd'] = self.k['prev_cmd']

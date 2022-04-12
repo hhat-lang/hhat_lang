@@ -5,31 +5,47 @@ Metaparser
 import ast
 
 try:
-    from core_ast import *
+    from neat_ast import *
 except ImportError:
-    from hhat_lang.core_ast import *
+    from hhat_lang.neat_ast import *
 
-GRAMMAR_FILE = "new_grammar.txt"
+GRAMMAR_FILE = "grammar.txt"
 PARSER_FILE = "parser.py"
 
-grammar_dict = {'Main': Main,
-                'AnyType': AnyType,
-                'AnySymbol': AnySymbol,
-                'FuncParams': FuncParams,
-                'Empty': Empty,
-                'BodyExprs': BodyExprs,
+grammar_dict = {'Program': Program,
+                'Function': Function,
+                'FuncTemplate': FuncTemplate,
+                'Params': Params,
+                'AThing': AThing,
+                'Body': Body,
                 'AttrDecl': AttrDecl,
-                'GenericExprs1': GenericExprs1,
-                'GenericExprs2': GenericExprs2,
-                'AssignValues': AssignValues,
-                'AnyCall': AnyCall,
-                'InsideCall': InsideCall,
+                'Expr': Expr,
+                'ManyExprs': ManyExprs,
+                'Entity': Entity,
                 'AttrAssign': AttrAssign,
-                'OptAssign': OptAssign,
-                'ShortLoopExprs': ShortLoopExprs, 
+                'Call': Call,
+                'Func': Func,
                 'IfStmt': IfStmt,
-                'ElifStmt': ElifStmt, 
-                'ElseStmt': ElseStmt}
+                'ElifStmt': ElifStmt,
+                'ElseStmt': ElseStmt,
+                'Tests': Tests,
+                'ForLoop': ForLoop}
+
+
+def get_value(word):
+    if word == 'None':
+        return None
+    if word in ['type', 'symbol', 'builtin', 'op']:
+        return f"'{word}'"
+    return ast.literal_eval(word)
+
+
+def get_p(word):
+    if word in ['type', 'symbol', 'builtin', 'op']:
+        return f"'{word}'"
+    if word is None:
+        return f'{word}'
+    return f'p[{word}]'
 
 
 def read_grammar(grammar_file=GRAMMAR_FILE):
@@ -43,7 +59,7 @@ def read_grammar(grammar_file=GRAMMAR_FILE):
         grammar_prod += (line[0],)
         grammar_call += (grammar_dict[line[1].replace(' ', '')],)
         _args = line[2].replace('[', '').replace(']', '').replace(' ', '')
-        args_list = [ast.literal_eval(p) for p in _args.split(',') if len(p) > 0]
+        args_list = [get_value(p) for p in _args.split(',') if len(p) > 0]
         grammar_args += (args_list,)
     return grammar_prod, grammar_call, grammar_args
 
@@ -68,10 +84,11 @@ def create_parser_file(data):
     _meta_script = ""
     _import_list1 = ""
     _import_list2 = ""
+    _import_list_all = []
     k2 = 0
     for k0, k in enumerate(data):
-        words_list = ', '.join([f'p[{x}]' if x is not None else 'None' for x in k[2]])
-        if k[1].__name__ not in _import_list1:
+        words_list = ', '.join([get_p(x) for x in k[2]])
+        if k[1].__name__ not in _import_list_all: # _import_list1:
             if k2 % 4 == 0 and k2 != 0:
                 _import_list1 += '\n' + ' '*26
                 _import_list2 += '\n' + ' '*36
@@ -81,6 +98,7 @@ def create_parser_file(data):
             k2 += 1
             _import_list1 += f'{k[1].__name__},'
             _import_list2 += f'{k[1].__name__},'
+            _import_list_all.append(k[1].__name__)
         _meta_script += f"""
 {meta_prod(k[0])}
 def function_{k0}(p):
@@ -89,10 +107,10 @@ def function_{k0}(p):
     _meta_script += """\nparser = pg.build()\n"""
     _meta_script0 = f"""
 try:
-    from core_ast import ({_import_list1})
+    from neat_ast import ({_import_list1})
     from tokens import tokens
 except ImportError:
-    from hhat_lang.core_ast import ({_import_list2})
+    from hhat_lang.neat_ast import ({_import_list2})
     from hhat_lang.tokens import tokens
 from rply import ParserGenerator
 \n

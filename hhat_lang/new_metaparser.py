@@ -5,9 +5,11 @@ Metaparser
 import ast
 
 try:
-    from neat_ast import *
+    # from neat_ast import *
+    from new_ast import *
 except ImportError:
-    from hhat_lang.neat_ast import *
+    # from hhat_lang.neat_ast import *
+    from hhat_lang.new_ast import *
 
 GRAMMAR_FILE = "grammar.txt"
 PARSER_FILE = "parser.py"
@@ -107,10 +109,10 @@ def function_{k0}(p):
     _meta_script += """\nparser = pg.build()\n"""
     _meta_script0 = f"""
 try:
-    from neat_ast import ({_import_list1})
+    from new_ast import ({_import_list1})
     from tokens import tokens
 except ImportError:
-    from hhat_lang.neat_ast import ({_import_list2})
+    from hhat_lang.new_ast import ({_import_list2})
     from hhat_lang.tokens import tokens
 from rply import ParserGenerator
 \n

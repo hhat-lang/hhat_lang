@@ -5,3 +5,11 @@ __pycache__/
 hhat_lang/__pycache__/ hht_lang/__pycache__/
 .idea/
 .DS_Store
+hhat_lang/data_ast.py
+hhat_lang/core_ast.py
+hhat_lang/memory.py
+hhat_lang/metaparser.py
+hhat_lang/parse_keys.py
+hhat_lang/prod_semantics.txt
+hhat_lang/semantics.py
+hhat_lang/semantics_class_list.txt

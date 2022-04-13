@@ -1,13 +1,13 @@
 
 try:
-    from neat_ast import (Program, Function, FuncTemplate, Params,
+    from new_ast import (Program, Function, FuncTemplate, Params,
                           AThing, Body, AttrDecl, Expr,
                           ManyExprs, Entity, AttrAssign, Call,
                           Func, IfStmt, ElifStmt, ElseStmt,
                           Tests, ForLoop,)
     from tokens import tokens
 except ImportError:
-    from hhat_lang.neat_ast import (Program, Function, FuncTemplate, Params,
+    from hhat_lang.new_ast import (Program, Function, FuncTemplate, Params,
                                     AThing, Body, AttrDecl, Expr,
                                     ManyExprs, Entity, AttrAssign, Call,
                                     Func, IfStmt, ElifStmt, ElseStmt,
@@ -84,13 +84,13 @@ def function_10(p):
 @pg.production("type : MEASUREMENT_TYPE")
 @pg.production("type : symbol")
 def function_11(p):
-    return AThing('type', p[0])
+    return AThing(p[0])
 
 
 @pg.production("symbol : SYMBOL")
 @pg.production("symbol : QSYMBOL")
 def function_12(p):
-    return AThing('symbol', p[0])
+    return AThing(p[0])
 
 
 @pg.production("body : attr_decl body")
@@ -282,7 +282,7 @@ def function_44(p):
 @pg.production("reserved_keyword : INPUT_BUILTIN")
 @pg.production("reserved_keyword : OUTPUT_BUILTIN")
 def function_45(p):
-    return AThing('builtin', p[0])
+    return AThing(p[0])
 
 
 @pg.production("inline_func : OPEN expr more_expr CLOSE")
@@ -340,7 +340,7 @@ def function_54(p):
 @pg.production("logic_ops : LTE_OP")
 @pg.production("logic_ops : NEQ_OP")
 def function_55(p):
-    return AThing('op', p[0])
+    return AThing(p[0])
 
 
 @pg.production("for_loop : FOR_LOOP OPEN expr CLOSE OPEN entity CLOSE")

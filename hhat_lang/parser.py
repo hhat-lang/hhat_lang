@@ -135,7 +135,7 @@ def function_20(p):
 
 @pg.production("attr_decl : type OPEN expr CLOSE symbol ASSIGN attr_decl_assign")
 def function_21(p):
-    return AttrDecl(p[0], p[4], p[2], p[5])
+    return AttrDecl(p[0], p[4], p[2], p[6])
 
 
 @pg.production("attr_decl : type symbol ASSIGN attr_decl_assign")

@@ -120,41 +120,41 @@ def btin_add(vals):
     return _total
 
 
-def builtin_mult():
+def btin_mult():
     pass
 
 
-def builtin_div():
+def btin_div():
     pass
 
 
-def builtin_power():
+def btin_pow():
     pass
 
 
-def builtin_sqrt():
+def btin_sqrt():
     pass
 
 
-def builtin_int_sqrt():
+def btin_int_sqrt():
     pass
 
 
-def builtin_len():
+def btin_len():
     pass
 
 
-def builtin_q_h():
+def btin_q_h():
     pass
 
 
-def builtin_q_x():
+def btin_q_x():
     pass
 
 
-def builtin_q_z():
+def btin_q_z():
     pass
 
 
-def builtin_q_y():
+def btin_q_y():
     pass

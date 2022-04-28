@@ -262,7 +262,7 @@ class Eval:
 
     def prefix_if(self, code):
         if code == 'cond_test':
-            self.k[]
+            pass
         elif code == 'cond_body':
             pass
 
@@ -323,6 +323,7 @@ class Eval:
             if self.k['cond_test']:
                 pass
             else:
+                pass
 
         elif code == 'main':
             self.dprint('[pfx--end] [main]', f'mem={self.mem}')

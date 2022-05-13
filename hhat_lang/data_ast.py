@@ -1,10 +1,12 @@
 """Data AST"""
 
 try:
-    from error_handler import error_handler_wrapper as hht_error
+    from error_handler import *  # error_handler_wrapper as hht_error
 except ImportError:
-    from hhat_lang.error_handler import error_handler_wrapper as hht_error
+    from hhat_lang.error_handler import * # error_handler_wrapper as hht_error
+
 from typing import Any, Optional
+
 from rply.token import BaseBox, Token
 
 
@@ -25,11 +27,11 @@ class Data(BaseBox):
     def __repr__(self):
         class_name = f"{self.__class__.__name__}"
         data_info = f"""
-        - atype={self.atype}
-        - symbol={self.symbol}
-        - size={self.size}
-        - value={self.value_expr}
-        """
+            - atype={self.atype}
+            - symbol={self.symbol}
+            - size={self.size}
+            - value={self.value_expr}
+            """
         return f"{class_name}({data_info})"
 
     def get_symbol(self):
@@ -58,14 +60,17 @@ class DataDeclaration(Data):
         data_vals = {'type': self.atype, 'symbol': self.symbol}
         if size is not None:
             data_vals.update({'size_decl': size.value})
+
         if value_expr is not None:
             data_vals.update({'assign_expr': value_expr.value})
+            
         self.value = {'attr_decl': data_vals}
 
     def store_mem(self):
         mem_ref = {'atype': self.atype}
         if self.value_expr:
             mem_ref.update({'data': self.value_expr})
+
         return mem_ref
 
 
@@ -79,13 +84,14 @@ class DataAssign(Data):
     def check_valid_value(mem_data, data):
         if mem_data['atype'] == data.atype:
             return True
+            
         return False
 
-    @hht_error
     def write_mem(self, mem_data, data):
         if self.check_valid_value(mem_data, data):
             return {'data': data}
-        raise TypeError("Wrong datatype.")
+            
+        raise TypeExcpt("Wrong datatype.")
 
 
 class DataCall(Data):
@@ -97,4 +103,5 @@ class DataCall(Data):
     def read_mem(self, mem_data):
         if self.property:
             return mem_data['data'][self.property]
+            
         return mem_data['data']

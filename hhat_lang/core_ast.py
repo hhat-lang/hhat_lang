@@ -1,4 +1,4 @@
-"""Core AST"""
+"""Core AST """
 
 from rply.token import BaseBox, Token
 
@@ -50,24 +50,33 @@ class SuperBox(BaseBox):
     def check_grammar_obj(grammar_obj):
         if grammar_obj is None:
             return False
+
         if grammar_obj.value:
             return True
+
         return False
 
     def get_value(self, grammar_obj):
         if isinstance(grammar_obj, Token):
             g_name = grammar_obj.name.split('_')[-1]
+
             if g_name in ['BUILTIN', 'GATE']:
                 _prefix = g_name.lower()
+
             elif g_name in ['LITERAL']:
                 _prefix = grammar_obj.name.split('_')[0].lower()
+
             elif g_name in ['SYMBOL']:
                 return self.get_right_symbol(grammar_obj)
+
             elif g_name in ['OP']:
                 _prefix = 'op'
+
             else:
                 _prefix = grammar_obj.name.lower()
+
             return f'{_prefix}:{grammar_obj.value}'
+
         return grammar_obj.value
 
     @staticmethod
@@ -75,13 +84,17 @@ class SuperBox(BaseBox):
         if isinstance(symbol, Token):
             _sym_name = symbol.name
             _sym_val = symbol.value
+            
         else:
             _sym_name = symbol.value.name
             _sym_val = symbol.value.value
+        
         if _sym_name == 'QSYMBOL':
             return f'{QSYMBOL}:{_sym_val}'
+
         if _sym_name == 'SYMBOL':
             return f'{SYMBOL}:{_sym_val}'
+
         return ''
 
     def get_grammar_obj(self, grammar_obj, prefix=CODE, suffix=None):
@@ -90,17 +103,23 @@ class SuperBox(BaseBox):
                 _code = f'{prefix}:{suffix}'
                 _end = f'{END}:{suffix}'
                 return _code, grammar_obj.value, _end
+
             return ()
+
         raise AttributeError("Suffix object must not be None.")
 
     def set_str_code(self, grammar_obj, prefix=None):
         if grammar_obj:
             if prefix is None or prefix in ['QSYMBOL', 'SYMBOL']:
                 res = self.get_right_symbol(grammar_obj)
+
                 if res:
                     return res
+
                 raise AttributeError("prefix object must not be None.")
+
             return f'{prefix}:{grammar_obj.value.value}'
+
         return ''
 
     def build_value_str(self, *args):
@@ -109,8 +128,10 @@ class SuperBox(BaseBox):
             if isinstance(k, Token):
                 _val += f'{k}=('
                 _val += f'line: {k.source_pos.lineno}, col: {k.source_pos.colno})\n'
+
             else:
                 _val += f'{k}\n'
+
         self.value_str += _val
 
     def __repr__(self):
@@ -147,8 +168,10 @@ class FuncParams(SuperBox):
         super().__init__()
         _type = self.set_str_code(any_type, TYPE)
         _symbol = self.get_value(any_symbol) # self.set_str_code(any_symbol, SYMBOL)
+        
         if self.check_grammar_obj(any_type) and self.check_grammar_obj(any_symbol):
             self.value += ((_symbol, _type,),)
+
         if self.check_grammar_obj(func_args):
             self.value += self.get_value(func_args)
 
@@ -175,10 +198,12 @@ class AttrDecl(SuperBox):
         _type = f'{TYPE}:{any_type.value.value}'
         _symbol = self.get_value(any_symbol)
         self.value += (_start0, _symbol, _type)
+
         if self.check_grammar_obj(size_decl):
             _start = f'{CODE}:{SIZE_DECL}'
             _end = f'{END}:{SIZE_DECL}'
             self.value += (_start, self.get_value(size_decl), _end)
+
         self.value += (_end0,)
         if self.check_grammar_obj(assign_exprs):
             _start = f'{CODE}:{ASSIGN_EXPR}'
@@ -207,6 +232,7 @@ class AssignValues(SuperBox):
         _opt = self.get_value(opt_assign)
         _assignee = self.get_value(any_call)
         self.value = ((_opt, _start, _assignee, _end),)
+
         if self.check_grammar_obj(assign_values):
             self.value += self.get_value(assign_values)
 
@@ -215,16 +241,21 @@ class OptAssign(SuperBox):
     def __init__(self, opt_value=None):
         super().__init__()
         _val = f'{CODE}:{OPT_ASSIGN}'
+
         if self.check_grammar_obj(opt_value):
             if isinstance(opt_value, Token):
                 if opt_value.name == 'STAR':
                     _val2 = f'{INDICES}:{OPT_STAR}'
+
                 else:
                     _val2 = self.get_value(opt_value)
+
             else:
                 _val2 = self.get_value(opt_value)
+
         else:
             _val2 = f'{INDICES}:{NO_OPT}'
+
         _val3 = f'{END}:{OPT_ASSIGN}'
         self.value = (_val, _val2, _val3)
 
@@ -232,6 +263,7 @@ class OptAssign(SuperBox):
 class AnyCall(SuperBox):
     def __init__(self, param1, param2=None):
         super().__init__()
+
         if param1.name != self.name:
             _start = f'{CODE}:{CALL}'
             _end = f'{END}:{CALL}'
@@ -247,14 +279,17 @@ class AnyCall(SuperBox):
 class InsideCall(SuperBox):
     def __init__(self, param1, param2=None):
         super().__init__()
+
         if self.check_grammar_obj(param2):
             _start2 = f'{CODE}:{CALLER_ARGS}'
             _end2 = f'{END}:{CALLER_ARGS}'
             self.value = (_start2, self.get_value(param2), _end2)
+
         if param1.name != self.name:
             _start1 = f'{CODE}:{CALLER}'
             _end1 = f'{END}:{CALLER}'
             self.value += (_start1, self.get_value(param1), _end1)
+            
         else:
             self.value += self.get_value(param1)
 
@@ -278,32 +313,42 @@ class ShortLoopExprs(SuperBox):
         _end = f'{END}:{LOOP}'
         _startl = f'{LOOP}:{LOOP_START}'
         _endl = f'{LOOP}:{LOOP_END}'
-        self.value = (_start, (_startl,
-                               self.get_value(start),
-                               _endl,
-                               self.get_value(end)),
-                      _end)
+        self.value = (
+            _start, (
+                _startl,
+                self.get_value(start),
+                _endl,
+                self.get_value(end)
+            ), 
+            _end
+        )
 
 
 class IfStmt(SuperBox):
     def __init__(self, tests, if_body, elif_stmt=None, else_stmt=None):
         super().__init__()
+
         _start = f'{CODE}:{COND}'
         _end = f'{END}:{COND}'
         self.value = (_start, self.get_grammar_obj(tests, CODE, COND_TEST),)
-        self.value += self.get_grammar_obj(if_body, CODE, COND_BODY)
+        self.value += self.get_grammar_obj(if_body, CODE, COND_BODY)\
+
         if self.check_grammar_obj(elif_stmt):
             self.value += (self.get_value(elif_stmt),)
+
         if self.check_grammar_obj(else_stmt):
             self.value += (self.get_value(else_stmt),)
+
         self.value += (_end,)
 
 
 class ElifStmt(SuperBox):
     def __init__(self, tests, elif_body, elif_stmts=None):
         super().__init__()
+        
         self.value = (self.get_grammar_obj(tests, CODE, COND_TEST),)
         self.value += self.get_grammar_obj(elif_body, CODE, COND_BODY)
+        
         if self.check_grammar_obj(elif_stmts):
             self.value += (self.get_value(elif_stmts),)
 

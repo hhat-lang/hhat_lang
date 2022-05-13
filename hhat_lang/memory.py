@@ -1,10 +1,10 @@
-"""Memory emulator"""
+"""Memory emulator """
 
-import time
 import yaml
 
 
 class BiHashMap:
+
     def __init__(self, value: dict = None):
         self.data = {}
         self.data_repr = {}
@@ -61,6 +61,7 @@ class Memory:
     value = data
     ----------------------
     """
+    
     def __init__(self, do_debug=False):
         self.count = 1
         self.mem_ref = {}
@@ -74,18 +75,23 @@ class Memory:
     def place_right_value(self, key):
         if key[-1] == int:
             return 0
+
         if key[-1] == str:
             return ''
+
         if key[-1] == float:
             return 0.0
+
         if key[-1] == None:
             return None
+
         if key[-1] in [list, 'any']:
             return 0
 
     def enforce_mem_creation(self, key):
         if key[1] is None or key[2] is None:
             return True
+            
         return False
 
     def __setitem__(self, key, value):

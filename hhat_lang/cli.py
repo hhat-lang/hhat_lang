@@ -1,6 +1,8 @@
 """Console script for hhat_lang."""
 import sys
+
 import click
+
 from hhat_lang.evaluator import Code
 
 

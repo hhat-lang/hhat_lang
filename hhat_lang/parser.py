@@ -1,20 +1,20 @@
 
 try:
-    from neat_ast import (Program, Function, FuncTemplate, Params,
-                          AThing, Body, AttrDecl, Expr,
-                          ManyExprs, Entity, AttrAssign, Call,
-                          Func, IfStmt, ElifStmt, ElseStmt,
-                          Tests, ForLoop,)
+    from neat_ast import (AThing, AttrAssign, AttrDecl, Body, Call, ElifStmt,
+                          ElseStmt, Entity, Expr, ForLoop, Func, FuncTemplate,
+                          Function, IfStmt, ManyExprs, Params, Program, Tests)
     from tokens import tokens
 except ImportError:
-    from hhat_lang.neat_ast import (Program, Function, FuncTemplate, Params,
-                                    AThing, Body, AttrDecl, Expr,
-                                    ManyExprs, Entity, AttrAssign, Call,
-                                    Func, IfStmt, ElifStmt, ElseStmt,
-                                    Tests, ForLoop,)
+    from hhat_lang.neat_ast import (
+        Program, Function, FuncTemplate, Params,
+        AThing, Body, AttrDecl, Expr,
+        ManyExprs, Entity, AttrAssign, Call,
+        Func, IfStmt, ElifStmt, ElseStmt,
+        Tests, ForLoop,
+        )
     from hhat_lang.tokens import tokens
-from rply import ParserGenerator
 
+from rply import ParserGenerator
 
 pg = ParserGenerator(list(tokens.keys()))
 

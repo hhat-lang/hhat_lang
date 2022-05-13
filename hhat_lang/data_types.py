@@ -1,10 +1,12 @@
 try:
-    from error_handler import error_handler_wrapper as hht_error
+    from error_handler import *  # error_handler_wrapper as hht_error
 except ImportError:
-    from hhat_lang.error_handler import error_handler_wrapper as hht_error
-from rply.token import BaseBox
-from typing import List, Dict
+    from hhat_lang.error_handler import * # error_handler_wrapper as hht_error
+
+from typing import Dict, List
+
 from networkx import Graph
+from rply.token import BaseBox
 
 
 class Types(BaseBox):
@@ -13,13 +15,12 @@ class Types(BaseBox):
         self.self_atype = Types
         self.atype = self.get_atype(entity.atype)
 
-    @hht_error
     def get_atype(self, value=None):
         if value:
             if isinstance(value, self.self_atype):
                 return
             else:
-                raise TypeError()
+                raise TypeExcpt()
         return 0
 
 
@@ -39,7 +40,6 @@ class RegisterType(Types):
     def __init__(self, entity):
         self.self_atype = Dict[str, int]
         super().__init__(entity)
-
 
 
 class IntType(Types):

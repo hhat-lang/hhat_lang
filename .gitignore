@@ -5,3 +5,5 @@ __pycache__/
 hhat_lang/__pycache__/ hht_lang/__pycache__/
 .idea/
 .DS_Store
+venv/
+.vscode/

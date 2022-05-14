@@ -1,9 +1,11 @@
 """Builtin functions"""
 
 
-def btin_print(vals):
-    args, attr = vals
-    print(*args, *attr)
+def btin_print(*values, buffer=False):
+    if buffer:
+        print(*values, end=' ')
+    else:
+        print(*values)
     return None
 
 
@@ -91,33 +93,16 @@ def btin_lte(vals):
     raise ValueError(f'"lte" operator must have at least 2 values to operate.')
 
 
-def btin_add(vals):
-    args, attr = vals
-    _num_types = set([type(k) for k in args])
-    _total = ()
-    if len(_num_types) == 1:
-        if _num_types.issubset({int, float, str, tuple, list}):
-            _res = 0 if _num_types.issubset({int, float}) else '' if _num_types.issubset(
-                {str}) else ()
-            for k in args:
-                _res += k
-            if attr:
-                for k in attr:
-                    _total += (k + _res,)
-            else:
-                _total = (_res,)
-        else:
-            _total = None
+def btin_add(*values, buffer=False):
+    type_list = set([type(v) for v in values])
+    if len(type_list) == 1:
+        if int in type_list or float in type_list:
+            return sum(values)
+        if str in type_list:
+            return ''.join(values)
+        return tuple(values)
     else:
-        _res = ()
-        for k in vals:
-            _res += (k,)
-        if attr:
-            for k in attr:
-                _total += (_res,)
-        else:
-            _total = (_res,)
-    return _total
+        return tuple(values)
 
 
 def btin_mult():

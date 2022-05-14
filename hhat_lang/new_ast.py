@@ -1,6 +1,7 @@
 """AST"""
 
 from rply.token import BaseBox, Token
+from hhat_lang.symbolic import FST
 
 """
 Program
@@ -21,12 +22,27 @@ ElifStmt
 ElseStmt
 Tests
 ForLoop
+--
+Range
+IndexAssign
+ParamsSeq
+TypeExpr
+AttrHeader
+Args
+ExitBody
 """
 
 
 class SuperBox(BaseBox):
+    symbolic = FST()
+
     def __init__(self):
         self.value = ()
+        self.local_stats = {'cur_value': '',
+                            'cur_type': '',
+                            'cur_params': (),
+                            'cur_body': (),
+                            'cur_return': ()}
 
     @staticmethod
     def check_token(_token):
@@ -50,9 +66,9 @@ class SuperBox(BaseBox):
         if isinstance(code, tuple):
             for k in code:
                 if isinstance(k, SuperBox):
-                    self.recur_tokens(k.value, depth=depth + 1)
+                    self.recur_tokens(k.value, depth=depth+1)
                 else:
-                    self.recur_tokens(k, depth=depth + 1)
+                    self.recur_tokens(k, depth=depth+1)
         else:
             if isinstance(code, Token):
                 if code.source_pos:
@@ -88,6 +104,19 @@ class Function(SuperBox):
         super().__init__()
         if self.check_token(func_type) and self.check_token(func_template):
             self.value += (func_type, func_template,)
+            _func = func_type.value
+            _name = func_template.local_stats['cur_name']
+            _type = func_template.local_stats['cur_type']
+            _params = func_template.local_stats['cur_params']
+            _body = func_template.local_stats['cur_body']
+            _result = func_template.local_stats['cur_return']
+            self.symbolic.create()
+            self.symbolic.add(value=_type, key='type')
+            self.symbolic.add(value=_params, key='params')
+            self.symbolic.add(value=_body, key='body')
+            self.symbolic.add(value=_result, key='return')
+            self.symbolic.create(name=_name, func=_func)
+            self.symbolic.move_cur_to(name=_name)
             if self.check_token(funcs):
                 self.value += funcs.value
 
@@ -96,12 +125,17 @@ class FuncTemplate(SuperBox):
     def __init__(self, a_type, a_symbol, params, body, result):
         super().__init__()
         self.value += ((a_symbol, a_type,),)
+        self.local_stats['cur_name'] = a_symbol.value.value
+        self.local_stats['cur_type'] = a_type.value.value
         if self.check_token(params):
-            self.value += params
+            self.value += (params,)
+            self.local_stats['cur_params'] = params.value
         if self.check_token(body):
             self.value += (body,)
+            self.local_stats['cur_body'] = body.value
         if self.check_token(result):
             self.value += (result,)
+            self.local_stats['cur_return'] = result.value
 
 
 class Params(SuperBox):
@@ -148,10 +182,10 @@ class Expr(SuperBox):
 class ManyExprs(SuperBox):
     def __init__(self, expr1=None, expr2=None, expr3=None):
         super().__init__()
+        if self.check_token(expr3):
+            self.value = (expr3,)
         if self.check_token(expr1):
-            if self.check_token(expr3):
-                self.value += (expr3,)
-            self.value += (expr1,)
+            self.value = (expr1,)
             if self.check_token(expr2):
                 self.value += expr2.value
 
@@ -159,11 +193,18 @@ class ManyExprs(SuperBox):
 class Entity(SuperBox):
     def __init__(self, expr1, expr2=None):
         super().__init__()
+        value = ()
         if self.check_token(expr2):
             value = (IndexAssign(expr1),)
-            value += (expr2,)
+            if expr2.value == 'print':
+                value += (Caller(expr2),)
+            else:
+                value += (expr2,)
         else:
-            value = (expr1,)
+            if expr1.value == 'print':
+                value += (IndexAssign(), Caller(expr1),)
+            else:
+                value = (IndexAssign(), expr1,)
         self.value += value
 
 
@@ -177,9 +218,9 @@ class Call(SuperBox):
     def __init__(self, caller, call_args=None):
         super().__init__()
         if self.check_token(call_args):
-            self.value += (Args(call_args), caller)
+            self.value += (Args(call_args), Caller(caller))
         else:
-            self.value += (caller,)
+            self.value += (Caller(caller),)
 
 
 class Func(SuperBox):
@@ -220,13 +261,15 @@ class ElseStmt(SuperBox):
 class Tests(SuperBox):
     def __init__(self, logic_ops, expr, more_expr):
         super().__init__()
-        self.value += ((logic_ops, expr,), more_expr)
+        self.value += (Args(expr, more_expr), Caller(logic_ops))
 
 
 class ForLoop(SuperBox):
-    def __init__(self, expr, entity):
+    def __init__(self, expr, entity, more_entity):
         super().__init__()
         self.value += ((expr, entity),)
+        if self.check_token(more_entity):
+            self.value += more_entity.value
 
 
 # extra classes
@@ -241,9 +284,12 @@ class Range(SuperBox):
 
 
 class IndexAssign(SuperBox):
-    def __init__(self, val):
+    def __init__(self, val=None):
         super().__init__()
-        self.value = (val,)
+        if self.check_token(val):
+            self.value = (val,)
+        else:
+            self.value = ('all',)
 
 
 class ParamsSeq(SuperBox):
@@ -262,18 +308,28 @@ class AttrHeader(SuperBox):
     def __init__(self, a_symbol, a_type, a_expr=None):
         super().__init__()
         if self.check_token(a_expr):
-            self.value = (a_symbol, (TypeExpr(a_expr), a_type))
+            self.value = (a_symbol, (TypeExpr(a_expr), Caller(a_type)))
         else:
             self.value = (a_symbol, a_type)
 
 
 class Args(SuperBox):
-    def __init__(self, args):
+    def __init__(self, *args):
         super().__init__()
-        self.value = args.value
+        value = ()
+        for k in args:
+            value += k.value
+        self.value = (value,)
+
+
+class Caller(SuperBox):
+    def __init__(self, caller):
+        super().__init__()
+        self.value = (caller,)
 
 
 class ExitBody(SuperBox):
     def __init__(self):
         super().__init__()
         self.value = 'exit_cond_body'
+

@@ -294,3 +294,12 @@ You can use range for indices or assignment:
 int f (100) = (3..21:400, (0 1 2):400..403)
 ```
 
+
+
+### the treta
+
+circuit @c1 = (:@algumacoisa)
+
+
+
+

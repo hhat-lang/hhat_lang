@@ -5,10 +5,8 @@ Metaparser
 import ast
 
 try:
-    # from neat_ast import *
     from new_ast import *
 except ImportError:
-    # from hhat_lang.neat_ast import *
     from hhat_lang.new_ast import *
 
 GRAMMAR_FILE = "grammar.txt"

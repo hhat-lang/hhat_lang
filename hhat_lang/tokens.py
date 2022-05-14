@@ -66,7 +66,7 @@ tokens.update({"SUPERPOSN_GATE": r"@superposn(?!\w)"})
 tokens.update({"AMPLIFICATION_GATE": r"@ampl(?!\w)"})
 
 tokens.update({"RESET_GATE": r"@reset(?!\w)"})
-tokens.update({"MEASURE_BUILTIN": r"@return(?!\w)"})
+# tokens.update({"MEASURE_BUILTIN": r"@return(?!\w)"})
 
 tokens.update({"ADD_BUILTIN": r"add(?!\w)"})
 tokens.update({"SUB_BUILTIN": r"sub(?!\w)"})

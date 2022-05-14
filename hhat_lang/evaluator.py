@@ -384,7 +384,7 @@ class Code:
         """
         lex_code = deepcopy(self.lex_code)
         parse_code = parser.parse(lex_code)
-        self.parse_code = parse_code.value
+        self.parse_code = parse_code.name
         return self.parse_code
 
     def eval(self):

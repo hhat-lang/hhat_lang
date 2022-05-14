@@ -1,4 +1,4 @@
-"""AST"""
+"""AST """
 
 from rply.token import BaseBox, Token
 
@@ -46,16 +46,14 @@ SYMBOL = 'symbol'
 class SuperBox(BaseBox):
     def __init__(self):
         self.value = ()
-        self.value_str = ""
+        self.value_str = ''
         self.name = self.__class__.__name__
 
     def check_obj(self, grammar_obj):
     	if isinstance(grammar_obj, (Token, SuperBox)):
-    		if grammar_obj.value:
-    			return True
-    	return False
+    		return True if grammar_obj.value else False
 
-    def plain_value(self, grammar_obj):
+	def plain_value(self, grammar_obj):
     	return grammar_obj.value
 
     def get_value(self, grammar_obj):

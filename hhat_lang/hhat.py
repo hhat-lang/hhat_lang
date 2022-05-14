@@ -1,4 +1,4 @@
-"""H-hat main runner to external files"""
+"""H-hat main runner to external files """
 
 import sys
 import warnings
@@ -12,6 +12,7 @@ with warnings.catch_warnings():
         if len(args) > 1:
             with open(args[1], 'r') as f:
                 data = f.read()
+                
             code_exec = Code(data)
             code_exec.run()
 

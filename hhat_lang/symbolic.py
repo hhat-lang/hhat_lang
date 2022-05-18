@@ -215,20 +215,3 @@ class Memory:
         return f"{self.data}"
 
 
-"""
-anneriet
-
-add(m1(@var))
-
-measurement alobahia = (:@var)
-
-
-fun int m1 (measurement algumacoisa) (
-     ...
-     return () <- int
-)
-
-"""
-
-
-

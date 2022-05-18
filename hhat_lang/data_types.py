@@ -3,10 +3,35 @@ try:
 except ImportError:
     from hhat_lang.error_handler import * # error_handler_wrapper as hht_error
 
+import ast
 from typing import Dict, List
 
 from networkx import Graph
 from rply.token import BaseBox
+
+def circuit_type():
+    return
+
+
+def literal_type(data):
+    """" return literals for int/float/bool types"""
+    return ast.literal_eval(data.value)
+
+
+def int_type(data):
+    return ast.literal_eval(data.value)
+
+
+def str_type(data):
+    return data.value
+
+
+def bool_type(data):
+    return ast.literal_eval(data.value)
+
+
+def float_type(data):
+    return ast.literal_eval(data.value)
 
 
 class Types(BaseBox):

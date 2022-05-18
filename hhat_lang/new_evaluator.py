@@ -9,6 +9,8 @@ from hhat_lang.tokens import tokens
 from hhat_lang.lexer import lexer
 from hhat_lang.parser import parser
 from hhat_lang.symbolic import FST, Memory
+from hhat_lang.data_types import (int_type, float_type, str_type,
+                                  bool_type, circuit_type, literal_type)
 from hhat_lang.new_ast import (Program, Function, FuncTemplate, ParamsSeq, AThing, Body,
                                AttrDecl, Expr, ManyExprs, Entity, AttrAssign, Call,
                                Func, IfStmt, ElifStmt, ElseStmt, Tests, ForLoop, ExitBody,
@@ -25,7 +27,8 @@ func int sum (int x, int y) (
 )
 
 main null X: (
-    int a =(:3) 
+    int a =(:3)
+    int b =(:5)
     if (eq(a b)): (
         print('eq')
     ) 
@@ -35,6 +38,7 @@ main null X: (
     else: (
         print('lt')
     )
+    circuit @c1 = (:@h)
 )
 """
 
@@ -72,8 +76,17 @@ class Eval:
                       Caller: self.ast_caller,
                       Token: self.ast_token
                       }
+        self.type_lookup = {
+            # TODO: check if literal_type is valid then refactor calls below
+            'INT_LITERAL': int_type,
+            'STR_LITERAL': str_type,
+            'FLOAT_LITERAL': float_type,
+            'TRUE_LITERAL': bool_type,
+            'FALSE_LITERAL': bool_type,
+        }
         self.btin_funcs = {'print': btin_print,
-                           'add': btin_add}
+                           'add': btin_add,
+                           'eq': btin_eq}
 
     # DEBUG PRINT
 
@@ -129,6 +142,7 @@ class Eval:
             self.dp('tuple', f'code: key/code={k}')
             if stats['skip'] == 0:
                 stats = self.tasks[type(k)](k, stats)
+                self.dp('tuple', f'skip or not? {stats["skip"]}')
                 if stats['skip'] > 0:
                     stats['skip'] -= 1
                     break
@@ -368,7 +382,7 @@ class Eval:
                 stats['to_var'] += (res,)
 
         elif stats['obj'] == Tests:
-            pass
+            self.dp('token', 'obj=tests')
 
         elif stats['obj'] == TypeExpr:
             self.dp('token', 'obj=typeexpr')
@@ -382,7 +396,8 @@ class Eval:
                 stats['args'] += self.resolve_args(code.value, stats)
 
         elif stats['obj'] == AttrAssign:
-            res = self.resolve_literal(code)
+            # res = self.resolve_literal(code)
+            res = self.type_lookup[code.name](code)
             self.dp('token', f'attrassign res={res} type={type(res)}')
             stats['to_var'] += (res,)
 
@@ -411,10 +426,16 @@ class Eval:
                 if not stats['type']:
                     if not stats['var']:
                         res = self.resolve_args(stats['args'], stats)
+                        self.dp('token', f'btin_func = {code.value}')
                         if code.value in self.btin_funcs.keys():
                             btin_res = self.btin_funcs[code.value](*stats['args'])
-                            if stats['var'] and stats['type'] and btin_res:
-                                stats['to_var'] += (res,)
+                            if btin_res is not None:
+                                self.dp('token', f'btin_res={btin_res}')
+                                if btin_res:
+                                    pass
+                                else:
+                                    stats['skip'] += 1
+
                         elif code.value in ['int', 'float', 'str']:
                             self.dp('token', 'int, float, str - here modafoca?')
                         else:

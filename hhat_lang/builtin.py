@@ -33,10 +33,10 @@ def btin_not(vals):
     return tuple(not k for k in vals)
 
 
-def btin_eq(vals):
-    if len(vals) > 1:
-        res = vals[0]
-        for k0, k in enumerate(vals):
+def btin_eq(*values, buffer=False):
+    if len(values) > 1:
+        res = values[0]
+        for k0, k in enumerate(values):
             if k0 != 0:
                 res = res == k
         return res

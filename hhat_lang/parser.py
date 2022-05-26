@@ -213,42 +213,42 @@ def function_36(p):
     return Entity(p[1])
 
 
-@pg.production("entity : expr COLON PRINT_BUILTIN")
-def function_37(p):
-    return Entity(p[0], p[2])
-
-
-@pg.production("entity : COLON PRINT_BUILTIN")
-def function_38(p):
-    return Entity(p[1])
-
-
 @pg.production("attr_assign : symbol attr_decl_assign")
-def function_39(p):
+def function_37(p):
     return AttrAssign(p[0], p[1])
 
 
 @pg.production("generic_call : func OPEN more_expr CLOSE")
-def function_40(p):
+def function_38(p):
     return Call(p[0], p[2])
 
 
 @pg.production("attr_call : symbol OPEN more_expr CLOSE")
-def function_41(p):
+def function_39(p):
     return Call(p[0], p[2])
 
 
 @pg.production("attr_call : symbol")
-def function_42(p):
+def function_40(p):
+    return Call(p[0])
+
+
+@pg.production("attr_call : q_keyword")
+def function_41(p):
     return Call(p[0])
 
 
 @pg.production("func : symbol")
-def function_43(p):
+def function_42(p):
     return Func(p[0])
 
 
 @pg.production("func : reserved_keyword")
+def function_43(p):
+    return Func(p[0])
+
+
+@pg.production("func : q_keyword")
 def function_44(p):
     return Func(p[0])
 
@@ -258,85 +258,93 @@ def function_45(p):
     return Func(p[0])
 
 
-@pg.production("reserved_keyword : H_GATE")
-@pg.production("reserved_keyword : X_GATE")
-@pg.production("reserved_keyword : Z_GATE")
-@pg.production("reserved_keyword : Y_GATE")
-@pg.production("reserved_keyword : CNOT_GATE")
-@pg.production("reserved_keyword : SWAP_GATE")
-@pg.production("reserved_keyword : CZ_GATE")
-@pg.production("reserved_keyword : RX_GATE")
-@pg.production("reserved_keyword : RZ_GATE")
-@pg.production("reserved_keyword : RY_GATE")
-@pg.production("reserved_keyword : T_GATE")
-@pg.production("reserved_keyword : T-DAG_GATE")
-@pg.production("reserved_keyword : S_GATE")
-@pg.production("reserved_keyword : S-DAG_GATE")
-@pg.production("reserved_keyword : CR_GATE")
-@pg.production("reserved_keyword : TOFFOLI_GATE")
-@pg.production("reserved_keyword : SUPERPOSN_GATE")
-@pg.production("reserved_keyword : AMPLIFICATION_GATE")
-@pg.production("reserved_keyword : RESET_GATE")
 @pg.production("reserved_keyword : ADD_BUILTIN")
 @pg.production("reserved_keyword : SUB_BUILTIN")
 @pg.production("reserved_keyword : MULT_BUILTIN")
 @pg.production("reserved_keyword : DIV_BUILTIN")
 @pg.production("reserved_keyword : POWER_BUILTIN")
 @pg.production("reserved_keyword : SQRT_BUILTIN")
-@pg.production("reserved_keyword : PRINT_BUILTIN")
 @pg.production("reserved_keyword : INPUT_BUILTIN")
 @pg.production("reserved_keyword : OUTPUT_BUILTIN")
 def function_46(p):
     return AThing(p[0])
 
 
-@pg.production("inline_func : OPEN expr more_expr CLOSE")
+@pg.production("q_keyword : H_GATE")
+@pg.production("q_keyword : X_GATE")
+@pg.production("q_keyword : Z_GATE")
+@pg.production("q_keyword : Y_GATE")
+@pg.production("q_keyword : CNOT_GATE")
+@pg.production("q_keyword : SWAP_GATE")
+@pg.production("q_keyword : CZ_GATE")
+@pg.production("q_keyword : RX_GATE")
+@pg.production("q_keyword : RZ_GATE")
+@pg.production("q_keyword : RY_GATE")
+@pg.production("q_keyword : T_GATE")
+@pg.production("q_keyword : T-DAG_GATE")
+@pg.production("q_keyword : S_GATE")
+@pg.production("q_keyword : S-DAG_GATE")
+@pg.production("q_keyword : CR_GATE")
+@pg.production("q_keyword : TOFFOLI_GATE")
+@pg.production("q_keyword : INIT_GATE")
+@pg.production("q_keyword : SUPERPOSN_GATE")
+@pg.production("q_keyword : AMPLIFICATION_GATE")
+@pg.production("q_keyword : RESET_GATE")
+@pg.production("q_keyword : SYNC_GATE")
+@pg.production("q_keyword : AND_GATE")
+@pg.production("q_keyword : OR_GATE")
+@pg.production("q_keyword : PRINT_BUILTIN")
 def function_47(p):
+    return AThing(p[0])
+
+
+@pg.production("inline_func : OPEN expr more_expr CLOSE")
+def function_48(p):
     return ManyExprs(p[1], p[2])
 
 
 @pg.production("more_expr : expr more_expr")
-def function_48(p):
+def function_49(p):
     return ManyExprs(p[0], p[1])
 
 
 @pg.production("more_expr : ")
-def function_49(p):
+def function_50(p):
     return ManyExprs()
 
 
 @pg.production("if_stmt : IF_COND OPEN tests CLOSE COLON OPEN body CLOSE elif_stmt else_stmt")
-def function_50(p):
+def function_51(p):
     return IfStmt(p[2], p[6], p[8], p[9])
 
 
 @pg.production("elif_stmt : ELIF_COND OPEN tests CLOSE COLON OPEN body CLOSE elif_stmt")
-def function_51(p):
+def function_52(p):
     return ElifStmt(p[2], p[6], p[8])
 
 
 @pg.production("elif_stmt : ")
-def function_52(p):
+def function_53(p):
     return ElifStmt()
 
 
 @pg.production("else_stmt : ELSE_COND COLON OPEN body CLOSE")
-def function_53(p):
+def function_54(p):
     return ElseStmt(p[3])
 
 
 @pg.production("else_stmt : ")
-def function_54(p):
+def function_55(p):
     return ElseStmt()
 
 
 @pg.production("tests : logic_ops_call OPEN expr more_expr CLOSE")
-def function_55(p):
+def function_56(p):
     return Tests(p[0], p[2], p[3])
 
 
 @pg.production("logic_ops_call : logic_ops")
-def function_56(p):
+def function_57(p):
     return Call(p[0])
 
 
@@ -349,22 +357,22 @@ def function_56(p):
 @pg.production("logic_ops : LT_OP")
 @pg.production("logic_ops : LTE_OP")
 @pg.production("logic_ops : NEQ_OP")
-def function_57(p):
+def function_58(p):
     return AThing(p[0])
 
 
 @pg.production("for_loop : FOR_LOOP OPEN expr CLOSE OPEN entity more_entity CLOSE")
-def function_58(p):
+def function_59(p):
     return ForLoop(p[2], p[5], p[6])
 
 
 @pg.production("result : RETURN OPEN expr more_expr CLOSE")
-def function_59(p):
+def function_60(p):
     return ManyExprs(p[2], p[3], p[0])
 
 
 @pg.production("result : ")
-def function_60(p):
+def function_61(p):
     return ManyExprs()
 
 

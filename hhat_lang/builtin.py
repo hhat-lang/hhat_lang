@@ -1,4 +1,5 @@
 """Builtin functions"""
+import networkx as nx
 
 
 def btin_print(*values, buffer=False):
@@ -94,15 +95,32 @@ def btin_lte(vals):
 
 
 def btin_add(*values, buffer=False):
-    type_list = set([type(v) for v in values])
+    def get_type(value):
+        if isinstance(value, str):
+            if value.startswith('0b'):
+                return 'bin'
+        return type(value)
+
+    type_list = set([get_type(v) for v in values])
     if len(type_list) == 1:
         if int in type_list or float in type_list:
             return sum(values)
         if str in type_list:
             return ''.join(values)
         return tuple(values)
-    else:
-        return tuple(values)
+    if len(type_list) == 2:
+        if 'bin' in type_list:
+            res = []
+            for v in values:
+                if isinstance(v, int):
+                    res.append(v)
+                elif isinstance(v, str):
+                    if v.startswith('0b') and str in type_list:
+                        res.append(chr(int(v, 2)))
+                    elif v.startswith('0b') and int in type_list:
+                        res.append(int(v, 2))
+            return sum(res) if int in type_list else ''.join(res)
+    return tuple(values)
 
 
 def btin_mult():
@@ -129,12 +147,13 @@ def btin_len():
     pass
 
 
-def btin_q_h():
-    pass
-
-
-def btin_q_x():
-    pass
+def btin_q_x(*values, buffer=False):
+    print(f'@X values={values}')
+    g = nx.DiGraph()
+    for k in values:
+        g.add_node(k, data='X')
+    print('btin_q_x', g)
+    return g
 
 
 def btin_q_z():
@@ -142,4 +161,49 @@ def btin_q_z():
 
 
 def btin_q_y():
+    pass
+
+
+def btin_q_h(*values, buffer=False):
+    print(f'@H values={values}')
+    g = nx.DiGraph()
+    for k in values:
+        g.add_node(k, data='H')
+    print('btin_q_h', g)
+    return g
+
+
+def btin_q_cnot():
+    pass
+
+
+def btin_q_swap():
+    pass
+
+
+def btin_q_toffoli():
+    pass
+
+
+def btin_q_ccz():
+    pass
+
+
+def btin_q_init(*values, buffer=False):
+    pass
+
+
+def btin_q_reset():
+    pass
+
+
+def btin_q_sync(*values, buffer=False):
+    pass
+
+
+def btin_q_and(*values, buffer=False):
+    pass
+
+
+def btin_q_or(*values, buffer=False):
     pass

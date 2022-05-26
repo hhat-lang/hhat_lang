@@ -105,6 +105,8 @@ class Memory:
     def set_var_mem(cls, type_data=None):
         if type_data in ['bool', 'int', 'float', 'str']:
             return {'type': type_data, 'len': 1, 'data': {}}
+        if type_data in ['circuit']:
+            return {'type': type_data, 'len': 1, 'data': {}}
         if type in [None, 'null']:
             return {'type': None, 'len': 0, 'data': {}}
 
@@ -128,6 +130,8 @@ class Memory:
             if not len_data:
                 return {0: ''}
             return {k: '' for k in range(len_data)}
+        if type_data == 'circuit':
+            return []
         return {}
 
     @classmethod
@@ -158,8 +162,12 @@ class Memory:
             if name in cls.data[scope].keys():
                 if var in cls.data[scope][name].keys():
                     if prop is None and index is not None:
-                        if index in cls.data[scope][name][var]['data'].keys():
-                            cls.data[scope][name][var]['data'][index] = value
+                        if cls.data[scope][name][var]['type'] not in ['circuit']:
+                            if index in cls.data[scope][name][var]['data'].keys():
+                                if cls.data[scope][name][var]['type'] in ['int', 'float', 'str']:
+                                    cls.data[scope][name][var]['data'][index] = value
+                        else:
+                            cls.data[scope][name][var]['data'].append(value)
                     elif prop is not None:
                         if prop in cls.data[scope][name][var].keys():
                             cls.data[scope][name][var][prop] = value
@@ -178,15 +186,20 @@ class Memory:
 
     @classmethod
     def read(cls, scope, name, var, index=None, prop=None):
+        print('{SYMBOLIC READ}', scope, name, var, index, prop)
         if scope in cls.data.keys():
             if name in cls.data[scope].keys():
                 if var in cls.data[scope][name].keys():
-                    if index is None:
-                        return tuple(k for k in cls.data[scope][name][var]['data'].values())
-                    if index in cls.data[scope][name][var]['data'].keys():
-                        return cls.data[scope][name][var]['data'][index]
+                    if index is None and prop is None:
+                        if cls.data[scope][name][var]['type'] not in ['circuit']:
+                            return tuple(k for k in cls.data[scope][name][var]['data'].values())
+                        return tuple(cls.data[scope][name][var]['data'])
                     if prop in cls.data[scope][name][var].keys():
                         return cls.data[scope][name][var][prop]
+                    if cls.data[scope][name][var]['type'] not in ['circuit']:
+                        if index in cls.data[scope][name][var]['data'].keys():
+                            return cls.data[scope][name][var]['data'][index]
+                    return tuple(cls.data[scope][name][var]['data'])
         raise ValueError(f"Error reading var '{var}'.")
 
     @classmethod
@@ -200,8 +213,7 @@ class Memory:
         cls.free(scope=from_scope)
 
     @classmethod
-    def free_the_nipples(cls, scope=None, name=None):
-        # happy debugging
+    def free(cls, scope=None, name=None):
         if scope is None:
             if name is None:
                 cls.data = cls.set_default()

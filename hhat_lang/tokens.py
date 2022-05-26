@@ -62,11 +62,13 @@ tokens.update({"S-DAG_GATE": r"@sdag(?!\w)"})
 tokens.update({"CR_GATE": r"@cr(?!\w)"})
 tokens.update({"TOFFOLI_GATE": r"@toffoli(?!\w)"})
 
+tokens.update({"INIT_GATE": r"@init(?!\w)"})
 tokens.update({"SUPERPOSN_GATE": r"@superposn(?!\w)"})
 tokens.update({"AMPLIFICATION_GATE": r"@ampl(?!\w)"})
-
+tokens.update({"SYNC_GATE": r"@sync(?!\w)"})
+tokens.update({"AND_GATE": r"@and(?!\w)"})
+tokens.update({"OR_GATE": r"@or(?!\w)"})
 tokens.update({"RESET_GATE": r"@reset(?!\w)"})
-# tokens.update({"MEASURE_BUILTIN": r"@return(?!\w)"})
 
 tokens.update({"ADD_BUILTIN": r"add(?!\w)"})
 tokens.update({"SUB_BUILTIN": r"sub(?!\w)"})

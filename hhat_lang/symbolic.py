@@ -106,6 +106,8 @@ class Memory:
         if type_data in ['bool', 'int', 'float', 'str']:
             return {'type': type_data, 'len': 1, 'data': {}}
         if type_data in ['circuit']:
+            return {'type': type_data, 'len': 1, 'data': []}
+        if type_data in ['hashmap', 'measurement']:
             return {'type': type_data, 'len': 1, 'data': {}}
         if type in [None, 'null']:
             return {'type': None, 'len': 0, 'data': {}}
@@ -132,6 +134,8 @@ class Memory:
             return {k: '' for k in range(len_data)}
         if type_data == 'circuit':
             return []
+        if type_data in ['hashmap', 'measurement']:
+            return {}
         return {}
 
     @classmethod
@@ -166,6 +170,11 @@ class Memory:
                             if index in cls.data[scope][name][var]['data'].keys():
                                 if cls.data[scope][name][var]['type'] in ['int', 'float', 'str']:
                                     cls.data[scope][name][var]['data'][index] = value
+                                elif cls.data[scope][name][var]['type'] in ['hashmap', 'measurement']:
+                                    cls.data[scope][name][var]['data'].update({index: value})
+                            else:
+                                if cls.data[scope][name][var]['type'] in ['hashmap', 'measurement']:
+                                    cls.data[scope][name][var]['data'].update({index: value})
                         else:
                             cls.data[scope][name][var]['data'].append(value)
                     elif prop is not None:
@@ -176,6 +185,9 @@ class Memory:
                                 cls.data[scope][name][var]['data'] = cls.set_var_data(
                                     type_data=type_data,
                                     len_data=value)
+                    else:
+                        if cls.data[scope][name][var]['type'] in ['circuit']:
+                            cls.data[scope][name][var]['data'].append(value)
 
     @classmethod
     def append(cls, scope, name, var, index, value):
@@ -186,12 +198,12 @@ class Memory:
 
     @classmethod
     def read(cls, scope, name, var, index=None, prop=None):
-        print('{SYMBOLIC READ}', scope, name, var, index, prop)
+        # print('{SYMBOLIC READ}', scope, name, var, index, prop)
         if scope in cls.data.keys():
             if name in cls.data[scope].keys():
                 if var in cls.data[scope][name].keys():
                     if index is None and prop is None:
-                        if cls.data[scope][name][var]['type'] not in ['circuit']:
+                        if cls.data[scope][name][var]['type'] not in ['circuit', 'hashmap', 'measurement']:
                             return tuple(k for k in cls.data[scope][name][var]['data'].values())
                         return tuple(cls.data[scope][name][var]['data'])
                     if prop in cls.data[scope][name][var].keys():
@@ -204,7 +216,11 @@ class Memory:
 
     @classmethod
     def get_idx(cls, scope, name, var):
-        return tuple(k for k in cls.data[scope][name][var]['data'].keys())
+        if cls.data[scope][name][var]['type'] not in ['circuit']:
+            return tuple(k for k in cls.data[scope][name][var]['data'].keys())
+        else:
+            return tuple(k for k in range(cls.data[scope][name][var]['len']))
+
 
     @classmethod
     def move(cls, from_scope, to_scope):

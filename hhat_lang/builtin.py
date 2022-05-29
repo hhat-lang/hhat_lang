@@ -148,11 +148,11 @@ def btin_len():
 
 
 def btin_q_x(*values, buffer=False):
-    print(f'@X values={values}')
+    # print(f'@X values={values}')
     g = nx.DiGraph()
     for k in values:
         g.add_node(k, data='X')
-    print('btin_q_x', g)
+    # print('btin_q_x', g)
     return g
 
 
@@ -165,16 +165,22 @@ def btin_q_y():
 
 
 def btin_q_h(*values, buffer=False):
-    print(f'@H values={values}')
+    # print(f'@H values={values}')
     g = nx.DiGraph()
     for k in values:
         g.add_node(k, data='H')
-    print('btin_q_h', g)
+    # ('btin_q_h', g)
     return g
 
 
-def btin_q_cnot():
-    pass
+def btin_q_cnot(*values, buffer=False):
+    # print(f'@CNOT values={values}')
+    g = nx.DiGraph()
+    for k in values:
+        g.add_node(k)
+    g.add_edge(values[0], values[1], data='CNOT')
+    # print('btin_q_cnot', g)
+    return g
 
 
 def btin_q_swap():

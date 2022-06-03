@@ -1,7 +1,7 @@
 try:
     from error_handler import *  # error_handler_wrapper as hht_error
 except ImportError:
-    from hhat_lang.error_handler import * # error_handler_wrapper as hht_error
+    from hhat_lang.error_handler import *  # error_handler_wrapper as hht_error
 
 import ast
 from typing import Dict, List
@@ -9,7 +9,14 @@ from typing import Dict, List
 from networkx import Graph
 from rply.token import BaseBox
 
-def circuit_type():
+
+def measurement_type(data):
+    return
+
+
+def circuit_type(data):
+    op = Graph()
+
     return
 
 

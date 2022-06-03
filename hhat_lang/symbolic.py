@@ -210,6 +210,8 @@ class Memory:
                         return cls.data[scope][name][var][prop]
                     if cls.data[scope][name][var]['type'] not in ['circuit']:
                         if index in cls.data[scope][name][var]['data'].keys():
+                            if cls.data[scope][name][var]['type'] in ['hashmap', 'measurement']:
+                                return {index: cls.data[scope][name][var]['data'][index]}
                             return cls.data[scope][name][var]['data'][index]
                     return tuple(cls.data[scope][name][var]['data'])
         raise ValueError(f"Error reading var '{var}'.")

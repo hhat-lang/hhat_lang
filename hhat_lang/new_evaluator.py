@@ -50,13 +50,18 @@ main null X: (
 SAMPLE_CODE_2 = """
 main null V: (
     circuit(2) @c1 = (1:@x)
-    int a = (:5, :add(3 @c1), :print)
+    int a = (:5, :add(3 @c1), :print('test'))
     int(4) b = (0:1, 2:10, :add(100), :print, (1 3):print)
     circuit(3) @c2 = (0:@h, (0 1):@cnot)
     hashmap x = (0:1, 1:'oi', :print)
     measurement y = (:@c2, :print)
+    circuit(4) @c3 = (:@h)
+    circuit(8) @c4 = ((0 1 2 3):@c3)
+    measurement z = (:@c4, :print('res:'))
+    measurement z2 = (:@c4(1 2 7 8), :print('new res:'))
 )
 """
+
 
 # noinspection PyArgumentList
 class Eval:
@@ -112,6 +117,11 @@ class Eval:
                             'H': 'h',
                             'CNOT': 'cx',
                             'SWAP': 'swap'}
+        self.op_rules = {'add': self.morpher,
+                         '@h': self.appender,
+                         '@x': self.appender,
+                         '@cnot': self.appender,
+                         'print': self.nuller}
 
     # DEBUG PRINT
 
@@ -270,17 +280,24 @@ class Eval:
         res = self.resolve_args(stats['to_var'], stats)
         self.dp('entity', f'res={res}')
         if len(res) == len(stats['idx']) and stats['type'] != 'circuit':
-            for k, v in zip(stats['idx'], res):
-                sub_v = self.resolve_literal(v)
-                self.mem.write(scope=stats['scope'], name=stats['func'], var=stats['var'], index=k,
-                               value=sub_v)
+            if stats['type'] != 'circuit':
+                for k, v in zip(stats['idx'], res):
+                    sub_v = self.resolve_literal(v)
+                    self.mem.write(scope=stats['scope'], name=stats['func'], var=stats['var'],
+                                   index=k,
+                                   value=sub_v)
+            else:
+                self.mem.write(scope=stats['scope'], name=stats['func'], var=stats['var'],
+                               value=res[0])
         elif len(res) == 1:
             if stats['type'] != 'circuit':
                 for k in stats['idx']:
-                    self.mem.write(scope=stats['scope'], name=stats['func'], var=stats['var'], index=k,
+                    self.mem.write(scope=stats['scope'], name=stats['func'], var=stats['var'],
+                                   index=k,
                                    value=res[0])
             else:
-                self.mem.write(scope=stats['scope'], name=stats['func'], var=stats['var'], value=res[0])
+                self.mem.write(scope=stats['scope'], name=stats['func'], var=stats['var'],
+                               value=res[0])
         else:
             if stats['type'] == 'circuit':
                 for k in res:
@@ -463,9 +480,9 @@ class Eval:
                                                          var=code.value,
                                                          prop='data')
                             circuit_len = self.mem.read(scope=stats['scope'],
-                                                         name=stats['func'],
-                                                         var=code.value,
-                                                         prop='len')
+                                                        name=stats['func'],
+                                                        var=code.value,
+                                                        prop='len')
                             circuit_qasm = self.circuit_to_qasm(circuit_data, circuit_len)
                             simu = QasmSimulator()
                             sim_run = simu.run(circuit_qasm, shots=1024)
@@ -489,7 +506,8 @@ class Eval:
         elif stats['obj'] == TypeExpr:
             self.dp('token', f'obj=typeexpr | symbol={code.value}')
             if code.name.endswith('LITERAL'):
-                stats['args'] += (self.type_lookup[code.name](code),)  # (self.resolve_literal(code),)
+                stats['args'] += (
+                    self.type_lookup[code.name](code),)  # (self.resolve_literal(code),)
                 self.dp('token',
                         f'obj=typeexpr | args={stats["args"]} type args={type(stats["args"])}')
             elif code.name == 'SYMBOL':
@@ -510,7 +528,10 @@ class Eval:
 
         elif stats['obj'] == Caller:
             self.dp('token', f'obj=caller code={code.value}')
+            # TODO: make it go to self.morpher and self.appender functions
             if stats['var'] and stats['type']:
+                stats = self.op_rules.get(code.value, self.qsymbol_caller)(code, stats)
+                """
                 res = ()
                 args = ()
                 for k in stats['args']:
@@ -564,16 +585,21 @@ class Eval:
                                                        var=stats['var'],
                                                        index=k),)
                             else:
-                                res2 += (self.mem.read(scope=stats['scope'],
-                                                       name=stats['func'],
-                                                       var=stats['var'],
-                                                       prop='data'),)
+                                res2 = (self.mem.read(scope=stats['scope'],
+                                                      name=stats['func'],
+                                                      var=stats['var'],
+                                                      index=k),)
+                                # res2 += (self.mem.read(scope=stats['scope'],
+                                #                        name=stats['func'],
+                                #                        var=stats['var'],
+                                #                        prop='data'),)
                         self.dp('token', f'res2 values={res2}')
                         btin_res = None
                         if code.value in self.btin_funcs.keys():
-                            args += self.resolve_args(res2, stats)
-                            self.dp('token', f'obj=caller code={code.value} args={args}')
+
                             if code.name in ['CNOT_GATE', 'SWAP_GATE', 'CZ_GATE']:
+                                args += self.resolve_args(res2, stats)
+                                self.dp('token', f'obj=caller code={code.value} args={args}')
                                 if len(args) == 2:
                                     self.dp('token', f'2-gate btin_func {code.value} {args}')
                                     btin_res = self.btin_funcs[code.value](*args)
@@ -582,6 +608,8 @@ class Eval:
                                     if btin_res:
                                         stats['to_var'] += (btin_res,)
                             elif code.name in ['TOFFOLI_GATE']:
+                                args += self.resolve_args(res2, stats)
+                                self.dp('token', f'obj=caller code={code.value} args={args}')
                                 if len(args) == 3:
                                     btin_res = self.btin_funcs[code.value](*args)
                                     args = ()
@@ -620,6 +648,7 @@ class Eval:
                             self.dp('quantum data', f'counts={sim_counts}')
                             stats['idx'] += tuple(sim_counts.keys())
                             stats['to_var'] += tuple(sim_counts.values())
+                """
             else:
                 if not stats['type']:
                     if not stats['var']:
@@ -657,6 +686,178 @@ class Eval:
             print(f'token, obj={stats["obj"]}')
         return stats
 
+    # MORPHER AND APPENDER FUNCTIONS
+
+    def morpher(self, code, stats):
+        self.dp('morpher', f'caller={code.value} | stats={stats}')
+        for k0, k in enumerate(stats['idx']):
+            res2 = stats['args']
+            res2 += (self.mem.read(scope=stats['scope'],
+                                   name=stats['func'],
+                                   var=stats['var'],
+                                   index=k),)
+            self.dp('morpher', f'res2 value={res2}')
+            btin_res = None
+            if code.value in self.btin_funcs.keys():
+                args = self.resolve_args(res2, stats)
+                if k0 + 1 < len(stats['idx']):
+                    btin_res = self.btin_funcs[code.value](*args, buffer=True)
+                else:
+                    btin_res = self.btin_funcs[code.value](*args, buffer=False)
+                self.dp('morpher', f'btin_res={btin_res}')
+                if btin_res:
+                    stats['to_var'] += (btin_res,)
+        return stats
+
+    def appender(self, code, stats):
+        self.dp('appender', f'caller={code.value} | stats={stats}')
+        if len(stats['idx']) > 0:
+            if code.value in self.btin_funcs.keys():
+                if code.name in ['CNOT_GATE', 'SWAP_GATE', 'CZ_GATE']:
+                    if len(stats['args']) == len(stats['idx']) and stats['args'] % 2 == 0:
+                        for arg, idx in zip(stats['args'], stats['idx']):
+                            self.dp('appender', f'2-gate {code.value} ({arg}, {idx})')
+                            btin_res = self.btin_funcs[code.value](arg, idx)
+                            if btin_res:
+                                stats['to_var'] += (btin_res,)
+                    else:
+                        if len(stats['args']) > 0:
+                            for arg in stats['args']:
+                                for idx in stats['idx']:
+                                    if arg != idx:
+                                        self.dp('appender', f'2-gate {code.value} ({arg}, {idx})')
+                                        btin_res = self.btin_funcs[code.value](stats['args'], idx)
+                                        if btin_res:
+                                            stats['to_var'] += (btin_res,)
+                        else:
+                            if len(stats['idx']) % 2 == 0:
+                                idxs = ()
+                                for idx in stats['idx']:
+                                    if len(idxs) < 2:
+                                        idxs += (idx,)
+                                    if len(idxs) == 2:
+                                        self.dp('appender', f'2-gate {code.value} {idxs}')
+                                        btin_res = self.btin_funcs[code.value](*idxs)
+                                        if btin_res:
+                                            stats['to_var'] += (btin_res,)
+                                        idxs = ()
+                elif code.name in ['TOFFOLI_GATE']:
+                    if len(stats['idx']) % 3 == 0:
+                        idxs = ()
+                        for idx in stats['idx']:
+                            if len(idxs) < 3:
+                                idxs += (idx,)
+                            if len(idxs) == 3:
+                                self.dp('appender', f'3-gate {code.value} {idxs}')
+                                btin_res = self.btin_funcs[code.value](*idxs)
+                                if btin_res:
+                                    stats['to_var'] += (btin_res,)
+                    else:
+                        if len(stats['args']) % 2 == 0:
+                            args = ()
+                            for arg in stats['args']:
+                                if len(args) < 2:
+                                    args += (arg,)
+                                else:
+                                    new_args = args
+                                    for idx in stats['idx']:
+                                        if len(new_args) == 2:
+                                            new_args += (idx,)
+                                        if arg not in idx and len(new_args) == 3:
+                                            self.dp('appender', f'3-gate {code.value} {new_args}')
+                                            btin_res = self.btin_funcs[code.value](*new_args)
+                                            self.dp('nuller', f'btin_res={btin_res}')
+                                            if btin_res:
+                                                stats['to_var'] += (btin_res,)
+                                            new_args = ()
+                else:
+                    args = self.resolve_args(stats['idx'], stats)
+                    args += stats['args']
+                    btin_res = self.btin_funcs[code.value](*args)
+                    if btin_res:
+                        stats['to_var'] += (btin_res,)
+        else:
+            self.dp('appender', 'len idx ==0')
+        self.dp('appender', f'output stats={stats}')
+        return stats
+
+    def nuller(self, code, stats):
+        self.dp('nuller', f'caller={code.value} | stats={stats}')
+        for k0, idx in enumerate(stats['idx']):
+            res = stats['args']
+            if stats['type'] not in ['hashmap', 'measurement']:
+                res += (self.mem.read(scope=stats['scope'],
+                                      name=stats['func'],
+                                      var=stats['var'],
+                                      index=idx),)
+            else:
+                res += (self.mem.read(scope=stats['scope'],
+                                      name=stats['func'],
+                                      var=stats['var'],
+                                      index=idx),)
+            if code.value in self.btin_funcs.keys():
+                args = self.resolve_args(res, stats)
+                if k0 + 1 < len(stats['idx']):
+                    btin_res = self.btin_funcs[code.value](*args, buffer=True)
+                else:
+                    btin_res = self.btin_funcs[code.value](*args, buffer=False)
+                self.dp('nuller', f'btin_res={btin_res}')
+                if btin_res:
+                    stats['to_var'] += (btin_res,)
+        return stats
+
+    def qsymbol_caller(self, code, stats):
+        self.dp('qsymbol-caller', f'caller={code.value} | stats={stats}')
+        if stats['type'] == 'circuit':
+            for k in stats['idx']:
+                res = stats['args']
+                res += (self.mem.read(scope=stats['scope'],
+                                      name=stats['func'],
+                                      var=stats['var'],
+                                      index=k),)
+                stats['args'] += (res,)
+        else:
+            if code.name == 'QSYMBOL':
+                if stats['type'] != 'circuit':
+                    circuit_data = self.mem.read(scope=stats['scope'],
+                                                 name=stats['func'],
+                                                 var=code.value,
+                                                 prop='data')
+                    circuit_len = self.mem.read(scope=stats['scope'],
+                                                name=stats['func'],
+                                                var=code.value,
+                                                prop='len')
+                    circuit_qasm = self.circuit_to_qasm(circuit_data, circuit_len)
+                    simu = QasmSimulator()
+                    sim_run = simu.run(circuit_qasm, shots=2048)
+                    sim_res = sim_run.result()
+                    sim_counts = sim_res.data()['counts']
+                    self.dp('quantum data', f'counts={sim_counts}')
+                    if stats['type'] != 'measurement':
+                        if stats['type'] == 'hashmap':
+                            raise ValueError(
+                                f"Use measurement type instead of hashmap for circuits.")
+
+                        if len(sim_counts) == 1:
+                            fin_res = int(list(sim_counts.keys())[0], 16)
+                            self.dp('quantum data', f'result={fin_res}')
+                            stats['args'] += (fin_res,)
+                        else:
+                            self.interpret_qdata(sim_counts, stats['type'])
+                    else:
+                        stats['idx'] += tuple(sim_counts.keys())
+                        stats['to_var'] += tuple(sim_counts.values())
+                        self.dp('qsymbol-caller', f'meas data=({stats["idx"]}, {stats["to_var"]})')
+                else:
+                    self.dp('qsymbol-caller', f'appending {code.value} to var {stats["var"]}')
+                    stats['to_var'] = (self.mem.read(scope=stats['scope'],
+                                                     name=stats['func'],
+                                                     var=code.value,
+                                                     prop='data'),)
+            else:
+                self.dp('qsymbol-caller', f'No qsymbol: {code.value}')
+        return stats
+
     # QUANTUM DATA COMPUTING
 
     def interpret_circuit(self, data):
@@ -667,9 +868,9 @@ class Eval:
         for edge in data.edges.data():
             if 'data' in edge[-1].keys():
                 circuit_code += f"{self.trans_gates[edge[-1]['data']]}"
-                for k0, k in enumerate(range(len(edge)-1)):
+                for k0, k in enumerate(range(len(edge) - 1)):
                     circuit_code += f" q[{edge[k]}]"
-                    if k0+2 < len(edge):
+                    if k0 + 2 < len(edge):
                         circuit_code += ", "
                 circuit_code += ";\n"
         return circuit_code
@@ -683,6 +884,21 @@ class Eval:
         self.dp('qasm', f'file=\n\"{circuit_code}\"')
         qc = QuantumCircuit.from_qasm_str(circuit_code)
         return qc
+
+    def interpret_qdata(self, data, data_type='int'):
+        total_counts = 0
+        final_value = 0
+        for k, v in data.items():
+            final_value += int(k, 16) * v
+            total_counts += v
+        final_value /= total_counts
+        if data_type == 'int':
+            return int(final_value)
+        if data_type == 'str':
+            return chr(int(final_value))
+        if data_type == 'float':
+            return final_value
+        raise ValueError(f"No algorithm found for '{data_type}' process of quantum data.")
 
     # RESOLVING FUNCTIONS
 
@@ -763,6 +979,7 @@ class Code:
         self.debug = debug
         self.lex_code = self.lex()
         self.parsed_code = self.parse()
+        self.mem = None
 
     def lex(self, code=None):
         """
@@ -790,7 +1007,7 @@ class Code:
         parsed_code = parse_code.symbolic.table
         return parsed_code
 
-    def eval(self, pcode=None):
+    def eval(self, pcode=None, keep=True):
         """
         Evaluate the intermediate representation code
         and execute the code
@@ -798,7 +1015,10 @@ class Code:
         ev = Eval(debug=self.debug)
         pcode = self.parsed_code if pcode is None else pcode
         ev.walk(pcode)
-        del ev.mem
+        if keep:
+            self.mem = ev.mem
+        else:
+            del ev.mem
 
     def run(self):
         """

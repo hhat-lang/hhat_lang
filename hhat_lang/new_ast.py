@@ -66,9 +66,9 @@ class SuperBox(BaseBox):
         if isinstance(code, tuple):
             for k in code:
                 if isinstance(k, SuperBox):
-                    self.recur_tokens(k.value, depth=depth+1)
+                    self.recur_tokens(k.value, depth=depth + 1)
                 else:
-                    self.recur_tokens(k, depth=depth+1)
+                    self.recur_tokens(k, depth=depth + 1)
         else:
             if isinstance(code, Token):
                 if code.source_pos:
@@ -199,12 +199,12 @@ class Entity(SuperBox):
             if expr2.value == 'print':
                 value += (Caller(expr2),)
             else:
-                value += (expr2,)
+                value += (ExprAssign(expr2),)
         else:
             if expr1.value == 'print':
                 value += (IndexAssign(), Caller(expr1),)
             else:
-                value = (IndexAssign(), expr1,)
+                value = (IndexAssign(), ExprAssign(expr1),)
         self.value += value
 
 
@@ -292,6 +292,12 @@ class IndexAssign(SuperBox):
             self.value = ('all',)
 
 
+class ExprAssign(SuperBox):
+    def __init__(self, expr):
+        super().__init__()
+        self.value = (expr,)
+
+
 class ParamsSeq(SuperBox):
     def __init__(self, a_symbol, a_type):
         super().__init__()
@@ -332,4 +338,3 @@ class ExitBody(SuperBox):
     def __init__(self):
         super().__init__()
         self.value = 'exit_cond_body'
-

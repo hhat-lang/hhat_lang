@@ -10,28 +10,28 @@ def btin_print(*values, buffer=False):
     return None
 
 
-def btin_and(vals):
-    if len(vals) > 1:
-        res = vals[0]
-        for k0, k in enumerate(vals):
+def btin_and(*values, buffer=False):
+    if len(values) > 1:
+        res = values[0]
+        for k0, k in enumerate(values):
             if k0 != 0:
                 res = res and k
         return res
     raise ValueError(f'"and" operator must have at least 2 values to operate.')
 
 
-def btin_or(vals):
-    if len(vals) > 1:
-        res = vals[0]
-        for k0, k in enumerate(vals):
+def btin_or(*values, buffer=False):
+    if len(values) > 1:
+        res = values[0]
+        for k0, k in enumerate(values):
             if k0 != 0:
                 res = res or k
         return res
     raise ValueError(f'"or" operator must have at least 2 values to operate.')
 
 
-def btin_not(vals):
-    return tuple(not k for k in vals)
+def btin_not(*values, buffer=False):
+    return tuple(not k for k in values)
 
 
 def btin_eq(*values, buffer=False):
@@ -44,50 +44,50 @@ def btin_eq(*values, buffer=False):
     raise ValueError(f'"eq" operator must have at least 2 values to operate.')
 
 
-def btin_neq(vals):
-    if len(vals) > 1:
-        res = vals[0]
-        for k0, k in enumerate(vals):
+def btin_neq(*values, buffer=False):
+    if len(values) > 1:
+        res = values[0]
+        for k0, k in enumerate(values):
             if k0 != 0:
                 res = res != k
         return res
     raise ValueError(f'"neq" operator must have at least 2 values to operate.')
 
 
-def btin_gt(vals):
-    if len(vals) > 1:
-        res = vals[0]
-        for k0, k in enumerate(vals):
+def btin_gt(*values, buffer=False):
+    if len(values) > 1:
+        res = values[0]
+        for k0, k in enumerate(values):
             if k0 != 0:
                 res = res > k
         return res
     raise ValueError(f'"gt" operator must have at least 2 values to operate.')
 
 
-def btin_gte(vals):
-    if len(vals) > 1:
-        res = vals[0]
-        for k0, k in enumerate(vals):
+def btin_gte(*values, buffer=False):
+    if len(values) > 1:
+        res = values[0]
+        for k0, k in enumerate(values):
             if k0 != 0:
                 res = res >= k
         return res
     raise ValueError(f'"gte" operator must have at least 2 values to operate.')
 
 
-def btin_lt(vals):
-    if len(vals) > 1:
-        res = vals[0]
-        for k0, k in enumerate(vals):
+def btin_lt(*values, buffer=False):
+    if len(values) > 1:
+        res = values[0]
+        for k0, k in enumerate(values):
             if k0 != 0:
                 res = res < k
         return res
     raise ValueError(f'"lt" operator must have at least 2 values to operate.')
 
 
-def btin_lte(vals):
-    if len(vals) > 1:
-        res = vals[0]
-        for k0, k in enumerate(vals):
+def btin_lte(*values, buffer=False):
+    if len(values) > 1:
+        res = values[0]
+        for k0, k in enumerate(values):
             if k0 != 0:
                 res = res <= k
         return res

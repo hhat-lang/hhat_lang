@@ -142,7 +142,7 @@ class Params(SuperBox):
     def __init__(self, a_type=None, a_symbol=None, func_params=None):
         super().__init__()
         if self.check_token(a_type) and self.check_token(a_symbol):
-            self.value += (ParamsSeq(a_symbol, a_type),)
+            self.value += (ParamsSeq(a_symbol, a_type).value,)
             if self.check_token(func_params):
                 self.value += func_params.value
 
@@ -176,7 +176,8 @@ class Expr(SuperBox):
         if self.check_token(val2):
             self.value = (Range(val1, val2),)
         else:
-            self.value = val1.value if not isinstance(val1, Token) else (val1,)
+            # self.value = val1.value if not isinstance(val1, Token) else (val1,)
+            self.value = val1
 
 
 class ManyExprs(SuperBox):
@@ -261,7 +262,7 @@ class ElseStmt(SuperBox):
 class Tests(SuperBox):
     def __init__(self, logic_ops, expr, more_expr):
         super().__init__()
-        self.value += (Args(expr, more_expr), Caller(logic_ops))
+        self.value += (Args(expr, more_expr), logic_ops.value)
 
 
 class ForLoop(SuperBox):
@@ -301,7 +302,7 @@ class ExprAssign(SuperBox):
 class ParamsSeq(SuperBox):
     def __init__(self, a_symbol, a_type):
         super().__init__()
-        self.value = (a_symbol, a_type)
+        self.value = ({'symbol': a_symbol.value, 'type': a_type.value})
 
 
 class TypeExpr(SuperBox):
@@ -324,7 +325,10 @@ class Args(SuperBox):
         super().__init__()
         value = ()
         for k in args:
-            value += k.value
+            if isinstance(k, Expr):
+                value += (k,)
+            else:
+                value += k.value
         self.value = (value,)
 
 

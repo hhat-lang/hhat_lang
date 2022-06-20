@@ -262,7 +262,7 @@ class ElseStmt(SuperBox):
 class Tests(SuperBox):
     def __init__(self, logic_ops, expr, more_expr):
         super().__init__()
-        self.value += (Args(expr, more_expr), logic_ops.value)
+        self.value += (Args(expr, more_expr), logic_ops.value[0])
 
 
 class ForLoop(SuperBox):

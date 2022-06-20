@@ -434,7 +434,6 @@ class Eval:
         stats['to_var'] = ()
         stats['args'] = ()
         stats['idx'] = ()
-        stats['from_var'] = ()
         return stats
 
     def ast_call(self, code, stats):
@@ -1121,13 +1120,11 @@ class Eval:
                      'scope': None,
                      'key': None,
                      'obj': None,
-                     'level': 0,
                      'depth': 0,
                      'skip': 0,
                      'args': (),
                      'idx': (),
-                     'to_var': (),
-                     'from_var': ()}
+                     'to_var': ()}
         stats = self.tasks[type(code)](code, stats)
         return stats
 

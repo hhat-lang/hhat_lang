@@ -2,6 +2,12 @@
 import networkx as nx
 
 
+def unique_values(values):
+    if len(set(values)) == len(values):
+        return True
+    return False
+
+
 def btin_print(*values, buffer=False):
     if buffer:
         print(*values, end=' ')
@@ -148,72 +154,110 @@ def btin_len():
 
 
 def btin_q_x(*values, buffer=False):
-    # print(f'@X values={values}')
-    g = nx.DiGraph()
+    g = nx.Graph()
     for k in values:
         g.add_node(k, data='@x')
-    # print('btin_q_x', g)
     return g
 
 
-def btin_q_z():
-    pass
+def btin_q_z(*values, buffer=False):
+    g = nx.Graph()
+    for k in values:
+        g.add_node(k, data='@z')
+    return g
 
 
-def btin_q_y():
-    pass
+def btin_q_y(*values, buffer=False):
+    g = nx.Graph()
+    for k in values:
+        g.add_node(k, data='@y')
+    return g
 
 
 def btin_q_h(*values, buffer=False):
-    # print(f'@H values={values}')
-    g = nx.DiGraph()
+    g = nx.Graph()
     for k in values:
         g.add_node(k, data='@h')
-    # ('btin_q_h', g)
     return g
 
 
 def btin_q_cnot(*values, buffer=False):
-    # print(f'@CNOT values={values}')
-    g = nx.DiGraph()
-    for k in values:
-        g.add_node(k)
-    g.add_edge(values[0], values[1], data='@cnot')
-    # print('btin_q_cnot', g)
-    return g
+    if unique_values(values):
+        g = nx.Graph()
+        for k0, k in enumerate(values):
+            _data = 'control' if k == 0 else 'target'
+            g.add_node(k, data=_data)
+        g.add_edge(values[0], values[1], data='@cnot')
+        return g
+    raise ValueError("@cnot function does not operates in the same indices as control and target.")
 
 
 def btin_q_swap(*values, buffer=False):
-    g = nx.DiGraph()
-    for k in values:
-        g.add_node(k)
-    g.add_edge(values[0], values[1], data='@swap')
+    if unique_values(values):
+        g = nx.Graph()
+        for k in values:
+            g.add_node(k)
+        g.add_edge(values[0], values[1], data='@swap')
+        return g
+    raise ValueError("@swap function does not operates in the same indices as control and target.")
+
+
+def btin_q_toffoli(*values, buffer=False):
+    if unique_values(values):
+        g = nx.Graph()
+        for k0, k in enumerate(values):
+            g.add_node(k, kind='control' if k0 < 2 else 'target')
+        for k in range(len(values) - 1):
+            g.add_edge(values[k], values[k + 1], value='@toffoli')
+        return g
+    raise ValueError(
+        "@toffoli function does not operates in the same indices as control and target.")
+
+
+def btin_q_ccz(*values, buffer=False):
+    g = nx.Graph()
+
     return g
 
 
-def btin_q_toffoli():
-    pass
-
-
-def btin_q_ccz():
-    pass
-
-
 def btin_q_init(*values, buffer=False):
-    pass
+    g = nx.Graph()
+
+    return g
 
 
-def btin_q_reset():
-    pass
+def btin_q_reset(*values, buffer=False):
+    g = nx.Graph()
+
+    return g
 
 
 def btin_q_sync(*values, buffer=False):
-    pass
+    g = nx.Graph()
+
+    return g
 
 
 def btin_q_and(*values, buffer=False):
-    pass
+    return btin_q_toffoli(*values, buffer)
 
 
 def btin_q_or(*values, buffer=False):
-    pass
+    if unique_values(values):
+        g_list = []
+        for p in range(3):
+            if p % 2 == 0:
+                g = nx.Graph()
+                for k0, k in enumerate(values):
+                    if p != 2 and k0 < (len(values) - 1):
+                        g.add_node(k, data='@x')
+            else:
+                g = nx.Graph()
+                for k0, k in enumerate(values):
+                    g.add_node(k, kind='control' if k0 < 2 else 'target')
+                for k in range(len(values) - 1):
+                    g.add_edge(values[k], values[k + 1], value='@toffoli')
+            g_list.append(g)
+        return g_list
+    raise ValueError(
+        "@toffoli function does not operates in the same indices as control and target.")

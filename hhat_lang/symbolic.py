@@ -176,7 +176,10 @@ class Memory:
                                 if cls.data[scope][name][var]['type'] in ['hashmap', 'measurement']:
                                     cls.data[scope][name][var]['data'].update({index: value})
                         else:
-                            cls.data[scope][name][var]['data'].append(value)
+                            if isinstance(value, list):
+                                cls.data[scope][name][var]['data'].extend(value)
+                            else:
+                                cls.data[scope][name][var]['data'].append(value)
                     elif prop is not None:
                         if prop in cls.data[scope][name][var].keys():
                             cls.data[scope][name][var][prop] = value
@@ -187,7 +190,10 @@ class Memory:
                                     len_data=value)
                     else:
                         if cls.data[scope][name][var]['type'] in ['circuit']:
-                            cls.data[scope][name][var]['data'].append(value)
+                            if isinstance(value, list):
+                                cls.data[scope][name][var]['data'].extend(value)
+                            else:
+                                cls.data[scope][name][var]['data'].append(value)
 
     @classmethod
     def append(cls, scope, name, var, index, value):

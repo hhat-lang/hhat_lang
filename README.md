@@ -1,6 +1,4 @@
-==============
-:math:`\hat{H}` quantum language
-==============
+# $\hat{H}$ quantum language
 
 
 .. image:: https://img.shields.io/pypi/v/hhat_lang.svg
@@ -66,7 +64,7 @@ Data Types
 - **list**: sequence of any enumerated single data type
 - **circuit**: sequence of 1 or more quantum gates for 1 or more qubits in 1 or more steps (can include other circuits as well)
 - **hashmap**: an unordered associative array of keys and values
-- **measurement**: a :code:`hashmap` containing relevant data output from the qubits measurement, such as: unique bits sequences final counting, number of shots, some special grouping of bits sequences counting (depending on extra arguments passed)
+- **measurement**: a `hashmap` containing relevant data output from the qubits measurement, such as: unique bits sequences final counting, number of shots, some special grouping of bits sequences counting (depending on extra arguments passed)
 
 
 TODOs:
@@ -82,43 +80,43 @@ To set up the language in your package manager you can use one of the following 
 
 **Method 1**:
 
-* Run :code:`python3 setup.py install` in the root folder :code:`hhat_lang`
+* Run `python3 setup.py install` in the root folder `hhat_lang`
 
 **Method 2**:
 
-* Run :code:`pip3 install -e .` in the root folder
+* Run `pip3 install -e .` in the root folder
 
 -----
 
 So far, you can:
 
 * Run the lexer, the parser and the evaluator ("interpreter") for:
-    - Variables of type: :code:`int`, :code:`str`, :code:`float`
+    - Variables of type: `int`, `str`, `float`
 
-    - Built-in functions :code:`add` and :code:`print`
+    - Built-in functions :code:`add` and `print`
 
 How?
 
 **Method 1**:
 
-* Run :code:`python hhat.py <your_hhat_code_here.hht>` in the main folder of the code :code:`hhat_lang`
+* Run `python hhat.py <your_hhat_code_here.hht>` in the main folder of the code `hhat_lang`
 
 **Method 2**:
 
 * Open IPython, Jupyter Notebook/Lab or Python in your terminal and run your own code through:
-.. code-block:: python
+```
 
     from hhat_lang.evaluator import Code
 
     c = "main null C: (int a= (:add(1 1), :print))"  # include your code in this line
     code_exec = Code(c)
     code_exec.run() # it will run all the processes and evaluate the code
+```
 
 
 
+## Progress
 
-Progress
------
 
 - [x] create lexer</summary>
     - [x] tokens

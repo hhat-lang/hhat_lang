@@ -17,7 +17,8 @@ from hhat_lang.data_types import (int_type, float_type, str_type,
 from hhat_lang.new_ast import (Program, Function, FuncTemplate, ParamsSeq, AThing, Body,
                                AttrDecl, Expr, ManyExprs, Entity, AttrAssign, Call,
                                Func, IfStmt, ElifStmt, ElseStmt, Tests, ForLoop, ExitBody,
-                               AttrHeader, TypeExpr, IndexAssign, Args, Caller, ExprAssign)
+                               AttrHeader, TypeExpr, IndexAssign, Args, Caller, ExprAssign,
+                               AType, ASymbol, AQSymbol, ABuiltIn)
 from hhat_lang.builtin import (btin_print, btin_and, btin_or, btin_not, btin_eq, btin_neq,
                                btin_gt, btin_gte, btin_lt, btin_lte, btin_add, btin_mult,
                                btin_div, btin_pow, btin_sqrt, btin_q_h, btin_q_x, btin_q_z,
@@ -79,6 +80,10 @@ class Eval:
                       str: self.exec_str,
                       ParamsSeq: self.ast_paramsseq,
                       AThing: self.ast_athing,
+                      ASymbol: self.ast_asymbol,
+                      AQSymbol: self.ast_aqsymbol,
+                      AType: self.ast_atype,
+                      ABuiltIn: self.ast_abuiltin,
                       Body: self.ast_body,
                       AttrDecl: self.ast_attrdecl,
                       AttrAssign: self.ast_attrassign,
@@ -127,7 +132,8 @@ class Eval:
         self.trans_gates = {'@x': 'x',
                             '@h': 'h',
                             '@cnot': 'cx',
-                            '@swap': 'swap'}
+                            '@swap': 'swap',
+                            '@toffoli': 'toffoli'}
         self.op_rules = {'add': self.morpher,
                          '@h': self.appender,
                          '@x': self.appender,
@@ -135,9 +141,15 @@ class Eval:
                          'eq': self.morpher,
                          'gt': self.morpher,
                          'lt': self.morpher,
+                         'and': self.morpher,
+                         'or': self.morpher,
+                         'not': self.morpher,
+                         'neq': self.morpher,
                          'print': self.nuller}
 
-    # DEBUG PRINT
+    ################
+    # DEBUG PRINT #
+    ###############
 
     def dp(self, scope, depth=None, *msg, **msgs):
         if self.debug:
@@ -157,6 +169,24 @@ class Eval:
                 else:
                     print(f'{" "*(len(depth_str)-2)}|_ {k}')
             print(**msgs)
+
+    ###################
+    # STATS CREATION #
+    ##################
+
+    def start_stats(self):
+        stats = {'type': None,
+                 'var': None,
+                 'func': None,
+                 'scope': None,
+                 'key': None,
+                 'obj': None,
+                 'depth': 0,
+                 'skip': 0,
+                 'res': (),
+                 'idx': (),
+                 'mode': None}
+        return stats
 
     ###################
     # MAIN FUNCTIONS #
@@ -583,6 +613,22 @@ class Eval:
         # stats['obj'] = old_obj
         return stats
 
+    def ast_asymbol(self, code, stats):
+        stats = self.tasks[type(code.value)](code.value, stats)
+        return stats
+
+    def ast_aqsymbol(self, code, stats):
+        stats = self.tasks[type(code.value)](code.value, stats)
+        return stats
+
+    def ast_atype(self, code, stats):
+        stats = self.tasks[type(code.value)](code.value, stats)
+        return stats
+
+    def ast_abuiltin(self, code, stats):
+        stats = self.tasks[type(code.value)](code.value, stats)
+        return stats
+
     def ast_token(self, code, stats):
         self.dp('token',
                 stats['depth'],
@@ -979,6 +1025,23 @@ class Eval:
     # QUANTUM DATA COMPUTING #
     ##########################
 
+    @staticmethod
+    def simple_trans_gates(gate):
+        transl_gates = {'@x': 'x',
+                        '@h': 'h',
+                        '@cnot': 'cx',
+                        '@swap': 'swap',
+                        '@toffoli': 'ccx'}
+        res = transl_gates.get(gate)
+        if res:
+            return res
+        raise ValueError(f"Simple translated gates has no {gate} gate.")
+
+    @staticmethod
+    def composed_trans_gates(gates):
+        for k in gates:
+            pass
+
     def interpret_circuit(self, data):
         circuit_code = ""
         for node in data.nodes.data():
@@ -1085,7 +1148,7 @@ class Eval:
                 elif isinstance(k, (tuple, list)):
                     new_args = self.resolve_args(k, stats)
                     args += new_args
-                elif isinstance(k, nx.DiGraph):
+                elif isinstance(k, (nx.Graph, nx.DiGraph, nx.MultiDiGraph)):
                     args += (k,)
                 elif isinstance(k, Token):
                     new_args = ()
@@ -1102,7 +1165,7 @@ class Eval:
                     f'code: {code}')
             args = ()
             for k in code:
-                if isinstance(k, (nx.Graph, nx.DiGraph, int)):
+                if isinstance(k, (nx.Graph, nx.DiGraph, nx.MultiDiGraph, int)):
                     args += (k,)
             return args
         if isinstance(code, str):
@@ -1114,17 +1177,7 @@ class Eval:
 
     def walk(self, code, stats=None):
         if stats is None:
-            stats = {'type': None,
-                     'var': None,
-                     'func': None,
-                     'scope': None,
-                     'key': None,
-                     'obj': None,
-                     'depth': 0,
-                     'skip': 0,
-                     'args': (),
-                     'idx': (),
-                     'to_var': ()}
+            stats = self.start_stats()
         stats = self.tasks[type(code)](code, stats)
         return stats
 

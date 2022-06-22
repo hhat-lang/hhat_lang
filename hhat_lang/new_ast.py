@@ -54,6 +54,26 @@ class SuperBox(BaseBox):
                 return True
         return False
 
+    def run_out_exprs(self, data):
+        if isinstance(data, (ManyExprs, Token, Expr)):
+            return self.run_out_exprs(data.value)
+        if isinstance(data, tuple):
+            res = ()
+            for k in data:
+                res += self.run_out_exprs(k)
+            return res
+        return data,
+
+    def get_caller(self, data):
+        if isinstance(data, tuple):
+            res = ()
+            for k in data:
+                res += self.get_caller(k)
+            return res
+        if isinstance(data, Caller):
+            return data,
+        return self.get_caller(data.value)
+
     def show_code(self):
         header = ' depth code |   symbol   |  position'
         print(header)
@@ -147,10 +167,46 @@ class Params(SuperBox):
                 self.value += func_params.value
 
 
+class ABuiltIn(SuperBox):
+    def __init__(self, value):
+        super().__init__()
+        self.value = AThing(value)
+
+
 class AThing(SuperBox):
     def __init__(self, value):
         super().__init__()
-        self.value = value
+        if isinstance(value, str):
+            self.value = value
+        else:
+            self.value = value.value
+            if isinstance(value, Token):
+                _val = value
+            else:
+                _val = value.value
+            self.name = _val.name
+            self.source_pos = _val.source_pos
+            self.lineno = _val.source_pos.lineno
+            self.colno = _val.source_pos.colno
+            self.idx = _val.source_pos.idx
+
+
+class AType(SuperBox):
+    def __init__(self, value):
+        super().__init__()
+        self.value = AThing(value)
+
+
+class ASymbol(SuperBox):
+    def __init__(self, value):
+        super().__init__()
+        self.value = AThing(value)
+
+
+class AQSymbol(SuperBox):
+    def __init__(self, value):
+        super().__init__()
+        self.value = AThing(value)
 
 
 class Body(SuperBox):
@@ -167,45 +223,49 @@ class AttrDecl(SuperBox):
         super().__init__()
         self.value = (AttrHeader(a_symbol, a_type, a_expr),)
         if self.check_token(attr_decl_assign):
-            self.value += (attr_decl_assign,)
+            self.value += self.run_out_exprs(attr_decl_assign)
 
 
 class Expr(SuperBox):
     def __init__(self, val1, val2=None):
         super().__init__()
         if self.check_token(val2):
-            self.value = (Range(val1, val2),)
+            new_val1 = self.run_out_exprs(val1)
+            new_val2 = self.run_out_exprs(val2)
+            self.value = Range(new_val1, new_val2)
         else:
-            # self.value = val1.value if not isinstance(val1, Token) else (val1,)
-            self.value = val1
+            self.value = self.run_out_exprs(val1)
 
 
 class ManyExprs(SuperBox):
     def __init__(self, expr1=None, expr2=None, expr3=None):
         super().__init__()
         if self.check_token(expr3):
-            self.value = (expr3,)
+            self.value += self.run_out_exprs(expr3)
         if self.check_token(expr1):
-            self.value = (expr1,)
+            self.value += self.run_out_exprs(expr1)
             if self.check_token(expr2):
-                self.value += expr2.value
+                self.value += self.run_out_exprs(expr2)
 
 
 class Entity(SuperBox):
     def __init__(self, expr1, expr2=None):
         super().__init__()
         value = ()
+        new_expr1 = self.run_out_exprs(expr1)
         if self.check_token(expr2):
-            value = (IndexAssign(expr1),)
-            if expr2.value == 'print':
-                value += (Caller(expr2),)
+            new_expr2 = self.run_out_exprs(expr2)
+            value = (IndexAssign(new_expr1),)
+            if new_expr2 == 'print':
+                value += (Caller(new_expr2),)
             else:
-                value += (ExprAssign(expr2),)
+                value += (ExprAssign(new_expr2),)
+
         else:
-            if expr1.value == 'print':
-                value += (IndexAssign(), Caller(expr1),)
+            if new_expr1 == 'print':
+                value += (IndexAssign(), Caller(new_expr1),)
             else:
-                value = (IndexAssign(), ExprAssign(expr1),)
+                value = (IndexAssign(), ExprAssign(new_expr1),)
         self.value += value
 
 
@@ -262,7 +322,7 @@ class ElseStmt(SuperBox):
 class Tests(SuperBox):
     def __init__(self, logic_ops, expr, more_expr):
         super().__init__()
-        self.value += (Args(expr, more_expr), logic_ops.value[0])
+        self.value = (Args(expr, more_expr), self.get_caller(logic_ops))
 
 
 class ForLoop(SuperBox):
@@ -288,15 +348,15 @@ class IndexAssign(SuperBox):
     def __init__(self, val=None):
         super().__init__()
         if self.check_token(val):
-            self.value = (val,)
+            self.value = self.run_out_exprs(val)
         else:
-            self.value = ('all',)
+            self.value = AThing('all')
 
 
 class ExprAssign(SuperBox):
     def __init__(self, expr):
         super().__init__()
-        self.value = (expr,)
+        self.value = self.run_out_exprs(expr)
 
 
 class ParamsSeq(SuperBox):
@@ -308,7 +368,7 @@ class ParamsSeq(SuperBox):
 class TypeExpr(SuperBox):
     def __init__(self, a_expr):
         super().__init__()
-        self.value = (a_expr,)
+        self.value = self.run_out_exprs(a_expr)
 
 
 class AttrHeader(SuperBox):
@@ -325,10 +385,7 @@ class Args(SuperBox):
         super().__init__()
         value = ()
         for k in args:
-            if isinstance(k, Expr):
-                value += (k,)
-            else:
-                value += k.value
+            value += self.run_out_exprs(k)
         self.value = (value,)
 
 

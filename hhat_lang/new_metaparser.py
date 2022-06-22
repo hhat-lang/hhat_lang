@@ -29,7 +29,11 @@ grammar_dict = {'Program': Program,
                 'ElifStmt': ElifStmt,
                 'ElseStmt': ElseStmt,
                 'Tests': Tests,
-                'ForLoop': ForLoop}
+                'ForLoop': ForLoop,
+                'AType': AType,
+                'ASymbol': ASymbol,
+                'AQSymbol': AQSymbol,
+                'ABuiltIn': ABuiltIn}
 
 
 def get_value(word):

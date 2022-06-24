@@ -9,7 +9,7 @@ lg = LexerGenerator()
 lg.ignore(r"\s+")
 
 # comments
-lg.ignore(r"(\/\*(.+?)\*\/|\/-(.+?)-\/|\/\#(.+?)\#\/)")
+lg.ignore(r"(\/\*(.+?)\*\/|\/-(.+?)/-\/|\#(.+?)\#)")
 
 # build lexer
 lexer = lg.build()

@@ -9,10 +9,11 @@ def unique_values(values):
 
 
 def btin_print(*values, buffer=False):
-    if buffer:
-        print(*values, end=' ')
-    else:
-        print(*values)
+    if values:
+        if buffer:
+            print(*values, end=' ')
+        else:
+            print(*values)
     return None
 
 
@@ -206,9 +207,9 @@ def btin_q_toffoli(*values, buffer=False):
     if unique_values(values):
         g = nx.Graph()
         for k0, k in enumerate(values):
-            g.add_node(k, kind='control' if k0 < 2 else 'target')
+            g.add_node(k, data='control' if k0 < 2 else 'target')
         for k in range(len(values) - 1):
-            g.add_edge(values[k], values[k + 1], value='@toffoli')
+            g.add_edge(values[k], values[k + 1], data='@toffoli')
         return g
     raise ValueError(
         "@toffoli function does not operates in the same indices as control and target.")
@@ -254,9 +255,9 @@ def btin_q_or(*values, buffer=False):
             else:
                 g = nx.Graph()
                 for k0, k in enumerate(values):
-                    g.add_node(k, kind='control' if k0 < 2 else 'target')
+                    g.add_node(k, data='control' if k0 < 2 else 'target')
                 for k in range(len(values) - 1):
-                    g.add_edge(values[k], values[k + 1], value='@toffoli')
+                    g.add_edge(values[k], values[k + 1], data='@toffoli')
             g_list.append(g)
         return g_list
     raise ValueError(

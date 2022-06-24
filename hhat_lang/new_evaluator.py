@@ -103,8 +103,7 @@ class Eval:
                       IndexAssign: self.ast_indexassign,
                       ExprAssign: self.ast_exprassign,
                       Args: self.ast_args,
-                      Caller: self.ast_caller,
-                      Token: self.ast_token
+                      Caller: self.ast_caller
                       }
         self.type_lookup = {
             # TODO: check if literal_type is valid then refactor calls below
@@ -163,11 +162,11 @@ class Eval:
                 if isinstance(k, str):
                     if '\n' in k:
                         for p in k.split('\n'):
-                            print(f'{" "*(len(depth_str)-2)}> {p}')
+                            print(f'{" " * (len(depth_str) - 2)}> {p}')
                     else:
-                        print(f'{" "*(len(depth_str)-2)}|_ {k}')
+                        print(f'{" " * (len(depth_str) - 2)}|_ {k}')
                 else:
-                    print(f'{" "*(len(depth_str)-2)}|_ {k}')
+                    print(f'{" " * (len(depth_str) - 2)}|_ {k}')
             print(**msgs)
 
     ###################
@@ -227,109 +226,99 @@ class Eval:
         return stats
 
     def exec_tuple(self, code, stats):
-        old_stats = deepcopy(stats)
-        stats['skip'] = 0
-        tmp_args = ()
+        new_stats = deepcopy(stats)
         tmp_res = ()
         tmp_idx = ()
-        for k in code:
-            if stats['skip'] == 0:
-                if type(k) == Body and stats['var'] is None and stats['type'] is None:
-                    stats['args'] = ()
+        if stats['skip'] == 0:
+            for k in code:
+                if new_stats['skip'] == 0:
+                    new_stats = self.tasks[type(k)](k, stats)
 
-                if type(k) in [Args, Call]:
-                    tmp_args += stats['args']
-                    stats['args'] = ()
-                    tmp_res += stats['to_var']
-                    stats['to_var'] = ()
-                elif type(k) == Caller:
-                    self.dp('tuple',
-                            stats['depth'],
-                            'oie?',
-                            f'res: {tmp_res}',
-                            f'args: {tmp_args}',
-                            f'stats: {stats}')
-                    stats['args'] += stats['to_var']
-                    tmp_args += stats['to_var']
-                    stats['to_var'] = ()
-                elif type(k) == AttrHeader:
-                    stats['to_var'] = ()
-                    stats['args'] = ()
-                    stats['idx'] = ()
-
-                stats = self.tasks[type(k)](k, stats)
-
-            if stats['skip'] > 0 and (stats['obj'] in [ExitBody] or type(k) == ExitBody):
-                self.dp('tuple', stats['depth'],  'conditional -> skipping')
-                stats['skip'] -= 1
-                stats['obj'] = None
-                old_stats['skip'] = stats['skip']
-                break
-            else:
-                self.dp('tuple',
-                        stats['depth'],
-                        f'obj: {stats["obj"]}',
-                        f'old_obj: {old_stats["obj"]}',
-                        f'stats: {stats}')
-
-                if stats['var'] and stats['type']:
-                    if stats['obj'] in [ExprAssign]:
-                        tmp_res += stats['to_var']
-                        stats['to_var'] = ()
-                        stats['args'] = ()
-                    elif stats['obj'] in [IndexAssign]:
-                        tmp_idx += stats['idx']
-                    else:
-                        old_stats = stats
+                if new_stats['skip'] > 0:
+                    if type(k) == ExitBody:
+                        self.dp('tuple',
+                                new_stats['depth'],
+                                'conditional -> skipping',
+                                f'stats: {stats}',
+                                f'old_obj: {stats["obj"]}',
+                                f'cur: {type(k)}')
+                        new_stats['skip'] -= 1
+                        new_stats['obj'] = stats['obj']
+                        stats['skip'] = new_stats['skip']
+                        break
                 else:
-                    if stats['obj'] in [Caller] and old_stats['obj'] not in [Caller, Args, Tests]:
-                        tmp_res += stats['to_var']
-                        stats['to_var'] = ()
-                        tmp_args = stats['args']
-                        self.dp('tuple',
-                                stats['depth'],
-                                f'oie',
-                                f'res: {tmp_res}',
-                                f'args: {tmp_args}',
-                                f'stats: {stats}')
-                    else:
-                        self.dp('tuple',
-                                stats['depth'],
-                                f'noie',
-                                f'res: {tmp_res}',
-                                f'args: {tmp_args}',
-                                f'stats: {stats}')
-                        if old_stats['obj'] not in [Call]:
-                            stats['to_var'] += tmp_res
-                        old_stats = stats
+                    self.dp('tuple',
+                            new_stats['depth'],
+                            f'obj: {new_stats["obj"]}',
+                            f'old_obj: {stats["obj"]}',
+                            f'stats: {new_stats}')
+#
+                    if stats['obj'] == AttrHeader:
+                        if stats['type'] is None and new_stats['res']:
+                            stats['type'] = new_stats['res'][0]
 
-                if stats['obj'] == Caller and old_stats['obj'] == Args:
-                    stats['obj'] = old_stats['obj']
+                    elif stats['obj'] == Call:
+                        tmp_res = new_stats['res']
+                        tmp_idx = new_stats['idx']
 
-        if stats['obj'] in [Caller, ExprAssign, IndexAssign]:
-            if old_stats['obj'] != Caller:
-                old_stats['to_var'] = tmp_res
-                old_stats['args'] = tmp_args
-                old_stats['idx'] = tmp_idx
+                    elif stats['obj'] == Args:
+                        tmp_res = new_stats['res']
+                        tmp_idx = new_stats['idx']
+                        stats['idx'] = tmp_idx
 
-        stats = deepcopy(old_stats)
-        del old_stats
+                    elif stats['obj'] in [Caller, ABuiltIn, Func]:
+                        self.dp('tuple', stats['depth'], f'caller-abuiltin-func stats: {new_stats}')
+                        tmp_res = new_stats['res']
+                        tmp_idx = new_stats['idx']
+                        stats['idx'] = tmp_idx
+
+                    elif stats['obj'] == IndexAssign:
+                        tmp_idx = new_stats['idx']
+                        stats['idx'] = tmp_idx
+
+                    elif stats['obj'] == ExprAssign:
+                        tmp_res += new_stats['res']
+                        tmp_idx = new_stats['idx']
+
+                    elif stats['obj'] == TypeExpr:
+                        tmp_res += new_stats['res']
+
+                    elif stats['type'] is None and stats['obj'] == AType and new_stats['res']:
+                        stats['type'] = new_stats['res'][0]
+
+                    elif stats['obj'] == Tests:
+                        tmp_res = new_stats['res']
+                        tmp_idx = new_stats['idx']
+
+            stats['res'] = tmp_res
+            stats['idx'] = tmp_idx
+        else:
+            if stats['obj'] == ExitBody:
+                stats['skip'] -= 1
+
+        self.dp('tuple', stats['depth'], f'exit-tuple stats: {stats}')
         return stats
 
     def exec_str(self, code, stats):
         if stats['key'] == 'type':
-            res = self.resolve_expr(code, stats)
-            self.mem.write(scope=stats['scope'], name=stats['func'], var=stats['var'], prop='type',
+            res = self.resolve_literal(code, stats)
+            self.mem.write(scope=stats['scope'],
+                           name=stats['func'],
+                           var=stats['var'],
+                           prop='type',
                            value=res)
 
         elif stats['key'] == 'params':
             pass
 
         elif stats['key'] == 'body':
-            if code == 'all' and stats['func'] and stats['var'] and stats['type']:
-                stats['idx'] = self.mem.get_idx(scope=stats['scope'], name=stats['func'],
+            if code == '*all*' and stats['func'] and stats['var'] and stats['type']:
+                stats['idx'] = self.mem.get_idx(scope=stats['scope'],
+                                                name=stats['func'],
                                                 var=stats['var'])
                 self.dp('str', stats['depth'], f'got all {stats["idx"]}')
+            else:
+                stats = self.resolve_ast(code, stats)
 
         elif stats['key'] == 'return':
             pass
@@ -349,12 +338,11 @@ class Eval:
         return stats
 
     def ast_body(self, code, stats):
-        old_obj = stats['obj']
+        # old_obj = stats['obj']
         stats['obj'] = Body
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
-        stats['obj'] = old_obj
-        # stats['args'] = ()
+        # stats['obj'] = old_obj
         return stats
 
     def ast_attrdecl(self, code, stats):
@@ -362,12 +350,14 @@ class Eval:
         old_obj = stats['obj']
         stats['obj'] = AttrDecl
         stats['depth'] += 1
+        stats['res'] = ()
+        stats['idx'] = ()
         stats = self.tasks[type(code.value)](code.value, stats)
-        if stats['to_var']:
+        if stats['res']:
             self.dp('attrdecl',
                     stats['depth'],
                     f'to_var: T',
-                    f'to_var: {stats["to_var"]}',
+                    f'to_var: {stats["res"]}',
                     f'idx: {stats["idx"]}')
         stats['var'] = None
         stats['type'] = None
@@ -380,7 +370,7 @@ class Eval:
         stats['obj'] = AttrAssign
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
-        if stats['args']:
+        if stats['res']:
             self.dp('attrassign', stats['depth'], f'args: T')
         stats['obj'] = old_obj
         return stats
@@ -396,7 +386,7 @@ class Eval:
     def ast_entity(self, code, stats):
         stats = self.tasks[type(code.value)](code.value, stats)
         self.dp('entity', stats['depth'], f'post-stats: {stats}')
-        res = self.resolve_args(stats['to_var'], stats)
+        res = self.resolve_args(stats['res'], stats)
         self.dp('entity',
                 stats['depth'],
                 f'res: {res}',
@@ -409,7 +399,7 @@ class Eval:
                             f'len val: idx',
                             f'idx: {k}',
                             f'val: {v}')
-                    sub_v = self.resolve_expr(v, stats)
+                    sub_v = self.resolve_literal(v, stats)[0]
                     self.mem.write(scope=stats['scope'],
                                    name=stats['func'],
                                    var=stats['var'],
@@ -461,8 +451,7 @@ class Eval:
                         stats['depth'],
                         f'memory: write',
                         f'MEMORY: {self.mem}')
-        stats['to_var'] = ()
-        stats['args'] = ()
+        stats['res'] = ()
         stats['idx'] = ()
         return stats
 
@@ -471,18 +460,25 @@ class Eval:
         old_obj = stats['obj']
         stats['obj'] = Call
         stats['depth'] += 1
+        tmp_res = stats['res']
+        stats['res'] = ()
         stats = self.tasks[type(code.value)](code.value, stats)
-        # stats['obj'] = old_obj
+        new_res = stats['res']
+        stats['res'] = tmp_res + new_res
+        stats['obj'] = old_obj
         self.dp('call', stats['depth'], 'left', f'stats: {stats}')
         return stats
 
     def ast_func(self, code, stats):
-        # stats['obj'] = Func
+        old_obj = stats['obj']
+        stats['obj'] = Func
         stats = self.tasks[type(code.value)](code.value, stats)
+        stats['obj'] = old_obj
         return stats
 
     def ast_ifstmt(self, code, stats):
         self.dp('if-stmt', stats['depth'], 'entered')
+        stats['skip'] = 0
         stats = self.tasks[type(code.value)](code.value, stats)
         stats['skip'] = 0
         self.dp('if-stmt', stats['depth'], 'left')
@@ -506,19 +502,21 @@ class Eval:
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
         self.dp('tests', stats['depth'], f'stats: {stats}')
-        if len(stats['to_var']) > 0:
-            for k in stats['to_var']:
+        if len(stats['res']) > 0:
+            for k in stats['res']:
                 if k == False:
                     stats['skip'] = 1
                     break
-        stats['to_var'] = ()
-        # stats['obj'] = old_obj
+        else:
+            raise ValueError('Something went wrong while trying to test conditional')
+        stats['res'] = ()
         return stats
 
     def ast_exitbody(self, code, stats):
         stats['obj'] = ExitBody
         stats['depth'] += 1
         stats['skip'] = 2
+        self.dp('exitbody', stats['depth'], f'exit body reached, skip={stats["skip"]}')
         return stats
 
     def ast_forloop(self, code, stats):
@@ -551,13 +549,13 @@ class Eval:
                             name=_func,
                             var=_var,
                             type_data=_type)
-            if stats['args']:
+            if stats['res']:
                 self.mem.write(scope=_scope,
                                name=_func,
                                var=_var,
                                prop='len',
-                               value=stats['args'][0])
-                stats['args'] = ()
+                               value=stats['res'][0])
+                stats['res'] = ()
             self.dp('memory', stats['depth'], f'MEMORY: {self.mem}')
             stats['obj'] = AttrAssign
         else:
@@ -565,35 +563,25 @@ class Eval:
         return stats
 
     def ast_typeexpr(self, code, stats):
-        old_obj = stats['obj']
+        # old_obj = stats['obj']
         stats['obj'] = TypeExpr
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
-        stats['obj'] = old_obj
+        # stats['obj'] = old_obj
         return stats
 
     def ast_indexassign(self, code, stats):
-        old_obj = stats['obj']
         stats['obj'] = IndexAssign
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
-        self.dp('indexassign', stats['depth'], f'stats: {stats}')
-        #stats['obj'] = old_obj
+        self.dp('indexassign', stats['depth'], f'post-stats: {stats}')
         return stats
 
     def ast_exprassign(self, code, stats):
-        old_obj = stats['obj']
         stats['obj'] = ExprAssign
         stats['depth'] += 1
         self.dp('exprassign', stats['depth'], f'code: {code}', f'stats: {stats}')
         stats = self.tasks[type(code.value)](code.value, stats)
-        self.dp('exprassign',
-                stats['depth'],
-                f'to_var: {stats["to_var"]}',
-                f'args: {stats["args"]}')
-        # stats['obj'] = old_obj
-        stats['to_var'] += deepcopy(stats['args'])
-        stats['args'] = ()
         self.dp('exprassign', stats['depth'], f'post-stats: {stats}')
         return stats
 
@@ -602,7 +590,7 @@ class Eval:
         stats['obj'] = Args
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
-        # stats['obj'] = old_obj
+        stats['obj'] = old_obj
         return stats
 
     def ast_caller(self, code, stats):
@@ -610,7 +598,7 @@ class Eval:
         stats['obj'] = Caller
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
-        # stats['obj'] = old_obj
+        stats['obj'] = old_obj
         return stats
 
     def ast_asymbol(self, code, stats):
@@ -622,15 +610,23 @@ class Eval:
         return stats
 
     def ast_atype(self, code, stats):
+        stats['obj'] = AType
         stats = self.tasks[type(code.value)](code.value, stats)
         return stats
 
     def ast_abuiltin(self, code, stats):
+        old_obj = stats['obj']
+        stats['obj'] = ABuiltIn
         stats = self.tasks[type(code.value)](code.value, stats)
+        stats['obj'] = old_obj
         return stats
 
-    def ast_token(self, code, stats):
-        self.dp('token',
+    ##########################
+    # AST RESOLVER FUNCTION #
+    #########################
+
+    def resolve_ast(self, code, stats):
+        self.dp('resolver',
                 stats['depth'],
                 f'{code}',
                 f'obj: {stats["obj"]}',
@@ -638,136 +634,146 @@ class Eval:
 
         if stats['obj'] == AttrHeader:
             if not stats['var']:
-                if code.name.endswith('SYMBOL'):
-                    stats['var'] = code.value
+                stats['var'] = code
             elif not stats['type']:
-                if code.name.endswith('TYPE') or code.name.endswith('SYMBOL'):
-                    stats['type'] = code.value
+                stats['type'] = code
+
+        elif stats['obj'] == AType:
+            stats['type'] = code
 
         elif stats['obj'] == IndexAssign:
-            res = self.resolve_expr(code, stats)
-            stats['idx'] += res
+            stats['idx'] += self.resolve_literal(code, stats)
+
+        elif stats['obj'] == ExprAssign:
+            res = self.resolve_literal(code, stats)
+            self.dp('resolver',
+                    stats['depth'],
+                    f'exprassign res: {res}',
+                    f'type: {type(res)}')
+            stats['res'] += res
 
         elif stats['obj'] == Args:
-            res = self.resolve_expr(code, stats)
-            stats['args'] += res
+            res = self.resolve_literal(code, stats)
+            stats['res'] += res
 
         elif stats['obj'] == Call:
-            self.dp('token',
+            self.dp('resolver',
                     stats['depth'],
-                    f'obj: call (any call?)', f'code: {code.value}')
-            stats['to_var'] += self.resolve_expr(code, stats)
+                    f'obj: call (any call?)', f'code: {code}')
+            stats['res'] += self.resolve_literal(code, stats)
 
         elif stats['obj'] == Tests:
-            self.dp('token', stats['depth'], 'obj: tests')
+            self.dp('resolver', stats['depth'], 'obj: tests')
 
         elif stats['obj'] == TypeExpr:
-            self.dp('token',
+            self.dp('resolver',
                     stats['depth'],
                     f'obj: typeexpr',
-                    f'symbol: {code.value}')
-            if code.name.endswith('LITERAL'):
-                stats['args'] += (self.type_lookup[code.name](code),)
-                self.dp('token',
-                        stats['depth'],
-                        f'obj: typeexpr',
-                        f'args: {stats["args"]}',
-                        f'type args: {type(stats["args"])}')
-            elif code.name == 'SYMBOL':
-                pass
-            elif code.name == 'QSYMBOL':
-                pass
-            else:
-                stats['args'] += self.resolve_args(code.value, stats)
+                    f'symbol: {code}')
+            stats['res'] += self.resolve_literal(code, stats)
 
         elif stats['obj'] == AttrAssign:
             pass
 
-        elif stats['obj'] == IndexAssign:
-            res = self.resolve_expr(code, stats)
-            self.dp('token',
-                    stats['depth'],
-                    f'indexassign res: {res}',
-                    f'type: {type(res)}')
-            stats['idx'] += res
-
-        elif stats['obj'] == ExprAssign:
-            res = self.resolve_expr(code, stats)
-            self.dp('token',
-                    stats['depth'],
-                    f'exprassign res: {res}',
-                    f'type: {type(res)}')
-            stats['to_var'] += res
-
-        elif stats['obj'] == Caller:
-            self.dp('token',
+        elif stats['obj'] in [Caller, ABuiltIn]:
+            self.dp('resolver',
                     stats['depth'],
                     f'obj: caller',
-                    f'code: {code.value}')
-            if stats['var'] and stats['type']:
-                if not code.name.endswith('LITERAL'):
-                    new_stats_data = self.op_rules.get(code.value, self.qsymbol_caller)(code, stats)
+                    f'code: {code}')
+            if stats['var']:
+                if stats['type'] is None and stats['var'] is not None:
+                    stats['res'] += self.resolve_literal(code, stats)
+                else:
+                    if code in self.op_rules.keys():
+                        new_stats_data = self.op_rules[code](code, stats)
+                    else:
+                        if code.startswith('@'):
+                            new_stats_data = self.qsymbol_caller(code, stats)
+                        else:
+                            if self.mem.is_var(scope=stats['scope'],
+                                               name=stats['func'],
+                                               var=code):
+                                new_stats_data = ()
+                                if len(stats['res']) > 0:
+                                    for k in stats['res']:
+                                        tmp_res = self.mem.return_prop_or_idx(scope=stats['scope'],
+                                                                              name=stats['func'],
+                                                                              var=code,
+                                                                              data=k)
+                                        new_stats_data += (tmp_res,) if not isinstance(tmp_res,
+                                                                                       tuple) else tmp_res
+                                else:
+                                    tmp_res = self.mem.read(scope=stats['scope'],
+                                                            name=stats['func'],
+                                                            var=code)
+                                    new_stats_data += (tmp_res,) if not isinstance(tmp_res,
+                                                                                   tuple) else tmp_res
+
+                            elif self.mem.is_func(name=code):
+                                self.dp('resolver', stats['depth'],
+                                        f'caller for func to be implemented')
+                                new_stats_data = ()
+                            else:
+                                self.dp('resolver', stats['depth'], f'what is {code}')
+                                new_stats_data = ()
+
                     if isinstance(new_stats_data, dict):
                         stats = deepcopy(new_stats_data)
                     elif isinstance(new_stats_data, tuple):
-                        # stats['args'] = new_stats_data
-                        stats['to_var'] = new_stats_data
-                        stats['args'] = ()
+                        stats['res'] = new_stats_data
                     else:
                         raise ValueError('No valid data found.')
-                    self.dp('token',
+                    self.dp('resolver',
                             stats['depth'],
                             f'obj: caller',
                             f'stats: {stats}')
             else:
-                if not stats['type']:
-                    if not stats['var']:
-                        res = self.resolve_args(stats['args'], stats)
-                        self.dp('token',
-                                stats['depth'],
-                                f'btin_func: {code.value}')
-                        if code.value in self.btin_funcs.keys():
-                            btin_res = self.btin_funcs[code.value](*stats['args'])
-                            if btin_res is not None and not (btin_res == ()):
-                                self.dp('token',
-                                        stats['depth'],
-                                        f'btin_res: {btin_res}')
-                                # stats['args'] = (btin_res,)
-                                stats['to_var'] = (btin_res,)
-                                stats['args'] = ()
-                            else:
-                                # stats['args'] = ()
-                                stats['to_var'] = ()
-
-                        elif code.value in ['int', 'float', 'str']:
-                            self.dp('token',
-                                    stats['depth'],
-                                    'caller - int, float, str')
+                if stats['type'] is None:
+                    if code in self.btin_funcs.keys():
+                        btin_res = self.btin_funcs[code](*stats['res'])
+                        if btin_res is not None and not (btin_res == ()):
+                            stats['res'] = (btin_res,)
                         else:
-                            if code.value in self.mem.data[stats['scope']][stats['func']].keys():
-                                self.dp('token', stats['depth'], self.mem)
-                                self.dp('token',
-                                        stats['depth'],
-                                        self.mem.data[stats['scope']][stats['func']][code.value][
-                                            'data'])
-                                # stats['args'] += self.mem.read(stats['scope'], stats['func'],
-                                #                                code.value)
-                                stats['to_var'] += self.mem.read(stats['scope'], stats['func'],
-                                                               code.value)
-                                self.dp('token', stats['depth'], f'stats: {stats}')
-                            else:
-                                stats['to_var'] += self.resolve_expr(code, stats)
+                            stats['res'] = ()
                     else:
-                        self.dp('token', stats['depth'], 'no type... assigning')
-                        stats['type'] = code.value
-                        res = self.resolve_args(stats['args'], stats)
-                        if code.value in self.btin_funcs.keys():
-                            btin_res = self.btin_funcs[code.value](*stats['args'])
-                            if stats['var'] and stats['type'] and btin_res:
-                                stats['to_var'] += (res,)
+                        if code in self.mem.data[stats['scope']][stats['func']].keys():
+                            self.dp('resolver', stats['depth'], f'mem: {self.mem}')
 
+                            if self.mem.is_var(scope=stats['scope'],
+                                               name=stats['func'],
+                                               var=code):
+                                new_stats_data = ()
+                                if len(stats['res']) > 0:
+                                    for k in stats['res']:
+                                        tmp_res = self.mem.return_prop_or_idx(scope=stats['scope'],
+                                                                              name=stats['func'],
+                                                                              var=code,
+                                                                              data=k)
+                                        new_stats_data += (tmp_res,) if not isinstance(tmp_res,
+                                                                                       tuple) else tmp_res
+                                else:
+                                    tmp_res = self.mem.read(scope=stats['scope'],
+                                                            name=stats['func'],
+                                                            var=code)
+                                    new_stats_data += (tmp_res,) if not isinstance(tmp_res,
+                                                                                   tuple) else tmp_res
+
+                            elif self.mem.is_func(name=code):
+                                self.dp('resolver', stats['depth'],
+                                        f'caller for func to be implemented')
+                                new_stats_data = ()
+                            else:
+                                self.dp('resolver', stats['depth'], f'what is {code}')
+                                new_stats_data = self.mem.read(stats['scope'],
+                                                               stats['func'],
+                                                               code)
+                            self.dp('resolver', stats['depth'], f'new res: {new_stats_data}')
+                            stats['res'] = new_stats_data
+                            self.dp('resolver', stats['depth'], f'now stats: {stats}')
+                        else:
+                            stats['res'] += self.resolve_literal(code, stats)
         else:
-            self.dp('token', stats['depth'], f'anything else', f'obj: {stats["obj"]}')
+            self.dp('token', stats['depth'], f'anything else {code}', f'obj: {stats["obj"]}')
         return stats
 
     ##########################################
@@ -777,11 +783,11 @@ class Eval:
     def morpher(self, code, stats):
         self.dp('morpher',
                 stats['depth'],
-                f'caller: {code.value}',
+                f'caller: {code}',
                 f'stats: {stats}')
         to_var = ()
         for k0, k in enumerate(stats['idx']):
-            res2 = stats['args']
+            res2 = stats['res']
             res2 += (self.mem.read(scope=stats['scope'],
                                    name=stats['func'],
                                    var=stats['var'],
@@ -789,12 +795,12 @@ class Eval:
             self.dp('morpher',
                     stats['depth'],
                     f'res2 value: {res2}')
-            if code.value in self.btin_funcs.keys():
+            if code in self.btin_funcs.keys():
                 args = self.resolve_args(res2, stats)
                 if k0 + 1 < len(stats['idx']):
-                    btin_res = self.btin_funcs[code.value](*args, buffer=True)
+                    btin_res = self.btin_funcs[code](*args, buffer=True)
                 else:
-                    btin_res = self.btin_funcs[code.value](*args, buffer=False)
+                    btin_res = self.btin_funcs[code](*args, buffer=False)
                 self.dp('morpher', stats['depth'], f'btin_res: {btin_res}')
                 if btin_res:
                     to_var += (btin_res,)
@@ -803,29 +809,29 @@ class Eval:
     def appender(self, code, stats):
         self.dp('appender',
                 stats['depth'],
-                f'caller: {code.value}',
+                f'caller: {code}',
                 f'stats: {stats}')
         to_var = ()
         if len(stats['idx']) > 0:
-            if code.value in self.btin_funcs.keys():
-                if code.name in ['CNOT_GATE', 'SWAP_GATE', 'CZ_GATE']:
-                    if len(stats['args']) == len(stats['idx']) and stats['args'] % 2 == 0:
-                        for arg, idx in zip(stats['args'], stats['idx']):
+            if code in self.btin_funcs.keys():
+                if code in ['@cnot', '@swap', '@cz']:
+                    if len(stats['res']) == len(stats['idx']) and stats['res'] % 2 == 0:
+                        for arg, idx in zip(stats['res'], stats['idx']):
                             self.dp('appender',
                                     stats['depth'],
-                                    f'2-gate {code.value} ({arg}, {idx})')
-                            btin_res = self.btin_funcs[code.value](arg, idx)
+                                    f'2-gate {code} ({arg}, {idx})')
+                            btin_res = self.btin_funcs[code](arg, idx)
                             if btin_res:
                                 to_var += (btin_res,)
                     else:
-                        if len(stats['args']) > 0:
-                            for arg in stats['args']:
+                        if len(stats['res']) > 0:
+                            for arg in stats['res']:
                                 for idx in stats['idx']:
                                     if arg != idx:
                                         self.dp('appender',
                                                 stats['depth'],
-                                                f'2-gate {code.value} ({arg}, {idx})')
-                                        btin_res = self.btin_funcs[code.value](stats['args'], idx)
+                                                f'2-gate {code} ({arg}, {idx})')
+                                        btin_res = self.btin_funcs[code](stats['res'], idx)
                                         if btin_res:
                                             to_var += (btin_res,)
                         else:
@@ -837,12 +843,12 @@ class Eval:
                                     if len(idxs) == 2:
                                         self.dp('appender',
                                                 stats['depth'],
-                                                f'2-gate {code.value} {idxs}')
-                                        btin_res = self.btin_funcs[code.value](*idxs)
+                                                f'2-gate {code} {idxs}')
+                                        btin_res = self.btin_funcs[code](*idxs)
                                         if btin_res:
-                                            stats['to_var'] += (btin_res,)
+                                            stats['res'] += (btin_res,)
                                         idxs = ()
-                elif code.name in ['TOFFOLI_GATE']:
+                elif code in ['@toffoli', '@and', '@or']:
                     if len(stats['idx']) % 3 == 0:
                         idxs = ()
                         for idx in stats['idx']:
@@ -851,14 +857,14 @@ class Eval:
                             if len(idxs) == 3:
                                 self.dp('appender',
                                         stats['depth'],
-                                        f'3-gate {code.value} {idxs}')
-                                btin_res = self.btin_funcs[code.value](*idxs)
+                                        f'3-gate {code} {idxs}')
+                                btin_res = self.btin_funcs[code](*idxs)
                                 if btin_res:
                                     to_var += (btin_res,)
                     else:
-                        if len(stats['args']) % 2 == 0:
+                        if len(stats['res']) % 2 == 0:
                             args = ()
-                            for arg in stats['args']:
+                            for arg in stats['res']:
                                 if len(args) < 2:
                                     args += (arg,)
                                 else:
@@ -869,22 +875,22 @@ class Eval:
                                         if arg not in idx and len(new_args) == 3:
                                             self.dp('appender',
                                                     stats['depth'],
-                                                    f'3-gate {code.value} {new_args}')
-                                            btin_res = self.btin_funcs[code.value](*new_args)
+                                                    f'3-gate {code} {new_args}')
+                                            btin_res = self.btin_funcs[code](*new_args)
                                             self.dp('appender',
                                                     stats['depth'],
                                                     f'btin_res={btin_res}')
                                             if btin_res:
-                                                stats['to_var'] += (btin_res,)
+                                                stats['res'] += (btin_res,)
                                             new_args = ()
                 else:
                     args = self.resolve_args(stats['idx'], stats)
-                    args += stats['args']
-                    btin_res = self.btin_funcs[code.value](*args)
+                    args += stats['res']
+                    btin_res = self.btin_funcs[code](*args)
                     if btin_res:
                         to_var += (btin_res,)
         else:
-            self.dp('appender', stats['depth'],  'len idx == 0')
+            self.dp('appender', stats['depth'], 'len idx == 0')
         self.dp('appender',
                 stats['depth'],
                 f'output',
@@ -894,10 +900,10 @@ class Eval:
     def nuller(self, code, stats):
         self.dp('nuller',
                 stats['depth'],
-                f'caller: {code.value}',
+                f'caller: {code}',
                 f'stats: {stats}')
         to_var = ()
-        btin_res = self.btin_funcs[code.value](*stats['args'], buffer=True)
+        btin_res = self.btin_funcs[code](*stats['res'], buffer=True)
         for k0, idx in enumerate(sorted(stats['idx'])):
             if stats['type'] not in ['hashmap', 'measurement']:
                 res = (self.mem.read(scope=stats['scope'],
@@ -909,12 +915,12 @@ class Eval:
                                      name=stats['func'],
                                      var=stats['var'],
                                      index=idx),)
-            if code.value in self.btin_funcs.keys():
+            if code in self.btin_funcs.keys():
                 args = self.resolve_args(res, stats)
                 if k0 + 1 < len(stats['idx']):
-                    btin_res = self.btin_funcs[code.value](*args, buffer=True)
+                    btin_res = self.btin_funcs[code](*args, buffer=True)
                 else:
-                    btin_res = self.btin_funcs[code.value](*args, buffer=False)
+                    btin_res = self.btin_funcs[code](*args, buffer=False)
                 self.dp('nuller', stats['depth'], f'btin_res={btin_res}')
                 if btin_res:
                     to_var += (btin_res,)
@@ -923,18 +929,18 @@ class Eval:
     def qsymbol_caller(self, code, stats):
         self.dp('qsymbol-caller',
                 stats['depth'],
-                f'caller: {code.value}',
+                f'caller: {code}',
                 f'type: {stats["type"]}',
                 f'stats: {stats}')
         if stats['type'] == 'circuit':
             code_type = self.mem.read(scope=stats['scope'],
                                       name=stats['func'],
-                                      var=code.value, prop='type')
+                                      var=code, prop='type')
             if code_type == 'circuit':
                 self.dp('qsymbol-caller',
                         stats['depth'],
                         'current variable and external variable are circuits')
-                if len(stats['args']) > 0:
+                if len(stats['res']) > 0:
                     self.dp('qsymbol-caller',
                             stats['depth'],
                             'len stats args > 0')
@@ -945,80 +951,64 @@ class Eval:
                     data = {'data': None, 'len': 0}
                     data['data'] = self.mem.read(scope=stats['scope'],
                                                  name=stats['func'],
-                                                 var=code.value)
+                                                 var=code)
                     data['len'] = range(self.mem.read(scope=stats['scope'],
                                                       name=stats['func'],
-                                                      var=code.value,
+                                                      var=code,
                                                       prop='len'))
                     res = self.resolve_circuit_idx(data, stats)
-                    stats['to_var'] += res
+                    stats['res'] += res
             else:
                 self.dp('qsymbol-caller',
                         stats['depth'],
-                        f'variable is circuit, external var {code.value} is not')
+                        f'variable is circuit, external var {code} is not')
                 res = ()
                 for k in stats['idx']:
                     res2 = self.mem.read(scope=stats['scope'],
                                          name=stats['func'],
-                                         var=code.value,
+                                         var=code,
                                          index=k)
                     res += res2 if isinstance(res2, tuple) else (res2,)
-                    stats['args'] = res
+                    stats['res'] = res
         else:
-            if code.name == 'QSYMBOL':
-                if stats['type'] != 'circuit':
-                    circuit_data = self.mem.read(scope=stats['scope'],
-                                                 name=stats['func'],
-                                                 var=code.value,
-                                                 prop='data')
-                    circuit_len = self.mem.read(scope=stats['scope'],
-                                                name=stats['func'],
-                                                var=code.value,
-                                                prop='len')
-                    q_args = stats['args'] if stats['args'] else None
-                    circuit_qasm = self.circuit_to_qasm(circuit_data, circuit_len, q_args)
-                    simu = QasmSimulator()
-                    sim_run = simu.run(circuit_qasm, shots=2048)
-                    sim_res = sim_run.result()
-                    sim_counts = sim_res.data()['counts']
+            circuit_data = self.mem.read(scope=stats['scope'],
+                                         name=stats['func'],
+                                         var=code,
+                                         prop='data')
+            circuit_len = self.mem.read(scope=stats['scope'],
+                                        name=stats['func'],
+                                        var=code,
+                                        prop='len')
+            q_args = stats['res'] if stats['res'] else None
+            circuit_qasm = self.circuit_to_qasm(circuit_data, circuit_len, q_args)
+            simu = QasmSimulator()
+            sim_run = simu.run(circuit_qasm, shots=2048)
+            sim_res = sim_run.result()
+            sim_counts = sim_res.data()['counts']
+            self.dp('quantum data',
+                    stats['depth'],
+                    f'counts: {sim_counts}')
+            if stats['type'] != 'measurement':
+                if stats['type'] == 'hashmap':
+                    raise ValueError(
+                        f"Use measurement type instead of hashmap for circuits.")
+
+                if len(sim_counts) == 1:
+                    fin_res = int(list(sim_counts.keys())[0], 16)
                     self.dp('quantum data',
                             stats['depth'],
-                            f'counts: {sim_counts}')
-                    if stats['type'] != 'measurement':
-                        if stats['type'] == 'hashmap':
-                            raise ValueError(
-                                f"Use measurement type instead of hashmap for circuits.")
-
-                        if len(sim_counts) == 1:
-                            fin_res = int(list(sim_counts.keys())[0], 16)
-                            self.dp('quantum data',
-                                    stats['depth'],
-                                    f'result: {fin_res}')
-                            stats['args'] = (fin_res,)
-                        else:
-                            iq_res = (self.interpret_qdata(sim_counts, stats['type']),)
-                            stats['args'] = iq_res if isinstance(iq_res, tuple) else (iq_res,)
-                    else:
-                        stats['idx'] += tuple(sim_counts.keys())
-                        stats['to_var'] += tuple(sim_counts.values())
-                        stats['args'] = ()
-                        self.dp('qsymbol-caller',
-                                stats['depth'],
-                                f'meas data: ({stats["idx"]}',
-                                f'{stats["to_var"]})')
+                            f'result: {fin_res}')
+                    stats['res'] = (fin_res,)
                 else:
-                    self.dp('qsymbol-caller',
-                            stats['depth'],
-                            f'appending {code.value} to var {stats["var"]}')
-                    stats['to_var'] = (self.mem.read(scope=stats['scope'],
-                                                     name=stats['func'],
-                                                     var=code.value,
-                                                     prop='data'),)
-                    stats['args'] = ()
+                    iq_res = (self.interpret_qdata(sim_counts, stats['type']),)
+                    stats['res'] = iq_res if isinstance(iq_res, tuple) else (iq_res,)
             else:
+                stats['idx'] = tuple(sim_counts.keys())
+                stats['res'] = tuple(sim_counts.values())
                 self.dp('qsymbol-caller',
                         stats['depth'],
-                        f'No qsymbol: {code.value}')
+                        f'meas data: ({stats["idx"]}',
+                        f'{stats["res"]})')
         return stats
 
     ###########################
@@ -1037,13 +1027,37 @@ class Eval:
             return res
         raise ValueError(f"Simple translated gates has no {gate} gate.")
 
-    @staticmethod
-    def composed_trans_gates(gates):
+    def composed_trans_gates(self, gates):
+        res = []
         for k in gates:
-            pass
+            res.append(self.simple_trans_gates(k))
+        return res
+
+    def display_gates_circuit(self, data):
+        res = ''
+        tmp_res = {}
+        for k in data:
+            if 'control' in data.nodes[k]['data'] or 'target' in data.nodes[k]['data']:
+                tmp_res[k] = ''
+                for p0, p in enumerate(data[k]):
+                    if p0 == 0:
+                        tmp_res[k] += f'{data.edges[k, p, 0]["data"]} q[{k}]'
+                    else:
+                        tmp_res[k] += f' q[{p}]'
+                tmp_res[k] += ';\n'
+            else:
+                res += f'{data.nodes[k]["data"]} q[{k}];\n'
+        res += tmp_res
+        return res
 
     def interpret_circuit(self, data):
         circuit_code = ""
+        # for k in data:
+        #     for p in data[k]:
+        #         if 'data' in data.edges[k, p]:
+        #             circuit_code += ''.join(self.composed_trans_gates(k.edges[k, p]['data']))
+        #         else:
+
         for node in data.nodes.data():
             if 'data' in node[1].keys():
                 circuit_code += f"{self.trans_gates[node[1]['data']]} q[{node[0]}];\n"
@@ -1113,31 +1127,24 @@ class Eval:
     # RESOLVING FUNCTIONS #
     #######################
 
-    def resolve_expr(self, code, stats):
-        if isinstance(code, Token):
-            if code.name.endswith('LITERAL'):
-                return ast.literal_eval(code.value),
-            if code.name in ['SYMBOL', 'QSYMBOL']:
-                if stats['args']:
-                    res = ()
-                    for k in stats['args']:
-                        res += (self.mem.read(scope=stats['scope'],
-                                              name=stats['func'],
-                                              var=code.value,
-                                              index=k),)
-                else:
-                    res = self.mem.read(scope=stats['scope'],
-                                        name=stats['func'],
-                                        var=code.value)
-                return res
-            if code.value in self.btin_funcs.keys():
-                return self.btin_funcs[code.value](*stats['args'])
-        if isinstance(code, (str, int, float)):
-            return code
-        if code.value in self.tasks.keys():
-            new_stats = self.tasks[type(code.value)](code.value, stats)
-            return new_stats['args']
-        return code.value
+    def resolve_literal(self, code, stats):
+        if code in self.btin_funcs.keys():
+            return code,
+        if self.mem.is_var(scope=stats['scope'], name=stats['func'], var=code):
+            return code,
+        if self.mem.is_func(code):
+            return code,
+        if code == '*all*':
+            return code,
+        try:
+            res = ast.literal_eval(code)
+            if isinstance(res, str):
+                if (code.startswith('"') or code.startswith("'")) and (code.endswith('"') or code.endswith("'")):
+                    return res,
+                raise ValueError("Not a valid variable/function.")
+            return res,
+        except ValueError:
+            return code,
 
     def resolve_args(self, code, stats):
         if isinstance(code, tuple):
@@ -1148,7 +1155,7 @@ class Eval:
                 elif isinstance(k, (tuple, list)):
                     new_args = self.resolve_args(k, stats)
                     args += new_args
-                elif isinstance(k, (nx.Graph, nx.DiGraph, nx.MultiDiGraph)):
+                elif isinstance(k, (nx.Graph, nx.DiGraph, nx.MultiGraph, nx.MultiDiGraph)):
                     args += (k,)
                 elif isinstance(k, Token):
                     new_args = ()
@@ -1165,7 +1172,7 @@ class Eval:
                     f'code: {code}')
             args = ()
             for k in code:
-                if isinstance(k, (nx.Graph, nx.DiGraph, nx.MultiDiGraph, int)):
+                if isinstance(k, (nx.Graph, nx.DiGraph, nx.MultiGraph, nx.MultiDiGraph, int)):
                     args += (k,)
             return args
         if isinstance(code, str):

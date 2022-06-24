@@ -231,7 +231,7 @@ def function_39(p):
 
 @pg.production("symbol_call : symbol")
 def function_40(p):
-    return Expr(p[0])
+    return Call(p[0])
 
 
 @pg.production("generic_call : func")

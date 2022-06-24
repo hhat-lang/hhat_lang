@@ -75,6 +75,10 @@ class FST:
                 cls.table[_func][name][key] = value
 
     @classmethod
+    def is_func(cls, name):
+        return name in cls.table['scope'].keys()
+
+    @classmethod
     def move_cur_to(cls, name):
         _func = cls.table['scope'].get(name, False)
         if _func:
@@ -204,7 +208,6 @@ class Memory:
 
     @classmethod
     def read(cls, scope, name, var, index=None, prop=None):
-        # print('{SYMBOLIC READ}', scope, name, var, index, prop)
         if scope in cls.data.keys():
             if name in cls.data[scope].keys():
                 if var in cls.data[scope][name].keys():
@@ -229,6 +232,27 @@ class Memory:
         else:
             return tuple(k for k in range(cls.data[scope][name][var]['len']))
 
+    @classmethod
+    def return_prop_or_idx(cls, scope, name, var, data):
+        if scope in cls.data.keys():
+            if name in cls.data[scope].keys():
+                if var in cls.data[scope][name].keys():
+                    if data in cls.data[scope][name][var].keys():
+                        return cls.data[scope][name][var][data]
+                    if data in cls.data[scope][name][var]['data'].keys():
+                        return cls.data[scope][name][var]['data'][data]
+        raise ValueError(f"Something got wrong here: {scope}->{name}->{var}->{data}.")
+
+    @classmethod
+    def is_func(cls, name):
+        return name in cls.data['func'].keys() or name in cls.data['main'].keys()
+
+    @classmethod
+    def is_var(cls, scope, name, var):
+        if scope in cls.data.keys():
+            if name in cls.data[scope].keys():
+                return var in cls.data[scope][name].keys()
+        return False
 
     @classmethod
     def move(cls, from_scope, to_scope):

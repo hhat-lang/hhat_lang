@@ -163,9 +163,9 @@ class Params(SuperBox):
         super().__init__()
         if self.check_token(a_type) and self.check_token(a_symbol):
             if self.check_token(typeexpr):
-                self.value += (ParamsSeq(a_symbol, a_type).value,)
-            else:
                 self.value += (ParamsSeq(a_symbol, a_type, typeexpr).value,)
+            else:
+                self.value += (ParamsSeq(a_symbol, a_type).value,)
             if self.check_token(func_params):
                 self.value += func_params.value
 
@@ -366,9 +366,12 @@ class ParamsSeq(SuperBox):
     def __init__(self, a_symbol, a_type, a_expr=None):
         super().__init__()
         if self.check_token(a_expr):
-            self.value = ({'symbol': a_symbol.value, 'type': a_type.value, 'len': a_expr.value})
+            self.value = ({'symbol': a_symbol.value.value,
+                           'type': a_type.value.value,
+                           'len': self.run_out_exprs(a_expr.value)})
         else:
-            self.value = ({'symbol': a_symbol.value, 'type': a_type.value})
+            self.value = ({'symbol': a_symbol.value.value,
+                           'type': a_type.value.value})
 
 
 class TypeExpr(SuperBox):

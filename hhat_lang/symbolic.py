@@ -154,15 +154,20 @@ class Memory:
         cls.data = cls.set_default()
 
     @classmethod
-    def create(cls, scope, name, var, type_data):
+    def create(cls, scope, name, var=None, type_data=None):
         if scope in cls.data.keys():
             if name in cls.data[scope].keys():
-                if var not in cls.data[scope][name].keys():
+                if var not in cls.data[scope][name].keys() and var is not None:
                     cls.data[scope][name].update({var: cls.set_var_mem(type_data)})
                     cls.data[scope][name][var]['data'] = cls.set_var_data(type_data)
             else:
-                cls.data[scope][name] = {var: cls.set_var_mem(type_data)}
-                cls.data[scope][name][var]['data'] = cls.set_var_data(type_data)
+                if var:
+                    cls.data[scope].update({name: {var: cls.set_var_mem(type_data)}})
+                else:
+                    cls.data[scope].update({name: {}})
+
+                if type_data:
+                    cls.data[scope][name][var]['data'] = cls.set_var_data(type_data)
 
     @classmethod
     def write(cls, scope, name, var, value, index=None, prop=None):
@@ -174,7 +179,8 @@ class Memory:
                             if index in cls.data[scope][name][var]['data'].keys():
                                 if cls.data[scope][name][var]['type'] in ['int', 'float', 'str']:
                                     cls.data[scope][name][var]['data'][index] = value
-                                elif cls.data[scope][name][var]['type'] in ['hashmap', 'measurement']:
+                                elif cls.data[scope][name][var]['type'] in ['hashmap',
+                                                                            'measurement']:
                                     cls.data[scope][name][var]['data'].update({index: value})
                             else:
                                 if cls.data[scope][name][var]['type'] in ['hashmap', 'measurement']:
@@ -212,7 +218,8 @@ class Memory:
             if name in cls.data[scope].keys():
                 if var in cls.data[scope][name].keys():
                     if index is None and prop is None:
-                        if cls.data[scope][name][var]['type'] not in ['circuit', 'hashmap', 'measurement']:
+                        if cls.data[scope][name][var]['type'] not in ['circuit', 'hashmap',
+                                                                      'measurement']:
                             return tuple(k for k in cls.data[scope][name][var]['data'].values())
                         return tuple(cls.data[scope][name][var]['data'])
                     if prop in cls.data[scope][name][var].keys():
@@ -224,6 +231,22 @@ class Memory:
                             return cls.data[scope][name][var]['data'][index]
                     return tuple(cls.data[scope][name][var]['data'])
         raise ValueError(f"Error reading var '{var}'.")
+
+    @classmethod
+    def copy(cls, from_var, to_var):
+        valid_keys = {'scope', 'name', 'var', 'data', 'len', 'type'}
+        from_valid_set = set(from_var.keys()).symmetric_difference(valid_keys)
+        to_valid_set = set(to_var.keys()).symmetric_difference(valid_keys)
+        if not from_valid_set and not to_valid_set:
+            if from_var['type'] == to_var['type']:
+                from_data = cls.data[from_var['scope']][from_var['name']][from_var['var']]
+                to_data = cls.data[to_var['scope']][to_var['name']][to_var['var']]
+                to_data['data'] = deepcopy(from_data['data'])
+                to_data['len'] = from_data['len']
+            else:
+                raise ValueError("From var e to var are no the same type.")
+        else:
+            raise ValueError(f"No valid from and to var to copy.")
 
     @classmethod
     def get_idx(cls, scope, name, var):
@@ -273,5 +296,3 @@ class Memory:
 
     def __repr__(self):
         return f"{self.data}"
-
-

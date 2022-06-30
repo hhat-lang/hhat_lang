@@ -190,7 +190,7 @@ def btin_q_cnot(*values, buffer=False):
             g.add_node(k, data=_data)
         g.add_edge(values[0], values[1], data='@cnot')
         return g
-    raise ValueError("@cnot function does not operates in the same indices as control and target.")
+    raise ValueError("control functions does not operates in the same indices as control and target.")
 
 
 def btin_q_swap(*values, buffer=False):
@@ -200,7 +200,7 @@ def btin_q_swap(*values, buffer=False):
             g.add_node(k)
         g.add_edge(values[0], values[1], data='@swap')
         return g
-    raise ValueError("@swap function does not operates in the same indices as control and target.")
+    raise ValueError("control functions does not operates in the same indices as control and target.")
 
 
 def btin_q_toffoli(*values, buffer=False):
@@ -212,7 +212,7 @@ def btin_q_toffoli(*values, buffer=False):
             g.add_edge(values[k], values[k + 1], data='@toffoli')
         return g
     raise ValueError(
-        "@toffoli function does not operates in the same indices as control and target.")
+        "control functions does not operates in the same indices as control and target.")
 
 
 def btin_q_ccz(*values, buffer=False):
@@ -261,4 +261,4 @@ def btin_q_or(*values, buffer=False):
             g_list.append(g)
         return g_list
     raise ValueError(
-        "@toffoli function does not operates in the same indices as control and target.")
+        "control functions does not operates in the same indices as control and target.")

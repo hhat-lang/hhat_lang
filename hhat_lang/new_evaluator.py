@@ -70,7 +70,9 @@ main null V: (
 
 # noinspection PyArgumentList
 class Eval:
-    def __init__(self, debug=False):
+    def __init__(self, code, debug=False):
+        self.code = code
+        self.symbolic = self.code
         self.debug = debug
         self.mem = Memory()
         self.mem.restart()
@@ -137,6 +139,9 @@ class Eval:
                          '@h': self.appender,
                          '@x': self.appender,
                          '@cnot': self.appender,
+                         '@toffoli': self.appender,
+                         '@and': self.appender,
+                         '@or': self.appender,
                          'eq': self.morpher,
                          'gt': self.morpher,
                          'lt': self.morpher,
@@ -202,9 +207,11 @@ class Eval:
             else:
                 if len(code.keys()) == 1:
                     print('??')
+
         elif stats['scope'] == 'main':
             if not stats['func']:
                 stats['func'] = list(code.keys())[0]
+                self.mem.create(scope=stats['scope'], name=stats['func'])
                 stats = self.tasks[type(code[stats['func']])](code[stats['func']], stats)
             else:
                 if not set(self.func_dict_order).symmetric_difference(code.keys()):
@@ -214,14 +221,17 @@ class Eval:
                             stats = self.tasks[type(code[k])](code[k], stats)
 
         elif stats['scope'] == 'func':
+            self.dp('dict', stats['depth'], 'scope: func', stats['func'], f'code: {code.keys()}')
             if not stats['func']:
                 stats['func'] = list(code.keys())[0]
+                self.mem.create(scope=stats['scope'], name=stats['func'])
                 stats = self.tasks[type(code[stats['func']])](code[stats['func']], stats)
-            if not set(self.func_dict_order).symmetric_difference(code.keys()):
-                for k in self.func_dict_order:
-                    if k in code.keys():
-                        stats['key'] = k
-                        stats = self.tasks[type(code[k])](code[k], stats)
+            else:
+                if not set(self.func_dict_order).symmetric_difference(code.keys()):
+                    for k in self.func_dict_order:
+                        if k in code.keys():
+                            stats['key'] = k
+                            stats = self.tasks[type(code[k])](code[k], stats)
 
         return stats
 
@@ -229,6 +239,10 @@ class Eval:
         new_stats = deepcopy(stats)
         tmp_res = ()
         tmp_idx = ()
+        if stats['key'] == 'params':
+            self.prepare_params(stats['scope'], stats['func'], stats)
+            return stats
+
         if stats['skip'] == 0:
             for k in code:
                 if new_stats['skip'] == 0:
@@ -252,7 +266,7 @@ class Eval:
                             f'obj: {new_stats["obj"]}',
                             f'old_obj: {stats["obj"]}',
                             f'stats: {new_stats}')
-#
+                    #
                     if stats['obj'] == AttrHeader:
                         if stats['type'] is None and new_stats['res']:
                             stats['type'] = new_stats['res'][0]
@@ -290,6 +304,9 @@ class Eval:
                         tmp_res = new_stats['res']
                         tmp_idx = new_stats['idx']
 
+                    elif stats['obj'] is None and stats['key'] == 'return':
+                        tmp_res = new_stats['res']
+
             stats['res'] = tmp_res
             stats['idx'] = tmp_idx
         else:
@@ -321,7 +338,7 @@ class Eval:
                 stats = self.resolve_ast(code, stats)
 
         elif stats['key'] == 'return':
-            pass
+            stats = self.resolve_ast(code, stats)
 
         return stats
 
@@ -679,7 +696,8 @@ class Eval:
             self.dp('resolver',
                     stats['depth'],
                     f'obj: caller',
-                    f'code: {code}')
+                    f'code: {code}',
+                    f'stats: {stats}')
             if stats['var']:
                 if stats['type'] is None and stats['var'] is not None:
                     stats['res'] += self.resolve_literal(code, stats)
@@ -690,10 +708,10 @@ class Eval:
                         if code.startswith('@'):
                             new_stats_data = self.qsymbol_caller(code, stats)
                         else:
+                            new_stats_data = ()
                             if self.mem.is_var(scope=stats['scope'],
                                                name=stats['func'],
                                                var=code):
-                                new_stats_data = ()
                                 if len(stats['res']) > 0:
                                     for k in stats['res']:
                                         tmp_res = self.mem.return_prop_or_idx(scope=stats['scope'],
@@ -709,10 +727,25 @@ class Eval:
                                     new_stats_data += (tmp_res,) if not isinstance(tmp_res,
                                                                                    tuple) else tmp_res
 
-                            elif self.mem.is_func(name=code):
-                                self.dp('resolver', stats['depth'],
-                                        f'caller for func to be implemented')
-                                new_stats_data = ()
+                            elif code in self.symbolic['func'].keys():
+                                self.dp('resolver',
+                                        stats['depth'],
+                                        f'call func: {code}')
+                                func_data_body = self.symbolic['func'][code]
+                                new_stats = self.start_stats()
+                                new_stats['scope'] = 'func'
+                                new_stats['func'] = code
+                                new_stats = self.tasks[type(func_data_body)](func_data_body,
+                                                                             new_stats)
+                                new_stats_data += new_stats['res']
+                                self.dp('FUNCTION_RETURN',
+                                        stats['depth'],
+                                        f'func stats: {new_stats}',
+                                        f'main stats: {stats}')
+
+                            # TODO: implement external function (import) check and call here
+                            # elif external_function:
+                            #    pass
                             else:
                                 self.dp('resolver', stats['depth'], f'what is {code}')
                                 new_stats_data = ()
@@ -757,11 +790,6 @@ class Eval:
                                                             var=code)
                                     new_stats_data += (tmp_res,) if not isinstance(tmp_res,
                                                                                    tuple) else tmp_res
-
-                            elif self.mem.is_func(name=code):
-                                self.dp('resolver', stats['depth'],
-                                        f'caller for func to be implemented')
-                                new_stats_data = ()
                             else:
                                 self.dp('resolver', stats['depth'], f'what is {code}')
                                 new_stats_data = self.mem.read(stats['scope'],
@@ -770,6 +798,23 @@ class Eval:
                             self.dp('resolver', stats['depth'], f'new res: {new_stats_data}')
                             stats['res'] = new_stats_data
                             self.dp('resolver', stats['depth'], f'now stats: {stats}')
+
+                        elif code in self.symbolic['func'].keys():
+                            self.dp('resolver',
+                                    stats['depth'],
+                                    f'call func: {code}')
+                            func_data_body = self.symbolic['func'][code]
+                            new_stats = self.start_stats()
+                            new_stats['scope'] = 'func'
+                            new_stats['func'] = code
+                            new_stats = self.tasks[type(func_data_body)](func_data_body,
+                                                                         new_stats)
+                            stats['res'] += new_stats['res']
+                            self.dp('FUNCTION_RETURN',
+                                    stats['depth'],
+                                    f'func stats: {new_stats}',
+                                    f'main stats: {stats}')
+
                         else:
                             stats['res'] += self.resolve_literal(code, stats)
         else:
@@ -1027,37 +1072,36 @@ class Eval:
             return res
         raise ValueError(f"Simple translated gates has no {gate} gate.")
 
-    def composed_trans_gates(self, gates):
-        res = []
-        for k in gates:
-            res.append(self.simple_trans_gates(k))
-        return res
-
     def display_gates_circuit(self, data):
+        tmp_data = {}
         res = ''
-        tmp_res = {}
-        for k in data:
-            if 'control' in data.nodes[k]['data'] or 'target' in data.nodes[k]['data']:
-                tmp_res[k] = ''
-                for p0, p in enumerate(data[k]):
-                    if p0 == 0:
-                        tmp_res[k] += f'{data.edges[k, p, 0]["data"]} q[{k}]'
-                    else:
-                        tmp_res[k] += f' q[{p}]'
-                tmp_res[k] += ';\n'
-            else:
-                res += f'{data.nodes[k]["data"]} q[{k}];\n'
-        res += tmp_res
+        for line in data:
+            for k in line.edges.data():
+                ga = k[2]['data']
+                if ga not in tmp_data.keys():
+                    tmp_data.update({ga: []})
+                if k[0] not in tmp_data[ga]:
+                    tmp_data[ga].append(k[0])
+                if k[1] not in tmp_data[ga]:
+                    tmp_data[ga].append(k[1])
+
+            tmp_data = {k: sorted(v,
+                                  key=lambda y: line.nodes[y]['data']) for k, v in tmp_data.items()}
+            for k, v in tmp_data.items():
+                res += f'{self.simple_trans_gates(k)} '
+                res += ', '.join([f'q[{p}]' for p in v])
+                res += ';\n'
+        res += '\n'
         return res
 
     def interpret_circuit(self, data):
-        circuit_code = ""
+        # circuit_code = ""
         # for k in data:
         #     for p in data[k]:
         #         if 'data' in data.edges[k, p]:
         #             circuit_code += ''.join(self.composed_trans_gates(k.edges[k, p]['data']))
         #         else:
-
+        circuit_code = ""
         for node in data.nodes.data():
             if 'data' in node[1].keys():
                 circuit_code += f"{self.trans_gates[node[1]['data']]} q[{node[0]}];\n"
@@ -1074,8 +1118,9 @@ class Eval:
     def circuit_to_qasm(self, data, data_len, args=None):
         circuit_code = """OPENQASM 2.0;\ninclude "qelib1.inc";\n"""
         circuit_code += f"qreg q[{data_len}];\ncreg c[{data_len}];\n\n"
-        for k in data:
-            circuit_code += self.interpret_circuit(k)
+        # for k in data:
+        #     circuit_code += self.interpret_circuit(k)
+        circuit_code += self.display_gates_circuit(data)
         if args is not None:
             for k in args:
                 circuit_code += f"\nmeasure q[{k}] -> c[{k}];\n"
@@ -1139,7 +1184,8 @@ class Eval:
         try:
             res = ast.literal_eval(code)
             if isinstance(res, str):
-                if (code.startswith('"') or code.startswith("'")) and (code.endswith('"') or code.endswith("'")):
+                if (code.startswith('"') or code.startswith("'")) and (
+                        code.endswith('"') or code.endswith("'")):
                     return res,
                 raise ValueError("Not a valid variable/function.")
             return res,
@@ -1177,6 +1223,41 @@ class Eval:
             return args
         if isinstance(code, str):
             return code,
+
+    ################################
+    # FUNCTION HANDLING FUNCTIONS #
+    ###############################
+
+    def prepare_params(self, scope, func_name, stats):
+        func_params = self.symbolic[scope][func_name]['params']
+        if len(func_params) > 0 and len(stats['res']) > 0:
+            for fp, sr in zip(func_params, stats['res']):
+                self.mem.create(scope='func',
+                                name=func_name,
+                                var=fp['symbol'],
+                                type_data=fp['type'])
+                from_var = dict(scope=stats['scope'],
+                                name=stats['func'],
+                                var=sr,
+                                type=self.mem.read(scope=stats['scope'],
+                                                   name=stats['func'],
+                                                   var=sr,
+                                                   prop='type'),
+                                len=self.mem.read(scope=stats['scope'],
+                                                  name=stats['func'],
+                                                  var=sr,
+                                                  prop='len'),
+                                data=self.mem.read(scope=stats['scope'],
+                                                   name=stats['func'],
+                                                   var=sr,
+                                                   prop='data'))
+                to_var = dict(scope='func',
+                              name=func_name,
+                              var=fp['symbol'],
+                              type=fp['type'],
+                              len=None,
+                              data={})
+                self.mem.copy(from_var, to_var)
 
     ##################
     # WALK FUNCTION #
@@ -1252,8 +1333,8 @@ class Code:
         Evaluate the intermediate representation code
         and execute the code
         """
-        ev = Eval(debug=self.debug)
         pcode = self.parsed_code if pcode is None else pcode
+        ev = Eval(code=pcode, debug=self.debug)
         ev.walk(pcode)
         if self.keep:
             self.mem = ev.mem

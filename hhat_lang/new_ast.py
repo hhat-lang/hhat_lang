@@ -371,7 +371,10 @@ class Tests(SuperBox):
 class ForLoop(SuperBox):
     def __init__(self, expr, entity, more_entity):
         super().__init__()
-        self.value += ((self.run_out_exprs(expr), entity),)
+        loop_iter = self.run_out_exprs(expr)
+        if not isinstance(loop_iter, Range):
+            loop_iter = LoopObj(loop_iter)
+        self.value += ((loop_iter, entity),)
         if self.check_token(more_entity):
             self.value += more_entity.value
 
@@ -386,6 +389,11 @@ class Range(SuperBox):
         else:
             self.value = (val1,)
 
+
+class LoopObj(SuperBox):
+    def __init__(self, loop_obj):
+        super().__init__()
+        self.value = (loop_obj,)
 
 class IndexAssign(SuperBox):
     def __init__(self, val=None):

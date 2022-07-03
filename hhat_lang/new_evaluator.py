@@ -18,7 +18,7 @@ from hhat_lang.new_ast import (Program, Function, FuncTemplate, ParamsSeq, AThin
                                AttrDecl, Expr, ManyExprs, Entity, AttrAssign, Call,
                                Func, IfStmt, ElifStmt, ElseStmt, Tests, ForLoop, ExitBody,
                                AttrHeader, TypeExpr, IndexAssign, Args, Caller, ExprAssign,
-                               AType, ASymbol, AQSymbol, ABuiltIn, Range)
+                               AType, ASymbol, AQSymbol, ABuiltIn, Range, LoopObj)
 from hhat_lang.builtin import (btin_print, btin_and, btin_or, btin_not, btin_eq, btin_neq,
                                btin_gt, btin_gte, btin_lt, btin_lte, btin_add, btin_mult,
                                btin_div, btin_pow, btin_sqrt, btin_q_h, btin_q_x, btin_q_z,
@@ -100,6 +100,7 @@ class Eval:
                       Tests: self.ast_tests,
                       ExitBody: self.ast_exitbody,
                       ForLoop: self.ast_forloop,
+                      LoopObj: self.ast_loopobj,
                       Range: self.ast_range,
                       AttrHeader: self.ast_attrheader,
                       TypeExpr: self.ast_typeexpr,
@@ -191,6 +192,7 @@ class Eval:
                  'res': (),
                  'idx': (),
                  'loop_range': (),
+                 'loop_var_list': [],
                  'loop_var': dict(),
                  'in_loop': False,
                  'mode': None}
@@ -314,7 +316,7 @@ class Eval:
                         tmp_res = new_stats['res']
                         tmp_idx = new_stats['idx']
 
-                    elif stats['obj'] in [Range, ForLoop]:
+                    elif stats['obj'] in [Range, ForLoop, LoopObj]:
                         tmp_res = new_stats['res']
                         stats['loop_var'] = new_stats['loop_var']
                         stats['loop_range'] = new_stats['loop_range']
@@ -430,69 +432,81 @@ class Eval:
                 f'res: {res}',
                 f'idx: {stats["idx"]}')
         if stats['var'] is not None and stats['type'] is not None:
-            if len(res) == len(stats['idx']):
-                if stats['type'] != 'circuit':
-                    for k, v in zip(stats['idx'], res):
+            if not stats['in_loop']:
+                if len(res) == len(stats['idx']):
+                    if stats['type'] != 'circuit':
+                        for k, v in zip(stats['idx'], res):
+                            self.dp('entity',
+                                    stats['depth'],
+                                    f'len val: idx',
+                                    f'idx: {k}',
+                                    f'val: {v}')
+                            sub_v = self.resolve_literal(v, stats)[0]
+                            self.mem.write(scope=stats['scope'],
+                                           name=stats['func'],
+                                           var=stats['var'],
+                                           index=k,
+                                           value=sub_v)
+                            self.dp('entity',
+                                    stats['depth'],
+                                    f'memory: write',
+                                    f'MEMORY: {self.mem}')
+                    else:
+                        for k in res:
+                            self.mem.write(scope=stats['scope'],
+                                           name=stats['func'],
+                                           var=stats['var'],
+                                           value=k)
                         self.dp('entity',
                                 stats['depth'],
-                                f'len val: idx',
-                                f'idx: {k}',
-                                f'val: {v}')
-                        sub_v = self.resolve_literal(v, stats)[0]
+                                f'memory: write',
+                                f'MEMORY: {self.mem}')
+                elif len(res) == 1:
+                    if stats['type'] != 'circuit':
+                        for k in stats['idx']:
+                            self.mem.write(scope=stats['scope'],
+                                           name=stats['func'],
+                                           var=stats['var'],
+                                           index=k,
+                                           value=res[0])
+                        self.dp('entity',
+                                stats['depth'],
+                                f'memory: write',
+                                f'MEMORY: {self.mem}')
+                    else:
                         self.mem.write(scope=stats['scope'],
                                        name=stats['func'],
                                        var=stats['var'],
-                                       index=k,
-                                       value=sub_v)
+                                       value=res[0])
                         self.dp('entity',
                                 stats['depth'],
                                 f'memory: write',
                                 f'MEMORY: {self.mem}')
                 else:
-                    for k in res:
-                        self.mem.write(scope=stats['scope'],
-                                       name=stats['func'],
-                                       var=stats['var'],
-                                       value=k)
-                    self.dp('entity',
-                            stats['depth'],
-                            f'memory: write',
-                            f'MEMORY: {self.mem}')
-            elif len(res) == 1:
-                if stats['type'] != 'circuit':
-                    for k in stats['idx']:
-                        self.mem.write(scope=stats['scope'],
-                                       name=stats['func'],
-                                       var=stats['var'],
-                                       index=k,
-                                       value=res[0])
-                    self.dp('entity',
-                            stats['depth'],
-                            f'memory: write',
-                            f'MEMORY: {self.mem}')
-                else:
-                    self.mem.write(scope=stats['scope'],
-                                   name=stats['func'],
-                                   var=stats['var'],
-                                   value=res[0])
-                    self.dp('entity',
-                            stats['depth'],
-                            f'memory: write',
-                            f'MEMORY: {self.mem}')
+                    if stats['type'] == 'circuit':
+                        for k in res:
+                            self.mem.write(scope=stats['scope'],
+                                           name=stats['func'],
+                                           var=stats['var'],
+                                           value=k)
+                        self.dp('entity',
+                                stats['depth'],
+                                f'memory: write',
+                                f'MEMORY: {self.mem}')
+
             else:
-                if stats['type'] == 'circuit':
-                    for k in res:
-                        self.mem.write(scope=stats['scope'],
-                                       name=stats['func'],
-                                       var=stats['var'],
-                                       value=k)
-                    self.dp('entity',
-                            stats['depth'],
-                            f'memory: write',
-                            f'MEMORY: {self.mem}')
+                # loop true
+                if len(stats['idx']) > 0:
+                    self.dp('entity', stats['depth'], 'forloop--entered')
+                    # stats['loop_range'] = stats['idx'][0]
+                    # stats['idx'] = ()
+
         else:
-            if stats['obj'] == ForLoop:
-                self.dp('entity', stats['depth'], 'forloop--entered')
+            if stats['obj'] == ForLoop or stats['in_loop']:
+                if len(stats['idx']) > 0:
+                    self.dp('entity', stats['depth'], 'forloop--entered')
+                    # stats['loop_range'] = stats['idx'][0]
+                    # stats['idx'] = ()
             else:
                 self.dp('entity', stats['depth'], 'no var, no forloop')
         stats['res'] = ()
@@ -574,9 +588,23 @@ class Eval:
         stats['in_loop'] = True
         stats = self.tasks[type(code.value)](code.value, stats)
         stats['in_loop'] = old_loop
-        stats['loop_var'].pop()
+        last_loop_var = stats['loop_var_list'].pop(-1)
+        stats['loop_var'].pop(last_loop_var)
+        stats['loop_range'] = ()
         stats['depth'] -= 1
         stats['res'] = old_res
+        stats['obj'] = old_obj
+        return stats
+
+    def ast_loopobj(self, code, stats):
+        old_obj = stats['obj']
+        stats['obj'] = LoopObj
+        stats['depth'] += 1
+        stats = self.tasks[type(code.value)](code.value, stats)
+        if len(stats['res']) > 0 and not stats['loop_range']:
+            stats['loop_range'] = stats['res'][0]
+            stats['res'] = ()
+        stats['depth'] -= 1
         stats['obj'] = old_obj
         return stats
 
@@ -585,12 +613,8 @@ class Eval:
         stats['obj'] = Range
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
-        if len(stats['res']) > 0:
-            if len(stats['res']) == 2:
-                stats['loop_range'] = range(*stats['res'])
-            else:
-                stats['loop_rage'] = stats['res']
-            stats['res'] = ()
+        stats['loop_range'] = stats['res']
+        stats['res'] = ()
         stats['obj'] = old_obj
         stats['depth'] -= 1
         return stats
@@ -647,10 +671,6 @@ class Eval:
         stats['obj'] = old_obj
         stats['idx'] += stats['res']
         stats['res'] = ()
-        if stats['in_loop']:
-            for k in stats['idx']:
-                stats['loop_var'].update({k: None})
-            stats['idx'] = ()
         self.dp('indexassign', stats['depth'], f'post-stats: {stats}')
         return stats
 
@@ -779,6 +799,14 @@ class Eval:
         elif stats['obj'] == ForLoop:
             pass
 
+        elif stats['obj'] == LoopObj:
+            # if isinstance(stats['res'], tuple):
+            #     stats['loop_range'] += stats['res']
+            # else:
+            #     stats['loop_range'] = stats['res']
+            # stats['res'] = ()
+            pass
+
         elif stats['obj'] == Range:
             if self.mem.is_var(scope=stats['scope'], name=stats['func'], var=code):
                 res = ()
@@ -802,6 +830,11 @@ class Eval:
                 stats['res'] += (stats['loop_var'][code],)
             else:
                 stats['res'] += self.resolve_literal(code, stats)
+
+            if len(stats['res']) == 2:
+                stats['res'] = range(*stats['res'])
+            elif len(stats['res']) > 2:
+                raise ValueError("Range has more than two parameters")
 
         elif stats['obj'] in [Caller, ABuiltIn]:
             self.dp('resolver',
@@ -859,6 +892,12 @@ class Eval:
                                 new_stats_data += (stats['loop_var'][code],)
 
                             else:
+                                res = self.resolve_literal(code, stats)
+                                if "'" not in res[0] or '"' not in res[0]:
+                                    stats['loop_var'].update({res[0]: None})
+                                    stats['loop_var_list'].append(res[0])
+                                else:
+                                    new_stats_data += res
                                 self.dp('resolver', stats['depth'], f'what is {code}')
                                 new_stats_data = ()
 
@@ -928,7 +967,12 @@ class Eval:
                             stats['res'] += (stats['loop_var'][code],)
 
                         else:
-                            stats['res'] += self.resolve_literal(code, stats)
+                            res = self.resolve_literal(code, stats)
+                            if "'" not in res[0] or '"' not in res[0]:
+                                stats['loop_var'].update({res[0]: None})
+                                stats['loop_var_list'].append(res[0])
+                            else:
+                                stats['res'] += res
         else:
             self.dp('token', stats['depth'], f'anything else {code}', f'obj: {stats["obj"]}')
         return stats

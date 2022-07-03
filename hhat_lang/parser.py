@@ -204,78 +204,88 @@ def function_34(p):
     return Expr(p[0], p[2])
 
 
-@pg.production("expr : inline_func")
+@pg.production("expr : if_stmt")
 def function_35(p):
     return Expr(p[0])
 
 
-@pg.production("attr_decl_assign : OPEN entity more_entity CLOSE")
+@pg.production("expr : for_loop")
 def function_36(p):
+    return Expr(p[0])
+
+
+@pg.production("expr : inline_func")
+def function_37(p):
+    return Expr(p[0])
+
+
+@pg.production("attr_decl_assign : OPEN entity more_entity CLOSE")
+def function_38(p):
     return ManyExprs(p[1], p[2])
 
 
 @pg.production("more_entity : COMMA entity more_entity")
-def function_37(p):
+def function_39(p):
     return ManyExprs(p[1], p[2])
 
 
 @pg.production("more_entity : ")
-def function_38(p):
+def function_40(p):
     return ManyExprs()
 
 
 @pg.production("entity : expr COLON expr")
-def function_39(p):
+def function_41(p):
     return Entity(p[0], p[2])
 
 
 @pg.production("entity : COLON expr")
-def function_40(p):
+def function_42(p):
     return Entity(p[1])
 
 
 @pg.production("attr_assign : symbol attr_decl_assign")
-def function_41(p):
+def function_43(p):
     return AttrAssign(p[0], p[1])
 
 
 @pg.production("symbol_call : symbol OPEN more_expr CLOSE")
-def function_42(p):
-    return Call(p[0], p[2])
-
-
-@pg.production("symbol_call : symbol")
-def function_43(p):
-    return Call(p[0])
-
-
-@pg.production("symbol_call2 : symbol OPEN more_expr CLOSE")
 def function_44(p):
     return Call(p[0], p[2])
 
 
-@pg.production("generic_call : func")
+@pg.production("symbol_call : symbol")
 def function_45(p):
     return Call(p[0])
 
 
-@pg.production("generic_call : func OPEN more_expr CLOSE")
+@pg.production("symbol_call2 : symbol OPEN more_expr CLOSE")
 def function_46(p):
     return Call(p[0], p[2])
 
 
-@pg.production("func : reserved_keyword")
+@pg.production("generic_call : func")
 def function_47(p):
+    return Call(p[0])
+
+
+@pg.production("generic_call : func OPEN more_expr CLOSE")
+def function_48(p):
+    return Call(p[0], p[2])
+
+
+@pg.production("func : reserved_keyword")
+def function_49(p):
     return Func(p[0])
 
 
 @pg.production("func : q_keyword")
-def function_48(p):
+def function_50(p):
     return Func(p[0])
 
 
 @pg.production("func : logic_ops")
-def function_49(p):
+def function_51(p):
     return Func(p[0])
 
 
@@ -287,7 +297,7 @@ def function_49(p):
 @pg.production("reserved_keyword : SQRT_BUILTIN")
 @pg.production("reserved_keyword : INPUT_BUILTIN")
 @pg.production("reserved_keyword : OUTPUT_BUILTIN")
-def function_50(p):
+def function_52(p):
     return ABuiltIn(p[0])
 
 
@@ -315,57 +325,57 @@ def function_50(p):
 @pg.production("q_keyword : AND_GATE")
 @pg.production("q_keyword : OR_GATE")
 @pg.production("q_keyword : PRINT_BUILTIN")
-def function_51(p):
+def function_53(p):
     return ABuiltIn(p[0])
 
 
 @pg.production("inline_func : OPEN expr more_expr CLOSE")
-def function_52(p):
+def function_54(p):
     return ManyExprs(p[1], p[2])
 
 
 @pg.production("more_expr : expr more_expr")
-def function_53(p):
+def function_55(p):
     return ManyExprs(p[0], p[1])
 
 
 @pg.production("more_expr : ")
-def function_54(p):
+def function_56(p):
     return ManyExprs()
 
 
 @pg.production("if_stmt : IF_COND OPEN tests CLOSE COLON OPEN body CLOSE elif_stmt else_stmt")
-def function_55(p):
+def function_57(p):
     return IfStmt(p[2], p[6], p[8], p[9])
 
 
 @pg.production("elif_stmt : ELIF_COND OPEN tests CLOSE COLON OPEN body CLOSE elif_stmt")
-def function_56(p):
+def function_58(p):
     return ElifStmt(p[2], p[6], p[8])
 
 
 @pg.production("elif_stmt : ")
-def function_57(p):
+def function_59(p):
     return ElifStmt()
 
 
 @pg.production("else_stmt : ELSE_COND COLON OPEN body CLOSE")
-def function_58(p):
+def function_60(p):
     return ElseStmt(p[3])
 
 
 @pg.production("else_stmt : ")
-def function_59(p):
+def function_61(p):
     return ElseStmt()
 
 
 @pg.production("tests : logic_ops_call OPEN expr more_expr CLOSE")
-def function_60(p):
+def function_62(p):
     return Tests(p[0], p[2], p[3])
 
 
 @pg.production("logic_ops_call : logic_ops")
-def function_61(p):
+def function_63(p):
     return Call(p[0])
 
 
@@ -378,22 +388,22 @@ def function_61(p):
 @pg.production("logic_ops : LT_OP")
 @pg.production("logic_ops : LTE_OP")
 @pg.production("logic_ops : NEQ_OP")
-def function_62(p):
+def function_64(p):
     return ABuiltIn(p[0])
 
 
 @pg.production("for_loop : FOR_LOOP OPEN expr CLOSE OPEN entity more_entity CLOSE")
-def function_63(p):
+def function_65(p):
     return ForLoop(p[2], p[5], p[6])
 
 
 @pg.production("result : RETURN OPEN expr more_expr CLOSE")
-def function_64(p):
+def function_66(p):
     return ManyExprs(p[2], p[3], p[0])
 
 
 @pg.production("result : ")
-def function_65(p):
+def function_67(p):
     return ManyExprs()
 
 

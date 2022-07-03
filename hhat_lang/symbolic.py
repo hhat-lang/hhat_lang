@@ -52,61 +52,60 @@ class FST:
     def set_default():
         return {'type': None, 'params': (), 'body': (), 'return': ()}
 
-    @classmethod
-    def create(cls, name=None, func=None):
+    def create(self, name=None, func=None):
         if name is None and func is None:
-            if not cls.table['cur']:
-                cls.table['cur'] = cls.set_default()
+            if not self.table['cur']:
+                self.table['cur'] = self.set_default()
         else:
-            if name not in cls.table['scope'].keys() and func in ['main', 'func']:
-                cls.table['scope'].update({name: func})
-                cls.table[func].update({name: cls.set_default()})
+            if name not in self.table['scope'].keys() and func in ['main', 'func']:
+                self.table['scope'].update({name: func})
+                self.table[func].update({name: self.set_default()})
 
-    @classmethod
-    def add(cls, value, name=None, key=None):
+    def add(self, value, name=None, key=None):
         if name is None:
             if key is not None:
-                cls.table['cur'][key] = value
+                self.table['cur'][key] = value
             else:
                 raise ValueError("Key must be 'type', 'params', 'body' or 'return'.")
         else:
-            _func = cls.table['scope'].get(name, False)
-            if _func:
-                cls.table[_func][name][key] = value
+            _func = self.table['scope'].get(name, False)
+            if isinstance(_func, str):
+                if key is not None:
+                    self.table[_func][name][key] = value
+                else:
+                    self.table[_func][name] = value
 
-    @classmethod
-    def is_func(cls, name):
-        return name in cls.table['scope'].keys()
+    def is_func(self, name):
+        return name in self.table['scope'].keys()
 
-    @classmethod
-    def move_cur_to(cls, name):
-        _func = cls.table['scope'].get(name, False)
+    def move_cur_to(self, name):
+        _func = self.table['scope'].get(name, False)
         if _func:
-            _new_data = deepcopy(cls.table['cur'])
-            cls.table[_func][name] = _new_data
-            cls.free_cur()
+            _new_data = deepcopy(self.table['cur'])
+            self.table[_func][name] = _new_data
+            self.free_cur()
 
-    @classmethod
-    def free_cur(cls):
-        cls.table['cur'] = cls.set_default()
+    def free_cur(self):
+        self.table['cur'] = self.set_default()
 
-    @classmethod
-    def __repr__(cls):
-        return f"{cls.table}"
+    def append(self, name, func, ext_table):
+        if name not in self.table['scope'].keys():
+            self.create(name, func)
+            self.add(value=ext_table, name=name)
+            self.move_cur_to(name)
+
+    def __repr__(self):
+        return f"{self.table}"
 
 
 class Memory:
-    data = {}
-
     def __init__(self):
-        pass
+        self.data = {}
 
-    @classmethod
-    def set_default(cls):
+    def set_default(self):
         return {'cur': {}, 'func': {}, 'main': {}}
 
-    @classmethod
-    def set_var_mem(cls, type_data=None):
+    def set_var_mem(self, type_data=None):
         if type_data in ['bool', 'int', 'float', 'str']:
             return {'type': type_data, 'len': 1, 'data': {}}
         if type_data in ['circuit']:
@@ -116,8 +115,7 @@ class Memory:
         if type in [None, 'null']:
             return {'type': None, 'len': 0, 'data': {}}
 
-    @classmethod
-    def set_var_data(cls, type_data, len_data=None):
+    def set_var_data(self, type_data, len_data=None):
         if type_data == 'null':
             return {}
         if type_data == 'bool':
@@ -142,105 +140,105 @@ class Memory:
             return {}
         return {}
 
-    @classmethod
-    def start(cls):
-        if not cls.data:
-            cls.data = cls.set_default()
+    def start(self):
+        if not self.data:
+            self.data = self.set_default()
         else:
             raise ValueError("Memory already started.")
 
-    @classmethod
-    def restart(cls):
-        cls.data = cls.set_default()
+    def restart(self):
+        self.data = self.set_default()
 
-    @classmethod
-    def create(cls, scope, name, var=None, type_data=None):
-        if scope in cls.data.keys():
-            if name in cls.data[scope].keys():
-                if var not in cls.data[scope][name].keys() and var is not None:
-                    cls.data[scope][name].update({var: cls.set_var_mem(type_data)})
-                    cls.data[scope][name][var]['data'] = cls.set_var_data(type_data)
+    def create(self, scope, name, var=None, type_data=None):
+        if scope in self.data.keys():
+            if name in self.data[scope].keys():
+                if var not in self.data[scope][name].keys() and var is not None:
+                    self.data[scope][name].update({var: self.set_var_mem(type_data)})
+                    self.data[scope][name][var]['data'] = self.set_var_data(type_data)
             else:
                 if var:
-                    cls.data[scope].update({name: {var: cls.set_var_mem(type_data)}})
+                    self.data[scope].update({name: {var: self.set_var_mem(type_data)}})
                 else:
-                    cls.data[scope].update({name: {}})
+                    self.data[scope].update({name: {}})
 
                 if type_data:
-                    cls.data[scope][name][var]['data'] = cls.set_var_data(type_data)
+                    self.data[scope][name][var]['data'] = self.set_var_data(type_data)
 
-    @classmethod
-    def write(cls, scope, name, var, value, index=None, prop=None):
-        if scope in cls.data.keys():
-            if name in cls.data[scope].keys():
-                if var in cls.data[scope][name].keys():
+    def write(self, scope, name, var, value, index=None, prop=None):
+        if scope in self.data.keys():
+            if name in self.data[scope].keys():
+                if var in self.data[scope][name].keys():
                     if prop is None and index is not None:
-                        if cls.data[scope][name][var]['type'] not in ['circuit']:
-                            if index in cls.data[scope][name][var]['data'].keys():
-                                if cls.data[scope][name][var]['type'] in ['int', 'float', 'str']:
-                                    cls.data[scope][name][var]['data'][index] = value
-                                elif cls.data[scope][name][var]['type'] in ['hashmap',
-                                                                            'measurement']:
-                                    cls.data[scope][name][var]['data'].update({index: value})
+                        if self.data[scope][name][var]['type'] not in ['circuit']:
+                            if index in self.data[scope][name][var]['data'].keys():
+                                if self.data[scope][name][var]['type'] in ['int', 'float', 'str']:
+                                    self.data[scope][name][var]['data'][index] = value
+                                elif self.data[scope][name][var]['type'] in ['hashmap',
+                                                                             'measurement']:
+                                    self.data[scope][name][var]['data'].update({index: value})
                             else:
-                                if cls.data[scope][name][var]['type'] in ['hashmap', 'measurement']:
-                                    cls.data[scope][name][var]['data'].update({index: value})
+                                if self.data[scope][name][var]['type'] in ['hashmap',
+                                                                           'measurement']:
+                                    self.data[scope][name][var]['data'].update({index: value})
                         else:
                             if isinstance(value, list):
-                                cls.data[scope][name][var]['data'].extend(value)
+                                self.data[scope][name][var]['data'].extend(value)
                             else:
-                                cls.data[scope][name][var]['data'].append(value)
+                                self.data[scope][name][var]['data'].append(value)
                     elif prop is not None:
-                        if prop in cls.data[scope][name][var].keys():
-                            cls.data[scope][name][var][prop] = value
+                        if prop in self.data[scope][name][var].keys():
+                            self.data[scope][name][var][prop] = value
                             if prop == 'len':
-                                type_data = cls.data[scope][name][var]['type']
-                                cls.data[scope][name][var]['data'] = cls.set_var_data(
+                                type_data = self.data[scope][name][var]['type']
+                                self.data[scope][name][var]['data'] = self.set_var_data(
                                     type_data=type_data,
                                     len_data=value)
                     else:
-                        if cls.data[scope][name][var]['type'] in ['circuit']:
+                        if self.data[scope][name][var]['type'] in ['circuit']:
                             if isinstance(value, list):
-                                cls.data[scope][name][var]['data'].extend(value)
+                                self.data[scope][name][var]['data'].extend(value)
                             else:
-                                cls.data[scope][name][var]['data'].append(value)
+                                self.data[scope][name][var]['data'].append(value)
+                        else:
+                            if self.data[scope][name][var]['len'] == 1:
+                                self.data[scope][name][var]['data'][0] = value
 
-    @classmethod
-    def append(cls, scope, name, var, index, value):
-        if scope in cls.data.keys():
-            if name in cls.data[scope].keys():
-                if index in cls.data[scope][name][var]['data'].keys():
-                    cls.data[scope][name][var]['data'][index] += value
+    def append(self, scope, name, var, index, value):
+        if scope in self.data.keys():
+            if name in self.data[scope].keys():
+                if index in self.data[scope][name][var]['data'].keys():
+                    self.data[scope][name][var]['data'][index] += value
 
-    @classmethod
-    def read(cls, scope, name, var, index=None, prop=None):
-        if scope in cls.data.keys():
-            if name in cls.data[scope].keys():
-                if var in cls.data[scope][name].keys():
+    def read(self, scope, name, var, index=None, prop=None):
+        if scope in self.data.keys():
+            if name in self.data[scope].keys():
+                if var in self.data[scope][name].keys():
                     if index is None and prop is None:
-                        if cls.data[scope][name][var]['type'] not in ['circuit', 'hashmap',
-                                                                      'measurement']:
-                            return tuple(k for k in cls.data[scope][name][var]['data'].values())
-                        return tuple(cls.data[scope][name][var]['data'])
-                    if prop in cls.data[scope][name][var].keys():
-                        return cls.data[scope][name][var][prop]
-                    if cls.data[scope][name][var]['type'] not in ['circuit']:
-                        if index in cls.data[scope][name][var]['data'].keys():
-                            if cls.data[scope][name][var]['type'] in ['hashmap', 'measurement']:
-                                return {index: cls.data[scope][name][var]['data'][index]}
-                            return cls.data[scope][name][var]['data'][index]
-                    return tuple(cls.data[scope][name][var]['data'])
+                        if self.data[scope][name][var]['type'] not in ['circuit', 'hashmap',
+                                                                       'measurement']:
+                            res = tuple(k for k in self.data[scope][name][var]['data'].values())
+                            if len(res) > 1:
+                                return res,
+                            return res
+                        return tuple(self.data[scope][name][var]['data'])
+                    if prop in self.data[scope][name][var].keys():
+                        return self.data[scope][name][var][prop]
+                    if self.data[scope][name][var]['type'] not in ['circuit']:
+                        if index in self.data[scope][name][var]['data'].keys():
+                            if self.data[scope][name][var]['type'] in ['hashmap', 'measurement']:
+                                return {index: self.data[scope][name][var]['data'][index]}
+                            return self.data[scope][name][var]['data'][index]
+                    return tuple(self.data[scope][name][var]['data'])
         raise ValueError(f"Error reading var '{var}'.")
 
-    @classmethod
-    def copy(cls, from_var, to_var):
+    def copy(self, from_var, to_var):
         valid_keys = {'scope', 'name', 'var', 'data', 'len', 'type'}
         from_valid_set = set(from_var.keys()).symmetric_difference(valid_keys)
         to_valid_set = set(to_var.keys()).symmetric_difference(valid_keys)
         if not from_valid_set and not to_valid_set:
             if from_var['type'] == to_var['type']:
-                from_data = cls.data[from_var['scope']][from_var['name']][from_var['var']]
-                to_data = cls.data[to_var['scope']][to_var['name']][to_var['var']]
+                from_data = self.data[from_var['scope']][from_var['name']][from_var['var']]
+                to_data = self.data[to_var['scope']][to_var['name']][to_var['var']]
                 to_data['data'] = deepcopy(from_data['data'])
                 to_data['len'] = from_data['len']
             else:
@@ -248,51 +246,45 @@ class Memory:
         else:
             raise ValueError(f"No valid from and to var to copy.")
 
-    @classmethod
-    def get_idx(cls, scope, name, var):
-        if cls.data[scope][name][var]['type'] not in ['circuit']:
-            return tuple(k for k in cls.data[scope][name][var]['data'].keys())
+    def get_idx(self, scope, name, var):
+        if self.data[scope][name][var]['type'] not in ['circuit']:
+            return tuple(k for k in self.data[scope][name][var]['data'].keys())
         else:
-            return tuple(k for k in range(cls.data[scope][name][var]['len']))
+            return tuple(k for k in range(self.data[scope][name][var]['len']))
 
-    @classmethod
-    def return_prop_or_idx(cls, scope, name, var, data):
-        if scope in cls.data.keys():
-            if name in cls.data[scope].keys():
-                if var in cls.data[scope][name].keys():
-                    if data in cls.data[scope][name][var].keys():
-                        return cls.data[scope][name][var][data]
-                    if data in cls.data[scope][name][var]['data'].keys():
-                        return cls.data[scope][name][var]['data'][data]
+    def return_prop_or_idx(self, scope, name, var, data):
+        if scope in self.data.keys():
+            if name in self.data[scope].keys():
+                if var in self.data[scope][name].keys():
+                    if data in self.data[scope][name][var].keys():
+                        return self.data[scope][name][var][data]
+                    if data in self.data[scope][name][var]['data'].keys():
+                        return self.data[scope][name][var]['data'][data]
         raise ValueError(f"Something got wrong here: {scope}->{name}->{var}->{data}.")
 
-    @classmethod
-    def is_func(cls, name):
-        return name in cls.data['func'].keys() or name in cls.data['main'].keys()
+    def is_func(self, name):
+        return name in self.data['func'].keys() or name in self.data['main'].keys()
 
-    @classmethod
-    def is_var(cls, scope, name, var):
-        if scope in cls.data.keys():
-            if name in cls.data[scope].keys():
-                return var in cls.data[scope][name].keys()
+    def is_var(self, scope, name, var):
+        if scope in self.data.keys():
+            if name in self.data[scope].keys():
+                return var in self.data[scope][name].keys()
         return False
 
-    @classmethod
-    def move(cls, from_scope, to_scope):
-        _from_scope = deepcopy(cls.data[from_scope])
-        cls.data[to_scope] = _from_scope
-        cls.free(scope=from_scope)
+    def move(self, from_scope, to_scope):
+        _from_scope = deepcopy(self.data[from_scope])
+        self.data[to_scope] = _from_scope
+        self.free(scope=from_scope)
 
-    @classmethod
-    def free(cls, scope=None, name=None):
+    def free(self, scope=None, name=None):
         if scope is None:
             if name is None:
-                cls.data = cls.set_default()
+                self.data = self.set_default()
         else:
             if name is None:
-                cls.data[scope] = dict()
+                self.data[scope] = dict()
             else:
-                cls.data[scope][name] = dict()
+                self.data[scope][name] = dict()
 
     def __repr__(self):
         return f"{self.data}"

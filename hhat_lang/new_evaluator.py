@@ -18,7 +18,7 @@ from hhat_lang.new_ast import (Program, Function, FuncTemplate, ParamsSeq, AThin
                                AttrDecl, Expr, ManyExprs, Entity, AttrAssign, Call,
                                Func, IfStmt, ElifStmt, ElseStmt, Tests, ForLoop, ExitBody,
                                AttrHeader, TypeExpr, IndexAssign, Args, Caller, ExprAssign,
-                               AType, ASymbol, AQSymbol, ABuiltIn)
+                               AType, ASymbol, AQSymbol, ABuiltIn, Range)
 from hhat_lang.builtin import (btin_print, btin_and, btin_or, btin_not, btin_eq, btin_neq,
                                btin_gt, btin_gte, btin_lt, btin_lte, btin_add, btin_mult,
                                btin_div, btin_pow, btin_sqrt, btin_q_h, btin_q_x, btin_q_z,
@@ -100,6 +100,7 @@ class Eval:
                       Tests: self.ast_tests,
                       ExitBody: self.ast_exitbody,
                       ForLoop: self.ast_forloop,
+                      Range: self.ast_range,
                       AttrHeader: self.ast_attrheader,
                       TypeExpr: self.ast_typeexpr,
                       IndexAssign: self.ast_indexassign,
@@ -189,6 +190,9 @@ class Eval:
                  'skip': 0,
                  'res': (),
                  'idx': (),
+                 'loop_range': (),
+                 'loop_var': dict(),
+                 'in_loop': False,
                  'mode': None}
         return stats
 
@@ -229,9 +233,12 @@ class Eval:
             else:
                 if not set(self.func_dict_order).symmetric_difference(code.keys()):
                     for k in self.func_dict_order:
-                        if k in code.keys():
-                            stats['key'] = k
-                            stats = self.tasks[type(code[k])](code[k], stats)
+                        stats['key'] = k
+                        if k == 'return':
+                            self.dp('FUNCTION_RETURN',
+                                    stats['depth'],
+                                    f'main stats: {stats}')
+                        stats = self.tasks[type(code[k])](code[k], stats)
 
         return stats
 
@@ -241,6 +248,7 @@ class Eval:
         tmp_idx = ()
         if stats['key'] == 'params':
             self.prepare_params(stats['scope'], stats['func'], stats)
+            stats['res'] = ()
             return stats
 
         if stats['skip'] == 0:
@@ -288,9 +296,11 @@ class Eval:
 
                     elif stats['obj'] == IndexAssign:
                         tmp_idx = new_stats['idx']
+                        tmp_idx += new_stats['res']
+                        tmp_res = ()
                         stats['idx'] = tmp_idx
 
-                    elif stats['obj'] == ExprAssign:
+                    elif stats['obj'] in [ExprAssign, Entity]:
                         tmp_res += new_stats['res']
                         tmp_idx = new_stats['idx']
 
@@ -303,6 +313,11 @@ class Eval:
                     elif stats['obj'] == Tests:
                         tmp_res = new_stats['res']
                         tmp_idx = new_stats['idx']
+
+                    elif stats['obj'] in [Range, ForLoop]:
+                        tmp_res = new_stats['res']
+                        stats['loop_var'] = new_stats['loop_var']
+                        stats['loop_range'] = new_stats['loop_range']
 
                     elif stats['obj'] is None and stats['key'] == 'return':
                         tmp_res = new_stats['res']
@@ -338,6 +353,7 @@ class Eval:
                 stats = self.resolve_ast(code, stats)
 
         elif stats['key'] == 'return':
+            self.dp('str', stats['depth'], f'key: return', f'stats: {stats}')
             stats = self.resolve_ast(code, stats)
 
         return stats
@@ -355,11 +371,10 @@ class Eval:
         return stats
 
     def ast_body(self, code, stats):
-        # old_obj = stats['obj']
         stats['obj'] = Body
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
-        # stats['obj'] = old_obj
+        stats['depth'] -= 1
         return stats
 
     def ast_attrdecl(self, code, stats):
@@ -379,17 +394,19 @@ class Eval:
         stats['var'] = None
         stats['type'] = None
         stats['obj'] = old_obj
+        stats['depth'] -= 1
         self.dp('attrdel', stats['depth'], 'left')
         return stats
 
     def ast_attrassign(self, code, stats):
-        old_obj = stats['obj']
-        stats['obj'] = AttrAssign
+        # old_obj = stats['obj']
+        # stats['obj'] = AttrAssign
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
         if stats['res']:
             self.dp('attrassign', stats['depth'], f'args: T')
-        stats['obj'] = old_obj
+        # stats['obj'] = old_obj
+        stats['depth'] -= 1
         return stats
 
     def ast_expr(self, code, stats):
@@ -401,73 +418,83 @@ class Eval:
         return stats
 
     def ast_entity(self, code, stats):
+        old_obj = stats['obj']
+        stats['obj'] = Entity
         stats = self.tasks[type(code.value)](code.value, stats)
         self.dp('entity', stats['depth'], f'post-stats: {stats}')
-        res = self.resolve_args(stats['res'], stats)
+        stats['obj'] = old_obj
+        res = stats['res']
         self.dp('entity',
                 stats['depth'],
+                f'obj: {stats["obj"]}',
                 f'res: {res}',
                 f'idx: {stats["idx"]}')
-        if len(res) == len(stats['idx']):
-            if stats['type'] != 'circuit':
-                for k, v in zip(stats['idx'], res):
+        if stats['var'] is not None and stats['type'] is not None:
+            if len(res) == len(stats['idx']):
+                if stats['type'] != 'circuit':
+                    for k, v in zip(stats['idx'], res):
+                        self.dp('entity',
+                                stats['depth'],
+                                f'len val: idx',
+                                f'idx: {k}',
+                                f'val: {v}')
+                        sub_v = self.resolve_literal(v, stats)[0]
+                        self.mem.write(scope=stats['scope'],
+                                       name=stats['func'],
+                                       var=stats['var'],
+                                       index=k,
+                                       value=sub_v)
+                        self.dp('entity',
+                                stats['depth'],
+                                f'memory: write',
+                                f'MEMORY: {self.mem}')
+                else:
+                    for k in res:
+                        self.mem.write(scope=stats['scope'],
+                                       name=stats['func'],
+                                       var=stats['var'],
+                                       value=k)
                     self.dp('entity',
                             stats['depth'],
-                            f'len val: idx',
-                            f'idx: {k}',
-                            f'val: {v}')
-                    sub_v = self.resolve_literal(v, stats)[0]
+                            f'memory: write',
+                            f'MEMORY: {self.mem}')
+            elif len(res) == 1:
+                if stats['type'] != 'circuit':
+                    for k in stats['idx']:
+                        self.mem.write(scope=stats['scope'],
+                                       name=stats['func'],
+                                       var=stats['var'],
+                                       index=k,
+                                       value=res[0])
+                    self.dp('entity',
+                            stats['depth'],
+                            f'memory: write',
+                            f'MEMORY: {self.mem}')
+                else:
                     self.mem.write(scope=stats['scope'],
                                    name=stats['func'],
                                    var=stats['var'],
-                                   index=k,
-                                   value=sub_v)
+                                   value=res[0])
                     self.dp('entity',
                             stats['depth'],
                             f'memory: write',
                             f'MEMORY: {self.mem}')
             else:
-                for k in res:
-                    self.mem.write(scope=stats['scope'],
-                                   name=stats['func'],
-                                   var=stats['var'],
-                                   value=k)
-                self.dp('entity',
-                        stats['depth'],
-                        f'memory: write',
-                        f'MEMORY: {self.mem}')
-        elif len(res) == 1:
-            if stats['type'] != 'circuit':
-                for k in stats['idx']:
-                    self.mem.write(scope=stats['scope'],
-                                   name=stats['func'],
-                                   var=stats['var'],
-                                   index=k,
-                                   value=res[0])
-                self.dp('entity',
-                        stats['depth'],
-                        f'memory: write',
-                        f'MEMORY: {self.mem}')
-            else:
-                self.mem.write(scope=stats['scope'],
-                               name=stats['func'],
-                               var=stats['var'],
-                               value=res[0])
-                self.dp('entity',
-                        stats['depth'],
-                        f'memory: write',
-                        f'MEMORY: {self.mem}')
+                if stats['type'] == 'circuit':
+                    for k in res:
+                        self.mem.write(scope=stats['scope'],
+                                       name=stats['func'],
+                                       var=stats['var'],
+                                       value=k)
+                    self.dp('entity',
+                            stats['depth'],
+                            f'memory: write',
+                            f'MEMORY: {self.mem}')
         else:
-            if stats['type'] == 'circuit':
-                for k in res:
-                    self.mem.write(scope=stats['scope'],
-                                   name=stats['func'],
-                                   var=stats['var'],
-                                   value=k)
-                self.dp('entity',
-                        stats['depth'],
-                        f'memory: write',
-                        f'MEMORY: {self.mem}')
+            if stats['obj'] == ForLoop:
+                self.dp('entity', stats['depth'], 'forloop--entered')
+            else:
+                self.dp('entity', stats['depth'], 'no var, no forloop')
         stats['res'] = ()
         stats['idx'] = ()
         return stats
@@ -483,6 +510,7 @@ class Eval:
         new_res = stats['res']
         stats['res'] = tmp_res + new_res
         stats['obj'] = old_obj
+        stats['depth'] -= 1
         self.dp('call', stats['depth'], 'left', f'stats: {stats}')
         return stats
 
@@ -527,11 +555,11 @@ class Eval:
         else:
             raise ValueError('Something went wrong while trying to test conditional')
         stats['res'] = ()
+        stats['depth'] -= 1
         return stats
 
     def ast_exitbody(self, code, stats):
         stats['obj'] = ExitBody
-        stats['depth'] += 1
         stats['skip'] = 2
         self.dp('exitbody', stats['depth'], f'exit body reached, skip={stats["skip"]}')
         return stats
@@ -540,8 +568,31 @@ class Eval:
         old_obj = stats['obj']
         stats['obj'] = ForLoop
         stats['depth'] += 1
+        old_res = stats['res']
+        stats['res'] = ()
+        old_loop = stats['in_loop']
+        stats['in_loop'] = True
         stats = self.tasks[type(code.value)](code.value, stats)
+        stats['in_loop'] = old_loop
+        stats['loop_var'].pop()
+        stats['depth'] -= 1
+        stats['res'] = old_res
         stats['obj'] = old_obj
+        return stats
+
+    def ast_range(self, code, stats):
+        old_obj = stats['obj']
+        stats['obj'] = Range
+        stats['depth'] += 1
+        stats = self.tasks[type(code.value)](code.value, stats)
+        if len(stats['res']) > 0:
+            if len(stats['res']) == 2:
+                stats['loop_range'] = range(*stats['res'])
+            else:
+                stats['loop_rage'] = stats['res']
+            stats['res'] = ()
+        stats['obj'] = old_obj
+        stats['depth'] -= 1
         return stats
 
     def ast_attrheader(self, code, stats):
@@ -549,6 +600,7 @@ class Eval:
         stats['obj'] = AttrHeader
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
+        stats['depth'] -= 1
         _scope = stats['scope']
         _func = stats['func']
         _type = stats['type']
@@ -574,31 +626,56 @@ class Eval:
                                value=stats['res'][0])
                 stats['res'] = ()
             self.dp('memory', stats['depth'], f'MEMORY: {self.mem}')
-            stats['obj'] = AttrAssign
+            # stats['obj'] = AttrAssign
         else:
             stats['obj'] = old_obj
         return stats
 
     def ast_typeexpr(self, code, stats):
-        # old_obj = stats['obj']
         stats['obj'] = TypeExpr
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
-        # stats['obj'] = old_obj
+        stats['depth'] -= 1
         return stats
 
     def ast_indexassign(self, code, stats):
+        old_obj = stats['obj']
         stats['obj'] = IndexAssign
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
+        stats['depth'] -= 1
+        stats['obj'] = old_obj
+        stats['idx'] += stats['res']
+        stats['res'] = ()
+        if stats['in_loop']:
+            for k in stats['idx']:
+                stats['loop_var'].update({k: None})
+            stats['idx'] = ()
         self.dp('indexassign', stats['depth'], f'post-stats: {stats}')
         return stats
 
     def ast_exprassign(self, code, stats):
+        old_obj = stats['obj']
         stats['obj'] = ExprAssign
         stats['depth'] += 1
-        self.dp('exprassign', stats['depth'], f'code: {code}', f'stats: {stats}')
-        stats = self.tasks[type(code.value)](code.value, stats)
+        if stats['in_loop']:
+            self.dp('exprassign',
+                    stats['depth'],
+                    f'loop-entedered',
+                    f'loop idxs: {tuple(stats["loop_var"].keys())}',
+                    f'code: {code}',
+                    f'stats: {stats}')
+            _iter = stats['loop_range']
+            if len(stats['loop_var']) > 0:
+                cur_loop_var = [p for p, v in stats['loop_var'].items() if v is None][0]
+                for k in _iter:
+                    stats['loop_var'][cur_loop_var] = k
+                    stats = self.tasks[type(code.value)](code.value, stats)
+        else:
+            self.dp('exprassign', stats['depth'], f'code: {code}', f'stats: {stats}')
+            stats = self.tasks[type(code.value)](code.value, stats)
+        stats['depth'] -= 1
+        stats['obj'] = old_obj
         self.dp('exprassign', stats['depth'], f'post-stats: {stats}')
         return stats
 
@@ -608,6 +685,7 @@ class Eval:
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
         stats['obj'] = old_obj
+        stats['depth'] -= 1
         return stats
 
     def ast_caller(self, code, stats):
@@ -616,6 +694,7 @@ class Eval:
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
         stats['obj'] = old_obj
+        stats['depth'] -= 1
         return stats
 
     def ast_asymbol(self, code, stats):
@@ -649,7 +728,11 @@ class Eval:
                 f'obj: {stats["obj"]}',
                 f'stats: {stats}')
 
-        if stats['obj'] == AttrHeader:
+        if stats['obj'] == None:
+            if stats['key'] == 'return':
+                stats['res'] += self.resolve_literal(code, stats)
+
+        elif stats['obj'] == AttrHeader:
             if not stats['var']:
                 stats['var'] = code
             elif not stats['type']:
@@ -660,6 +743,7 @@ class Eval:
 
         elif stats['obj'] == IndexAssign:
             stats['idx'] += self.resolve_literal(code, stats)
+            stats['res'] = ()
 
         elif stats['obj'] == ExprAssign:
             res = self.resolve_literal(code, stats)
@@ -691,6 +775,33 @@ class Eval:
 
         elif stats['obj'] == AttrAssign:
             pass
+
+        elif stats['obj'] == ForLoop:
+            pass
+
+        elif stats['obj'] == Range:
+            if self.mem.is_var(scope=stats['scope'], name=stats['func'], var=code):
+                res = ()
+                for k in stats['res']:
+                    res += (self.mem.read(scope=stats['scope'],
+                                          name=stats['func'],
+                                          var=code,
+                                          index=k),)
+                stats['res'] = res
+
+            elif code in self.symbolic['func'].keys():
+                func_data_body = self.symbolic['func'][code]
+                new_stats = self.start_stats()
+                new_stats['scope'] = 'func'
+                new_stats['func'] = code
+                new_stats['res'] = stats['res']
+                new_stats = self.tasks[type(func_data_body)](func_data_body,
+                                                             new_stats)
+                stats['res'] += new_stats['res']
+            elif code in stats['loop_var'].keys():
+                stats['res'] += (stats['loop_var'][code],)
+            else:
+                stats['res'] += self.resolve_literal(code, stats)
 
         elif stats['obj'] in [Caller, ABuiltIn]:
             self.dp('resolver',
@@ -735,17 +846,18 @@ class Eval:
                                 new_stats = self.start_stats()
                                 new_stats['scope'] = 'func'
                                 new_stats['func'] = code
+                                new_stats['res'] = stats['res']
                                 new_stats = self.tasks[type(func_data_body)](func_data_body,
                                                                              new_stats)
                                 new_stats_data += new_stats['res']
-                                self.dp('FUNCTION_RETURN',
-                                        stats['depth'],
-                                        f'func stats: {new_stats}',
-                                        f'main stats: {stats}')
 
                             # TODO: implement external function (import) check and call here
                             # elif external_function:
                             #    pass
+
+                            elif code in stats['loop_var'].keys():
+                                new_stats_data += (stats['loop_var'][code],)
+
                             else:
                                 self.dp('resolver', stats['depth'], f'what is {code}')
                                 new_stats_data = ()
@@ -807,13 +919,13 @@ class Eval:
                             new_stats = self.start_stats()
                             new_stats['scope'] = 'func'
                             new_stats['func'] = code
+                            new_stats['res'] = stats['res']
                             new_stats = self.tasks[type(func_data_body)](func_data_body,
                                                                          new_stats)
                             stats['res'] += new_stats['res']
-                            self.dp('FUNCTION_RETURN',
-                                    stats['depth'],
-                                    f'func stats: {new_stats}',
-                                    f'main stats: {stats}')
+
+                        elif code in stats['loop_var'].keys():
+                            stats['res'] += (stats['loop_var'][code],)
 
                         else:
                             stats['res'] += self.resolve_literal(code, stats)
@@ -841,7 +953,7 @@ class Eval:
                     stats['depth'],
                     f'res2 value: {res2}')
             if code in self.btin_funcs.keys():
-                args = self.resolve_args(res2, stats)
+                args = res2  # self.resolve_args(res2, stats)
                 if k0 + 1 < len(stats['idx']):
                     btin_res = self.btin_funcs[code](*args, buffer=True)
                 else:
@@ -929,7 +1041,7 @@ class Eval:
                                                 stats['res'] += (btin_res,)
                                             new_args = ()
                 else:
-                    args = self.resolve_args(stats['idx'], stats)
+                    args = stats['idx']  # self.resolve_args(stats['idx'], stats)
                     args += stats['res']
                     btin_res = self.btin_funcs[code](*args)
                     if btin_res:
@@ -961,7 +1073,7 @@ class Eval:
                                      var=stats['var'],
                                      index=idx),)
             if code in self.btin_funcs.keys():
-                args = self.resolve_args(res, stats)
+                args = res  # self.resolve_args(res, stats)
                 if k0 + 1 < len(stats['idx']):
                     btin_res = self.btin_funcs[code](*args, buffer=True)
                 else:
@@ -1177,17 +1289,20 @@ class Eval:
             return code,
         if self.mem.is_var(scope=stats['scope'], name=stats['func'], var=code):
             return code,
-        if self.mem.is_func(code):
+        if code in self.symbolic['func'].keys():
             return code,
         if code == '*all*':
             return code,
+        if isinstance(code, dict):
+            return tuple(f'{p[0]}:{p[1]}' for p in code.items())
         try:
             res = ast.literal_eval(code)
             if isinstance(res, str):
                 if (code.startswith('"') or code.startswith("'")) and (
                         code.endswith('"') or code.endswith("'")):
                     return res,
-                raise ValueError("Not a valid variable/function.")
+                else:
+                    return res,
             return res,
         except ValueError:
             return code,
@@ -1197,32 +1312,38 @@ class Eval:
             args = ()
             for k in code:
                 if isinstance(k, (int, float, str)):
-                    args += (k,)
+                    args += self.resolve_literal(k, stats)
                 elif isinstance(k, (tuple, list)):
                     new_args = self.resolve_args(k, stats)
                     args += new_args
                 elif isinstance(k, (nx.Graph, nx.DiGraph, nx.MultiGraph, nx.MultiDiGraph)):
                     args += (k,)
+                    """
                 elif isinstance(k, Token):
                     new_args = ()
                     for p in stats['idx']:
                         new_args += (self.mem.read(stats['scope'], stats['func'], stats['var'], p),)
                     if new_args:
                         args += (new_args,)
+                    """
                 elif isinstance(k, dict):
                     args += tuple(f'{p[0]}:{p[1]}' for p in k.items())
             return args
+
         if isinstance(code, list):
             self.dp('resolve-args',
                     stats['depth'],
                     f'code: {code}')
             args = ()
             for k in code:
-                if isinstance(k, (nx.Graph, nx.DiGraph, nx.MultiGraph, nx.MultiDiGraph, int)):
+                if isinstance(k,
+                              (nx.Graph, nx.DiGraph, nx.MultiGraph, nx.MultiDiGraph, int, float)):
                     args += (k,)
+                if isinstance(k, str):
+                    args += self.resolve_literal(k, stats)
             return args
         if isinstance(code, str):
-            return code,
+            return self.resolve_literal(code)
 
     ################################
     # FUNCTION HANDLING FUNCTIONS #
@@ -1230,34 +1351,70 @@ class Eval:
 
     def prepare_params(self, scope, func_name, stats):
         func_params = self.symbolic[scope][func_name]['params']
-        if len(func_params) > 0 and len(stats['res']) > 0:
+        self.dp('params',
+                stats['depth'],
+                f'scope: {scope}',
+                f'func: {func_name}',
+                f'func params: {func_params}',
+                f'stats: {stats}')
+        lfp = len(func_params)
+        lsr = len(stats['res'])
+        if lfp == lsr:
             for fp, sr in zip(func_params, stats['res']):
-                self.mem.create(scope='func',
-                                name=func_name,
-                                var=fp['symbol'],
-                                type_data=fp['type'])
-                from_var = dict(scope=stats['scope'],
-                                name=stats['func'],
-                                var=sr,
-                                type=self.mem.read(scope=stats['scope'],
-                                                   name=stats['func'],
-                                                   var=sr,
-                                                   prop='type'),
-                                len=self.mem.read(scope=stats['scope'],
-                                                  name=stats['func'],
-                                                  var=sr,
-                                                  prop='len'),
-                                data=self.mem.read(scope=stats['scope'],
-                                                   name=stats['func'],
-                                                   var=sr,
-                                                   prop='data'))
-                to_var = dict(scope='func',
-                              name=func_name,
-                              var=fp['symbol'],
-                              type=fp['type'],
-                              len=None,
-                              data={})
-                self.mem.copy(from_var, to_var)
+                is_var = self.mem.is_var(scope=stats['scope'], name=stats['func'], var=sr)
+                is_func = sr in self.symbolic['func'].keys()
+                if is_var or is_func:
+                    self.mem.create(scope='func',
+                                    name=func_name,
+                                    var=fp['symbol'],
+                                    type_data=fp['type'])
+                    from_var = dict(scope=stats['scope'],
+                                    name=stats['func'],
+                                    var=sr,
+                                    type=self.mem.read(scope=stats['scope'],
+                                                       name=stats['func'],
+                                                       var=sr,
+                                                       prop='type'),
+                                    len=self.mem.read(scope=stats['scope'],
+                                                      name=stats['func'],
+                                                      var=sr,
+                                                      prop='len'),
+                                    data=self.mem.read(scope=stats['scope'],
+                                                       name=stats['func'],
+                                                       var=sr,
+                                                       prop='data'))
+                    to_var = dict(scope='func',
+                                  name=func_name,
+                                  var=fp['symbol'],
+                                  type=fp['type'],
+                                  len=None,
+                                  data={})
+                    self.mem.copy(from_var, to_var)
+                else:
+                    self.mem.create(scope='func',
+                                    name=func_name,
+                                    var=fp['symbol'],
+                                    type_data=fp['type'])
+                    if 'len' in fp.keys():
+                        self.mem.write(scope='func',
+                                       name=func_name,
+                                       var=fp['symbol'],
+                                       prop='len',
+                                       value=self.resolve_literal(fp['len'][0], stats)[0])
+                    if isinstance(sr, (tuple, list)):
+                        for k0, k in enumerate(sr):
+                            self.mem.write(scope='func',
+                                           name=func_name,
+                                           var=fp['symbol'],
+                                           value=k,
+                                           index=k0)
+                    else:
+                        self.mem.write(scope='func',
+                                       name=func_name,
+                                       var=fp['symbol'],
+                                       value=sr)
+        else:
+            raise ValueError("Func params and assigned data does not match in length.")
 
     ##################
     # WALK FUNCTION #

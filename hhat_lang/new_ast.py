@@ -42,7 +42,8 @@ class SuperBox(BaseBox):
                             'cur_type': '',
                             'cur_params': (),
                             'cur_body': (),
-                            'cur_return': ()}
+                            'cur_return': (),
+                            'func_type': ''}
 
     @staticmethod
     def check_token(_token):
@@ -73,6 +74,53 @@ class SuperBox(BaseBox):
         if isinstance(data, Caller):
             return data,
         return self.get_caller(data.value)
+
+    def append_symbolic(self, data):
+        _func = data['func_type']
+        _name = data['cur_name']
+        _type = data['cur_type']
+        _params = data['cur_params']
+        _body = data['cur_body']
+        _result = data['cur_return']
+        self.symbolic.create(name=_name, func=_func)
+        self.symbolic.add(value=_type, key='type')
+        self.symbolic.add(value=_params, key='params')
+        self.symbolic.add(value=_body, key='body')
+        self.symbolic.add(value=_result, key='return')
+        self.symbolic.move_cur_to(name=_name)
+
+    def retrieve_symbolic(self, ext_symbolic):
+        _scopes = ext_symbolic.table['scope']
+        for _func, _ftype in _scopes.items():
+            self.symbolic.append(name=_func,
+                                 func=_ftype,
+                                 ext_table=ext_symbolic.table[_ftype][_func])
+
+    def transfer_stats(self, old_stats, func_type=None):
+        if 'func_type' not in old_stats.keys() and func_type is not None:
+            self.local_stats['func_type'] = func_type.value
+            self.local_stats['cur_name'] = old_stats['cur_name']
+            self.local_stats['cur_type'] = old_stats['cur_type']
+            self.local_stats['cur_params'] = old_stats['cur_params']
+            self.local_stats['cur_body'] = old_stats['cur_body']
+            self.local_stats['cur_return'] = old_stats['cur_return']
+        elif 'func_type' in old_stats.keys():
+            if len(old_stats['func_type']) > 0:
+                self.local_stats['func_type'] = old_stats['func_type']
+                self.local_stats['cur_name'] = old_stats['cur_name']
+                self.local_stats['cur_type'] = old_stats['cur_type']
+                self.local_stats['cur_params'] = old_stats['cur_params']
+                self.local_stats['cur_body'] = old_stats['cur_body']
+                self.local_stats['cur_return'] = old_stats['cur_return']
+            else:
+                self.local_stats['func_type'] = func_type.value
+                self.local_stats['cur_name'] = old_stats['cur_name']
+                self.local_stats['cur_type'] = old_stats['cur_type']
+                self.local_stats['cur_params'] = old_stats['cur_params']
+                self.local_stats['cur_body'] = old_stats['cur_body']
+                self.local_stats['cur_return'] = old_stats['cur_return']
+        else:
+            raise ValueError("AST: error on transferring local_stats.")
 
     def show_code(self):
         header = ' depth code |   symbol   |  position'
@@ -113,9 +161,13 @@ class SuperBox(BaseBox):
 class Program(SuperBox):
     def __init__(self, funcs=None, main=None):
         super().__init__()
+        self.symbolic.create()
         if self.check_token(funcs):
+            self.retrieve_symbolic(funcs.symbolic)
             self.value += (funcs,)
+
         if self.check_token(main):
+            self.retrieve_symbolic(main.symbolic)
             self.value += (main,)
 
 
@@ -124,20 +176,10 @@ class Function(SuperBox):
         super().__init__()
         if self.check_token(func_type) and self.check_token(func_template):
             self.value += (func_type, func_template,)
-            _func = func_type.value
-            _name = func_template.local_stats['cur_name']
-            _type = func_template.local_stats['cur_type']
-            _params = func_template.local_stats['cur_params']
-            _body = func_template.local_stats['cur_body']
-            _result = func_template.local_stats['cur_return']
-            self.symbolic.create()
-            self.symbolic.add(value=_type, key='type')
-            self.symbolic.add(value=_params, key='params')
-            self.symbolic.add(value=_body, key='body')
-            self.symbolic.add(value=_result, key='return')
-            self.symbolic.create(name=_name, func=_func)
-            self.symbolic.move_cur_to(name=_name)
+            self.transfer_stats(old_stats=func_template.local_stats, func_type=func_type)
+            self.append_symbolic(data=self.local_stats)
             if self.check_token(funcs):
+                self.retrieve_symbolic(funcs.symbolic)
                 self.value += funcs.value
 
 
@@ -243,8 +285,6 @@ class Expr(SuperBox):
 class ManyExprs(SuperBox):
     def __init__(self, expr1=None, expr2=None, expr3=None):
         super().__init__()
-        if self.check_token(expr3):
-            self.value += self.run_out_exprs(expr3)
         if self.check_token(expr1):
             self.value += self.run_out_exprs(expr1)
             if self.check_token(expr2):
@@ -331,7 +371,7 @@ class Tests(SuperBox):
 class ForLoop(SuperBox):
     def __init__(self, expr, entity, more_entity):
         super().__init__()
-        self.value += ((expr, entity),)
+        self.value += ((self.run_out_exprs(expr), entity),)
         if self.check_token(more_entity):
             self.value += more_entity.value
 

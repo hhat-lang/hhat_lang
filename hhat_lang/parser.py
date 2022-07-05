@@ -392,18 +392,48 @@ def function_64(p):
     return ABuiltIn(p[0])
 
 
-@pg.production("for_loop : FOR_LOOP OPEN expr CLOSE OPEN entity more_entity CLOSE")
+@pg.production("for_loop : FOR_LOOP OPEN expr CLOSE OPEN for_entity more_for_entity CLOSE")
 def function_65(p):
     return ForLoop(p[2], p[5], p[6])
 
 
-@pg.production("result : RETURN OPEN expr more_expr CLOSE")
+@pg.production("for_entity : expr COLON expr")
 def function_66(p):
+    return Entity(p[0], p[2])
+
+
+@pg.production("for_entity : expr COLON attr_assign")
+def function_67(p):
+    return Entity(p[0], p[2])
+
+
+@pg.production("for_entity : COLON expr")
+def function_68(p):
+    return Entity(p[1])
+
+
+@pg.production("for_entity : COLON attr_assign")
+def function_69(p):
+    return Entity(p[1])
+
+
+@pg.production("more_for_entity : COMMA for_entity more_for_entity")
+def function_70(p):
+    return ManyExprs(p[1], p[2])
+
+
+@pg.production("more_for_entity : ")
+def function_71(p):
+    return ManyExprs()
+
+
+@pg.production("result : RETURN OPEN expr more_expr CLOSE")
+def function_72(p):
     return ManyExprs(p[2], p[3], p[0])
 
 
 @pg.production("result : ")
-def function_67(p):
+def function_73(p):
     return ManyExprs()
 
 

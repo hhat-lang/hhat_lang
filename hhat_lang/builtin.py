@@ -101,6 +101,10 @@ def btin_lte(*values, buffer=False):
     raise ValueError(f'"lte" operator must have at least 2 values to operate.')
 
 
+def btin_abs(*values, buffer=False):
+    return tuple(abs(k) for k in values)
+
+
 def btin_add(*values, buffer=False):
     def get_type(value):
         if isinstance(value, str):
@@ -190,7 +194,8 @@ def btin_q_cnot(*values, buffer=False):
             g.add_node(k, data=_data)
         g.add_edge(values[0], values[1], data='@cnot')
         return g
-    raise ValueError("control functions does not operates in the same indices as control and target.")
+    raise ValueError(
+        "control functions does not operates in the same indices as control and target.")
 
 
 def btin_q_swap(*values, buffer=False):
@@ -200,7 +205,8 @@ def btin_q_swap(*values, buffer=False):
             g.add_node(k)
         g.add_edge(values[0], values[1], data='@swap')
         return g
-    raise ValueError("control functions does not operates in the same indices as control and target.")
+    raise ValueError(
+        "control functions does not operates in the same indices as control and target.")
 
 
 def btin_q_toffoli(*values, buffer=False):

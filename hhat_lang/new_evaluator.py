@@ -23,7 +23,7 @@ from hhat_lang.builtin import (btin_print, btin_and, btin_or, btin_not, btin_eq,
                                btin_gt, btin_gte, btin_lt, btin_lte, btin_add, btin_mult,
                                btin_div, btin_pow, btin_sqrt, btin_q_h, btin_q_x, btin_q_z,
                                btin_q_sync, btin_q_cnot, btin_q_toffoli, btin_q_init,
-                               btin_q_and, btin_q_or)
+                               btin_q_and, btin_q_or, btin_abs)
 
 SAMPLE_CODE_1 = """
 func null f: ( int b =(:4) ) 
@@ -126,6 +126,7 @@ class Eval:
                            'eq': btin_eq,
                            'gt': btin_gt,
                            'lt': btin_lt,
+                           'abs': btin_abs,
                            '@x': btin_q_x,
                            '@h': btin_q_h,
                            '@cnot': btin_q_cnot,
@@ -147,6 +148,7 @@ class Eval:
                          'eq': self.morpher,
                          'gt': self.morpher,
                          'lt': self.morpher,
+                         'abs': self.morpher,
                          'and': self.morpher,
                          'or': self.morpher,
                          'not': self.morpher,
@@ -195,6 +197,7 @@ class Eval:
                  'loop_var_list': [],
                  'loop_var': dict(),
                  'in_loop': False,
+                 'is_new_loop': False,
                  'mode': None}
         return stats
 
@@ -239,7 +242,8 @@ class Eval:
                         if k == 'return':
                             self.dp('FUNCTION_RETURN',
                                     stats['depth'],
-                                    f'main stats: {stats}')
+                                    f'stats: {stats}')
+                            stats['obj'] = None
                         stats = self.tasks[type(code[k])](code[k], stats)
 
         return stats
@@ -290,8 +294,14 @@ class Eval:
                         tmp_idx = new_stats['idx']
                         stats['idx'] = tmp_idx
 
-                    elif stats['obj'] in [Caller, ABuiltIn, Func]:
-                        self.dp('tuple', stats['depth'], f'caller-abuiltin-func stats: {new_stats}')
+                    elif stats['obj'] in [Caller, ABuiltIn, Func, AttrAssign]:
+                        self.dp('tuple',
+                                stats['depth'],
+                                f'obj: {stats["obj"]}',
+                                f'stats: {new_stats}')
+                        if stats['obj'] == AttrAssign:
+                            stats['var'] = new_stats['var']
+                            stats['type'] = new_stats['type']
                         tmp_res = new_stats['res']
                         tmp_idx = new_stats['idx']
                         stats['idx'] = tmp_idx
@@ -401,13 +411,18 @@ class Eval:
         return stats
 
     def ast_attrassign(self, code, stats):
-        # old_obj = stats['obj']
-        # stats['obj'] = AttrAssign
+        old_obj = stats['obj']
+        stats['obj'] = AttrAssign
         stats['depth'] += 1
+        old_new_loop = stats['is_new_loop']
+        stats['is_new_loop'] = False
         stats = self.tasks[type(code.value)](code.value, stats)
         if stats['res']:
             self.dp('attrassign', stats['depth'], f'args: T')
-        # stats['obj'] = old_obj
+        stats['obj'] = old_obj
+        stats['is_new_loop'] = old_new_loop
+        stats['var'] = None
+        stats['type'] = None
         stats['depth'] -= 1
         return stats
 
@@ -432,7 +447,7 @@ class Eval:
                 f'res: {res}',
                 f'idx: {stats["idx"]}')
         if stats['var'] is not None and stats['type'] is not None:
-            if not stats['in_loop']:
+            if not stats['is_new_loop']:
                 if len(res) == len(stats['idx']):
                     if stats['type'] != 'circuit':
                         for k, v in zip(stats['idx'], res):
@@ -502,7 +517,7 @@ class Eval:
                     # stats['idx'] = ()
 
         else:
-            if stats['obj'] == ForLoop or stats['in_loop']:
+            if stats['obj'] == ForLoop or (stats['in_loop'] and stats['is_new_loop']):
                 if len(stats['idx']) > 0:
                     self.dp('entity', stats['depth'], 'forloop--entered')
                     # stats['loop_range'] = stats['idx'][0]
@@ -585,11 +600,16 @@ class Eval:
         old_res = stats['res']
         stats['res'] = ()
         old_loop = stats['in_loop']
+        old_new_loop = stats['is_new_loop']
         stats['in_loop'] = True
+        stats['is_new_loop'] = True
         stats = self.tasks[type(code.value)](code.value, stats)
         stats['in_loop'] = old_loop
-        last_loop_var = stats['loop_var_list'].pop(-1)
-        stats['loop_var'].pop(last_loop_var)
+        stats['is_new_loop'] = old_new_loop
+        if len(stats['loop_var_list']) > 0:
+            last_loop_var = stats['loop_var_list'].pop(-1)
+            if len(stats['loop_var'].keys()) > 0:
+                stats['loop_var'].pop(last_loop_var)
         stats['loop_range'] = ()
         stats['depth'] -= 1
         stats['res'] = old_res
@@ -613,6 +633,9 @@ class Eval:
         stats['obj'] = Range
         stats['depth'] += 1
         stats = self.tasks[type(code.value)](code.value, stats)
+        if isinstance(stats['res'], tuple):
+            if len(stats['res']) == 2:
+                stats['res'] = range(*stats['res'])
         stats['loop_range'] = stats['res']
         stats['res'] = ()
         stats['obj'] = old_obj
@@ -678,7 +701,7 @@ class Eval:
         old_obj = stats['obj']
         stats['obj'] = ExprAssign
         stats['depth'] += 1
-        if stats['in_loop']:
+        if stats['in_loop'] and stats['is_new_loop']:
             self.dp('exprassign',
                     stats['depth'],
                     f'loop-entedered',
@@ -794,17 +817,19 @@ class Eval:
             stats['res'] += self.resolve_literal(code, stats)
 
         elif stats['obj'] == AttrAssign:
-            pass
+            if self.mem.is_var(scope=stats['scope'], name=stats['func'], var=code):
+                stats['var'] = code
+                stats['type'] = self.mem.read(scope=stats['scope'],
+                                              name=stats['func'],
+                                              var=code,
+                                              prop='type')
+            else:
+                raise ValueError(f"{code} is not a var")
 
         elif stats['obj'] == ForLoop:
             pass
 
         elif stats['obj'] == LoopObj:
-            # if isinstance(stats['res'], tuple):
-            #     stats['loop_range'] += stats['res']
-            # else:
-            #     stats['loop_range'] = stats['res']
-            # stats['res'] = ()
             pass
 
         elif stats['obj'] == Range:
@@ -880,6 +905,7 @@ class Eval:
                                 new_stats['scope'] = 'func'
                                 new_stats['func'] = code
                                 new_stats['res'] = stats['res']
+                                stats['res'] = ()
                                 new_stats = self.tasks[type(func_data_body)](func_data_body,
                                                                              new_stats)
                                 new_stats_data += new_stats['res']
@@ -959,6 +985,7 @@ class Eval:
                             new_stats['scope'] = 'func'
                             new_stats['func'] = code
                             new_stats['res'] = stats['res']
+                            stats['res'] = ()
                             new_stats = self.tasks[type(func_data_body)](func_data_body,
                                                                          new_stats)
                             stats['res'] += new_stats['res']

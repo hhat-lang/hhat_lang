@@ -315,7 +315,7 @@ class Entity(SuperBox):
 class AttrAssign(SuperBox):
     def __init__(self, a_symbol, func_args):
         super().__init__()
-        self.value += (a_symbol, func_args,)
+        self.value += (a_symbol, self.run_out_exprs(func_args),)
 
 
 class Call(SuperBox):

@@ -2,11 +2,11 @@
 
 Implement on `new_evaluator.Eval` :
 
-- [ ] function params and return clause
-- [ ] circuit type
-  - [ ] 
+- [x] function params and return clause
+- [x] circuit type``
 - [x] `if`, `elif` and `else` code
-- [ ] `loop` code
+- [x] `loop` code
+- [ ] unit tests
 
 ## Function Params & Return
 
@@ -33,9 +33,15 @@ Implement on `new_evaluator.Eval` :
 
 ## Loopdiloop `loop`
 
-* a
-* b
-* c
+## unit tests
+
+* Create `htests.py` to include all the logic
+* Include simple logic tests for tests for:
+  * Variables
+  * Functios
+  * Loops
+  * Conditionals
+
 
 ---
 

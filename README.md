@@ -70,7 +70,7 @@ Data Types
 TODOs:
 -----
 
-* Include explanation over the current language syntax, semantics and features
+[View in todos.md](hhat_lang/todos.md)
 
 ------
 How to Use

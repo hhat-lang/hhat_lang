@@ -1,12 +1,13 @@
+import os
+
+from arpeggio import PTNodeVisitor, SemanticActionResults, visit_parse_tree
 from arpeggio.cleanpeg import ParserPEG
-from arpeggio import PTNodeVisitor, visit_parse_tree
-from pre_hhat.types.builtin import (Int, Str, Hashmap, Circuit)
-import pre_hhat.types.builtin as ptb
+
 import pre_hhat.operators.classical as poc
 import pre_hhat.operators.quantum as poq
+import pre_hhat.types.builtin as ptb
 from pre_hhat.grammar.ast import AST
-import os
-from arpeggio import SemanticActionResults
+from pre_hhat.types.builtin import Circuit, Hashmap, Int, Str
 
 
 def parsing_code():
@@ -24,19 +25,6 @@ def get_oper(value, kind='classical'):
             if value.upper() == p.name:
                 return p()
 
-
-def gen_dot(code_tree):
-    def walk_tree(code):
-        dot = ""
-        for k in code:
-            if isinstance(k.value, AST):
-                dot += walk_tree(k) + "\n"
-            else:
-                dot += f"{}\n"
-        return dot
-    dot_code = "digraph AST {"
-    dot_code += '\n'.join([f"{} [label={}];\n{} -> {}\n" for k in code_tree])
-    dot_code += "}"
 
 class CST(PTNodeVisitor):
     def __init__(self, defaults=True, **kwargs):

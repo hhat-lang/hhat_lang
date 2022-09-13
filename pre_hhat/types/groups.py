@@ -121,7 +121,7 @@ class SingleIndexGate(Gate):
 
 
 class MultipleIndexGate(Gate):
-    def __init__(self, *value, name=None):
+    def __init__(self, *value, name=None, **kwargs):
         if name is not None and len(value) > 1:
             super().__init__(*value, name=name)
         else:

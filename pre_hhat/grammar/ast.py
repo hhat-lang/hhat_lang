@@ -1,7 +1,8 @@
 """AST"""
-from collections.abc import Iterator, Iterable
-from pre_hhat.core.ast_counter import Counter
 from abc import ABC
+from collections.abc import Iterable, Iterator
+
+from pre_hhat.core.ast_counter import Counter
 
 
 class AST:

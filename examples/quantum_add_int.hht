@@ -1,0 +1,5 @@
+
+main (
+  circuit{1} @c = @h
+  int{1} a = (:add(2 @c), :print)
+)

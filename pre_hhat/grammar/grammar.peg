@@ -6,13 +6,13 @@ var_decl = type_expr id ('=' assign )?
 type_expr = (type / id) '{' expr? '}'
 type = 'int' / 'str' / 'hashmap' / 'circuit'
 var_assign = id assign
-gen_call = id '(' expr+ ')'
+gen_call = 'collect'? id '(' expr+ ')'
 assign = expr / ( '(' assign_expr (',' assign_expr)* ')' )
 assign_expr = index_expr ':' value_expr
 index_expr = expr?
 value_expr = expr
 expr = caller / INT / STR / ( '(' expr+ ')' ) / id
-caller = builtin args?
+caller = 'collect'? builtin args?
 args = '(' expr* ')'
 id = r'(@)?[a-zA-Z][a-zA-Z_\-0-9]*'
 INT = r'[0-9]+'

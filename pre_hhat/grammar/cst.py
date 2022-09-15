@@ -7,7 +7,7 @@ import pre_hhat.operators.classical as poc
 import pre_hhat.operators.quantum as poq
 import pre_hhat.types.builtin as ptb
 from pre_hhat.grammar.ast import AST
-from pre_hhat.types.builtin import Circuit, Hashmap, Int, Str
+from pre_hhat.types.builtin import (SingleInt, ArrayInt, SingleStr, ArrayStr, ArrayCircuit)
 
 
 def parsing_code():
@@ -96,10 +96,10 @@ class CST(PTNodeVisitor):
         return AST('id', n.value)
 
     def visit_INT(self, n, k):
-        return Int(n.value)
+        return SingleInt(n.value)
 
     def visit_STR(self, n, k):
-        return Str(n.value)
+        return SingleStr(n.value)
 
 
 if __name__ == '__main__':

@@ -1,10 +1,4 @@
 """AST"""
-from abc import ABC
-from collections.abc import Iterable, Iterator
-
-from pre_hhat.core.ast_counter import Counter
-
-
 class AST:
     def __init__(self, name, *value):
         self.value = value

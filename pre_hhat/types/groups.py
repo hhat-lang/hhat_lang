@@ -1,6 +1,6 @@
 import sys
 from abc import ABC, abstractmethod
-import pre_hhat.grammar.ast as gast
+from pre_hhat.grammar import ast as gast
 
 
 class BaseGroup(ABC):
@@ -112,8 +112,8 @@ class SingleMorpher(SingleType):
 
 
 class SingleNuller(SingleType):
-    def __init__(self, value, type_name):
-        super().__init__(value, type_name=type_name, data_rule='nuller')
+    def __init__(self, type_name):
+        super().__init__(None, type_name=type_name, data_rule='nuller')
 
     @abstractmethod
     def _format_value(self, value):
@@ -154,6 +154,14 @@ class ArrayType(BaseGroup):
 
     def __len__(self):
         return len(self.value)
+
+    @abstractmethod
+    def __getitem__(self, item):
+        ...
+
+    @abstractmethod
+    def __setitem__(self, key, value):
+        ...
 
     @abstractmethod
     def __eq__(self, other):

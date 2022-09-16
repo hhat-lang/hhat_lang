@@ -1,19 +1,22 @@
 """Example of code."""
 
+from pre_hhat.interpreter.pre_evaluator import PreEvaluator
+from pre_hhat.grammar.cst import parsing_code, examples
 
-def hello(name: str) -> str:
-    """Just an greetings example.
 
-    Args:
-        name (str): Name to greet.
+def run():
+    for k in examples:
+        code_ast = parsing_code(k)
+        print()
+        print('*  AST:')
+        print(f"      {code_ast}")
+        print()
+        pre_eval = PreEvaluator(code_ast)
+        table = pre_eval.walk_tree()
+        print()
+        print('*  SymbolTable:')
+        print(f"      {table}")
 
-    Returns:
-        str: greeting message
 
-    Examples:
-        .. code:: python
-
-            >>> hello("Roman")
-            'Hello Roman!'
-    """
-    return f"Hello {name}!"
+if __name__ == '__main__':
+    run()

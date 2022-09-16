@@ -1,8 +1,12 @@
 # type: ignore[attr-defined]
 """A micro H-hat version."""
 
+import os
 import sys
 from importlib import metadata as importlib_metadata
+
+
+examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'examples'))
 
 
 def get_version() -> str:

@@ -1,6 +1,20 @@
-import pre_hhat.grammar.ast as gast
-import pre_hhat.types.groups as group
+from pre_hhat.grammar import ast as gast
+from pre_hhat.types import groups as group
 
+
+def get_type(name):
+    data_types = {'bool': ArrayBool,
+                  'int': ArrayInt,
+                  'str': ArrayStr,
+                  'circuit': ArrayCircuit}
+    return data_types.get(name, False)
+
+
+#################
+# SINGLE GROUPS #
+#################
+
+# Integer
 
 class SingleInt(group.SingleMorpher):
     def __init__(self, value):
@@ -49,11 +63,15 @@ class SingleInt(group.SingleMorpher):
             return self.__class__(self.value[0] + other.value[0])
         if isinstance(other, ArrayInt):
             return other + self.value[0]
+        if isinstance(other, SingleNull):
+            return self
         if isinstance(other, ArrayCircuit):
             raise NotImplemented(f"{self.name}: need to implement addition with circuit type.")
         other_name = other.__class__.__name__
         raise NotImplemented(f"{self.name}: operation not implemented for {self.name} and {other_name}.")
 
+
+# String
 
 class SingleStr(group.SingleAppender):
     def __init__(self, value):
@@ -99,6 +117,8 @@ class SingleStr(group.SingleAppender):
             return self.__class__(self.value[0] + other.value[0])
         if isinstance(other, ArrayStr):
             return self.value[0] + other
+        if isinstance(other, SingleNull):
+            return self
         if isinstance(other, ArrayCircuit):
             raise NotImplemented(f"{self.name}: need to implement addition with circuit type.")
         raise NotImplemented(f"{self.name} not implemented addition with {other.__class__.__name__}.")
@@ -106,6 +126,107 @@ class SingleStr(group.SingleAppender):
     def __repr__(self):
         return f"\"{self.value[0]}\""
 
+
+# Boolean
+
+class SingleBool(group.SingleMorpher):
+    bool_values = {True: 'T', False: 'F'}
+
+    def __init__(self, value):
+        super().__init__(value, type_name=SingleBool)
+
+    def _format_value(self, value):
+        if isinstance(value, bool):
+            return [self.bool_values[value]]
+        if isinstance(value, str):
+            if value in ['T', 'F']:
+                return [value]
+        raise ValueError(f"{self.name}: can only receive boolean data (T or F).")
+
+    def __eq__(self, other):
+        if isinstance(other, SingleBool):
+            return self.value == other.value
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        return False
+
+    def __ge__(self, other):
+        return False
+
+    def __lt__(self, other):
+        return False
+
+    def __le__(self, other):
+        return False
+
+    def __bool__(self):
+        return self.value[0]
+
+    def __add__(self, other):
+        if isinstance(other, str):
+            if other in ['T', 'F']:
+                if other == 'T' and self.value[0] == 'T':
+                    return self.__class__('T')
+                return self.__class__('F')
+            raise ValueError(f"{self.name}: addition must be between booleans.")
+        if isinstance(other, SingleBool):
+            if self == other and other.value[0] == 'T':
+                return self.__class__('T')
+            else:
+                return self.__class__('F')
+        if isinstance(other, SingleNull):
+            return self
+        raise NotImplemented(f"{self.name}: not implemented addition with {other.__class__.__name__}.")
+
+    def __repr__(self):
+        return f"{self.value[0]}"
+
+
+# Null
+
+class SingleNull(group.SingleNuller):
+    def __init__(self):
+        super().__init__(SingleNull)
+
+    def _format_value(self, value):
+        return []
+
+    def __eq__(self, other):
+        if isinstance(other, SingleNull):
+            return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        return None
+
+    def __ge__(self, other):
+        return None
+
+    def __lt__(self, other):
+        return None
+
+    def __le__(self, other):
+        return None
+
+    def __add__(self, other):
+        return other
+
+    def __iadd__(self, other):
+        return other
+
+
+################
+# ARRAY GROUPS #
+################
+
+# Integer
 
 class ArrayInt(group.ArrayMorpher):
     def __init__(self, *value):
@@ -202,6 +323,8 @@ class ArrayInt(group.ArrayMorpher):
                 if n < len(other):
                     self.value[n] += v[1]
             return self
+        if isinstance(other, SingleNull):
+            return self
         if isinstance(other, ArrayCircuit):
             raise NotImplemented(f"{self.name}: need to implement addition with circuit type.")
         raise NotImplemented(f"{self.name}: not implemented addition with {other.name}.")
@@ -212,6 +335,8 @@ class ArrayInt(group.ArrayMorpher):
             return self
         if isinstance(other, ArrayInt):
             self.value.extend(other.value)
+            return self
+        if isinstance(other, SingleNull):
             return self
         if isinstance(other, ArrayCircuit):
             raise NotImplemented(f"{self.name}: need to implement appending with circuit type.")
@@ -224,6 +349,8 @@ class ArrayInt(group.ArrayMorpher):
         values = " ".join([str(k) for k in self])
         return f"({values})"
 
+
+# String
 
 class ArrayStr(group.ArrayAppender):
     def __init__(self, *value):
@@ -320,6 +447,8 @@ class ArrayStr(group.ArrayAppender):
                 if n < len(other):
                     self.value[n] += v[1]
             return self
+        if isinstance(other, SingleNull):
+            return self
         if isinstance(other, ArrayCircuit):
             raise NotImplemented(f"{self.name}: need to implement addition with circuit type.")
         raise NotImplemented(f"{self.name}: not implemented addition with {other.name}.")
@@ -330,6 +459,8 @@ class ArrayStr(group.ArrayAppender):
             return self
         if isinstance(other, ArrayStr):
             self.value.extend(other.value)
+            return self
+        if isinstance(other, SingleNull):
             return self
         if isinstance(other, ArrayCircuit):
             raise NotImplemented(f"{self.name}: not implemented appending with circuit type.")
@@ -342,6 +473,131 @@ class ArrayStr(group.ArrayAppender):
         values = " ".join([str(k) for k in self.value])
         return f"({values})"
 
+
+# Bool
+
+class ArrayBool(group.ArrayMorpher):
+    def __init__(self, *value):
+        default = []
+        super().__init__(*value,
+                         type_name=ArrayBool,
+                         default=default,
+                         value_type=SingleBool)
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def indices(self):
+        return self._indices
+
+    def _format_value(self, value):
+        for k in value:
+            if not isinstance(k, self.value_type):
+                raise ValueError(f"{self.name}: can only contain boolean types.")
+        return list(value)
+
+    def __getitem__(self, item):
+        if item in self.indices:
+            return self.value[item]
+        else:
+            raise ValueError(f"{self.name}: there is no index {item} in the variable.")
+
+    def __setitem__(self, key, value):
+        if key in self.indices:
+            self.value[key] = value
+
+    def __eq__(self, other):
+        if len(self) == len(other):
+            for s, o in zip(self, other):
+                if s != o:
+                    return False
+            return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        if len(self) == len(other):
+            for s, o in zip(self, other):
+                if not (s > o):
+                    return False
+            return True
+        if len(self) > len(other):
+            return True
+        return False
+
+    def __ge__(self, other):
+        if len(self) == len(other):
+            for s, o in zip(self, other):
+                if not (s >= o):
+                    return False
+            return True
+        if len(self) >= len(other):
+            return True
+        return False
+
+    def __lt__(self, other):
+        if len(self) == len(other):
+            for s, o in zip(self, other):
+                if not (s < o):
+                    return False
+            return True
+        if len(self) < len(other):
+            return True
+        return False
+
+    def __le__(self, other):
+        if len(self) == len(other):
+            for s, o in zip(self, other):
+                if not (s <= o):
+                    return False
+            return True
+        if len(self) <= len(other):
+            return True
+        return False
+
+    def __add__(self, other):
+        if isinstance(other, SingleBool):
+            res = ()
+            for k in self:
+                res += (other + k),
+            return self.__class__(*res)
+        if isinstance(other, ArrayBool):
+            res = ()
+            for n, v in enumerate(self):
+                if n < len(other):
+                    res += (v + other.value[n]),
+                else:
+                    res += v,
+            return self.__class__(*res)
+        if isinstance(other, SingleNull):
+            return self
+        if isinstance(other, ArrayCircuit):
+            raise NotImplemented(f"{self.name}: not implemented addition with circuit type.")
+        raise NotImplemented(f"{self.name}: not implemented addition with {other.__class__.__name__}")
+
+    def __iadd__(self, other):
+        if isinstance(other, (SingleBool, ArrayBool)):
+            self.value.extend(other.value)
+            return self
+        if isinstance(other, SingleNull):
+            return self
+        if isinstance(other, ArrayCircuit):
+            raise NotImplemented(f"{self.name}: not implemented appending with circuit.")
+        raise NotImplemented(f"{self.name}: not implemented appending with {other.__class__.__name__}")
+
+    def __contains__(self, item):
+        return item in self.value
+
+    def __repr__(self):
+        values = " ".join([str(k) for k in self])
+        return f"({values})"
+
+
+# Circuit
 
 class ArrayCircuit(group.ArrayAppender):
     def __init__(self, *value):
@@ -408,6 +664,12 @@ class ArrayCircuit(group.ArrayAppender):
     def __len__(self):
         return self._true_len
 
+    def __getitem__(self, item):
+        return self
+
+    def __setitem__(self, key, value):
+        pass
+
     def __eq__(self, other):
         if len(self.value) == len(other.value):
             if len(self) == len(other):
@@ -459,6 +721,8 @@ class ArrayCircuit(group.ArrayAppender):
             pass
 
     def __iadd__(self, other):
+        if isinstance(other, SingleNull):
+            return self
         if isinstance(other, (group.Gate, group.GateArray)):
             self.value.append(other)
             self._indices += self._counter,

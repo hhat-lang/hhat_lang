@@ -16,6 +16,7 @@ class BaseGroup(ABC):
                 if not isinstance(k, type):
                     raise ValueError(f"{self.__class__.__name__}: wrong value for value type.")
             return value
+        return value
 
     @abstractmethod
     def __iter__(self):
@@ -53,6 +54,10 @@ class SingleType(BaseGroup):
 
     def __len__(self):
         return len(self.value)
+
+    @abstractmethod
+    def __getitem__(self, item):
+        ...
 
     @abstractmethod
     def __eq__(self, other):
@@ -128,13 +133,13 @@ class ArrayType(BaseGroup):
                  *value,
                  type_name=None,
                  data_rule=None,
-                 default_value=None,
+                 default=None,
                  value_type=None):
+        self.default = default
         self.name = type_name
         self.value_type = self._format_value_type(value_type)
         self._value, self._indices = self._format_value(value)
         self.rule = data_rule
-        self.default = default_value
 
     @property
     @abstractmethod
@@ -209,7 +214,7 @@ class ArrayAppender(ArrayType):
         super().__init__(*value,
                          type_name=type_name,
                          data_rule='appender',
-                         default_value=default,
+                         default=default,
                          value_type=value_type)
 
     @abstractmethod
@@ -222,7 +227,7 @@ class ArrayMorpher(ArrayType):
         super().__init__(*value,
                          type_name=type_name,
                          data_rule='morpher',
-                         default_value=default,
+                         default=default,
                          value_type=value_type)
 
     @abstractmethod
@@ -235,7 +240,7 @@ class ArrayNuller(ArrayType):
         super().__init__(*value,
                          type_name=type_name,
                          data_rule='nuller',
-                         default_value=default,
+                         default=default,
                          value_type=value_type)
 
     @abstractmethod

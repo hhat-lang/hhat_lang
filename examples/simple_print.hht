@@ -1,4 +1,1 @@
-
-main ( int{} a = print )
-
-
+main ( int{} a = print('hi') )

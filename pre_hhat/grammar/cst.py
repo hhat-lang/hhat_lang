@@ -8,28 +8,32 @@ from pre_hhat.operators import classical as poc
 from pre_hhat.operators import quantum as poq
 from pre_hhat.types import builtin as ptb
 from pre_hhat.grammar.ast import AST
-from pre_hhat.types.builtin import (get_type,
-                                    SingleInt, SingleStr,
+import pre_hhat.types.builtin as builtin
+from pre_hhat.types.builtin import (SingleInt, SingleStr,
                                     ArrayInt, ArrayStr, ArrayCircuit)
 
 
-examples = ['simple_print.hht']  # , 'quantum_add_int.hht']
+examples = ['hello.hht', 'simple_print.hht', 'add_and_print.hht']  # 'quantum_add_int.hht']
 
 
-def parsing_code(example):
+def parsing_code(example, print_code=False, debug=True):
     file_dir = os.path.dirname(__file__)
     grammar = open(os.path.join(file_dir, 'grammar.peg'), 'r').read()
-    parser = ParserPEG(grammar, 'program', debug=True, reduce_tree=True)
-    code = open(os.path.join(examples_dir, example), 'r').read()
+    parser = ParserPEG(grammar, 'program', debug=debug, reduce_tree=True)
+    code = open(os.path.join(examples_dir, example), 'r').readlines()
+    if print_code:
+        for k in code:
+            print(f'      {k}')
+    code = ''.join(code)
     pt = parser.parse(code)
     return visit_parse_tree(pt, CST())
 
 
 def get_oper(value, kind='classical'):
     for k in dir(poq if kind == 'quantum' else poc):
-        if isinstance(p := getattr(poq, k), type):
-            if value.upper() == p.name:
-                return p()
+        if isinstance(q := getattr(poq, k), type):
+            if value.upper() == q.name:
+                return q()
 
 
 class CST(PTNodeVisitor):
@@ -48,7 +52,7 @@ class CST(PTNodeVisitor):
                 val = k[2].strip('@').capitalize()
                 if getattr(poc, val, False) or getattr(poq, val, False):
                     k[2] = AST('assign',
-                               AST('assign_expr', getattr(poc, val, None) or getattr(poq, val)))
+                               AST('assign_expr', (getattr(poc, val, None) or getattr(poq, val))()))
                 else:
                     k[2] = AST('assign', AST('assign_expr', AST('id', k[2])))
         k[0], k[1] = k[1], k[0]
@@ -56,7 +60,7 @@ class CST(PTNodeVisitor):
 
     def visit_type_expr(self, n, k):
         if isinstance(k[0], str):
-            value = get_type(k[0].lower())
+            value = builtin.get_type(k[0].lower())
             if value:
                 k[0] = value
             else:
@@ -67,7 +71,14 @@ class CST(PTNodeVisitor):
         return AST('var_assign', *k)
 
     def visit_gen_call(self, n, k):
-        pass
+        if isinstance(k[0], str):
+            val = k[0].strip('@').capitalize()
+            if getattr(poc, val, False) or getattr(poq, val, False):
+                k[0] = (getattr(poc, val, None) or getattr(poq, val))()
+            else:
+                k[0] = AST('id', k[0])
+        k = k[1], k[0]
+        return AST('gen_call', *k)
 
     def visit_assign(self, n, k):
         return AST('assign', *k)
@@ -76,7 +87,7 @@ class CST(PTNodeVisitor):
         if isinstance(k[0], str):
             val = k[0].strip('@').capitalize()
             if getattr(poc, val, False) or getattr(poq, val, False):
-                k[0] = getattr(poc, val, None) or getattr(poq, val)
+                k[0] = (getattr(poc, val, None) or getattr(poq, val))()
             else:
                 k[0] = AST('id', k[0])
         return AST('assign_expr', *k)
@@ -91,7 +102,7 @@ class CST(PTNodeVisitor):
         if isinstance(k[0], str):
             val = k[0].strip('@').capitalize()
             if getattr(poc, val, False) or getattr(poq, val, False):
-                k[0] = getattr(poc, val, None) or getattr(poq, val)
+                k[0] = (getattr(poc, val, None) or getattr(poq, val))()
             else:
                 k[0] = AST('id', k[0])
         k = k[1], k[0]

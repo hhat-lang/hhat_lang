@@ -1,13 +1,13 @@
 program = main? EOF
 builtin = 'add' / 'print' / '@x' / '@h'
 main = 'main' '(' body* ')'
-body = var_decl / var_assign / gen_call
-var_decl = type_expr id ('=' assign )?
+body = gen_call / var_decl / var_assign
+var_decl = type_expr id ('=' (expr / assign) )?
 type_expr = (type / id) '{' expr? '}'
 type = 'int' / 'str' / 'hashmap' / 'circuit'
 var_assign = id assign
-gen_call = 'collect'? id '(' expr+ ')'
-assign = expr / ( '(' assign_expr (',' assign_expr)* ')' )
+gen_call = (builtin / id) args
+assign = ( '(' assign_expr (',' assign_expr)* ')' )
 assign_expr = index_expr ':' value_expr
 index_expr = expr?
 value_expr = expr

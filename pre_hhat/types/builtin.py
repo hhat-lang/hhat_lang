@@ -3,7 +3,8 @@ from pre_hhat.types import groups as group
 
 
 def get_type(name):
-    data_types = {'bool': ArrayBool,
+    data_types = {'null': ArrayNull,
+                  'bool': ArrayBool,
                   'int': ArrayInt,
                   'str': ArrayStr,
                   'circuit': ArrayCircuit}
@@ -26,7 +27,12 @@ class SingleInt(group.SingleMorpher):
                 return [int(value)]
         if isinstance(value, int):
             return [value]
+        if isinstance(value, SingleInt):
+            return [value.value[0]]
         raise ValueError(f"{self.name}: can only receive integer data.")
+
+    def __getitem__(self, item):
+        return self.value[0]
 
     def __eq__(self, other):
         if isinstance(other, SingleInt):
@@ -82,6 +88,9 @@ class SingleStr(group.SingleAppender):
             return [value]
         raise ValueError(f"{self.name}: can only receive string data.")
 
+    def __getitem__(self, item):
+        return self.value[0].strip('"').strip("'")
+
     def __eq__(self, other):
         if isinstance(other, SingleStr):
             return self.value[0] == other.value[0]
@@ -124,7 +133,7 @@ class SingleStr(group.SingleAppender):
         raise NotImplemented(f"{self.name} not implemented addition with {other.__class__.__name__}.")
 
     def __repr__(self):
-        return f"\"{self.value[0]}\""
+        return f"{self.value[0]}"
 
 
 # Boolean
@@ -142,6 +151,9 @@ class SingleBool(group.SingleMorpher):
             if value in ['T', 'F']:
                 return [value]
         raise ValueError(f"{self.name}: can only receive boolean data (T or F).")
+
+    def __getitem__(self, item):
+        return self.value[0].strip('"').strip("'")
 
     def __eq__(self, other):
         if isinstance(other, SingleBool):
@@ -195,6 +207,9 @@ class SingleNull(group.SingleNuller):
     def _format_value(self, value):
         return []
 
+    def __getitem__(self, item):
+        return "null"
+
     def __eq__(self, other):
         if isinstance(other, SingleNull):
             return True
@@ -226,6 +241,78 @@ class SingleNull(group.SingleNuller):
 # ARRAY GROUPS #
 ################
 
+# TODO: create ArrayNull
+
+# Null
+
+class ArrayNull(group.ArrayNuller):
+    def __init__(self, *value):
+        default = []
+        super().__init__(*value,
+                         type_name=ArrayNull,
+                         default=default,
+                         value_type=SingleNull)
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def indices(self):
+        return self._indices
+
+    def _format_value(self, value):
+        for k in value:
+            if not isinstance(value, self.value):
+                raise ValueError(f"{self.name}: must have SingleNull value to set to.")
+        return list(value), tuple(k for k in range(len(value)))
+
+    def __getitem__(self, item):
+        return self
+
+    def __setitem__(self, key, value):
+        return self
+
+    def __eq__(self, other):
+        if isinstance(other, ArrayNull):
+            if len(self) == len(other):
+                for s, o in zip(self, other):
+                    if s != o:
+                        return False
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        return None
+
+    def __ge__(self, other):
+        return None
+
+    def __lt__(self, other):
+        return None
+
+    def __le__(self, other):
+        return None
+
+    def __add__(self, other):
+        return other
+
+    def __iadd__(self, other):
+        if isinstance(other, (SingleNull, ArrayNull)):
+            self.value.extend(other.value)
+        return other
+
+    def __contains__(self, item):
+        return item in self.value
+
+    def __repr__(self):
+        values = " ".join(["null" for _ in self])
+        return f"({values})"
+
+
 # Integer
 
 class ArrayInt(group.ArrayMorpher):
@@ -256,10 +343,23 @@ class ArrayInt(group.ArrayMorpher):
         return self._indices
 
     def _format_value(self, value):
-        for k in value:
-            if not isinstance(k, self.value_type):
-                raise ValueError(f"{self.name}: can only contain integer values.")
+        if len(value) > 0:
+            for k in value:
+                if not isinstance(k, self.value_type):
+                    raise ValueError(f"{self.name}: can only contain integer values.")
+        else:
+            value = self.default
         return list(value), tuple(k for k in range(len(value)))
+
+    def __getitem__(self, item):
+        if item in self.indices:
+            return self.value[item]
+        else:
+            raise ValueError(f"{self.name}: there is no index {item} in the variable.")
+
+    def __setitem__(self, key, value):
+        if key in self.indices:
+            self.value[key] = value
 
     def __eq__(self, other):
         if isinstance(other, ArrayInt):
@@ -384,6 +484,16 @@ class ArrayStr(group.ArrayAppender):
             if not isinstance(k, self.value_type):
                 raise ValueError(f"{self.name}: can only contain string values.")
         return list(value), tuple([k for k in range(len(value))])
+
+    def __getitem__(self, item):
+        if item in self.indices:
+            return self.value[item].strip('"').siptr("'")
+        else:
+            raise ValueError(f"{self.name}: there is no index {item} in the variable.")
+
+    def __setitem__(self, key, value):
+        if key in self.indices:
+            self.value[key] = value
 
     def __eq__(self, other):
         if isinstance(other, ArrayStr):

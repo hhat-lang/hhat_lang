@@ -1,4 +1,6 @@
 """Memory"""
+import sys
+
 from pre_hhat.grammar.ast import AST
 from pre_hhat.types.groups import (BaseGroup, Gate, GateArray)
 from pre_hhat.types.builtin import (SingleInt, SingleStr, SingleBool, SingleNull,
@@ -32,7 +34,8 @@ class Memory:
                 _type = type_expr[0]
                 _len = type_expr[1]
                 _fixed_size = SingleBool('T')
-                _data = type_expr[0](*[type_expr[0]().value_type(type_expr[0]().default[0]) for k in range(len(type_expr[1]))])
+                values = [type_expr[0]().value_type(type_expr[0]().default[0]) for k in range(type_expr[1].value[0])]
+                _data = type_expr[0](*values)
             else:
                 _type = type_expr[0]
                 _len = SingleInt(1)
@@ -56,14 +59,13 @@ class Memory:
         if isinstance(key, tuple):
             if key[0] in self.stack['var'].keys():
                 if isinstance(key[1], (int, SingleInt)):
-                    k1_keys = key[1] in self.stack['var'][key[0]]['data'].keys()
-                    v_len = len(value) == self.stack['var'][key[0]]['len'].value[0]
-                    if k1_keys and v_len:
+                    k1_keys = key[1] in self.stack['var'][key[0]]['data'].indices
+                    if k1_keys:
                         self.stack['var'][key[0]]['data'][key[1]] = value
                     elif not self.stack['var'][key[0]]['fixed_size']:
-                        self.stack['var'][key[0]]['data'][key[1]] = value
+                        self.stack['var'][key[0]]['data'][key[1]] += value
                         self.stack['var'][key[0]]['len'] = len(self.stack['var'][key[0]]['data'])
-                if isinstance(key[1], tuple):
+                elif isinstance(key[1], tuple):
                     if len(key[1]) == len(value):
                         for idx, v in zip(key[1], value):
                             self.stack['var'][key[0]]['data'][idx] = v
@@ -74,7 +76,7 @@ class Memory:
                     self.stack['var'][key[0]][key[1]] = value
         if key in self.stack['var'].keys():
             for k in self.stack['var'][key]['data']:
-                self.stack['var'][key]['data'] = value
+                self.stack['var'][key]['data'][k] = value
         if key == 'return':
             self.stack['return'] = value
 
@@ -84,7 +86,16 @@ class Memory:
                 return self.stack[item[0]].get(item[1], SingleNull())
             if item[0] in self.stack['var'].keys():
                 if item[1] in self.stack['var'][item[0]].keys():
-                    return tuple(self.stack['var'][item[0]][item[1]])
+                    return self.stack['var'][item[0]][item[1]],
+                if item[1] in self.stack['var'][item[0]]['data']:
+                    return tuple(self.stack['var'][item[0]]['data'][item[1]])
+                if item[1] == 'indices':
+                    return self.stack['var'][item[0]]['data'].indices
+                if isinstance(item[1], tuple):
+                    res = ()
+                    for k in item[1]:
+                        res += self.stack['var'][item[0]]['data'][k.value[0]],
+                    return res
             self.add_var(item[0], item[1])
             return tuple(self.stack['var'][item[0]])
         if item in self.stack.keys():

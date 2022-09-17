@@ -13,7 +13,11 @@ from pre_hhat.types.builtin import (SingleInt, SingleStr,
                                     ArrayInt, ArrayStr, ArrayCircuit)
 
 
-examples = ['hello.hht', 'simple_print.hht', 'add_and_print.hht']  # 'quantum_add_int.hht']
+examples = ['hello.hht',
+            'simple_print.hht',
+            'add_and_print.hht',
+            'add_many_and_print.hht',
+            'int_add_many_print.hht']
 
 
 def parsing_code(example, print_code=False, debug=True):
@@ -84,12 +88,31 @@ class CST(PTNodeVisitor):
         return AST('assign', *k)
 
     def visit_assign_expr(self, n, k):
-        if isinstance(k[0], str):
-            val = k[0].strip('@').capitalize()
-            if getattr(poc, val, False) or getattr(poq, val, False):
-                k[0] = (getattr(poc, val, None) or getattr(poq, val))()
+        if len(k) == 1:
+            if isinstance(k[0], str):
+                val = k[0].strip('@').capitalize()
+                if getattr(poc, val, False) or getattr(poq, val, False):
+                    k[0] = (getattr(poc, val, None) or getattr(poq, val))()
+                else:
+                    k[0] = AST('id', k[0])
+        elif len(k) == 2:
+            if isinstance(k[0], str):
+                val = k[0].strip('@').capitalize()
+                if getattr(poc, val, False) or getattr(poq, val, False):
+                    k[0] = (getattr(poc, val, None) or getattr(poq, val))()
+                else:
+                    k[0] = AST('id', k[0])
+            if isinstance(k[0], AST):
+                k[0] = AST('index_expr', *k[0])
             else:
-                k[0] = AST('id', k[0])
+                k[0] = AST('index_expr', k[0])
+
+            if isinstance(k[1], str):
+                val = k[1].strip('@').capitalize()
+                if getattr(poc, val, False) or getattr(poq, val, False):
+                    k[1] = (getattr(poc, val, None) or getattr(poq, val))()
+                else:
+                    k[1] = AST('id', k[1])
         return AST('assign_expr', *k)
 
     def visit_index_expr(self, n, k):
@@ -97,6 +120,9 @@ class CST(PTNodeVisitor):
 
     def visit_value_expr(self, n, k):
         return AST('value_expr', *k)
+
+    def visit_expr(self, n, k):
+        return AST('expr', *k)
 
     def visit_caller(self, n, k):
         if isinstance(k[0], str):

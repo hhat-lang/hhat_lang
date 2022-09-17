@@ -37,7 +37,8 @@ class Evaluator:
                            tuple: self.role_tuple,
                            dict: self.role_dict}
         else:
-            raise ValueError(f"{self.__class__.__name__}: ast must be of SymbolTable type (from PreEvaluator).")
+            raise ValueError(
+                f"{self.__class__.__name__}: ast must be of SymbolTable type (from PreEvaluator).")
 
     @staticmethod
     def _new_stack():
@@ -57,6 +58,10 @@ class Evaluator:
         return self._roles.get(type(node), self._get_ast_node(node))(node, stack)
 
     def _get_ast_node(self, node):
+        if isinstance(node, SingleType):
+            return self.literals
+        if isinstance(node, ArrayType):
+            return self.data_types
         return self._ast_nodes[node.name] if isinstance(node, AST) else None
 
     def role_dict(self, code, stack):
@@ -80,7 +85,7 @@ class Evaluator:
         return old_stack
 
     def literals(self, code, stack):
-
+        stack['res'] += code,
         return stack
 
     def data_types(self, code, stack):
@@ -92,40 +97,61 @@ class Evaluator:
         return stack
 
     def node_args(self, code, stack):
-        stack['res'] += code.value
+        for k in code:
+            stack = self.get_node(k, stack)
         return stack
 
     def node_caller(self, code, stack):
         args = self.get_node(code.value[0], stack)['res']
-        if not stack['index']:
-            stack['index'] = stack['mem'][stack['var']]
-        res = code.value[1](*(stack['res'], stack['index']))
-        if res:
-            stack['mem'][stack['var']] = res
-        stack['res'] = ()
-        stack['index'] = ()
+        if stack['var']:
+            if not stack['index']:
+                stack['index'] = stack['mem'][stack['var'], 'indices']
+            var_index = stack['mem'][stack['var'], stack['index']]
+            res = code.value[1](*(stack['res'], var_index),
+                                value_type=stack['mem'][stack['var'], 'type'][0])
+            if res:
+                for k, idx in zip(res, stack['index']):
+                    stack['mem'][stack['var'], idx] = k
+            stack['res'] = ()
+            stack['index'] = ()
+        else:
+            res = code.value[1](*(stack['res']))
+            if res:
+                stack['res'] = res
         return stack
 
     def node_value_expr(self, code, stack):
         return stack
 
     def node_index_expr(self, code, stack):
-
+        for k in code:
+            if isinstance(k, SingleInt):
+                stack['index'] += k,
+            else:
+                stack = self.get_node(k, stack)
         return stack
 
     def node_assign_expr(self, code, stack):
+        stack['index'] = ()
+        stack['res'] = ()
         if len(code.value) == 1:
-            stack['index'] = stack['mem'][stack['var']]
+            stack['index'] = stack['mem'][stack['var'], 'indices']
             if isinstance(code.value[0], Operators):
-                res = code.value[0](*stack['index'])
+                var_index = stack['mem'][stack['var'], stack['index']]
+                res = code.value[0](*stack['mem'][stack['var'], stack['index']],
+                                    value_type=stack['mem'][stack['var'], 'type'][0])
                 if res:
-                    stack['mem'][stack['var']] = res
+                    for k, idx in zip(res, stack['index']):
+                        stack['mem'][stack['var'], idx] = k
             else:
                 stack = self.get_node(code.value[0], stack)
         elif len(code.value) == 2:
-            print('hoi')
+            stack = self.get_node(code.value[0], stack)
+            stack = self.get_node(code.value[1], stack)
         else:
             pass
+        stack['index'] = ()
+        stack['res'] = ()
         return stack
 
     def node_assign(self, code, stack):
@@ -134,8 +160,14 @@ class Evaluator:
         return stack
 
     def node_gen_call(self, code, stack):
-        args = self.get_node(code.value[0], stack)
-        code.value[1](*(stack['res']))
+        stack = self.get_node(code.value[0], stack)
+        if stack['var']:
+            res = code.value[1](*(stack['res']),
+                                value_type=stack['mem'][stack['var'], 'type'][0])
+        else:
+            res = code.value[1](*(stack['res']))
+        if res:
+            stack['res'] = res
         return stack
 
     def node_var_assign(self, code, stack):

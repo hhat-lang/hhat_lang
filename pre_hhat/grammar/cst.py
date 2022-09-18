@@ -125,13 +125,18 @@ class CST(PTNodeVisitor):
         return AST('expr', *k)
 
     def visit_caller(self, n, k):
-        if isinstance(k[0], str):
-            val = k[0].strip('@').capitalize()
-            if getattr(poc, val, False) or getattr(poq, val, False):
-                k[0] = (getattr(poc, val, None) or getattr(poq, val))()
-            else:
-                k[0] = AST('id', k[0])
-        k = k[1], k[0]
+        if len(k) < 3:
+            if isinstance(k[0], str):
+                val = k[0].strip('@').capitalize()
+                if getattr(poc, val, False) or getattr(poq, val, False):
+                    k[0] = (getattr(poc, val, None) or getattr(poq, val))()
+                else:
+                    k[0] = AST('id', k[0])
+            k = k[1], k[0]
+        else:
+            if k[0] == 'collect':
+                k[0] = AST('collect', *(k[2], k[1]))
+            k = k[0],
         return AST('caller', *k)
 
     def visit_args(self, n, k):

@@ -1,0 +1,8 @@
+{
+  "resource": {
+    "name": "openqasm",
+    "version": "2.0",
+    "type": "simulator",
+    "execute_mode": "all"
+  }
+}

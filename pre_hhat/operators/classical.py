@@ -1,3 +1,5 @@
+"""Implement classical operators/functions"""
+
 from .builtin import Operators
 
 from pre_hhat.types.builtin import (SingleInt,

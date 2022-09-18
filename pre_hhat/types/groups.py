@@ -255,7 +255,7 @@ class ArrayNuller(ArrayType):
 class Gate(BaseGroup):
     def __init__(self, *value, name: str = None, ct=None, **kwargs):
         if len(set(value)) == len(value):
-            self.name = name,
+            self.name = name.upper(),
             self.raw_indices = value
             self.indices = self._format_indices(value)
             self.raw_value = value
@@ -353,7 +353,7 @@ class GateArray(BaseGroup):
         if isinstance(value, list):
             names = ()
             for k in value:
-                names += k.name
+                names += self._get_names(k)
             return names
         if isinstance(value, Gate):
             return value.name
@@ -453,15 +453,15 @@ class SingleIndexGate(Gate):
             raise ValueError(f"{self.__class__.__name__}: must have a name.")
 
     def _format_value(self, value):
-        return {k: self.name[0] for k in value}
+        return {value[0]: self.name[0]}
 
 
 class MultipleIndexGate(Gate):
     def __init__(self, *value, name=None, **kwargs):
-        if name is not None and len(value) > 1:
+        if name is not None:
             super().__init__(*value, name=name)
         else:
-            raise ValueError(f"{self.__class__.__name__}: must have a name and many indices.")
+            raise ValueError(f"{self.__class__.__name__}: must have a name.")
 
     def _format_value(self, value):
         return {k: self.name[0] for k in value}
@@ -469,10 +469,27 @@ class MultipleIndexGate(Gate):
 
 class ControlTargetGate(Gate):
     def __init__(self, *value, name=None, ct=None):
-        if ct is not None and name is not None:
+        if ct is not None and name is not None and self.check_value_mask(value, ct):
             super().__init__(*value, name=name, ct=ct)
         else:
-            raise ValueError(f"{self.__class__.__name__}: cannot have empty ct nor name values.")
+            raise ValueError(f"{self.__class__.__name__}: cannot have invalid values, ct or empty name.")
+
+    def check_value_mask(self, value, ct):
+        res = ()
+        counter = 0
+        for k in value:
+            if isinstance(k, int):
+                counter += 1
+            if isinstance(k, tuple):
+                res += self.check_value_mask(k, ct),
+        if counter > 0 and len(res) == 0:
+            if counter == sum(ct):
+                return True
+            return False
+        elif counter == 0 and len(res) > 0:
+            return all(res)
+        else:
+            return False
 
     def _format_value(self, value):
         return {k: self.name[0] for k in value}

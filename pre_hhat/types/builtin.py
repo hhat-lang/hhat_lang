@@ -1,3 +1,5 @@
+"""Built-in types"""
+
 from pre_hhat.grammar import ast as gast
 from pre_hhat.types import groups as group
 
@@ -828,13 +830,13 @@ class ArrayCircuit(group.ArrayAppender):
 
     def __add__(self, other):
         if isinstance(other, group.Gate):
-            pass
+            return ArrayCircuit(*(self.value + [other]))
         if isinstance(other, group.GateArray):
-            pass
+            return ArrayCircuit(*(self.value + other.value))
         if isinstance(other, ArrayCircuit):
-            pass
+            return ArrayCircuit(*(self.value + other.value))
         if isinstance(other, gast.AST):
-            pass
+            return ArrayCircuit(*(self.value + [other]))
 
         ##################
         # Special cases: #

@@ -1,10 +1,12 @@
 """OpenQASM devices"""
 
-from qiskit.providers.aer import QasmSimulator
-from base import BaseQASM, DummyDevice
+from qiskit.providers.aer import AerSimulator
+
+from pre_hhat.types.builtin import ArrayCircuit
+from pre_hhat.qasm_modules.openqasm.base import DummyDevice, OpenQasmBase
 
 
-class QuantumSimulator(BaseQASM):
+class QuantumSimulator(OpenQasmBase):
     """
     OpenQASM simulator
 
@@ -14,17 +16,15 @@ class QuantumSimulator(BaseQASM):
 
     def __init__(self, **kwargs):
         self.version = kwargs.pop('version') if 'version' in kwargs.keys() else '2.0'
-        self.device = QasmSimulator(**kwargs)
+        self.device = AerSimulator(**kwargs)
 
-    def run(self, *args, **kwargs):
-        device_run = self.device.run(*args, **kwargs)
+    def run(self, data: ArrayCircuit, **kwargs) -> dict:
+        circuit_qasm = self.circuit_to_qasm(data)
+        device_run = self.device.run(circuit_qasm, **kwargs)
         return device_run.result()
 
-    def circuit_to_qasm(self, data, **kwargs):
-        pass
 
-
-class QuantumHardware(BaseQASM):
+class QuantumHardware(OpenQasmBase):
     """
     OpenQASM hardware (dummy hardware)
 
@@ -36,9 +36,6 @@ class QuantumHardware(BaseQASM):
         self.version = kwargs.pop('version') if 'version' in kwargs.keys() else '0.1'
         self.device = DummyDevice(**kwargs)
 
-    def run(self, *args, **kwargs):
-        device_run = self.device.run(*args, **kwargs)
+    def run(self, data: ArrayCircuit, **kwargs) -> dict:
+        device_run = self.device.run(data, **kwargs)
         return device_run.result()
-
-    def circuit_to_qasm(self, data, **kwargs):
-        pass

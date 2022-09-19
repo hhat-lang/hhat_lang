@@ -39,6 +39,7 @@ class BaseGroup(ABC):
 # Generic groups for data #
 #####################################
 
+
 class SingleType(BaseGroup):
     def __init__(self, value, type_name, data_rule):
         self.name = type_name
@@ -94,31 +95,31 @@ class SingleType(BaseGroup):
 
 class SingleAppender(SingleType):
     def __init__(self, value, type_name):
-        super().__init__(value, type_name=type_name, data_rule='appender')
+        super().__init__(value, type_name=type_name, data_rule="appender")
 
     @abstractmethod
     def _format_value(self, value):
         ...
 
     def __repr__(self):
-        return ''.join([str(k) for k in self])
+        return "".join([str(k) for k in self])
 
 
 class SingleMorpher(SingleType):
     def __init__(self, value, type_name):
-        super().__init__(value, type_name=type_name, data_rule='morpher')
+        super().__init__(value, type_name=type_name, data_rule="morpher")
 
     @abstractmethod
     def _format_value(self, value):
         ...
 
     def __repr__(self):
-        return ''.join([str(k) for k in self])
+        return "".join([str(k) for k in self])
 
 
 class SingleNuller(SingleType):
     def __init__(self, type_name):
-        super().__init__(None, type_name=type_name, data_rule='nuller')
+        super().__init__(None, type_name=type_name, data_rule="nuller")
 
     @abstractmethod
     def _format_value(self, value):
@@ -129,12 +130,7 @@ class SingleNuller(SingleType):
 
 
 class ArrayType(BaseGroup):
-    def __init__(self,
-                 *value,
-                 type_name=None,
-                 data_rule=None,
-                 default=None,
-                 value_type=None):
+    def __init__(self, *value, type_name=None, data_rule=None, default=None, value_type=None):
         self.default = default
         self.name = type_name
         self.value_type = self._format_value_type(value_type)
@@ -211,11 +207,13 @@ class ArrayType(BaseGroup):
 
 class ArrayAppender(ArrayType):
     def __init__(self, *value, type_name=None, default=None, value_type=None):
-        super().__init__(*value,
-                         type_name=type_name,
-                         data_rule='appender',
-                         default=default,
-                         value_type=value_type)
+        super().__init__(
+            *value,
+            type_name=type_name,
+            data_rule="appender",
+            default=default,
+            value_type=value_type,
+        )
 
     @abstractmethod
     def _format_value(self, value):
@@ -224,11 +222,9 @@ class ArrayAppender(ArrayType):
 
 class ArrayMorpher(ArrayType):
     def __init__(self, *value, type_name=None, default=None, value_type=None):
-        super().__init__(*value,
-                         type_name=type_name,
-                         data_rule='morpher',
-                         default=default,
-                         value_type=value_type)
+        super().__init__(
+            *value, type_name=type_name, data_rule="morpher", default=default, value_type=value_type
+        )
 
     @abstractmethod
     def _format_value(self, value):
@@ -237,11 +233,9 @@ class ArrayMorpher(ArrayType):
 
 class ArrayNuller(ArrayType):
     def __init__(self, *value, type_name=None, default=None, value_type=None):
-        super().__init__(*value,
-                         type_name=type_name,
-                         data_rule='nuller',
-                         default=default,
-                         value_type=value_type)
+        super().__init__(
+            *value, type_name=type_name, data_rule="nuller", default=default, value_type=value_type
+        )
 
     @abstractmethod
     def _format_value(self, value):
@@ -252,10 +246,11 @@ class ArrayNuller(ArrayType):
 # Here are the groups for quantum data #
 ########################################
 
+
 class Gate(BaseGroup):
     def __init__(self, *value, name: str = None, ct=None, **kwargs):
         if len(set(value)) == len(value):
-            self.name = name.upper(),
+            self.name = (name.upper(),)
             self.raw_indices = value
             self.indices = self._format_indices(value)
             self.raw_value = value
@@ -270,7 +265,7 @@ class Gate(BaseGroup):
             if isinstance(k, tuple):
                 res += self.flatten(*k)
             elif isinstance(k, int):
-                res += k,
+                res += (k,)
         return res
 
     def _format_indices(self, value):
@@ -312,14 +307,14 @@ class Gate(BaseGroup):
             for k in range(value_len):
                 c_start = k * value_len
                 c_end = k * value_len + self.ct[0]
-                indices = ' '.join([str(k) for k in value[c_start:c_end]])
+                indices = " ".join([str(k) for k in value[c_start:c_end]])
                 if not indices:
                     break
-                control = '(' + indices + ')' if len(value[c_start:c_end]) > 1 else indices
+                control = "(" + indices + ")" if len(value[c_start:c_end]) > 1 else indices
                 t_start = k * value_len + self.ct[0]
                 t_end = k * value_len + self.ct[0] + self.ct[1]
-                indices = ' '.join([str(k) for k in value[t_start:t_end]])
-                target = '(' + indices + ')' if len(value[t_start:t_end]) > 1 else indices
+                indices = " ".join([str(k) for k in value[t_start:t_end]])
+                target = "(" + indices + ")" if len(value[t_start:t_end]) > 1 else indices
                 values.append(f"{self.name[0]}(c:{control}, t:{target})")
             return " ".join(values)
         else:
@@ -386,15 +381,18 @@ class GateArray(BaseGroup):
                     k_name = self._get_names(k)
                     inter_name = self._indices_intersection(prev_name, k_name)
                     if inter_name and len(prev[-1].name) == 1:
-                        value[-1] = MultipleIndexGate(*(prev_indices + k_indices),
-                                                      name=prev_name[0])
+                        value[-1] = MultipleIndexGate(
+                            *(prev_indices + k_indices), name=prev_name[0]
+                        )
                         if isinstance(indices[-1], tuple):
                             indices = indices[:-1] + (indices[-1] + k.indices,)
                         else:
                             indices = indices[:-1] + ((indices[-1],) + k.indices,)
                     else:
                         value[-1] = [prev[-1], k]
-                        last_index = indices[-1] if isinstance(indices[-1], tuple) else indices[-1],
+                        last_index = (
+                            indices[-1] if isinstance(indices[-1], tuple) else indices[-1],
+                        )
                         indices = indices[:-1] + (last_index + k.indices,)
                         name = name[:-1] + ((name[-1], k.name[0]),)
                     prev = k
@@ -472,7 +470,9 @@ class ControlTargetGate(Gate):
         if ct is not None and name is not None and self.check_value_mask(value, ct):
             super().__init__(*value, name=name, ct=ct)
         else:
-            raise ValueError(f"{self.__class__.__name__}: cannot have invalid values, ct or empty name.")
+            raise ValueError(
+                f"{self.__class__.__name__}: cannot have invalid values, ct or empty name."
+            )
 
     def check_value_mask(self, value, ct):
         res = ()
@@ -481,7 +481,7 @@ class ControlTargetGate(Gate):
             if isinstance(k, int):
                 counter += 1
             if isinstance(k, tuple):
-                res += self.check_value_mask(k, ct),
+                res += (self.check_value_mask(k, ct),)
         if counter > 0 and len(res) == 0:
             if counter == sum(ct):
                 return True

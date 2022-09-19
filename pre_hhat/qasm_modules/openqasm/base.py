@@ -14,6 +14,7 @@ class DummyDevice:
     """
     class provided to serve as a dummy template
     """
+
     def __init__(self, **kwargs):
         pass
 
@@ -23,10 +24,11 @@ class DummyDevice:
     @staticmethod
     def result() -> dict:
         from pre_hhat import execute_mode
+
         if execute_mode == "all":
-            return {'0x0': 1024}
+            return {"0x0": 1024}
         if execute_mode == "one":
-            return {'0x0': 1}
+            return {"0x0": 1}
 
 
 class OpenQasmBase(BaseQasm):

@@ -14,42 +14,42 @@ class QuantumOperator(Operators):
 
 
 class X(QuantumOperator):
-    name = '@X'
+    name = "@X"
 
     def __call__(self, *args, **kwargs):
         return tuple(group.MultipleIndexGate(*args, name=self.name))
 
 
 class Z(QuantumOperator):
-    name = '@Z'
+    name = "@Z"
 
     def __call__(self, *args, **kwargs):
         return tuple(group.MultipleIndexGate(*args, name=self.name))
 
 
 class H(QuantumOperator):
-    name = '@H'
+    name = "@H"
 
     def __call__(self, *args, **kwargs):
         return tuple(group.MultipleIndexGate(*args, name=self.name))
 
 
 class Cnot(QuantumOperator):
-    name = '@CNOT'
+    name = "@CNOT"
 
     def __call__(self, *args, **kwargs):
         return tuple(group.ControlTargetGate(*args, name=self.name, ct=(1, 1)))
 
 
 class Swap(QuantumOperator):
-    name = '@SWAP'
+    name = "@SWAP"
 
     def __call__(self, *args, **kwargs):
         return tuple(group.ControlTargetGate(*args, name=self.name, ct=(1, 1)))
 
 
 class Toffoli(QuantumOperator):
-    name = '@TOFFOLI'
+    name = "@TOFFOLI"
 
     def __call__(self, *args, **kwargs):
         return tuple(group.ControlTargetGate(*args, name=self.name, ct=(2, 1)))

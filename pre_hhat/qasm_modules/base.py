@@ -1,12 +1,14 @@
+import json
 from abc import ABC, abstractmethod
 
-from pre_hhat.types.builtin import ArrayCircuit
+from pre_hhat.types import ArrayCircuit
 
 
 class BaseQasm(ABC):
     """
     class to provide base specification for QASM modules.
     """
+
     name = "base for QASM"
 
     @abstractmethod
@@ -27,6 +29,17 @@ class BaseQasm(ABC):
 
 
 class BaseTranspiler(ABC):
+    gate_json = ""
+
+    def __init__(self, data: ArrayCircuit):
+        try:
+            self.gates_conversion = json.loads(open(self.gate_json, "r").read())
+        except FileNotFoundError:
+            raise ValueError(f"Transpiler: cannot open file for gates conversion.")
+        else:
+            self.data = data
+            self.len = len(self.data)
+
     @abstractmethod
     def unwrap_header(self):
         ...
@@ -43,6 +56,9 @@ class BaseTranspiler(ABC):
     def unwrap_meas(self):
         ...
 
-    @abstractmethod
-    def transpile(self):
-        ...
+    def transpile(self) -> str:
+        code = self.unwrap_header()
+        code += self.unwrap_decl()
+        code += self.unwrap_gates()
+        code += self.unwrap_meas()
+        return code

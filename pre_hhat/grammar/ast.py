@@ -31,5 +31,5 @@ class AST:
         return False
 
     def __repr__(self):
-        values = ', '.join([str(k) for k in self])
+        values = ", ".join([str(k) for k in self])
         return f"{self.name}({values})"

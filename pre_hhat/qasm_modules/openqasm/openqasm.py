@@ -2,20 +2,23 @@
 
 from qiskit.providers.aer import AerSimulator
 
-from pre_hhat.types.builtin import ArrayCircuit
+from pre_hhat.types import ArrayCircuit
 from pre_hhat.qasm_modules.openqasm.base import DummyDevice, OpenQasmBase
 
 
 class QuantumSimulator(OpenQasmBase):
     """
-    OpenQASM simulator
-
+    OpenQASM language
     default version = 2.0
+
+    class type = simulator
+
     """
+
     name = "OpenQASM simulator"
 
     def __init__(self, **kwargs):
-        self.version = kwargs.pop('version') if 'version' in kwargs.keys() else '2.0'
+        self.version = kwargs.pop("version") if "version" in kwargs.keys() else "2.0"
         self.device = AerSimulator(**kwargs)
 
     def run(self, data: ArrayCircuit, **kwargs) -> dict:
@@ -30,10 +33,11 @@ class QuantumHardware(OpenQasmBase):
 
     default version = dummy version
     """
+
     name = "OpenQASM hardware"
 
     def __init__(self, **kwargs):
-        self.version = kwargs.pop('version') if 'version' in kwargs.keys() else '0.1'
+        self.version = kwargs.pop("version") if "version" in kwargs.keys() else "0.1"
         self.device = DummyDevice(**kwargs)
 
     def run(self, data: ArrayCircuit, **kwargs) -> dict:

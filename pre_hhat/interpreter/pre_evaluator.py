@@ -1,6 +1,5 @@
 """Setting up the AST for evaluation"""
 from pre_hhat.core.memory import SymbolTable
-from pre_hhat.types.groups import BaseGroup
 from pre_hhat.grammar.ast import AST
 
 
@@ -19,7 +18,7 @@ class PreEvaluator:
                 if res is not None:
                     break
         if isinstance(code, AST):
-            if code.name == 'main':
+            if code.name == "main":
                 self.table[code.name] = code.value
                 res = self.table
             else:

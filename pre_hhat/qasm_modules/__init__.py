@@ -2,14 +2,20 @@ from pre_hhat import get_quantum_module
 
 
 module, _, device_type = get_quantum_module()
-if module == 'cqasm':
-    import pre_hhat.qasm_modules.cqasm as qasm
-elif module == 'netqasm':
-    import pre_hhat.qasm_modules.netqasm as qasm
-elif module == 'openqasm':
-    if device_type == 'simulator':
+if module == "cqasm":
+    raise NotImplementedError("cQASM not implemented yet.")
+elif module == "netqasm":
+    if device_type == "simulator":
+        from pre_hhat.qasm_modules.netqasm import QuantumSimulator as QuantumDevice
+    elif device_type == "hardware":
+        from pre_hhat.qasm_modules.netqasm import QuantumHardware as QuantumDevice
+    raise NotImplementedError("NetQASM not implemented yet.")
+elif module == "openqasm":
+    if device_type == "simulator":
         from pre_hhat.qasm_modules.openqasm import QuantumSimulator as QuantumDevice
-    elif device_type == 'hardware':
+    elif device_type == "hardware":
         from pre_hhat.qasm_modules.openqasm import QuantumHardware as QuantumDevice
-elif module == 'q1asm':
-    import pre_hhat.qasm_modules.q1asm as qasm
+elif module == "q1asm":
+    raise NotImplementedError("Q1ASM not implemented yet.")
+else:
+    raise NotImplementedError(f"{module} QASM language is not implemented. Should it be?")

@@ -1,2 +1,2 @@
-from .single import SingleInt, SingleStr, SingleBool, SingleNull
-from .array import ArrayCircuit, ArrayStr, ArrayInt, ArrayBool, ArrayNull
+from .single import SingleInt, SingleStr, SingleBool, SingleNull, SingleHashmap
+from .array import ArrayCircuit, ArrayStr, ArrayInt, ArrayBool, ArrayNull, ArrayHashmap

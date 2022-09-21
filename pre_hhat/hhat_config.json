@@ -1,0 +1,9 @@
+{
+  "protocols": {
+    "list": [
+      "biggest_value",
+      "weighted_average"
+    ],
+    "default": "weighted_average"
+  }
+}

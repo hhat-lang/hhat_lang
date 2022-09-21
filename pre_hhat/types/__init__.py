@@ -3,11 +3,13 @@ from .builtin import (
     SingleBool,
     SingleInt,
     SingleStr,
+    SingleHashmap,
     ArrayBool,
     ArrayInt,
     ArrayStr,
     ArrayCircuit,
     ArrayNull,
+    ArrayHashmap,
 )
 from .groups import (
     ArrayType,
@@ -30,6 +32,7 @@ def get_type(name):
         "bool": ArrayBool,
         "int": ArrayInt,
         "str": ArrayStr,
+        "hashmap": ArrayHashmap,
         "circuit": ArrayCircuit,
     }
     return data_types.get(name, False)

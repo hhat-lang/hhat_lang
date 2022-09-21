@@ -8,7 +8,7 @@ from pre_hhat.operators import classical as poc
 from pre_hhat.operators import quantum as poq
 from pre_hhat.grammar.ast import AST
 from pre_hhat.types import get_type
-from pre_hhat.types import SingleInt, SingleStr, ArrayInt, ArrayStr, ArrayCircuit
+from pre_hhat.types import SingleInt, SingleStr, SingleHashmap
 
 examples = [
     "hello.hht",
@@ -19,11 +19,11 @@ examples = [
 ]
 
 
-def parsing_code(example, print_code=False, debug=True):
+def parsing_code(example_name, print_code=False, debug=True):
     file_dir = os.path.dirname(__file__)
     grammar = open(os.path.join(file_dir, "grammar.peg"), "r").read()
     parser = ParserPEG(grammar, "program", debug=debug, reduce_tree=True)
-    code = open(os.path.join(examples_dir, example), "r").readlines()
+    code = open(os.path.join(examples_dir, example_name), "r").readlines()
     if print_code:
         for k in code:
             print(f"      {k}")
@@ -45,6 +45,10 @@ class CST(PTNodeVisitor):
 
     def visit_program(self, n, k):
         return AST("program", *k)
+
+    def visit_protocols(self, n, k):
+        print(f"protocol = {k}")
+        k[0] = AST("protocol", *tuple(q for q in k if not isinstance(example, str)))
 
     def visit_main(self, n, k):
         return AST("main", *k)
@@ -82,7 +86,15 @@ class CST(PTNodeVisitor):
                 k[0] = (getattr(poc, val, None) or getattr(poq, val))()
             else:
                 k[0] = AST("id", k[0])
-        k = k[1], k[0]
+            k = k[1], k[0]
+        elif isinstance(k[0], AST) and isinstance(k[1], str):
+            val = k[1].strip("@").capitalize()
+            if getattr(poc, val, False) or getattr(poq, val, False):
+                k[1] = (getattr(poc, val, None) or getattr(poq, val))()
+            else:
+                k[1] = AST("id", k[1])
+            k = k[-1], k[-2]
+            k = (AST("collect", *k),)
         return AST("gen_call", *k)
 
     def visit_assign(self, n, k):
@@ -143,6 +155,9 @@ class CST(PTNodeVisitor):
     def visit_args(self, n, k):
         return AST("args", *k)
 
+    def visit_collect(self, n, k):
+        return AST("collect", *k)
+
     def visit_id(self, n, k):
         return AST("id", n.value)
 
@@ -152,8 +167,15 @@ class CST(PTNodeVisitor):
     def visit_STR(self, n, k):
         return SingleStr(n.value)
 
+    def visit_HASHMAP(self, n, k):
+        print(f"hashmap = {k}")
+        return SingleHashmap(k)
+
+    def visit_hash_expr(self, n, k):
+        return k[0], k[2]
+
 
 if __name__ == "__main__":
-    for p in examples:
-        res = parsing_code(p)
+    for example in examples:
+        res = parsing_code(example)
         print(res)

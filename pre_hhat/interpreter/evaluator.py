@@ -1,11 +1,10 @@
 """Interpreter/Evaluator"""
 from copy import deepcopy
 
-from pre_hhat.core.memory import Memory, SymbolTable
+from pre_hhat import execute_mode, num_shots
+from pre_hhat.core import Memory, SymbolTable
 from pre_hhat.grammar.ast import AST
-from pre_hhat.operators.builtin import Operators
-from pre_hhat.operators.classical import Add, Print
-from pre_hhat.operators.quantum import X, H
+from pre_hhat.operators import Operators, Collector
 from pre_hhat.types import ArrayType, SingleType
 from pre_hhat.types import (
     SingleNull,
@@ -47,6 +46,7 @@ class Evaluator:
                 SingleType: self.literals,
                 tuple: self.role_tuple,
                 dict: self.role_dict,
+                Collector: self.kw_collect,
             }
         else:
             raise ValueError(
@@ -78,6 +78,10 @@ class Evaluator:
         if isinstance(node, ArrayType):
             return self.data_types
         return self._ast_nodes[node.name] if isinstance(node, AST) else None
+
+    def kw_collect(self, code: Collector, stack):
+        res = code(stack=stack)
+        return stack
 
     def role_dict(self, code, stack):
         print("got into role dict")

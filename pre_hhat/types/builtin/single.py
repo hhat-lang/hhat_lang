@@ -1,5 +1,12 @@
 from pre_hhat.types import groups as group
-from pre_hhat.types.builtin import ArrayInt, ArrayCircuit, ArrayStr
+from pre_hhat.types.builtin import (
+    ArrayInt,
+    ArrayCircuit,
+    ArrayStr,
+    ArrayBool,
+    ArrayNull,
+    ArrayHashmap,
+)
 
 
 class SingleInt(group.SingleMorpher):
@@ -204,7 +211,68 @@ class SingleBool(group.SingleMorpher):
 
 
 class SingleHashmap(group.SingleAppender):
-    pass
+    def __init__(self, value):
+        super().__init__(value, type_name=SingleHashmap)
+
+    def _format_value(self, value):
+        try:
+            return (dict(value),)
+        except TypeError:
+            raise ValueError(f"{self.__class__.__name__}: wrong input value.")
+
+    def __iter__(self):
+        yield from self.value[0].items()
+
+    def __len__(self):
+        return len(self.value[0].keys())
+
+    def __getitem__(self, item):
+        return self.value[0].get(item, None)
+
+    def __eq__(self, other):
+        if self == other:
+            return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        if isinstance(other, SingleHashmap):
+            if len(self) > len(other):
+                return True
+        return False
+
+    def __ge__(self, other):
+        if isinstance(other, SingleHashmap):
+            if len(self) >= len(other):
+                return True
+        return False
+
+    def __lt__(self, other):
+        if isinstance(other, SingleHashmap):
+            if len(self) < len(other):
+                return True
+        return False
+
+    def __le__(self, other):
+        if isinstance(other, SingleHashmap):
+            if len(self) <= len(other):
+                return True
+        return False
+
+    def __add__(self, other):
+        if isinstance(other, SingleHashmap):
+            return ArrayHashmap(*(tuple(self) + tuple(other)))
+        if isinstance(other, ArrayCircuit):
+            raise NotImplemented(f"{self.name}: not implemented addition with circuit yet.")
+        raise NotImplemented(
+            f"{self.name}: not implemented addition with {other.__class__.__name__}."
+        )
+
+    def __repr__(self):
+        values = ", ".join([f"{k}:{v}" for k, v in self])
+        return f"({values})"
 
 
 class SingleNull(group.SingleNuller):

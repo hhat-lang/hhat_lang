@@ -1,13 +1,24 @@
+"""Data types as array groups"""
+
+from pre_hhat import default_protocol
 from pre_hhat.grammar import ast as gast
-from pre_hhat.qasm_modules.openqasm import QuantumHardware
+from pre_hhat.qasm_modules import QuantumDevice
+from pre_hhat.protocols import protocols_list
 from pre_hhat.types import groups as group
-from pre_hhat.types.builtin.single import SingleNull, SingleInt, SingleStr, SingleBool
+from pre_hhat.types.builtin.single import (
+    SingleNull,
+    SingleInt,
+    SingleStr,
+    SingleBool,
+    SingleHashmap,
+)
 
 
 class ArrayNull(group.ArrayNuller):
-    def __init__(self, *value):
+    def __init__(self, *value, protocol=default_protocol):
         default = []
         super().__init__(*value, type_name=ArrayNull, default=default, value_type=SingleNull)
+        self.protocol = protocol
 
     @property
     def value(self):
@@ -70,9 +81,10 @@ class ArrayNull(group.ArrayNuller):
 
 
 class ArrayInt(group.ArrayMorpher):
-    def __init__(self, *value):
+    def __init__(self, *value, protocol=default_protocol):
         default = [0]
         super().__init__(*value, type_name=ArrayInt, default=default, value_type=SingleInt)
+        self.protocol = protocol
 
     @property
     def value(self):
@@ -205,9 +217,10 @@ class ArrayInt(group.ArrayMorpher):
 
 
 class ArrayStr(group.ArrayAppender):
-    def __init__(self, *value):
+    def __init__(self, *value, protocol=default_protocol):
         default = [""]
         super().__init__(*value, type_name=ArrayStr, default=default, value_type=SingleStr)
+        self.protocol = protocol
 
     @property
     def value(self):
@@ -337,9 +350,10 @@ class ArrayStr(group.ArrayAppender):
 
 
 class ArrayBool(group.ArrayMorpher):
-    def __init__(self, *value):
+    def __init__(self, *value, protocol=default_protocol):
         default = []
         super().__init__(*value, type_name=ArrayBool, default=default, value_type=SingleBool)
+        self.protocol = protocol
 
     @property
     def value(self):
@@ -461,17 +475,116 @@ class ArrayBool(group.ArrayMorpher):
         return f"({values})"
 
 
+class ArrayHashmap(group.ArrayAppender):
+    def __init__(self, *value, protocol=default_protocol):
+        default = dict()
+        super().__init__(*value, type_name=ArrayHashmap, default=default, value_type=SingleHashmap)
+        self.protocol = protocol
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def indices(self):
+        return self._indices
+
+    def _format_value(self, value):
+        try:
+            res = [dict(value)]
+            indices = tuple(res[0].keys())
+        except TypeError:
+            raise ValueError(f"{self.name}: wrong type value.")
+        else:
+            return res, indices
+
+    def __iter__(self):
+        yield from self.value[0].items()
+
+    def __len__(self):
+        return len(self.value[0].keys())
+
+    def __getitem__(self, item):
+        return self.value[0].get(item, None)
+
+    def __setitem__(self, key, value):
+        if key in self.value[0].keys():
+            self.value[0] = value
+        else:
+            raise ValueError(f"{self.name}: cannot assign {key}; invalid key.")
+
+    def __eq__(self, other):
+        if isinstance(other, (SingleHashmap, ArrayHashmap)):
+            if self.value[0].keys() == other.value[0].keys():
+                return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        if isinstance(other, ArrayHashmap):
+            if self.value[0].keys() > other.value[0].keys():
+                return True
+        return False
+
+    def __ge__(self, other):
+        if isinstance(other, ArrayHashmap):
+            if self.value[0].keys() >= other.value[0].keys():
+                return True
+        return False
+
+    def __lt__(self, other):
+        if isinstance(other, ArrayHashmap):
+            if self.value[0].keys() < other.value[0].keys():
+                return True
+        return False
+
+    def __le__(self, other):
+        if isinstance(other, ArrayHashmap):
+            if self.value[0].keys() <= other.value[0].keys():
+                return True
+        return False
+
+    def __add__(self, other):
+        if isinstance(other, (SingleHashmap, ArrayHashmap)):
+            return self.__class__(*(tuple(self) + tuple(other)))
+        if isinstance(other, ArrayCircuit):
+            raise NotImplemented(f"{self.name}: not implemented addition with circuit yet.")
+        raise NotImplemented(
+            f"{self.name}: not imeplemented addition with {other.__class__.__name__}."
+        )
+
+    def __iadd__(self, other):
+        if isinstance(other, (SingleHashmap, ArrayHashmap)):
+            self.value[0].update(other.value[0])
+            return self
+        if isinstance(other, ArrayCircuit):
+            raise NotImplemented(f"{self.name}: not implemented appending with circuit.")
+        raise NotImplemented(
+            f"{self.name}: not implemented appending with {other.__class__.__name__}."
+        )
+
+    def __contains__(self, item):
+        return item in self.value[0].keys()
+
+    def __repr__(self):
+        values = ", ".join([f"{k}:{v}" for k, v in self])
+        return f"({values})"
+
+
 class ArrayCircuit(group.ArrayAppender):
-    def __init__(self, *value):
+    def __init__(self, *value, protocol=default_protocol):
         default = []
         self._counter = 0
         super().__init__(
             *value,
             type_name=ArrayCircuit,
             default=default,
-            value_type=(group.Gate, group.GateArray),
+            value_type=(group.Gate, group.GateArray, gast.AST, ArrayCircuit),
         )
         self._true_len = self._get_true_len()
+        self.protocol = protocol
 
     @property
     def value(self):
@@ -547,16 +660,32 @@ class ArrayCircuit(group.ArrayAppender):
         return not self.__eq__(other)
 
     def __gt__(self, other):
-        pass
+        if isinstance(other, ArrayCircuit):
+            if len(self) > len(other):
+                return True
+            return False
+        raise ValueError(f"{self.name}: cannot do 'gt' with {other.__class__.__name__}.")
 
     def __ge__(self, other):
-        pass
+        if isinstance(other, ArrayCircuit):
+            if len(self) >= len(other):
+                return True
+            return False
+        raise ValueError(f"{self.name}: cannot do 'ge' with {other.__class__.__name__}.")
 
     def __lt__(self, other):
-        pass
+        if isinstance(other, ArrayCircuit):
+            if len(self) < len(other):
+                return True
+            return False
+        raise ValueError(f"{self.name}: cannot do 'lt' with {other.__class__.__name__}.")
 
     def __le__(self, other):
-        pass
+        if isinstance(other, ArrayCircuit):
+            if len(self) <= len(other):
+                return True
+            return False
+        raise ValueError(f"{self.name}: cannot do 'le' with {other.__class__.__name__}.")
 
     def __add__(self, other):
         if isinstance(other, group.Gate):
@@ -568,22 +697,10 @@ class ArrayCircuit(group.ArrayAppender):
         if isinstance(other, gast.AST):
             return ArrayCircuit(*(self.value + [other]))
 
-        ##################
-        # Special cases: #
-        ##################
 
-        # Integer
-        if isinstance(other, SingleInt):
-            device = QuantumDevice()
-            result = device.run(data=self)
-        if isinstance(other, ArrayInt):
-            pass
-
-        # String
-        if isinstance(other, SingleStr):
-            pass
-        if isinstance(other, ArrayStr):
-            pass
+        device = QuantumDevice()
+        result = device.run(data=self)
+        return other.__class__()
 
     def __iadd__(self, other):
         if isinstance(other, SingleNull):
@@ -603,6 +720,7 @@ class ArrayCircuit(group.ArrayAppender):
             self.value.append(other)
             self._indices += (None,)
             return self
+        raise ValueError(f"{self.name}: cannot append {other.__class__.__name__} type.")
 
     def __contains__(self, item):
         for k in self:

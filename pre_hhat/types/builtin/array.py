@@ -75,7 +75,11 @@ class ArrayNull(group.ArrayNuller):
 class ArrayInt(group.ArrayMorpher):
     def __init__(self, *value, protocol=default_protocol):
         default = [types.SingleInt(0)]
-        super().__init__(*value, type_name=ArrayInt, default=default, value_type=types.SingleInt)
+        super().__init__(
+            *value,
+            type_name=ArrayInt,
+            default=default,
+            value_type=types.SingleInt)
         self.protocol = protocol
 
     @property
@@ -174,13 +178,11 @@ class ArrayInt(group.ArrayMorpher):
     def __add__(self, other):
         if isinstance(other, types.SingleInt):
             for n, k in enumerate(self):
-                self.value[n] += other.value[0]
+                self.value[n] += other.value
             return self
         if isinstance(other, ArrayInt):
-            for n, v in enumerate(zip(self, other)):
-                if n < len(other):
-                    self.value[n] += v[1]
-            return self
+            self.value.extend(other.value)
+            return self.__class__(self.value + other.value)
         if isinstance(other, types.SingleNull):
             return self
         if isinstance(other, ArrayCircuit):
@@ -194,7 +196,9 @@ class ArrayInt(group.ArrayMorpher):
             # self.value.extend(other.value)
             return self
         if isinstance(other, ArrayInt):
-            self.value.extend(other.value)
+            for n, v in enumerate(zip(self, other)):
+                if n < len(other):
+                    self.value[n] += v[1]
             return self
         if isinstance(other, types.SingleNull):
             return self
@@ -605,8 +609,10 @@ class ArrayCircuit(group.ArrayAppender):
             count = types.SingleInt(0)
             for k in value:
                 if isinstance(k, (group.Gate, group.GateArray, ArrayCircuit)):
-                    res.extend(k)
+                    res.append(k)
                     indices += k.indices
+                    for _ in k.indices:
+                        count = count + types.SingleInt(1)
                 if isinstance(k, gast.AST):
                     res.append(k)
                 if k is None:
@@ -703,8 +709,9 @@ class ArrayCircuit(group.ArrayAppender):
             return self
         if isinstance(other, (group.Gate, group.GateArray)):
             self.value.append(other)
-            self._indices += (self._counter,)
-            self._counter += 1
+            self._indices += other.indices
+            self._indices = tuple(set(self._indices))
+            self._true_len = len(self._indices)
             return self
         if isinstance(other, ArrayCircuit):
             self.value.extend(other)

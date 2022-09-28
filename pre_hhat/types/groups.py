@@ -265,8 +265,11 @@ class Gate(BaseGroup):
         for k in value:
             if isinstance(k, tuple):
                 res += self.flatten(*k)
-            elif isinstance(k, (int, types.SingleInt)):
+            elif isinstance(k, types.SingleInt):
                 res += (k,)
+            elif isinstance(k, int):
+                print("GATE INT INDEX ERROR")
+                exit()
         return res
 
     def _format_indices(self, value):
@@ -292,16 +295,18 @@ class Gate(BaseGroup):
         return self
 
     def __iter__(self):
-        yield from self.value.items()
+        yield from self.value
 
     def __len__(self):
-        return len(self.value.keys())
+        return len(self.value[0].keys())
 
     def __contains__(self, item):
-        return item.value == self.value
+        if not isinstance(item, BaseGroup):
+            return item in self.value
+        return item.value in self.value
 
     def __repr__(self):
-        value = self.flatten(*self.value)
+        value = list(self.value[0].keys())
         if self.ct is not None:
             values = []
             value_len = sum(self.ct)
@@ -320,7 +325,7 @@ class Gate(BaseGroup):
             return " ".join(values)
         else:
             if self.name[0] is not None:
-                res = " ".join([f"{k}" for k in value])
+                res = " ".join([f"{k}" for k in value if not isinstance(k, types.SingleNull)])
                 return f"{self.name[0]}({res})"
             else:
                 return "(" + " ".join([str(k) for k in value]) + ")"
@@ -452,7 +457,7 @@ class SingleIndexGate(Gate):
             raise ValueError(f"{self.__class__.__name__}: must have a name.")
 
     def _format_value(self, value):
-        return {value[0]: self.name[0]}
+        return [{value[0]: self.name[0]}]
 
 
 class MultipleIndexGate(Gate):
@@ -460,7 +465,7 @@ class MultipleIndexGate(Gate):
         super().__init__(*value, name=name)
 
     def _format_value(self, value):
-        return {k: self.name[0] for k in value}
+        return [{k: self.name[0] for k in value}]
 
 
 class ControlTargetGate(Gate):
@@ -490,7 +495,7 @@ class ControlTargetGate(Gate):
             return False
 
     def _format_value(self, value):
-        return {k: self.name[0] for k in value}
+        return [{k: self.name[0] for k in value}]
 
     def __add__(self, other):
         return GateArray(self, other)

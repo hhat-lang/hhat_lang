@@ -12,16 +12,16 @@ class Add(Operators):
         if len(args) == 2:
             data_types = set(type(k) for k in args[0] + args[1])
             if len(data_types) == 1:
-                res = ()
+                res = ()  # kwargs["value_type"](kwargs["value_type"]().default[0])
                 if len(args[0]) == len(args[1]):
                     for k, v in zip(*args):
-                        res += ((k + v),)
+                        res += (k + v),
                 elif len(args[0]) == 1:
                     for k in args[1]:
-                        res += ((args[0][0] + k),)
+                        res += (args[0][0] + k),
                 elif len(args[1]) == 1:
                     for k in args[0]:
-                        res += ((args[1][0] + k),)
+                        res += (args[1][0] + k)
             if types.is_circuit(data_types):
                 res = kwargs["value_type"](kwargs["value_type"]().default[0])
                 if len(args[0]) == len(args[1]):
@@ -70,6 +70,11 @@ class Print(Operators):
 
         if len(args) == 2:
             args = args[0] + args[1]
-        new_args = [str(k).strip('"').strip("'") for k in args]
-        print(*new_args, **kwargs)
+        for n, k in enumerate(args):
+            if not isinstance(k, types.SingleNull):
+                k = str(k).strip('"').strip("'") if isinstance(k, types.SingleStr) else k
+                if n < len(args) - 1:
+                    print(k, end=" ")
+                else:
+                    print(k)
         return types.ArrayNull()

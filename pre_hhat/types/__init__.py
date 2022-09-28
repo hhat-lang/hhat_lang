@@ -40,21 +40,26 @@ def get_type(name):
     return data_types.get(name, False)
 
 
+circuit_types = ArrayCircuit().value_type
+
+
 def is_circuit(data):
-    circuit_types = ArrayCircuit().value_type
     if isinstance(data, (tuple, set, list)):
         for k in data:
-            try:
-                if isinstance(k(), circuit_types):
-                    return True
-            except TypeError:
-                if isinstance(k, circuit_types):
-                    return True
+            p = is_circuit(k)
+            if p:
+                return True
         return False
     try:
-        if isinstance(data(), circuit_types):
+        if isinstance(data, ArrayCircuit):
             return True
+        try:
+            if isinstance(data(), circuit_types):
+                return True
+        except TypeError:
+            if isinstance(data, circuit_types):
+                return False
     except TypeError:
-        if isinstance(data, circuit_types):
+        if isinstance(data(), ArrayCircuit):
             return True
     return False

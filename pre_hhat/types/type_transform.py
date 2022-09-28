@@ -9,7 +9,8 @@ def circuit_transform(circuit, stack):
     device = QuantumDevice()
     result = device.run(data=circuit, stack=stack)
     if execute_mode == "all":
-        return protocols_list[default_protocol](result)
+        protocol_res = protocols_list[default_protocol](result)
+        return protocol_res
     if execute_mode == "one":
         return tuple(result.value[0].keys())[0]
     raise ValueError(f"{__name__}: invalid execute mode.")

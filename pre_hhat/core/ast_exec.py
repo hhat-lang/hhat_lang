@@ -83,11 +83,14 @@ class Exec:
         return stack
 
     def node_id(self, code, stack):
-        stack["res"] += stack["mem"][code]
+        if code in stack["mem"]:
+            stack["res"] += stack["mem"][code]
+        else:
+            print(f"where's code {code} from?")
         return stack
 
     def node_args(self, code, stack):
-        for k in code:
+        for n, k in enumerate(code):
             stack = self.get_node(k, stack)
         return stack
 
@@ -96,7 +99,10 @@ class Exec:
         if stack["var"]:
             if not stack["index"]:
                 stack["index"] = stack["mem"][stack["var"], "indices"]
-            var_index = stack["mem"][stack["var"], stack["index"]]
+            if isinstance(code.value[1], oper.Print):
+                var_index = stack["mem"][stack["var"]]
+            else:
+                var_index = stack["mem"][stack["var"], stack["index"]]
             res = code.value[1](
                 *(stack["res"], var_index),
                 value_type=stack["mem"][stack["var"], "type"][0],
@@ -128,15 +134,17 @@ class Exec:
         stack["index"] = ()
         stack["res"] = ()
         if len(code.value) == 1:
-            stack["index"] = stack["mem"][stack["var"], "indices"]
+            if not stack["index"]:
+                stack["index"] = stack["mem"][stack["var"], "indices"]
             if isinstance(code.value[0], oper.Operators):
                 var_index = stack["mem"][stack["var"], stack["index"]]
                 res = code.value[0](
-                    *var_index,
+                    *((types.SingleNull(),) + var_index),
                     value_type=stack["mem"][stack["var"], "type"][0],
                     stack=stack,
                 )
                 if res:
+                    stack["res"] = res
                     for k, idx in zip(res, stack["index"]):
                         stack["mem"][stack["var"], idx] = k
             else:
@@ -159,16 +167,24 @@ class Exec:
         stack = self.get_node(code.value[0], stack)
         if stack["var"]:
             res = code.value[1](
-                *(stack["res"]), value_type=stack["mem"][stack["var"], "type"][0], stack=stack
+                *((types.SingleNull(),) + stack["res"]),
+                value_type=stack["mem"][stack["var"], "type"][0],
+                stack=stack
             )
         else:
-            res = code.value[1](*(stack["res"]))
+            res = code.value[1](*stack["res"])
         if res:
             stack["res"] = res
         return stack
 
     def node_var_assign(self, code, stack):
-
+        # print(code, type(code), code.value, type(code.value))
+        # stack["var"] = code.value
+        for n, k in enumerate(code):
+            if n == 0:
+                stack["var"] = k
+            else:
+                stack = self.get_node(k, stack)
         return stack
 
     def node_type_expr(self, code, stack):

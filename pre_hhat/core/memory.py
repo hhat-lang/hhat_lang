@@ -30,7 +30,7 @@ class Memory:
                 _type = type_expr[0]
                 _len = type_expr[1]
                 _fixed_size = types.SingleBool("T")
-                if not isinstance(_type(), types.ArrayCircuit):
+                if not types.is_circuit(_type):
                     values = [
                         _type().value_type(_type().default[0])
                         for k in range(_len.value[0])
@@ -60,15 +60,18 @@ class Memory:
     def __setitem__(self, key, value):
         if isinstance(key, tuple):
             if key[0] in self.stack["var"].keys():
-                if isinstance(key[1], (int, types.SingleInt)):
+                if isinstance(key[1], int):
+                    print("RED ALERT")
+                    exit()
+                if isinstance(key[1], types.SingleInt):
                     k1_keys = key[1] in self.stack["var"][key[0]]["data"].indices
                     if k1_keys:
-                        if not isinstance(self.stack["var"][key[0]]["type"](), types.ArrayCircuit):
+                        if not types.is_circuit(self.stack["var"][key[0]]["type"]()):
                             self.stack["var"][key[0]]["data"][key[1]] = value
                         else:
                             self.stack["var"][key[0]]["data"] += value
                     elif not self.stack["var"][key[0]]["fixed_size"]:
-                        if not isinstance(self.stack["var"][key[0]]["type"](), types.ArrayCircuit):
+                        if not types.is_circuit(self.stack["var"][key[0]]["type"]()):
                             self.stack["var"][key[0]]["data"][key[1]] += value
                             self.stack["var"][key[0]]["len"] = len(self.stack["var"][key[0]]["data"])
                         else:
@@ -103,9 +106,10 @@ class Memory:
                 if isinstance(item[1], tuple):
                     res = ()
                     for k in item[1]:
-                        if not isinstance(self.stack["var"][item[0]]["type"](), types.ArrayCircuit):
+                        if not types.is_circuit(self.stack["var"][item[0]]["type"]()):
                             res += (self.stack["var"][item[0]]["data"][k.value[0]],)
                         else:
+                            _len = self.stack["var"][item[0]]["len"]
                             if k < self.stack["var"][item[0]]["len"]:
                                 res += k,
                     return res
@@ -114,9 +118,9 @@ class Memory:
         if item in self.stack.keys():
             return tuple(self.stack[item])
         if item in self.stack["var"].keys():
-            if not isinstance(item, types.ArrayCircuit):
+            if not types.is_circuit(self.stack["var"][item]["type"]):
                 return tuple(self.stack["var"][item]["data"].value)
-            return self.stack["var"][item]
+            return self.stack["var"][item]["data"],
         raise ValueError(f"No {item} found in memory.")
 
     def __contains__(self, item):
@@ -124,7 +128,7 @@ class Memory:
             if item[0] in self.stack["var"].keys():
                 return item[1] in self.stack["var"][item[0]]["data"].indices
             return False
-        return item[0] in self.stack.keys()
+        return item in self.stack["var"].keys()
 
 
 class SymbolTable:

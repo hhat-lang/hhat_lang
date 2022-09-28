@@ -89,7 +89,9 @@ class SingleInt(group.SingleMorpher):
         if isinstance(other, SingleInt):
             return self.__class__(self.value[0] + other.value[0])
         if isinstance(other, types.ArrayInt):
-            return other + self.value[0]
+            for n, k in enumerate(other):
+                other.value[n] += self.value[0]
+            return other
         if isinstance(other, SingleNull):
             return self
         if isinstance(other, tuple):
@@ -483,7 +485,7 @@ class SingleNull(group.SingleNuller):
         return []
 
     def __hash__(self):
-        return hash((self.name, self.value[0]))
+        return hash(self.name)
 
     def __getitem__(self, item):
         return "null"

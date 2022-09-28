@@ -1,7 +1,6 @@
 import json
 from abc import ABC, abstractmethod
-
-from pre_hhat.types import ArrayCircuit
+import pre_hhat.core.ast_exec as ast_exec
 
 
 class BaseQasm(ABC):
@@ -12,11 +11,11 @@ class BaseQasm(ABC):
     name = "base for QASM"
 
     @abstractmethod
-    def run(self, data: ArrayCircuit, **kwargs) -> dict:
+    def run(self, data, stack, **kwargs):
         ...
 
     @abstractmethod
-    def circuit_to_str(self, data: ArrayCircuit) -> str:
+    def circuit_to_str(self, data) -> str:
         ...
 
     @abstractmethod
@@ -24,20 +23,25 @@ class BaseQasm(ABC):
         ...
 
     @abstractmethod
-    def circuit_to_qasm(self, data: ArrayCircuit, **kwargs):
+    def circuit_to_qasm(self, data, stack, **kwargs):
+        ...
+
+    @abstractmethod
+    def ast_to_qasm(self, code, stack):
         ...
 
 
 class BaseTranspiler(ABC):
     gate_json = ""
 
-    def __init__(self, data: ArrayCircuit):
+    def __init__(self, data):
         try:
             self.gates_conversion = json.loads(open(self.gate_json, "r").read())
         except FileNotFoundError:
             raise ValueError(f"Transpiler: cannot open file for gates conversion.")
         else:
             self.data = data
+            print(f"transpiler data {self.data}")
             self.len = len(self.data)
 
     @abstractmethod

@@ -2,8 +2,8 @@
 
 from abc import ABC, abstractmethod
 
-from pre_hhat.core import Memory
 from pre_hhat import execute_mode, num_shots
+import pre_hhat.types as types
 
 
 class Operators(ABC):
@@ -15,14 +15,15 @@ class Operators(ABC):
 class Collector:
     mode = execute_mode
     shots = num_shots
-    stack = Memory("collect")
 
-    def __init__(self, *args):
-        self.code = args
+    def __init__(self, code):
+        self.code = code
         self.data = []
 
     def _collect_one(self):
-        pass
+        res = dict()
+        for k in range(self.shots):
+            pass
 
     def _collect_all(self):
         pass
@@ -39,7 +40,5 @@ class Collector:
                 self._collect_all()
                 return ()
             else:
-                raise ValueError(
-                    f"{self.__class__.__name__}: execute mode needs to be 'one' or 'all'."
-                )
+                raise ValueError(f"{self.__class__.__name__}: execute mode must be 'one' or 'all'.")
         raise ValueError(f"{self.__class__.__name__}: needs a stack from Evaluator.")

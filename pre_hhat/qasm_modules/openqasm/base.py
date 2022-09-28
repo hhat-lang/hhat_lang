@@ -5,9 +5,10 @@ from abc import abstractmethod
 from qiskit import QuantumCircuit, converters as qiskit_conv
 from qiskit.qasm import Qasm
 
+import pre_hhat.core.ast_exec as ast_exec
+from pre_hhat import behavior_type
 from pre_hhat.qasm_modules.base import BaseQasm
 from pre_hhat.qasm_modules.openqasm.transpiler import Transpiler
-from pre_hhat.types import ArrayCircuit
 
 
 class DummyDevice:
@@ -18,7 +19,7 @@ class DummyDevice:
     def __init__(self, **kwargs):
         pass
 
-    def run(self, data, **kwargs):
+    def run(self, data, stack, **kwargs):
         return self
 
     @staticmethod
@@ -33,10 +34,10 @@ class DummyDevice:
 
 class OpenQasmBase(BaseQasm):
     @abstractmethod
-    def run(self, *args, **kwargs):
+    def run(self, data, stack, **kwargs):
         ...
 
-    def circuit_to_str(self, data: ArrayCircuit) -> str:
+    def circuit_to_str(self, data) -> str:
         return Transpiler(data).transpile()
 
     def str_to_qasm(self, code: str) -> QuantumCircuit:
@@ -45,6 +46,21 @@ class OpenQasmBase(BaseQasm):
         code_dag = qiskit_conv.ast_to_dag(code_ast)
         return qiskit_conv.dag_to_circuit(code_dag)
 
-    def circuit_to_qasm(self, data: ArrayCircuit, **kwargs) -> QuantumCircuit:
-        code = self.circuit_to_str(data)
-        return self.str_to_qasm(code)
+    def circuit_to_qasm(self, data, stack, **kwargs) -> QuantumCircuit:
+        code = ""
+        print("veio aqui?")
+        if isinstance(data, (tuple, list)):
+            for k in data:
+                code = self.circuit_to_str(k)
+        else:
+            code = self.circuit_to_str(data)
+        print(f"show me de code:\n{code}")
+        now_qasm = self.str_to_qasm(code)
+        print(f"now show qasm:\n{now_qasm}")
+        print("chetau")
+        return now_qasm
+
+    def ast_to_qasm(self, code, stack):
+        if behavior_type == "static":
+            stack = ast_exec.Exec().walk_tree(code, stack)
+            return stack

@@ -22,3 +22,21 @@ def bin2int(value):
     if is_bin(value):
         return int(value, 2)
     raise ValueError(f"{value} is not bin.")
+
+
+def get_hex(value):
+    if is_hex(value):
+        return value.lower()
+    if isinstance(value, int):
+        return hex(value)
+    if is_bin(value):
+        return hex(int(value, 2))
+
+
+def get_bin(value):
+    if is_bin(value):
+        return value
+    if isinstance(value, int):
+        return bin(value)
+    if is_hex(value):
+        return bin(int(value, 16))

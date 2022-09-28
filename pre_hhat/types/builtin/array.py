@@ -2,22 +2,14 @@
 
 from pre_hhat import default_protocol
 from pre_hhat.grammar import ast as gast
-from pre_hhat.qasm_modules import QuantumDevice
-from pre_hhat.protocols import protocols_list
 from pre_hhat.types import groups as group
-from pre_hhat.types.builtin.single import (
-    SingleNull,
-    SingleInt,
-    SingleStr,
-    SingleBool,
-    SingleHashmap,
-)
+import pre_hhat.types as types
 
 
 class ArrayNull(group.ArrayNuller):
     def __init__(self, *value, protocol=default_protocol):
         default = []
-        super().__init__(*value, type_name=ArrayNull, default=default, value_type=SingleNull)
+        super().__init__(*value, type_name=ArrayNull, default=default, value_type=types.SingleNull)
         self.protocol = protocol
 
     @property
@@ -31,8 +23,8 @@ class ArrayNull(group.ArrayNuller):
     def _format_value(self, value):
         for k in value:
             if not isinstance(value, self.value):
-                raise ValueError(f"{self.name}: must have SingleNull value to set to.")
-        return list(value), tuple(SingleInt(k) for k in range(len(value)))
+                raise ValueError(f"{self.name}: must have types.SingleNull value to set to.")
+        return list(value), tuple(types.SingleInt(k) for k in range(len(value)))
 
     def __getitem__(self, item):
         return self
@@ -68,7 +60,7 @@ class ArrayNull(group.ArrayNuller):
         return other
 
     def __iadd__(self, other):
-        if isinstance(other, (SingleNull, ArrayNull)):
+        if isinstance(other, (types.SingleNull, ArrayNull)):
             self.value.extend(other.value)
         return other
 
@@ -82,8 +74,8 @@ class ArrayNull(group.ArrayNuller):
 
 class ArrayInt(group.ArrayMorpher):
     def __init__(self, *value, protocol=default_protocol):
-        default = [0]
-        super().__init__(*value, type_name=ArrayInt, default=default, value_type=SingleInt)
+        default = [types.SingleInt(0)]
+        super().__init__(*value, type_name=ArrayInt, default=default, value_type=types.SingleInt)
         self.protocol = protocol
 
     @property
@@ -92,30 +84,32 @@ class ArrayInt(group.ArrayMorpher):
 
     @value.setter
     def value(self, item):
-        if isinstance(item, SingleInt):
+        if isinstance(item, types.SingleInt):
             self._value.extend(item.value)
             self._indices += (len(self._indices),)
         elif isinstance(item, ArrayInt):
             self._value.extend(item.value)
             self._indices = tuple(k for k in range(len(self._indices + item._indices)))
         else:
-            raise ValueError(f"{self.name}: must have SingleInt or ArrayInt value to set to.")
+            raise ValueError(f"{self.name}: must have types.SingleInt or ArrayInt value to set to.")
 
     @property
     def indices(self):
         return self._indices
 
     def _format_value(self, value):
+        print(f"array int : {value} {type(value)}")
         if len(value) > 0:
             for k in value:
+                print(type(k))
                 if not isinstance(k, self.value_type):
                     raise ValueError(f"{self.name}: can only contain integer values.")
         else:
             value = self.default
-        return list(value), tuple(SingleInt(k) for k in range(len(value)))
+        return list(value), tuple(types.SingleInt(k) for k in range(len(value)))
 
     def __getitem__(self, item):
-        if item in self.indices or SingleInt(item) in self.indices:
+        if item in self.indices or types.SingleInt(item) in self.indices:
             return self.value[item]
         else:
             raise ValueError(f"{self.name}: there is no index {item} in the variable.")
@@ -124,7 +118,7 @@ class ArrayInt(group.ArrayMorpher):
         if key in self.indices:
             if isinstance(key, int):
                 self.value[key] = value
-            elif isinstance(key, SingleInt):
+            elif isinstance(key, types.SingleInt):
                 self.value[key.value[0]] = value
 
     def __eq__(self, other):
@@ -180,7 +174,7 @@ class ArrayInt(group.ArrayMorpher):
         return False
 
     def __add__(self, other):
-        if isinstance(other, SingleInt):
+        if isinstance(other, types.SingleInt):
             for n, k in enumerate(self):
                 self.value[n] += other.value[0]
             return self
@@ -189,24 +183,26 @@ class ArrayInt(group.ArrayMorpher):
                 if n < len(other):
                     self.value[n] += v[1]
             return self
-        if isinstance(other, SingleNull):
+        if isinstance(other, types.SingleNull):
             return self
         if isinstance(other, ArrayCircuit):
-            raise NotImplemented(f"{self.name}: need to implement addition with circuit type.")
-        raise NotImplemented(f"{self.name}: not implemented addition with {other.name}.")
+            raise NotImplementedError(f"{self.name}: need to implement addition with circuit type.")
+        raise NotImplementedError(f"{self.name}: not implemented addition with {other.name}.")
 
     def __iadd__(self, other):
-        if isinstance(other, SingleInt):
-            self.value.extend(other.value)
+        if isinstance(other, types.SingleInt):
+            for n, k in enumerate(self):
+                self.value[n] += other.value[0]
+            # self.value.extend(other.value)
             return self
         if isinstance(other, ArrayInt):
             self.value.extend(other.value)
             return self
-        if isinstance(other, SingleNull):
+        if isinstance(other, types.SingleNull):
             return self
         if isinstance(other, ArrayCircuit):
-            raise NotImplemented(f"{self.name}: need to implement appending with circuit type.")
-        raise NotImplemented(f"{self.name}: not implemented appending with {other.name}.")
+            raise NotImplementedError(f"{self.name}: need to implement appending with circuit type.")
+        raise NotImplementedError(f"{self.name}: not implemented appending with {other.name}.")
 
     def __contains__(self, item):
         return item in self.value
@@ -218,8 +214,8 @@ class ArrayInt(group.ArrayMorpher):
 
 class ArrayStr(group.ArrayAppender):
     def __init__(self, *value, protocol=default_protocol):
-        default = [""]
-        super().__init__(*value, type_name=ArrayStr, default=default, value_type=SingleStr)
+        default = [types.SingleStr("")]
+        super().__init__(*value, type_name=ArrayStr, default=default, value_type=types.SingleStr)
         self.protocol = protocol
 
     @property
@@ -228,14 +224,14 @@ class ArrayStr(group.ArrayAppender):
 
     @value.setter
     def value(self, item):
-        if isinstance(item, SingleStr):
+        if isinstance(item, types.SingleStr):
             self._value.extend(item.value)
             self._indices += (len(self._indices),)
         elif isinstance(item, ArrayStr):
             self._value.extend(item.value)
             self._indices = tuple(k for k in range(len(self._indices + item._indices)))
         else:
-            raise ValueError(f"{self.name}: must have SingleStr or ArrayStr value to set to.")
+            raise ValueError(f"{self.name}: must have types.SingleStr or ArrayStr value to set to.")
 
     @property
     def indices(self):
@@ -245,10 +241,10 @@ class ArrayStr(group.ArrayAppender):
         for k in value:
             if not isinstance(k, self.value_type):
                 raise ValueError(f"{self.name}: can only contain string values.")
-        return list(value), tuple([SingleInt(k) for k in range(len(value))])
+        return list(value), tuple([types.SingleInt(k) for k in range(len(value))])
 
     def __getitem__(self, item):
-        if item in self.indices or SingleInt(item) in self.indices:
+        if item in self.indices or types.SingleInt(item) in self.indices:
             return self.value[item].strip('"').siptr("'")
         else:
             raise ValueError(f"{self.name}: there is no index {item} in the variable.")
@@ -257,7 +253,7 @@ class ArrayStr(group.ArrayAppender):
         if key in self.indices:
             if isinstance(key, int):
                 self.value[key] = value
-            elif isinstance(key, SingleInt):
+            elif isinstance(key, types.SingleInt):
                 self.value[key.value[0]] = value
 
     def __eq__(self, other):
@@ -313,7 +309,7 @@ class ArrayStr(group.ArrayAppender):
         return False
 
     def __add__(self, other):
-        if isinstance(other, SingleStr):
+        if isinstance(other, types.SingleStr):
             for n in range(len(self)):
                 self.value[n] += other.value[0]
             return self
@@ -322,24 +318,24 @@ class ArrayStr(group.ArrayAppender):
                 if n < len(other):
                     self.value[n] += v[1]
             return self
-        if isinstance(other, SingleNull):
+        if isinstance(other, types.SingleNull):
             return self
         if isinstance(other, ArrayCircuit):
-            raise NotImplemented(f"{self.name}: need to implement addition with circuit type.")
-        raise NotImplemented(f"{self.name}: not implemented addition with {other.name}.")
+            raise NotImplementedError(f"{self.name}: need to implement addition with circuit type.")
+        raise NotImplementedError(f"{self.name}: not implemented addition with {other.name}.")
 
     def __iadd__(self, other):
-        if isinstance(other, SingleStr):
+        if isinstance(other, types.SingleStr):
             self.value.extend(other.value)
             return self
         if isinstance(other, ArrayStr):
             self.value.extend(other.value)
             return self
-        if isinstance(other, SingleNull):
+        if isinstance(other, types.SingleNull):
             return self
         if isinstance(other, ArrayCircuit):
-            raise NotImplemented(f"{self.name}: not implemented appending with circuit type.")
-        raise NotImplemented(f"{self.name}: not implemented appending with {other.name}.")
+            raise NotImplementedError(f"{self.name}: not implemented appending with circuit type.")
+        raise NotImplementedError(f"{self.name}: not implemented appending with {other.name}.")
 
     def __contains__(self, item):
         return item in self.value
@@ -352,7 +348,7 @@ class ArrayStr(group.ArrayAppender):
 class ArrayBool(group.ArrayMorpher):
     def __init__(self, *value, protocol=default_protocol):
         default = []
-        super().__init__(*value, type_name=ArrayBool, default=default, value_type=SingleBool)
+        super().__init__(*value, type_name=ArrayBool, default=default, value_type=types.SingleBool)
         self.protocol = protocol
 
     @property
@@ -367,10 +363,10 @@ class ArrayBool(group.ArrayMorpher):
         for k in value:
             if not isinstance(k, self.value_type):
                 raise ValueError(f"{self.name}: can only contain boolean types.")
-        return list(value), tuple([SingleInt(k) for k in value])
+        return list(value), tuple([types.SingleInt(k) for k in value])
 
     def __getitem__(self, item):
-        if item in self.indices or SingleInt(item) in self.indices:
+        if item in self.indices or types.SingleInt(item) in self.indices:
             return self.value[item]
         else:
             raise ValueError(f"{self.name}: there is no index {item} in the variable.")
@@ -379,7 +375,7 @@ class ArrayBool(group.ArrayMorpher):
         if key in self.indices:
             if isinstance(key, int):
                 self.value[key] = value
-            elif isinstance(key, SingleInt):
+            elif isinstance(key, types.SingleInt):
                 self.value[key.value[0]] = value
 
     def __eq__(self, other):
@@ -434,7 +430,7 @@ class ArrayBool(group.ArrayMorpher):
         return False
 
     def __add__(self, other):
-        if isinstance(other, SingleBool):
+        if isinstance(other, types.SingleBool):
             res = ()
             for k in self:
                 res += ((other + k),)
@@ -447,23 +443,23 @@ class ArrayBool(group.ArrayMorpher):
                 else:
                     res += (v,)
             return self.__class__(*res)
-        if isinstance(other, SingleNull):
+        if isinstance(other, types.SingleNull):
             return self
         if isinstance(other, ArrayCircuit):
-            raise NotImplemented(f"{self.name}: not implemented addition with circuit type.")
-        raise NotImplemented(
+            raise NotImplementedError(f"{self.name}: not implemented addition with circuit type.")
+        raise NotImplementedError(
             f"{self.name}: not implemented addition with {other.__class__.__name__}"
         )
 
     def __iadd__(self, other):
-        if isinstance(other, (SingleBool, ArrayBool)):
+        if isinstance(other, (types.SingleBool, ArrayBool)):
             self.value.extend(other.value)
             return self
-        if isinstance(other, SingleNull):
+        if isinstance(other, types.SingleNull):
             return self
         if isinstance(other, ArrayCircuit):
-            raise NotImplemented(f"{self.name}: not implemented appending with circuit.")
-        raise NotImplemented(
+            raise NotImplementedError(f"{self.name}: not implemented appending with circuit.")
+        raise NotImplementedError(
             f"{self.name}: not implemented appending with {other.__class__.__name__}"
         )
 
@@ -478,7 +474,9 @@ class ArrayBool(group.ArrayMorpher):
 class ArrayHashmap(group.ArrayAppender):
     def __init__(self, *value, protocol=default_protocol):
         default = dict()
-        super().__init__(*value, type_name=ArrayHashmap, default=default, value_type=SingleHashmap)
+        super().__init__(
+            *value, type_name=ArrayHashmap, default=default, value_type=types.SingleHashmap
+        )
         self.protocol = protocol
 
     @property
@@ -490,13 +488,15 @@ class ArrayHashmap(group.ArrayAppender):
         return self._indices
 
     def _format_value(self, value):
-        try:
-            res = [dict(value)]
-            indices = tuple(res[0].keys())
-        except TypeError:
-            raise ValueError(f"{self.name}: wrong type value.")
-        else:
-            return res, indices
+        if isinstance(value, (tuple, list)):
+            if types.is_circuit(value):
+                pass
+            pass
+        if isinstance(value, types.SingleHashmap):
+            pass
+        if isinstance(value, ArrayHashmap):
+            pass
+        raise NotImplementedError(f"{self.name}: cannot use types of {value}.")
 
     def __iter__(self):
         yield from self.value[0].items()
@@ -514,7 +514,7 @@ class ArrayHashmap(group.ArrayAppender):
             raise ValueError(f"{self.name}: cannot assign {key}; invalid key.")
 
     def __eq__(self, other):
-        if isinstance(other, (SingleHashmap, ArrayHashmap)):
+        if isinstance(other, (types.SingleHashmap, ArrayHashmap)):
             if self.value[0].keys() == other.value[0].keys():
                 return True
         return False
@@ -547,21 +547,21 @@ class ArrayHashmap(group.ArrayAppender):
         return False
 
     def __add__(self, other):
-        if isinstance(other, (SingleHashmap, ArrayHashmap)):
+        if isinstance(other, (types.SingleHashmap, ArrayHashmap)):
             return self.__class__(*(tuple(self) + tuple(other)))
         if isinstance(other, ArrayCircuit):
-            raise NotImplemented(f"{self.name}: not implemented addition with circuit yet.")
-        raise NotImplemented(
+            raise NotImplementedError(f"{self.name}: not implemented addition with circuit yet.")
+        raise NotImplementedError(
             f"{self.name}: not imeplemented addition with {other.__class__.__name__}."
         )
 
     def __iadd__(self, other):
-        if isinstance(other, (SingleHashmap, ArrayHashmap)):
+        if isinstance(other, (types.SingleHashmap, ArrayHashmap)):
             self.value[0].update(other.value[0])
             return self
         if isinstance(other, ArrayCircuit):
-            raise NotImplemented(f"{self.name}: not implemented appending with circuit.")
-        raise NotImplemented(
+            raise NotImplementedError(f"{self.name}: not implemented appending with circuit.")
+        raise NotImplementedError(
             f"{self.name}: not implemented appending with {other.__class__.__name__}."
         )
 
@@ -583,8 +583,9 @@ class ArrayCircuit(group.ArrayAppender):
             default=default,
             value_type=(group.Gate, group.GateArray, gast.AST, ArrayCircuit),
         )
-        self._true_len = self._get_true_len()
+        self._true_len = 0
         self.protocol = protocol
+        self.indices_array = self._get_indices_array()
 
     @property
     def value(self):
@@ -594,35 +595,37 @@ class ArrayCircuit(group.ArrayAppender):
     def indices(self):
         return self._indices
 
+    def _get_indices_array(self):
+        for k in self.indices:
+            pass
+        return []
+
     def _format_value(self, value):
-        res = []
-        indices = ()
-        for k in value:
-            if isinstance(k, group.Gate):
-                res.append(k)
-                indices += (self._counter,)
-                self._counter += 1
-            elif isinstance(k, group.GateArray):
-                res.extend(k)
-                indices += (k.indices,)
-                self._counter += 1
-            elif isinstance(k, ArrayCircuit):
-                res.extend(k.value)
-                len_k = len(k.value)
-                indices += tuple(self._counter + p for p in range(len_k))
-                self._counter += len_k
-            elif isinstance(k, gast.AST):
-                res.append(k)
-                indices += (None,)
-        print(res)
-        return res, indices
+        if len(value) > 0:
+            res = []
+            indices = ()
+            count = types.SingleInt(0)
+            for k in value:
+                if isinstance(k, (group.Gate, group.GateArray, ArrayCircuit)):
+                    res.extend(k)
+                    indices += k.indices
+                if isinstance(k, gast.AST):
+                    res.append(k)
+                if k is None:
+                    indices += count,
+                    count = count + types.SingleInt(1)
+            indices = tuple(set(indices))
+            self._true_len = count.value[0]
+            print(f"circuit: value {value} | indices {indices} | len {self._true_len}")
+            return res, indices
+        return [], ()
 
     def _flatten_indices(self, value):
         res = ()
         for k in value:
             if isinstance(k, (tuple, list)):
                 res += self._flatten_indices(k)
-            elif isinstance(k, int):
+            elif isinstance(k, (int, types.SingleInt)):
                 res += (k,)
             elif k is None or isinstance(k, str):
                 continue
@@ -631,9 +634,9 @@ class ArrayCircuit(group.ArrayAppender):
         return res
 
     def _get_true_len(self):
-        res = 0
+        res = types.SingleInt(0)
         for k in self.value:
-            if not isinstance(k, gast.AST):
+            if not isinstance(k, (gast.AST, types.SingleNull)) and k is not None:
                 elem_len = max(self._flatten_indices(k))
                 res = elem_len if elem_len > res else res
         return res
@@ -642,7 +645,7 @@ class ArrayCircuit(group.ArrayAppender):
         return self._true_len
 
     def __getitem__(self, item):
-        return self
+        return self.value[item]
 
     def __setitem__(self, key, value):
         pass
@@ -696,16 +699,15 @@ class ArrayCircuit(group.ArrayAppender):
             return ArrayCircuit(*(self.value + other.value))
         if isinstance(other, gast.AST):
             return ArrayCircuit(*(self.value + [other]))
+        print("huh?")
 
-
-        device = QuantumDevice()
-        result = device.run(data=self)
         return other.__class__()
 
     def __iadd__(self, other):
-        if isinstance(other, SingleNull):
+        if isinstance(other, types.SingleNull):
             return self
         if isinstance(other, (group.Gate, group.GateArray)):
+            print("aqui carai")
             self.value.append(other)
             self._indices += (self._counter,)
             self._counter += 1

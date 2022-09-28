@@ -3,6 +3,7 @@
     "name": "openqasm",
     "version": "2.0",
     "type": "simulator",
+    "behavior": "static",
     "execute_mode": "all",
     "shots": 2048
   }

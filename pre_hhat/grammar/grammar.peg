@@ -1,5 +1,5 @@
 program = protocols? main? EOF
-protocols = 'protocol' ':' (id / STR / ( '(' (id / STR)+ ')' ))
+protocols = 'protocol' ':' (id / STR / ( '(' type ':' (id / STR) (',' type ':' (id / STR) )* ')' ))
 builtin = 'add' / 'print' / '@x' / '@h' / '@cnot'
 main = 'main' '(' body* ')'
 body = gen_call / var_decl / var_assign

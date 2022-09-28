@@ -1,13 +1,14 @@
 """Transpiling H-hat circuit type to OpenQASM (text) code"""
 
-from pre_hhat.types import ArrayCircuit, SingleInt
+import os
+import pre_hhat.types as types
 from pre_hhat.qasm_modules.base import BaseTranspiler
 
 
 class Transpiler(BaseTranspiler):
-    gate_json = "gates_conversion.json"
+    gate_json = os.path.join(os.path.dirname(__file__), "gates_conversion.json")
 
-    def __init__(self, data: ArrayCircuit):
+    def __init__(self, data):
         super().__init__(data)
 
     @staticmethod
@@ -27,7 +28,7 @@ class Transpiler(BaseTranspiler):
         for k in value:
             if isinstance(k, int):
                 res.append(str(k))
-            elif isinstance(k, SingleInt):
+            elif isinstance(k, types.SingleInt):
                 res.append(str(k.value[0]))
         return res
 
@@ -40,9 +41,9 @@ class Transpiler(BaseTranspiler):
 
     def unwrap_gates(self) -> str:
         code = ""
-        for g, i in zip(self.data, self.data.indices):
-            gate = self.get_gate(g)
-            indices = "q[" + "], q[".join(self.get_indices(i)) + "];"
+        for k in self.data:
+            gate = self.get_gate(k[1])
+            indices = "q[" + "], q[".join(self.get_indices(k[0])) + "];"
             code += f"{gate} {indices}\n"
         return code
 

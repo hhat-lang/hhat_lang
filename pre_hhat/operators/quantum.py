@@ -19,7 +19,7 @@ class X(QuantumOperator):
     def __call__(self, *args, **kwargs):
         if len(args) == 2 and isinstance(args[0], tuple):
             args = args[0] + args[1]
-        return tuple(group.MultipleIndexGate(*args, name=self.name))
+        return group.MultipleIndexGate(*args, name=self.name),
 
 
 class Z(QuantumOperator):
@@ -28,7 +28,7 @@ class Z(QuantumOperator):
     def __call__(self, *args, **kwargs):
         if len(args) == 2 and isinstance(args[0], tuple):
             args = args[0] + args[1]
-        return tuple(group.MultipleIndexGate(*args, name=self.name))
+        return group.MultipleIndexGate(*args, name=self.name),
 
 
 class H(QuantumOperator):
@@ -37,7 +37,7 @@ class H(QuantumOperator):
     def __call__(self, *args, **kwargs):
         if len(args) == 2 and isinstance(args[0], tuple):
             args = args[0] + args[1]
-        return tuple(group.MultipleIndexGate(*args, name=self.name))
+        return group.MultipleIndexGate(*args, name=self.name),
 
 
 class Cnot(QuantumOperator):
@@ -46,7 +46,7 @@ class Cnot(QuantumOperator):
     def __call__(self, *args, **kwargs):
         if len(args) == 2 and isinstance(args[0], tuple):
             args = args[0] + args[1]
-        return tuple(group.ControlTargetGate(*args, name=self.name, ct=(1, 1)))
+        return group.ControlTargetGate(*args, name=self.name, ct=(1, 1)),
 
 
 class Swap(QuantumOperator):
@@ -55,7 +55,7 @@ class Swap(QuantumOperator):
     def __call__(self, *args, **kwargs):
         if len(args) == 2 and isinstance(args[0], tuple):
             args = args[0] + args[1]
-        return tuple(group.ControlTargetGate(*args, name=self.name, ct=(1, 1)))
+        return group.ControlTargetGate(*args, name=self.name, ct=(1, 1)),
 
 
 class Toffoli(QuantumOperator):
@@ -64,4 +64,4 @@ class Toffoli(QuantumOperator):
     def __call__(self, *args, **kwargs):
         if len(args) == 2 and isinstance(args[0], tuple):
             args = args[0] + args[1]
-        return tuple(group.ControlTargetGate(*args, name=self.name, ct=(2, 1)))
+        return group.ControlTargetGate(*args, name=self.name, ct=(2, 1)),

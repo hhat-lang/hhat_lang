@@ -2,9 +2,10 @@
 
 from time import process_time
 
+from pre_hhat import examples_files as examples
 from pre_hhat.interpreter.pre_evaluator import PreEvaluator
-from pre_hhat.interpreter.evaluator import Evaluator, run
-from pre_hhat.grammar.cst import parsing_code, examples
+from pre_hhat.interpreter.evaluator import Evaluator
+from pre_hhat.grammar.cst import parsing_code
 
 
 def example_run(debug=True, print_code=False, symboltable=True, interpreter=True):
@@ -35,7 +36,7 @@ def example_run(debug=True, print_code=False, symboltable=True, interpreter=True
                 print()
                 ev = Evaluator(table)
                 t0 = process_time()
-                ev.walk_tree()
+                ev.run()
                 t1 = process_time()
                 print()
                 print("-" * 30)

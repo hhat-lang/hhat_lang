@@ -1,6 +1,7 @@
 import sys
 from abc import ABC, abstractmethod
 from pre_hhat.grammar import ast as gast
+import pre_hhat.types as types
 
 
 class BaseGroup(ABC):
@@ -264,7 +265,7 @@ class Gate(BaseGroup):
         for k in value:
             if isinstance(k, tuple):
                 res += self.flatten(*k)
-            elif isinstance(k, int):
+            elif isinstance(k, (int, types.SingleInt)):
                 res += (k,)
         return res
 
@@ -455,11 +456,8 @@ class SingleIndexGate(Gate):
 
 
 class MultipleIndexGate(Gate):
-    def __init__(self, *value, name=None, **kwargs):
-        if name is not None:
-            super().__init__(*value, name=name)
-        else:
-            raise ValueError(f"{self.__class__.__name__}: must have a name.")
+    def __init__(self, *value, name="", **kwargs):
+        super().__init__(*value, name=name)
 
     def _format_value(self, value):
         return {k: self.name[0] for k in value}

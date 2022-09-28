@@ -1,5 +1,5 @@
 # from pre_hhat import types
-from .protocols import (protocols_list, Protocols, BiggestValue, WeightedAverage)
+from .protocols import protocols_list, Protocols, BiggestValue, WeightedAverage
 
 
 # def use_protocol(f):

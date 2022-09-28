@@ -2,7 +2,8 @@
 
 from qiskit.providers.aer import AerSimulator
 
-from pre_hhat.types import ArrayCircuit
+from pre_hhat import num_shots
+import pre_hhat.types as types
 from pre_hhat.qasm_modules.openqasm.base import DummyDevice, OpenQasmBase
 
 
@@ -21,10 +22,12 @@ class QuantumSimulator(OpenQasmBase):
         self.version = kwargs.pop("version") if "version" in kwargs.keys() else "2.0"
         self.device = AerSimulator(**kwargs)
 
-    def run(self, data: ArrayCircuit, **kwargs) -> dict:
-        circuit_qasm = self.circuit_to_qasm(data)
-        device_run = self.device.run(circuit_qasm, **kwargs)
-        return device_run.result()
+    def run(self, data, stack, **kwargs):
+        circuit_qasm = self.circuit_to_qasm(data, stack)
+        device_run = self.device.run(circuit_qasm, shots=num_shots, **kwargs)
+        result = device_run.result().data()["counts"]
+        print(f"quantum device result: {result}")
+        return types.SingleHashmap(tuple(result.items()))
 
 
 class QuantumHardware(OpenQasmBase):
@@ -40,6 +43,6 @@ class QuantumHardware(OpenQasmBase):
         self.version = kwargs.pop("version") if "version" in kwargs.keys() else "0.1"
         self.device = DummyDevice(**kwargs)
 
-    def run(self, data: ArrayCircuit, **kwargs) -> dict:
+    def run(self, data, **kwargs):
         device_run = self.device.run(data, **kwargs)
-        return device_run.result()
+        return types.SingleHashmap(tuple(device_run.result().items()))

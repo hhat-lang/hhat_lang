@@ -3,20 +3,12 @@ import os
 from arpeggio import PTNodeVisitor, SemanticActionResults, visit_parse_tree
 from arpeggio.cleanpeg import ParserPEG
 
+from pre_hhat import examples_files as examples
+import pre_hhat.types as types
 from pre_hhat import examples_dir
 from pre_hhat.operators import classical as poc
 from pre_hhat.operators import quantum as poq
 from pre_hhat.grammar.ast import AST
-from pre_hhat.types import get_type
-from pre_hhat.types import SingleInt, SingleStr, SingleHashmap
-
-examples = [
-    "hello.hht",
-    "simple_print.hht",
-    "add_and_print.hht",
-    "add_many_and_print.hht",
-    "int_add_many_print.hht",
-]
 
 
 def parsing_code(example_name, print_code=False, debug=True):
@@ -49,6 +41,7 @@ class CST(PTNodeVisitor):
     def visit_protocols(self, n, k):
         print(f"protocol = {k}")
         k[0] = AST("protocol", *tuple(q for q in k if not isinstance(example, str)))
+        return k
 
     def visit_main(self, n, k):
         return AST("main", *k)
@@ -69,7 +62,7 @@ class CST(PTNodeVisitor):
 
     def visit_type_expr(self, n, k):
         if isinstance(k[0], str):
-            value = get_type(k[0].lower())
+            value = types.get_type(k[0].lower())
             if value:
                 k[0] = value
             else:
@@ -156,20 +149,21 @@ class CST(PTNodeVisitor):
         return AST("args", *k)
 
     def visit_collect(self, n, k):
-        return AST("collect", *k)
+        # return AST("collect", *k)
+        return k
 
     def visit_id(self, n, k):
         return AST("id", n.value)
 
     def visit_INT(self, n, k):
-        return SingleInt(n.value)
+        return types.SingleInt(n.value)
 
     def visit_STR(self, n, k):
-        return SingleStr(n.value)
+        return types.SingleStr(n.value)
 
     def visit_HASHMAP(self, n, k):
         print(f"hashmap = {k}")
-        return SingleHashmap(k)
+        return types.SingleHashmap(k)
 
     def visit_hash_expr(self, n, k):
         return k[0], k[2]

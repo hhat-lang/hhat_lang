@@ -1,1 +1,1 @@
-main ( int{} a = (:add(2), :print('a=')) )
+main ( int{} a = (:add(2), :print('a =')) )

@@ -84,7 +84,6 @@ class SingleInt(group.SingleMorpher):
         )
 
     def __add__(self, other):
-        print(f"add int! {self} {other} {type(other)}")
         if isinstance(other, int):
             return self.__class__(self.value[0] + other)
         if isinstance(other, SingleInt):

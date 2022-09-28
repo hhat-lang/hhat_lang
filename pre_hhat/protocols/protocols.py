@@ -27,7 +27,6 @@ class WeightedAverage(Protocols):
     def __call__(self, data, **kwargs):
         if isinstance(data, (types.SingleHashmap, types.ArrayHashmap)):
             res = []
-            print(data.value[0].values(), [type(k) for k in data.value[0].values()])
             total = sum([v.value[0] for k, v in data])
             for k, v in data:
                 k0 = k.value[0]

@@ -5,13 +5,9 @@ from pre_hhat.protocols import protocols_list
 from pre_hhat.qasm_modules import QuantumDevice
 
 
-def circuit_transform(circuit, stack):  # from_type, to_type, stack):
-    # print(f"circuit types? {from_type} {to_type} {type(to_type)}")
-    # circuit = from_type if types.is_circuit(from_type) else to_type
+def circuit_transform(circuit, stack):
     device = QuantumDevice()
-    print(f"circuit {circuit}")
     result = device.run(data=circuit, stack=stack)
-    print(f"result circuit transform: {result}")
     if execute_mode == "all":
         return protocols_list[default_protocol](result)
     if execute_mode == "one":

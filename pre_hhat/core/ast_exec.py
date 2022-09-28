@@ -83,7 +83,6 @@ class Exec:
         return stack
 
     def node_id(self, code, stack):
-        print(f"id {code} {stack['mem'][code]}")
         stack["res"] += stack["mem"][code]
         return stack
 
@@ -131,10 +130,7 @@ class Exec:
         if len(code.value) == 1:
             stack["index"] = stack["mem"][stack["var"], "indices"]
             if isinstance(code.value[0], oper.Operators):
-                print(f"has operators {code.value[0]} {stack['index']}")
                 var_index = stack["mem"][stack["var"], stack["index"]]
-                print(f"var: {stack['mem'][stack['var'], 'data']}")
-                print(f'{stack["mem"][stack["var"], "type"][0]}')
                 res = code.value[0](
                     *var_index,
                     value_type=stack["mem"][stack["var"], "type"][0],
@@ -142,9 +138,7 @@ class Exec:
                 )
                 if res:
                     for k, idx in zip(res, stack["index"]):
-                        print(f"adding to {stack['var']} res: {idx} {type(idx)} {k} {type(k)} {isinstance(k, types.Gate)}")
                         stack["mem"][stack["var"], idx] = k
-                    print(f'ow {stack["mem"][stack["var"]]}')
             else:
                 stack = self.get_node(code.value[0], stack)
         elif len(code.value) == 2:

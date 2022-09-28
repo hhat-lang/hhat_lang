@@ -30,7 +30,6 @@ class Memory:
                 _type = type_expr[0]
                 _len = type_expr[1]
                 _fixed_size = types.SingleBool("T")
-                print(f"var type: {_type} | {type(_type())} | len: {_len}")
                 if not isinstance(_type(), types.ArrayCircuit):
                     values = [
                         _type().value_type(_type().default[0])
@@ -67,7 +66,6 @@ class Memory:
                         if not isinstance(self.stack["var"][key[0]]["type"](), types.ArrayCircuit):
                             self.stack["var"][key[0]]["data"][key[1]] = value
                         else:
-                            print("aqui")
                             self.stack["var"][key[0]]["data"] += value
                     elif not self.stack["var"][key[0]]["fixed_size"]:
                         if not isinstance(self.stack["var"][key[0]]["type"](), types.ArrayCircuit):
@@ -104,16 +102,12 @@ class Memory:
                     return self.stack["var"][item[0]]["data"].indices
                 if isinstance(item[1], tuple):
                     res = ()
-                    print(f"memory get {item}")
                     for k in item[1]:
-                        print(f"memory get type of k: {type(k)}")
                         if not isinstance(self.stack["var"][item[0]]["type"](), types.ArrayCircuit):
                             res += (self.stack["var"][item[0]]["data"][k.value[0]],)
                         else:
-                            print(f"memory here? {k} {self.stack['var'][item[0]]['len']}")
                             if k < self.stack["var"][item[0]]["len"]:
                                 res += k,
-                                print(f"memory getting k {k}")
                     return res
             self.add_var(item[0], item[1])
             return tuple(self.stack["var"][item[0]])

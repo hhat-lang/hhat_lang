@@ -48,16 +48,12 @@ class OpenQasmBase(BaseQasm):
 
     def circuit_to_qasm(self, data, stack, **kwargs) -> QuantumCircuit:
         code = ""
-        print("veio aqui?")
         if isinstance(data, (tuple, list)):
             for k in data:
                 code = self.circuit_to_str(k)
         else:
             code = self.circuit_to_str(data)
-        print(f"show me de code:\n{code}")
         now_qasm = self.str_to_qasm(code)
-        print(f"now show qasm:\n{now_qasm}")
-        print("chetau")
         return now_qasm
 
     def ast_to_qasm(self, code, stack):

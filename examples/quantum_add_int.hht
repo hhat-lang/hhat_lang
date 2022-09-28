@@ -3,4 +3,5 @@ main (
   circuit{1} @c = @x
   circuit{2} @c2 = @h
   int{1} a = (:add(2 @c 10 @c2), :print)
+  int{1} b = (:add(5 a @c), :print('b ='))
 )

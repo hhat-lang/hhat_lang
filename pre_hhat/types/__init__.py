@@ -44,7 +44,6 @@ def is_circuit(data):
     circuit_types = ArrayCircuit().value_type
     if isinstance(data, (tuple, set, list)):
         for k in data:
-            print(f"is circuit: {k}")
             try:
                 if isinstance(k(), circuit_types):
                     return True

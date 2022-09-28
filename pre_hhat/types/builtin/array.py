@@ -98,10 +98,8 @@ class ArrayInt(group.ArrayMorpher):
         return self._indices
 
     def _format_value(self, value):
-        print(f"array int : {value} {type(value)}")
         if len(value) > 0:
             for k in value:
-                print(type(k))
                 if not isinstance(k, self.value_type):
                     raise ValueError(f"{self.name}: can only contain integer values.")
         else:
@@ -616,7 +614,6 @@ class ArrayCircuit(group.ArrayAppender):
                     count = count + types.SingleInt(1)
             indices = tuple(set(indices))
             self._true_len = count.value[0]
-            print(f"circuit: value {value} | indices {indices} | len {self._true_len}")
             return res, indices
         return [], ()
 
@@ -699,15 +696,12 @@ class ArrayCircuit(group.ArrayAppender):
             return ArrayCircuit(*(self.value + other.value))
         if isinstance(other, gast.AST):
             return ArrayCircuit(*(self.value + [other]))
-        print("huh?")
-
         return other.__class__()
 
     def __iadd__(self, other):
         if isinstance(other, types.SingleNull):
             return self
         if isinstance(other, (group.Gate, group.GateArray)):
-            print("aqui carai")
             self.value.append(other)
             self._indices += (self._counter,)
             self._counter += 1

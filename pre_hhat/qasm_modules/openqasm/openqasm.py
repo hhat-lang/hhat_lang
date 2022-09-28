@@ -26,7 +26,6 @@ class QuantumSimulator(OpenQasmBase):
         circuit_qasm = self.circuit_to_qasm(data, stack)
         device_run = self.device.run(circuit_qasm, shots=num_shots, **kwargs)
         result = device_run.result().data()["counts"]
-        print(f"quantum device result: {result}")
         return types.SingleHashmap(tuple(result.items()))
 
 

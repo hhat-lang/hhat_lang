@@ -41,7 +41,6 @@ class BaseTranspiler(ABC):
             raise ValueError(f"Transpiler: cannot open file for gates conversion.")
         else:
             self.data = data
-            print(f"transpiler data {self.data}")
             self.len = len(self.data)
 
     @abstractmethod

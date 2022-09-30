@@ -7,9 +7,15 @@ import pre_hhat.types as types
 
 
 class ArrayNull(group.ArrayNuller):
-    def __init__(self, *value, protocol=default_protocol):
+    def __init__(self, *value, protocol=default_protocol, var=None):
         default = []
-        super().__init__(*value, type_name=ArrayNull, default=default, value_type=types.SingleNull)
+        super().__init__(
+            *value,
+            type_name=ArrayNull,
+            default=default,
+            value_type=types.SingleNull,
+            var=var
+        )
         self.protocol = protocol
 
     @property
@@ -31,6 +37,9 @@ class ArrayNull(group.ArrayNuller):
 
     def __setitem__(self, key, value):
         return self
+
+    def __bool__(self):
+        return False
 
     def __eq__(self, other):
         if isinstance(other, ArrayNull):
@@ -73,13 +82,15 @@ class ArrayNull(group.ArrayNuller):
 
 
 class ArrayInt(group.ArrayMorpher):
-    def __init__(self, *value, protocol=default_protocol):
+    def __init__(self, *value, protocol=default_protocol, var=None):
         default = [types.SingleInt(0)]
         super().__init__(
             *value,
             type_name=ArrayInt,
             default=default,
-            value_type=types.SingleInt)
+            value_type=types.SingleInt,
+            var=var
+        )
         self.protocol = protocol
 
     @property
@@ -122,6 +133,9 @@ class ArrayInt(group.ArrayMorpher):
                 self.value[key] = value
             elif isinstance(key, types.SingleInt):
                 self.value[key.value[0]] = value
+
+    def __bool__(self):
+        return True
 
     def __eq__(self, other):
         if isinstance(other, ArrayInt):
@@ -215,9 +229,15 @@ class ArrayInt(group.ArrayMorpher):
 
 
 class ArrayStr(group.ArrayAppender):
-    def __init__(self, *value, protocol=default_protocol):
+    def __init__(self, *value, protocol=default_protocol, var=None):
         default = [types.SingleStr("")]
-        super().__init__(*value, type_name=ArrayStr, default=default, value_type=types.SingleStr)
+        super().__init__(
+            *value,
+            type_name=ArrayStr,
+            default=default,
+            value_type=types.SingleStr,
+            var=var
+        )
         self.protocol = protocol
 
     @property
@@ -257,6 +277,9 @@ class ArrayStr(group.ArrayAppender):
                 self.value[key] = value
             elif isinstance(key, types.SingleInt):
                 self.value[key.value[0]] = value
+
+    def __bool__(self):
+        return True if len(self.value) > 0 else False
 
     def __eq__(self, other):
         if isinstance(other, ArrayStr):
@@ -348,9 +371,15 @@ class ArrayStr(group.ArrayAppender):
 
 
 class ArrayBool(group.ArrayMorpher):
-    def __init__(self, *value, protocol=default_protocol):
+    def __init__(self, *value, protocol=default_protocol, var=None):
         default = []
-        super().__init__(*value, type_name=ArrayBool, default=default, value_type=types.SingleBool)
+        super().__init__(
+            *value,
+            type_name=ArrayBool,
+            default=default,
+            value_type=types.SingleBool,
+            var=var
+        )
         self.protocol = protocol
 
     @property
@@ -379,6 +408,12 @@ class ArrayBool(group.ArrayMorpher):
                 self.value[key] = value
             elif isinstance(key, types.SingleInt):
                 self.value[key.value[0]] = value
+
+    def __bool__(self):
+        for k in self:
+            if not k.str_values(k.value[0]):
+                return False
+        return True
 
     def __eq__(self, other):
         if len(self) == len(other):
@@ -474,10 +509,14 @@ class ArrayBool(group.ArrayMorpher):
 
 
 class ArrayHashmap(group.ArrayAppender):
-    def __init__(self, *value, protocol=default_protocol):
+    def __init__(self, *value, protocol=default_protocol, var=None):
         default = dict()
         super().__init__(
-            *value, type_name=ArrayHashmap, default=default, value_type=types.SingleHashmap
+            *value,
+            type_name=ArrayHashmap,
+            default=default,
+            value_type=types.SingleHashmap,
+            var=var
         )
         self.protocol = protocol
 
@@ -514,6 +553,9 @@ class ArrayHashmap(group.ArrayAppender):
             self.value[0] = value
         else:
             raise ValueError(f"{self.name}: cannot assign {key}; invalid key.")
+
+    def __bool__(self):
+        return True if len(self) > 0 else False
 
     def __eq__(self, other):
         if isinstance(other, (types.SingleHashmap, ArrayHashmap)):
@@ -576,7 +618,7 @@ class ArrayHashmap(group.ArrayAppender):
 
 
 class ArrayCircuit(group.ArrayAppender):
-    def __init__(self, *value, protocol=default_protocol):
+    def __init__(self, *value, protocol=default_protocol, var=None):
         default = []
         self._counter = 0
         super().__init__(
@@ -584,6 +626,7 @@ class ArrayCircuit(group.ArrayAppender):
             type_name=ArrayCircuit,
             default=default,
             value_type=(group.Gate, group.GateArray, gast.AST, ArrayCircuit),
+            var=var
         )
         self._true_len = 0
         self.protocol = protocol
@@ -653,6 +696,9 @@ class ArrayCircuit(group.ArrayAppender):
     def __setitem__(self, key, value):
         pass
 
+    def __bool__(self):
+        return True if len(self) > 0 else False
+
     def __eq__(self, other):
         if len(self.value) == len(other.value):
             if len(self) == len(other):
@@ -702,6 +748,13 @@ class ArrayCircuit(group.ArrayAppender):
             return ArrayCircuit(*(self.value + other.value))
         if isinstance(other, gast.AST):
             return ArrayCircuit(*(self.value + [other]))
+        if isinstance(other, tuple):
+            value, stack = other
+            # print(f'+ CIRCUIT = {value} {self}')
+            res = types.circuit_transform(self, stack)
+            new_value = value.value[0] + round(res)
+            # print(f'[C] RECEIVED RES: {new_value} {value.__class__}')
+            return value.__class__(new_value)
         return other.__class__()
 
     def __iadd__(self, other):
@@ -720,8 +773,9 @@ class ArrayCircuit(group.ArrayAppender):
             self._counter += len_k
             return self
         if isinstance(other, gast.AST):
+            # print(f"+= AST!? {other}")
             self.value.append(other)
-            self._indices += (None,)
+            # self._indices += (None,)
             return self
         raise ValueError(f"{self.name}: cannot append {other.__class__.__name__} type.")
 

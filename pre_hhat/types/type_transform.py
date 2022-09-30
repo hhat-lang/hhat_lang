@@ -10,6 +10,8 @@ def circuit_transform(circuit, stack):
     result = device.run(data=circuit, stack=stack)
     if execute_mode == "all":
         protocol_res = protocols_list[default_protocol](result)
+        # print(f'[CIRCUIT TRANSF] stack memory so far: {stack["mem"]}')
+        # print(f'[CIRCUIT TRANSF] protocol res: {protocol_res}')
         return protocol_res
     if execute_mode == "one":
         return tuple(result.value[0].keys())[0]

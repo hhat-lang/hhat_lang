@@ -15,7 +15,7 @@ class BaseQasm(ABC):
         ...
 
     @abstractmethod
-    def circuit_to_str(self, data) -> str:
+    def circuit_to_str(self, data, stack) -> str:
         ...
 
     @abstractmethod
@@ -26,15 +26,11 @@ class BaseQasm(ABC):
     def circuit_to_qasm(self, data, stack, **kwargs):
         ...
 
-    @abstractmethod
-    def ast_to_qasm(self, code, stack):
-        ...
-
 
 class BaseTranspiler(ABC):
     gate_json = ""
 
-    def __init__(self, data):
+    def __init__(self, data, stack):
         try:
             self.gates_conversion = json.loads(open(self.gate_json, "r").read())
         except FileNotFoundError:
@@ -42,6 +38,7 @@ class BaseTranspiler(ABC):
         else:
             self.data = data
             self.len = len(self.data)
+            self.stack = stack
 
     @abstractmethod
     def unwrap_header(self):
@@ -57,6 +54,10 @@ class BaseTranspiler(ABC):
 
     @abstractmethod
     def unwrap_meas(self):
+        ...
+
+    @abstractmethod
+    def ast_to_exec(self, code, stack, **kwargs):
         ...
 
     def transpile(self) -> str:

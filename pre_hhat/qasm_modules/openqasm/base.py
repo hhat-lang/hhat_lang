@@ -5,8 +5,6 @@ from abc import abstractmethod
 from qiskit import QuantumCircuit, converters as qiskit_conv
 from qiskit.qasm import Qasm
 
-import pre_hhat.core.ast_exec as ast_exec
-from pre_hhat import behavior_type
 from pre_hhat.qasm_modules.base import BaseQasm
 from pre_hhat.qasm_modules.openqasm.transpiler import Transpiler
 
@@ -37,8 +35,8 @@ class OpenQasmBase(BaseQasm):
     def run(self, data, stack, **kwargs):
         ...
 
-    def circuit_to_str(self, data) -> str:
-        return Transpiler(data).transpile()
+    def circuit_to_str(self, data, stack) -> str:
+        return Transpiler(data, stack).transpile()
 
     def str_to_qasm(self, code: str) -> QuantumCircuit:
         qasm = Qasm(data=code)
@@ -50,13 +48,9 @@ class OpenQasmBase(BaseQasm):
         code = ""
         if isinstance(data, (tuple, list)):
             for k in data:
-                code = self.circuit_to_str(k)
+                code = self.circuit_to_str(k, stack)
         else:
-            code = self.circuit_to_str(data)
+            code = self.circuit_to_str(data, stack)
+        # print(f"[OPENQASM] code:\n\n{code}\n")
         now_qasm = self.str_to_qasm(code)
         return now_qasm
-
-    def ast_to_qasm(self, code, stack):
-        if behavior_type == "static":
-            stack = ast_exec.Exec().walk_tree(code, stack)
-            return stack

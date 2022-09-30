@@ -35,6 +35,13 @@ class CST(PTNodeVisitor):
     def __init__(self, defaults=True, **kwargs):
         super().__init__(defaults=defaults, **kwargs)
 
+    @staticmethod
+    def _define_str(value):
+        new_value = value.strip("@").capitalize()
+        if getattr(poc, new_value, False) or getattr(poq, new_value, False):
+            return (getattr(poc, new_value, None) or getattr(poq, new_value))()
+        return AST("id", value)
+
     def visit_program(self, n, k):
         return AST("program", *k)
 
@@ -48,15 +55,11 @@ class CST(PTNodeVisitor):
 
     def visit_var_decl(self, n, k):
         if len(k) > 2:
-            if isinstance(k[2], str):
-                val = k[2].strip("@").capitalize()
-                if getattr(poc, val, False) or getattr(poq, val, False):
-                    k[2] = AST(
-                        "assign",
-                        AST("assign_expr", (getattr(poc, val, None) or getattr(poq, val))()),
-                    )
-                else:
-                    k[2] = AST("assign", AST("assign_expr", AST("id", k[2])))
+            for n, p in enumerate(k):
+                if isinstance(p, str):
+                    k[n] = AST("assign", AST("assign_expr", self._define_str(p)))
+                elif isinstance(p, types.SingleType):
+                    k[n] = AST("assign", AST("assign_expr", p))
         k[0], k[1] = k[1], k[0]
         return AST("var_decl", *k)
 
@@ -73,84 +76,82 @@ class CST(PTNodeVisitor):
         return AST("var_assign", *k)
 
     def visit_gen_call(self, n, k):
-        if isinstance(k[0], str):
-            val = k[0].strip("@").capitalize()
-            if getattr(poc, val, False) or getattr(poq, val, False):
-                k[0] = (getattr(poc, val, None) or getattr(poq, val))()
-            else:
-                k[0] = AST("id", k[0])
-            k = k[1], k[0]
-        elif isinstance(k[0], AST) and isinstance(k[1], str):
-            val = k[1].strip("@").capitalize()
-            if getattr(poc, val, False) or getattr(poq, val, False):
-                k[1] = (getattr(poc, val, None) or getattr(poq, val))()
-            else:
-                k[1] = AST("id", k[1])
-            k = k[-1], k[-2]
-            k = (AST("collect", *k),)
+        for n, p in enumerate(k):
+            if isinstance(p, str):
+                if p != "collect":
+                    k[n] = self._define_str(p)
+        if k[0] == "collect":
+            k[0] = AST("collect", *(k[2], k[1], *k[3:]))
+            k = [k[0]]
+        else:
+            k = [k[1], k[0], *k[2:]]
         return AST("gen_call", *k)
 
     def visit_assign(self, n, k):
         return AST("assign", *k)
 
     def visit_assign_expr(self, n, k):
-        if len(k) == 1:
-            if isinstance(k[0], str):
-                val = k[0].strip("@").capitalize()
-                if getattr(poc, val, False) or getattr(poq, val, False):
-                    k[0] = (getattr(poc, val, None) or getattr(poq, val))()
-                else:
-                    k[0] = AST("id", k[0])
-        elif len(k) == 2:
-            if isinstance(k[0], str):
-                val = k[0].strip("@").capitalize()
-                if getattr(poc, val, False) or getattr(poq, val, False):
-                    k[0] = (getattr(poc, val, None) or getattr(poq, val))()
-                else:
-                    k[0] = AST("id", k[0])
-            if isinstance(k[0], AST):
-                k[0] = AST("index_expr", *k[0])
+        # print('assign expr...')
+        for n, p in enumerate(k):
+            if isinstance(p, str):
+                k[n] = self._define_str(p)
             else:
-                k[0] = AST("index_expr", k[0])
-
-            if isinstance(k[1], str):
-                val = k[1].strip("@").capitalize()
-                if getattr(poc, val, False) or getattr(poq, val, False):
-                    k[1] = (getattr(poc, val, None) or getattr(poq, val))()
-                else:
-                    k[1] = AST("id", k[1])
+                if n == 0 and len(k) >= 2:
+                    # print(p, type(p), *p, isinstance(p, AST), k[n])
+                    k[n] = AST("index_expr", *p if isinstance(p, AST) else (p,))
+                    # print(k[n], type(k[n]), k[n].value, type(k[n].value[0]))
         return AST("assign_expr", *k)
 
     def visit_index_expr(self, n, k):
+        # print(['index_expr'], k, type(k), [type(p) for p in k])
         return AST("index_expr", *k)
 
     def visit_value_expr(self, n, k):
+        # print(f'value expr?! {k}')
+        ast_seq = []
+        pipe = []
+        for p in k:
+            if isinstance(p, str):
+                ast_seq.append(AST("pipe", *pipe)) if pipe else ast_seq.extend(pipe)
+                ast_seq.append(self._define_str(p))
+                pipe = []
+            else:
+                if isinstance(p, AST):
+                    if p.name == "pipe":
+                        pipe.append(*p.value)
+                    else:
+                        ast_seq.append(p)
+        ast_seq.append(AST("pipe", *pipe)) if pipe else res.extend(pipe)
+        k = ast_seq if len(ast_seq) > 0 else k
+        # print(f"value expr after pipe: {k}")
         return AST("value_expr", *k)
 
+    def visit_pipe(self, n, k):
+        # print(f"pipe? {k}")
+        return AST("pipe", *k)
+
     def visit_expr(self, n, k):
+        # print('expr', k, type(k), [type(p) for p in k])
         return AST("expr", *k)
 
     def visit_caller(self, n, k):
-        if len(k) < 3:
-            if isinstance(k[0], str):
-                val = k[0].strip("@").capitalize()
-                if getattr(poc, val, False) or getattr(poq, val, False):
-                    k[0] = (getattr(poc, val, None) or getattr(poq, val))()
+        for n, p in enumerate(k):
+            if n < len(k) - 1:
+                if isinstance(p, str):
+                    k[n] = self._define_str(p)
+            else:
+                if p == "collect":
+                    k[n] = AST("collect", *(k[2], k[1], *k[3:]))
+                    k = [k[n]]
                 else:
-                    k[0] = AST("id", k[0])
-            k = k[1], k[0]
-        else:
-            if k[0] == "collect":
-                k[0] = AST("collect", *(k[2], k[1]))
-            k = (k[0],)
+                    k = [k[1], k[0], *k[2:]]
         return AST("caller", *k)
 
     def visit_args(self, n, k):
         return AST("args", *k)
 
     def visit_collect(self, n, k):
-        # return AST("collect", *k)
-        return k
+        pass
 
     def visit_id(self, n, k):
         return AST("id", n.value)
@@ -162,7 +163,7 @@ class CST(PTNodeVisitor):
         return types.SingleStr(n.value)
 
     def visit_HASHMAP(self, n, k):
-        print(f"hashmap = {k}")
+        # print(f"hashmap = {k}")
         return types.SingleHashmap(k)
 
     def visit_hash_expr(self, n, k):

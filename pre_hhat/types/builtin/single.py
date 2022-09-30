@@ -47,6 +47,9 @@ class SingleInt(group.SingleMorpher):
     def __getitem__(self, item):
         return self.value[0]
 
+    def __bool__(self):
+        return True if self.value[0] else False
+
     def __eq__(self, other):
         if isinstance(other, SingleInt):
             return self.value == other.value
@@ -98,6 +101,7 @@ class SingleInt(group.SingleMorpher):
             value, stack = other
             res = types.circuit_transform(value, stack)
             new_value = self.value[0] + round(res)
+            # print(f"RECEIVED RES: {new_value}")
             return self.__class__(new_value)
         raise NotImplementedError(
             f"{self.name}: operation not implemented for {self.name} and {other.__class__.__name__}."
@@ -120,6 +124,9 @@ class SingleStr(group.SingleAppender):
 
     def __getitem__(self, item):
         return self.value[0].strip('"').strip("'")
+
+    def __bool__(self):
+        return True if len(self.value[0]) else False
 
     def __eq__(self, other):
         if isinstance(other, SingleStr):
@@ -191,6 +198,9 @@ class SingleBin(group.SingleMorpher):
 
     def __getitem__(self, item):
         return self.value[0]
+
+    def __bool__(self):
+        return True if int(self.value[0],2) != 0 else False
 
     def __eq__(self, other):
         if isinstance(other, SingleBin):
@@ -277,6 +287,9 @@ class SingleHex(group.SingleMorpher):
 
     def __getitem__(self, item):
         return self.value[0]
+
+    def __bool__(self):
+        return True if int(self.value[0], 16) != 0 else False
 
     def __eq__(self, other):
         if isinstance(other, SingleHex):
@@ -366,6 +379,9 @@ class SingleBool(group.SingleMorpher):
     def __getitem__(self, item):
         return self.value[0].strip('"').strip("'")
 
+    def __bool__(self):
+        return self.str_values[self.value[0]]
+
     def __eq__(self, other):
         if isinstance(other, SingleBool):
             return self.value == other.value
@@ -385,9 +401,6 @@ class SingleBool(group.SingleMorpher):
 
     def __le__(self, other):
         return False
-
-    def __bool__(self):
-        return self.str_values[self.value[0]]
 
     def __add__(self, other):
         if isinstance(other, str):
@@ -430,6 +443,9 @@ class SingleHashmap(group.SingleAppender):
 
     def __getitem__(self, item):
         return self.value[0].get(item, SingleNull())
+
+    def __bool__(self):
+        return True if len(self) > 0 else False
 
     def __eq__(self, other):
         if self == other:
@@ -489,6 +505,9 @@ class SingleNull(group.SingleNuller):
 
     def __getitem__(self, item):
         return "null"
+
+    def __bool__(self):
+        return False
 
     def __eq__(self, other):
         if isinstance(other, SingleNull):

@@ -24,7 +24,7 @@ class Memory:
         return stack
 
     @staticmethod
-    def _init_var(type_expr):
+    def _init_var(type_expr, var_name):
         if isinstance(type_expr, tuple):
             if len(type_expr) == 2:
                 _type = type_expr[0]
@@ -35,19 +35,19 @@ class Memory:
                         _type().value_type(_type().default[0])
                         for k in range(_len.value[0])
                     ]
-                    _data = _type(*values)
+                    _data = _type(*values, var=var_name)
                 else:
-                    _data = _type(*[None for _ in range(_len.value[0])])
+                    _data = _type(*[None for _ in range(_len.value[0])], var=var_name)
             else:
                 _type = type_expr[0]
                 _len = types.SingleInt(1)
                 _fixed_size = types.SingleBool("F")
-                _data = type_expr[0](type_expr[0]().value_type(type_expr[0]().default[0]))
+                _data = _type(_type().value_type(type_expr[0]().default[0]), var=var_name)
         else:
             _type = type_expr
             _len = types.SingleInt(1)
             _fixed_size = types.SingleBool("F")
-            _data = type_expr(type_expr.value_type(type_expr.default))
+            _data = type_expr(type_expr.value_type(type_expr.default), var=var_name)
         return {"type": _type, "len": _len, "fixed_size": _fixed_size, "data": _data}
 
     def add_var(self, var_name, type_expr):
@@ -55,7 +55,9 @@ class Memory:
             isinstance(var_name, (str, AST, types.SingleStr))
             and var_name not in self.stack["var"].keys()
         ):
-            self.stack["var"].update({var_name: self._init_var(type_expr.value)})
+            self.stack["var"].update({var_name: self._init_var(type_expr.value, var_name)})
+        if types.is_circuit(self.stack["var"][var_name]["type"]) and not var_name.value[0].startswith("@"):
+            raise ValueError(f"{self.__class__.__name__}: circuit variable MUST have '@' suffix.")
 
     def __setitem__(self, key, value):
         if isinstance(key, tuple):
@@ -78,12 +80,18 @@ class Memory:
                             self.stack["var"][key[0]]["data"] += value
                             self.stack["var"][key[0]]["len"] = self.stack["var"][key[0]]["len"] + types.SingleInt(1)
                 elif isinstance(key[1], tuple):
-                    if len(key[1]) == len(value):
-                        for idx, v in zip(key[1], value):
-                            self.stack["var"][key[0]]["data"][idx] = v
+                    if not types.is_circuit(self.stack["var"][key[0]]["type"]):
+                        if len(key[1]) == len(value):
+                                for idx, v in zip(key[1], value):
+                                    self.stack["var"][key[0]]["data"][idx] = v
+                        else:
+                            for idx in key[1]:
+                                self.stack["var"][key[0]]["data"][idx] = value
                     else:
-                        for idx in key[1]:
-                            self.stack["var"][key[0]]["data"][idx] = value
+                        # print(f'mem ? {value} {type(value)}')
+                        for k in value:
+                            self.stack["var"][key[0]]["data"] += k
+
                 else:
                     self.stack["var"][key[0]][key[1]] = value
         if key in self.stack["var"].keys():
@@ -129,6 +137,20 @@ class Memory:
                 return item[1] in self.stack["var"][item[0]]["data"].indices
             return False
         return item in self.stack["var"].keys()
+
+    def __repr__(self):
+        vals = " "*15 + "=[Memory Stack]=\n|"
+        vals += "-"*50 + "\n"
+        vals += f"| * name: {self.stack['name']}\n|"
+        for k, v in self.stack["var"].items():
+            vals += f" * var: {k}\n|" + " "*6
+            vals += f"* type: {v['type']}\n|" + " "*6
+            vals += f"* len: {v['len']}\n|" + " "*6
+            vals += f"* fixed_size: {v['fixed_size']}\n|" + " "*6
+            vals += f"* data: {v['data']}\n|"
+        vals += f" * return: {self.stack['return']}\n|"
+        vals += "-"*50
+        return f"\n{vals}\n"
 
 
 class SymbolTable:

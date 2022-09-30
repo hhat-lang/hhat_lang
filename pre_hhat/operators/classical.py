@@ -12,7 +12,7 @@ class Add(Operators):
         if len(args) == 2:
             data_types = set(type(k) for k in args[0] + args[1])
             if len(data_types) == 1:
-                res = ()  # kwargs["value_type"](kwargs["value_type"]().default[0])
+                res = ()
                 if len(args[0]) == len(args[1]):
                     for k, v in zip(*args):
                         res += (k + v),
@@ -23,11 +23,15 @@ class Add(Operators):
                     for k in args[0]:
                         res += (args[1][0] + k)
             if types.is_circuit(data_types):
-                res = kwargs["value_type"](kwargs["value_type"]().default[0])
+                default = kwargs['value_type']().default
+                res = kwargs["value_type"](default[0] if default else default)
                 if len(args[0]) == len(args[1]):
+                    # print('ARGS:', args[0], args[1])
                     for k, v in zip(*args):
                         if types.is_circuit(k) or types.is_circuit(v):
+                            # print(f"* arg0: {k}\narg1: {v}")
                             add = k + (v, kwargs["stack"])
+                            # print(f"* res add = {add} {type(add)}")
                             res += add
                         else:
                             add = k + v

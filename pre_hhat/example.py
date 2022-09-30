@@ -9,7 +9,7 @@ from pre_hhat.grammar.cst import parsing_code
 
 
 def example_run(debug=True, print_code=False, symboltable=True, interpreter=True):
-    for k in examples:
+    for n, k in enumerate(examples):
         print("=" * 50)
         print("*  File:")
         print(f"      {k}")

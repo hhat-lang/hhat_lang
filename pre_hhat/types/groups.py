@@ -28,6 +28,10 @@ class BaseGroup(ABC):
         ...
 
     @abstractmethod
+    def __bool__(self):
+        ...
+
+    @abstractmethod
     def __add__(self, other):
         ...
 
@@ -42,7 +46,8 @@ class BaseGroup(ABC):
 
 
 class SingleType(BaseGroup):
-    def __init__(self, value, type_name, data_rule):
+    def __init__(self, value, type_name, data_rule, var=None):
+        self.var = var
         self.name = type_name
         self.rule = data_rule
         self.value = self._format_value(value)
@@ -59,6 +64,10 @@ class SingleType(BaseGroup):
 
     @abstractmethod
     def __getitem__(self, item):
+        ...
+
+    @abstractmethod
+    def __bool__(self):
         ...
 
     @abstractmethod
@@ -95,11 +104,15 @@ class SingleType(BaseGroup):
 
 
 class SingleAppender(SingleType):
-    def __init__(self, value, type_name):
-        super().__init__(value, type_name=type_name, data_rule="appender")
+    def __init__(self, value, type_name, var=None):
+        super().__init__(value, type_name=type_name, data_rule="appender", var=var)
 
     @abstractmethod
     def _format_value(self, value):
+        ...
+
+    @abstractmethod
+    def __bool__(self):
         ...
 
     def __repr__(self):
@@ -107,11 +120,15 @@ class SingleAppender(SingleType):
 
 
 class SingleMorpher(SingleType):
-    def __init__(self, value, type_name):
-        super().__init__(value, type_name=type_name, data_rule="morpher")
+    def __init__(self, value, type_name, var=None):
+        super().__init__(value, type_name=type_name, data_rule="morpher", var=var)
 
     @abstractmethod
     def _format_value(self, value):
+        ...
+
+    @abstractmethod
+    def __bool__(self):
         ...
 
     def __repr__(self):
@@ -119,11 +136,15 @@ class SingleMorpher(SingleType):
 
 
 class SingleNuller(SingleType):
-    def __init__(self, type_name):
-        super().__init__(None, type_name=type_name, data_rule="nuller")
+    def __init__(self, type_name, var=None):
+        super().__init__(None, type_name=type_name, data_rule="nuller", var=var)
 
     @abstractmethod
     def _format_value(self, value):
+        ...
+
+    @abstractmethod
+    def __bool__(self):
         ...
 
     def __repr__(self):
@@ -131,7 +152,16 @@ class SingleNuller(SingleType):
 
 
 class ArrayType(BaseGroup):
-    def __init__(self, *value, type_name=None, data_rule=None, default=None, value_type=None):
+    def __init__(
+        self,
+        *value,
+        type_name=None,
+        data_rule=None,
+        default=None,
+        value_type=None,
+        var=None
+    ):
+        self.var = var
         self.default = default
         self.name = type_name
         self.value_type = self._format_value_type(value_type)
@@ -163,6 +193,10 @@ class ArrayType(BaseGroup):
 
     @abstractmethod
     def __setitem__(self, key, value):
+        ...
+
+    @abstractmethod
+    def __bool__(self):
         ...
 
     @abstractmethod
@@ -207,13 +241,14 @@ class ArrayType(BaseGroup):
 
 
 class ArrayAppender(ArrayType):
-    def __init__(self, *value, type_name=None, default=None, value_type=None):
+    def __init__(self, *value, type_name=None, default=None, value_type=None, var=None):
         super().__init__(
             *value,
             type_name=type_name,
             data_rule="appender",
             default=default,
             value_type=value_type,
+            var=var
         )
 
     @abstractmethod
@@ -222,9 +257,14 @@ class ArrayAppender(ArrayType):
 
 
 class ArrayMorpher(ArrayType):
-    def __init__(self, *value, type_name=None, default=None, value_type=None):
+    def __init__(self, *value, type_name=None, default=None, value_type=None, var=None):
         super().__init__(
-            *value, type_name=type_name, data_rule="morpher", default=default, value_type=value_type
+            *value,
+            type_name=type_name,
+            data_rule="morpher",
+            default=default,
+            value_type=value_type,
+            var=var
         )
 
     @abstractmethod
@@ -233,9 +273,14 @@ class ArrayMorpher(ArrayType):
 
 
 class ArrayNuller(ArrayType):
-    def __init__(self, *value, type_name=None, default=None, value_type=None):
+    def __init__(self, *value, type_name=None, default=None, value_type=None, var=None):
         super().__init__(
-            *value, type_name=type_name, data_rule="nuller", default=default, value_type=value_type
+            *value,
+            type_name=type_name,
+            data_rule="nuller",
+            default=default,
+            value_type=value_type,
+            var=var
         )
 
     @abstractmethod
@@ -282,6 +327,9 @@ class Gate(BaseGroup):
     @staticmethod
     def _format_ct(value):
         return value
+
+    def __bool__(self):
+        return True if len(self) > 0 else False
 
     def __add__(self, other):
         inter_indices = set(self.indices).intersection(set(other.indices))
@@ -426,6 +474,9 @@ class GateArray(BaseGroup):
 
     def __iter__(self):
         yield from self.value
+
+    def __bool__(self):
+        return True if len(self) > 0 else False
 
     def __len__(self):
         return len(self.value)

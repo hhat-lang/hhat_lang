@@ -1,6 +1,6 @@
 import os
 
-from arpeggio import PTNodeVisitor, SemanticActionResults, visit_parse_tree
+from arpeggio import PTNodeVisitor, SemanticActionResults, visit_parse_tree, RegExMatch as reg
 from arpeggio.cleanpeg import ParserPEG
 
 from pre_hhat import examples_files as examples
@@ -11,10 +11,14 @@ from pre_hhat.operators import quantum as poq
 from pre_hhat.grammar.ast import AST
 
 
+def comment():
+    return [reg(r"\/\*.*\*\/"), reg(r"\/\-.*\-\/")]
+
+
 def parsing_code(example_name, print_code=False, debug=True):
     file_dir = os.path.dirname(__file__)
     grammar = open(os.path.join(file_dir, "grammar.peg"), "r").read()
-    parser = ParserPEG(grammar, "program", debug=debug, reduce_tree=True)
+    parser = ParserPEG(grammar, "program", comment_rule_name=comment, debug=debug, reduce_tree=True)
     code = open(os.path.join(examples_dir, example_name), "r").readlines()
     if print_code:
         for k in code:
@@ -57,9 +61,9 @@ class CST(PTNodeVisitor):
         if len(k) > 2:
             for n, p in enumerate(k):
                 if isinstance(p, str):
-                    k[n] = AST("assign", AST("assign_expr", self._define_str(p)))
+                    k[n] = AST("assign", AST("assign_expr", AST("value_expr", self._define_str(p))))
                 elif isinstance(p, types.SingleType):
-                    k[n] = AST("assign", AST("assign_expr", p))
+                    k[n] = AST("assign", AST("assign_expr", AST("value_expr", p)))
         k[0], k[1] = k[1], k[0]
         return AST("var_decl", *k)
 
@@ -94,16 +98,26 @@ class CST(PTNodeVisitor):
         # print('assign expr...')
         for n, p in enumerate(k):
             if isinstance(p, str):
-                k[n] = self._define_str(p)
+                k[n] = AST("value_expr", self._define_str(p))
             else:
                 if n == 0 and len(k) >= 2:
-                    # print(p, type(p), *p, isinstance(p, AST), k[n])
-                    k[n] = AST("index_expr", *p if isinstance(p, AST) else (p,))
+                    print(p, type(p), *p, isinstance(p, AST), k[n])
+                    if isinstance(p, AST):
+                        if not p.name == "id":
+                            k[n] = AST("index_expr", *p)
+                        else:
+                            k[n] = AST("index_expr", p)
+                    else:
+                        k[n] = AST("index_expr", p)
+                    # k[n] = AST("index_expr", *p if isinstance(p, AST) else (p,))
+                    print(k[n])
                     # print(k[n], type(k[n]), k[n].value, type(k[n].value[0]))
-        return AST("assign_expr", *k)
+                if (n != 0 and len(k) >= 2) or (n == 0 and len(k) == 1) and p.name != "value_expr":
+                    k[n] = AST("value_expr", p)
+        return AST("assign_expr", *k if len(k) > 1 else k)
 
     def visit_index_expr(self, n, k):
-        # print(['index_expr'], k, type(k), [type(p) for p in k])
+        print(['index_expr'], k, type(k), [type(p) for p in k])
         return AST("index_expr", *k)
 
     def visit_value_expr(self, n, k):

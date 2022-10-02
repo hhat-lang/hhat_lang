@@ -4,6 +4,7 @@ from abc import abstractmethod
 
 from .builtin import Operators
 
+import pre_hhat.types as types
 from pre_hhat.types import groups as group
 
 
@@ -17,8 +18,12 @@ class X(QuantumOperator):
     name = "@X"
 
     def __call__(self, *args, **kwargs):
-        if len(args) == 2 and isinstance(args[0], tuple):
-            args = args[0] + args[1]
+        if len(args) == 2:
+            if isinstance(args[0], tuple):
+                args = args[0] + args[1]
+            elif isinstance(args[0], types.SingleNull):
+                print('X got here')
+                args = (args[1],)
         return group.MultipleIndexGate(*args, name=self.name),
 
 

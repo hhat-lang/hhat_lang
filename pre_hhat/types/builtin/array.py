@@ -113,6 +113,7 @@ class ArrayInt(group.ArrayMorpher):
         return self._indices
 
     def _format_value(self, value):
+        print(f'* arrayint format value={value}')
         if len(value) > 0:
             for k in value:
                 if not isinstance(k, self.value_type):
@@ -216,8 +217,13 @@ class ArrayInt(group.ArrayMorpher):
             return self
         if isinstance(other, types.SingleNull):
             return self
-        if isinstance(other, ArrayCircuit):
-            raise NotImplementedError(f"{self.name}: need to implement appending with circuit type.")
+        if isinstance(other, tuple):
+            print(f'* arrayint add tuple={other} type={type(other)} vals={[type(p) for p in other]}')
+            value, stack = other
+            res = types.circuit_transform(value, stack)
+            new_value = self.value[0] + round(res)
+            # print(f"RECEIVED RES: {new_value}")
+            return self.__class__(new_value)
         raise NotImplementedError(f"{self.name}: not implemented appending with {other.name}.")
 
     def __contains__(self, item):

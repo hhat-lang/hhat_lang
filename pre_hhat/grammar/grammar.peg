@@ -3,7 +3,7 @@ protocols = 'protocol' ':' (id / STR / ( '(' type ':' (id / STR) (',' type ':' (
 builtin = 'add' / 'print' / '@x' / '@h' / '@cnot'
 main = 'main' '(' body* ')'
 body = gen_call / var_decl / var_assign
-var_decl = type_expr id ('=' (expr / assign) )?
+var_decl = type_expr id ('=' (assign / expr) )?
 type_expr = (type / id) '{' expr? '}'
 type = 'int' / 'str' / 'hashmap' / 'circuit'
 var_assign = id assign
@@ -20,5 +20,5 @@ collect = 'collect'
 id = r'(@)?[a-zA-Z][a-zA-Z_\-0-9]*'
 INT = r'(\-)?[0-9]+'
 STR = r'(\'(.+?)\'|\"(.+?)\")'
-HASHMAP = '(' hash_expr (',' hash_expr )* ')'
+HASHMAP = '\#' '(' hash_expr (',' hash_expr )* ')'
 hash_expr = (id / INT / STR) ':' (id / INT / STR)

@@ -20,6 +20,7 @@ examples_files = [
     "add_many_and_print.hht",
     "int_add_many_print.hht",
     "quantum_add_int.hht",
+    "simple_quantum_opers.hht",
     "simple_quantum_pipe.hht"
 ]
 

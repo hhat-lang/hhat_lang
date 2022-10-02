@@ -88,7 +88,7 @@ class Memory:
                             for idx in key[1]:
                                 self.stack["var"][key[0]]["data"][idx] = value
                     else:
-                        # print(f'mem ? {value} {type(value)}')
+                        print(f'mem ? {value} {type(value)}')
                         for k in value:
                             self.stack["var"][key[0]]["data"] += k
 
@@ -108,6 +108,7 @@ class Memory:
                 if item[1] in self.stack["var"][item[0]].keys():
                     return (self.stack["var"][item[0]][item[1]],)
                 if item[1] in self.stack["var"][item[0]]["data"]:
+                    print(f'mem {item[0]} {item[1]}')
                     return tuple(self.stack["var"][item[0]]["data"][item[1]])
                 if item[1] == "indices":
                     return self.stack["var"][item[0]]["data"].indices
@@ -115,11 +116,15 @@ class Memory:
                     res = ()
                     for k in item[1]:
                         if not types.is_circuit(self.stack["var"][item[0]]["type"]()):
+                            print(f'{self.stack["var"][item[0]]}')
+                            print(f'mem2 var {item[0]} get k ={k.value[0]} | get val={self.stack["var"][item[0]]["data"][k.value[0]]}')
                             res += (self.stack["var"][item[0]]["data"][k.value[0]],)
                         else:
                             _len = self.stack["var"][item[0]]["len"]
                             if k < self.stack["var"][item[0]]["len"]:
                                 res += k,
+                    print(f'mem2 {item[0]}({item[1]}) res={res}')
+                    print(f'mem2 {self.stack["var"][item[0]]["data"]}')
                     return res
             self.add_var(item[0], item[1])
             return tuple(self.stack["var"][item[0]])
@@ -129,7 +134,8 @@ class Memory:
             if not types.is_circuit(self.stack["var"][item]["type"]):
                 return tuple(self.stack["var"][item]["data"].value)
             return self.stack["var"][item]["data"],
-        raise ValueError(f"No {item} found in memory.")
+        # raise ValueError(f"No {item} found in memory.")
+        return False
 
     def __contains__(self, item):
         if isinstance(item, tuple):

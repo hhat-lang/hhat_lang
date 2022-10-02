@@ -58,7 +58,7 @@ def is_circuit(data):
                 return True
         except TypeError:
             if isinstance(data, circuit_types):
-                return False
+                return True
     except TypeError:
         if isinstance(data(), ArrayCircuit):
             return True

@@ -46,9 +46,10 @@ class BaseGroup(ABC):
 
 
 class SingleType(BaseGroup):
-    def __init__(self, value, type_name, data_rule, var=None):
+    def __init__(self, value, type_name, data_rule, default=None, var=None):
         self.var = var
         self.name = type_name
+        self.default = default
         self.rule = data_rule
         self.value = self._format_value(value)
 
@@ -104,8 +105,8 @@ class SingleType(BaseGroup):
 
 
 class SingleAppender(SingleType):
-    def __init__(self, value, type_name, var=None):
-        super().__init__(value, type_name=type_name, data_rule="appender", var=var)
+    def __init__(self, value, type_name, default, var=None):
+        super().__init__(value, type_name=type_name, data_rule="appender", default=default, var=var)
 
     @abstractmethod
     def _format_value(self, value):
@@ -120,8 +121,8 @@ class SingleAppender(SingleType):
 
 
 class SingleMorpher(SingleType):
-    def __init__(self, value, type_name, var=None):
-        super().__init__(value, type_name=type_name, data_rule="morpher", var=var)
+    def __init__(self, value, type_name, default, var=None):
+        super().__init__(value, type_name=type_name, data_rule="morpher", default=default, var=var)
 
     @abstractmethod
     def _format_value(self, value):
@@ -136,8 +137,8 @@ class SingleMorpher(SingleType):
 
 
 class SingleNuller(SingleType):
-    def __init__(self, type_name, var=None):
-        super().__init__(None, type_name=type_name, data_rule="nuller", var=var)
+    def __init__(self, type_name, default, var=None):
+        super().__init__(None, type_name=type_name, data_rule="nuller", default=default, var=var)
 
     @abstractmethod
     def _format_value(self, value):

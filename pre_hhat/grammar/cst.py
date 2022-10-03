@@ -64,6 +64,9 @@ class CST(PTNodeVisitor):
                     k[n] = AST("assign", AST("assign_expr", AST("value_expr", self._define_str(p))))
                 elif isinstance(p, types.SingleType):
                     k[n] = AST("assign", AST("assign_expr", AST("value_expr", p)))
+                elif isinstance(p, AST):
+                    if p.name in ["caller", "expr"]:
+                        k[n] = AST("assign", AST("assign_expr", AST("value_expr", p)))
         k[0], k[1] = k[1], k[0]
         return AST("var_decl", *k)
 

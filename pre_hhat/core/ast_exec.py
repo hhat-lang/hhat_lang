@@ -43,6 +43,11 @@ class Exec:
             return self.data_types
         return self._ast_nodes[node.name] if isinstance(node, gast.AST) else None
 
+    def _get_value_type(self, data):
+        if isinstance(data().value_type, tuple):
+            return data
+        return data().value_type
+
     def node_protocol(self, code, stack):
 
         return stack
@@ -98,6 +103,7 @@ class Exec:
         return stack
 
     def node_caller(self, code, stack):
+        prev_res = stack["res"]
         self.get_node(code.value[0], stack)
         if stack["var"]:
             if not stack["index"]:
@@ -106,23 +112,25 @@ class Exec:
                 var_index = stack["mem"][stack["var"]]
             else:
                 var_index = stack["mem"][stack["var"], stack["index"]]
-            # print(f"[CALLER] var {stack['var']} indices: {var_index}")
             res = code.value[1](
                 *(stack["res"], var_index),
-                value_type=stack["mem"][stack["var"], "type"][0],
+                # value_type=stack["mem"][stack["var"], "type"][0],
+                value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
                 stack=stack,
             )
-            # print(f"** res: {res} {type(res)} {'true' if res else 'false'}")
             if res:
                 print(f'* caller res={res} type={type(res)} vals={[type(p) for p in res]}')
-                for k, idx in zip(res, stack["index"]):
-                    stack["mem"][stack["var"], idx] = k[0]
-            stack["res"] = ()
-            stack["index"] = ()
+                # for k, idx in zip(res, stack["index"]):
+                #     stack["mem"][stack["var"], idx] = k[0]
         else:
             res = code.value[1](*(stack["res"]))
-            if res:
-                stack["res"] = res
+
+        if res:
+            stack["res"] = prev_res + res
+            print(f'* caller var?={stack["var"]} | res?={res} | stack res={stack["res"]}')
+        else:
+            stack["res"] = prev_res
+        print(f'* ')
         return stack
 
     def node_pipe(self, code, stack):
@@ -144,13 +152,14 @@ class Exec:
                 print(f"var {stack['var']} indices values: {var_index}")
                 res = k(
                     *((types.SingleNull(),) + stack["res"] + var_index),
-                    value_type=stack["mem"][stack["var"], "type"][0],
+                    # value_type=stack["mem"][stack["var"], "type"][0],
+                    value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
                     stack=stack
                 )
                 if res:
-                    stack["res"] = res
-                    for p, idx in zip(res, stack["index"]):
-                        stack["mem"][stack["var"], idx] = p
+                    stack["res"] += res
+                    # for p, idx in zip(res, stack["index"]):
+                    #     stack["mem"][stack["var"], idx] = p
             # if isinstance(k, oper.Operators):
             #     print("HUH?")
             #     res = k(
@@ -163,7 +172,7 @@ class Exec:
             #         stack["mem"][stack["var"], stack["index"]] = res
             else:
                 stack = self.get_node(k, stack)
-                print(f'* value expr after else: var={stack["var"]} | res={stack["res"]}')
+                # print(f'* value expr after else: var={stack["var"]} | res={stack["res"]}')
         # stack = self.get_node(code.value, stack)
         return stack
 
@@ -193,9 +202,11 @@ class Exec:
                 # print(f"var {stack['var']} indices values: {var_index}")
                 res = code.value[0](
                     *((types.SingleNull(),) + var_index),
-                    value_type=stack["mem"][stack["var"], "type"][0],
+                    # value_type=stack["mem"][stack["var"], "type"][0],
+                    value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
                     stack=stack,
                 )
+                print("* assign expr after oper?")
                 if res:
                     stack["res"] = res
                     for k, idx in zip(res, stack["index"]):
@@ -203,13 +214,22 @@ class Exec:
             else:
                 stack = self.get_node(code.value[0], stack)
                 print(f'* assign exp var={stack["var"]} | index={stack["index"]} | res={stack["res"]}')
+                # attempt to make it work:
+                for p, idx in zip(stack["res"], stack["index"]):
+                    stack["mem"][stack["var"], idx] = p
                 # stack["mem"][stack["var"], stack["index"]] = stack["res"]
                 # print(stack["mem"][stack["var"]])
         elif len(code.value) == 2:
             stack = self.get_node(code.value[0], stack)
             stack = self.get_node(code.value[1], stack)
+            print(f'* assign expr code=2 {stack["var"]} | index={stack["index"]} | res={stack["res"]}')
+            # attempt to make it work:
+            for p, idx in zip(stack["res"], stack["index"]):
+                stack["mem"][stack["var"], idx] = p
         else:
             print("else?")
+
+        print(f'* assign expr: var={stack["var"]} | data={stack["mem"][stack["var"]]}')
         stack["index"] = ()
         stack["res"] = ()
         return stack
@@ -225,7 +245,8 @@ class Exec:
         if stack["var"]:
             res = code.value[1](
                 *((types.SingleNull(),) + stack["res"]),
-                value_type=stack["mem"][stack["var"], "type"][0],
+                # value_type=stack["mem"][stack["var"], "type"][0],
+                value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
                 stack=stack
             )
         else:
@@ -233,7 +254,7 @@ class Exec:
             # print(f'* gen_call check mem -> {stack["mem"][stack["res"]]}')
             res = code.value[1](*((types.SingleNull(),) + stack["res"]), stack=stack)
         if res:
-            stack["res"] = res
+            stack["res"] += res
         return stack
 
     def node_var_assign(self, code, stack):
@@ -247,6 +268,8 @@ class Exec:
             else:
                 stack = self.get_node(k, stack)
         stack["var"] = var
+        stack["res"] = ()
+        stack["index"] = ()
         return stack
 
     def node_type_expr(self, code, stack):

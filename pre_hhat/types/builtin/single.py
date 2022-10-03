@@ -26,8 +26,10 @@ class StrDisambiguation:
 
 
 class SingleInt(group.SingleMorpher):
+    default = 0
+
     def __init__(self, value=None):
-        super().__init__(value, type_name=SingleInt)
+        super().__init__(value, type_name=SingleInt, default=self.default)
 
     def _format_value(self, value):
         if isinstance(value, str):
@@ -109,8 +111,10 @@ class SingleInt(group.SingleMorpher):
 
 
 class SingleStr(group.SingleAppender):
+    default = ""
+
     def __init__(self, value=None):
-        super().__init__(value, type_name=SingleStr)
+        super().__init__(value, type_name=SingleStr, default=self.default)
 
     def _format_value(self, value):
         if isinstance(value, str):
@@ -179,8 +183,10 @@ class SingleStr(group.SingleAppender):
 
 
 class SingleBin(group.SingleMorpher):
+    default = "0b0"
+
     def __init__(self, value=None):
-        super().__init__(value, type_name=SingleBin)
+        super().__init__(value, type_name=SingleBin, default=self.default)
 
     def _format_value(self, value):
         if isinstance(value, (str, int)):
@@ -268,8 +274,10 @@ class SingleBin(group.SingleMorpher):
 
 
 class SingleHex(group.SingleMorpher):
+    default = "0x0"
+
     def __init__(self, value=None):
-        super().__init__(value, type_name=SingleHex)
+        super().__init__(value, type_name=SingleHex, default=self.default)
 
     def _format_value(self, value):
         if isinstance(value, (str, int)):
@@ -359,9 +367,10 @@ class SingleHex(group.SingleMorpher):
 class SingleBool(group.SingleMorpher):
     bool_values = {True: "T", False: "F"}
     str_values = {"T": True, "F": False}
+    default = "T"
 
     def __init__(self, value=None):
-        super().__init__(value, type_name=SingleBool)
+        super().__init__(value, type_name=SingleBool, default=self.default)
 
     def _format_value(self, value):
         if isinstance(value, bool):
@@ -425,8 +434,10 @@ class SingleBool(group.SingleMorpher):
 
 
 class SingleHashmap(group.SingleAppender):
+    default = dict()
+
     def __init__(self, value=None):
-        super().__init__(value, type_name=SingleHashmap)
+        super().__init__(value, type_name=SingleHashmap, default=self.default)
 
     def _format_value(self, value):
         if isinstance(value, tuple):
@@ -494,8 +505,10 @@ class SingleHashmap(group.SingleAppender):
 
 
 class SingleNull(group.SingleNuller):
+    default = []
+
     def __init__(self):
-        super().__init__(SingleNull)
+        super().__init__(SingleNull, default=self.default)
 
     def _format_value(self, value):
         return []

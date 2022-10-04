@@ -7,11 +7,10 @@ from pre_hhat.grammar.ast import AST
 
 class Memory:
     def __init__(self, name=None):
+        self.name = name
         if name is not None:
             self.stack = self._start()
-            self.name = name
         else:
-            self.name = None
             self.stack = dict()
 
     def init(self, name):
@@ -88,7 +87,7 @@ class Memory:
                             for idx in key[1]:
                                 self.stack["var"][key[0]]["data"][idx] = value
                     else:
-                        print(f'mem ? {value} {type(value)}')
+                        # print(f'mem ? {value} {type(value)}')
                         for k in value:
                             self.stack["var"][key[0]]["data"] += k
 
@@ -108,7 +107,7 @@ class Memory:
                 if item[1] in self.stack["var"][item[0]].keys():
                     return (self.stack["var"][item[0]][item[1]],)
                 if item[1] in self.stack["var"][item[0]]["data"]:
-                    print(f'mem {item[0]} {item[1]}')
+                    # print(f'mem {item[0]} {item[1]}')
                     return tuple(self.stack["var"][item[0]]["data"][item[1]])
                 if item[1] == "indices":
                     return self.stack["var"][item[0]]["data"].indices
@@ -116,20 +115,20 @@ class Memory:
                     res = ()
                     for k in item[1]:
                         if not types.is_circuit(self.stack["var"][item[0]]["type"]()):
-                            print(f'{self.stack["var"][item[0]]}')
-                            print(f'mem2 var {item[0]} get k ={k.value[0]} | get val={self.stack["var"][item[0]]["data"][k.value[0]]}')
+                            # print(f'{self.stack["var"][item[0]]}')
+                            # print(f'mem2 var {item[0]} get k ={k.value[0]} | get val={self.stack["var"][item[0]]["data"][k.value[0]]}')
                             res += (self.stack["var"][item[0]]["data"][k.value[0]],)
                         else:
                             _len = self.stack["var"][item[0]]["len"]
                             if k < self.stack["var"][item[0]]["len"]:
                                 res += k,
-                    print(f'mem2 {item[0]}({item[1]}) res={res}')
-                    print(f'mem2 {self.stack["var"][item[0]]["data"]}')
+                    # print(f'mem2 {item[0]}({item[1]}) res={res}')
+                    # print(f'mem2 {self.stack["var"][item[0]]["data"]}')
                     return res
             self.add_var(item[0], item[1])
             return tuple(self.stack["var"][item[0]])
         if item in self.stack.keys():
-            return tuple(self.stack[item])
+            return self.stack[item],
         if item in self.stack["var"].keys():
             if not types.is_circuit(self.stack["var"][item]["type"]):
                 return tuple(self.stack["var"][item]["data"].value)
@@ -160,8 +159,47 @@ class Memory:
 
 
 class SymbolTable:
-    def __init__(self):
-        self.table = {"main": None, "func": dict()}
+    def __init__(self, name=None, data=None):
+        if name == "main":
+            self.table = {"main": None}
+        elif name == "func":
+            if data is not None:
+                self.table = {"func": data}
+            else:
+                self.table = {"func": dict()}
+        else:
+            self.table = {"main": None, "func": dict()}
+        self._name = self.__class__.__name__
+
+    def has_func_params(self, name, data):
+        vals = ()
+        for k in self.table["func"][name].keys():
+            if len(data) > 0 and len(k) > 0:
+                for p1, p2 in zip(k, data):
+                    if p1[1][0] == p2[1][0]:
+                        if len(p1) == 2:
+                            if p1[1][1] == p2[1][1]:
+                                vals += p1,
+                        if not p2[1][-1]:
+                            vals += p1,
+                return (True, vals) if len(vals) > 0 else (False, ())
+            else:
+                return True, ()
+        return False, ()
+
+    def _prepare_func_data(self, data):
+        name = data[0]
+        func_type = data[1].value
+        params = data[2].value if data[2].name == "params" else ()
+        body = data[3:][0].value if data[2].name == "params" else data[2:][0].value
+        if name not in self:
+            self.table["func"].update({name: {params: {"data": body, "type": func_type}}})
+        else:
+            has_params, _ = self.has_func_params(name, params)
+            if not has_params:
+                self.table["func"][name].update({params: {"data": body, "type": func_type}})
+            else:
+                raise ValueError(f"{self._name}: func {name} already has params {params}.")
 
     def __getitem__(self, item):
         if item == "main":
@@ -170,14 +208,22 @@ class SymbolTable:
             return self.table["func"][item]
         if item == "func":
             return self.table["func"]
-        raise ValueError(f"{self.__class__.__name__}: error when getting data from symbol table.")
+        if isinstance(item, tuple):
+            if item[0] in self:
+                has_params, args = self.has_func_params(item[0], item[1])
+                if has_params:
+                    data = self.table["func"][item[0]][args]["data"]
+                    print(f'got data table={data}')
+                    return data
+        raise ValueError(f"{self._name}: error when getting data from symbol table.")
 
     def __setitem__(self, key, value):
         if isinstance(value, (types.BaseGroup, AST, tuple)):
             if key == "main":
                 self.table["main"] = value
             else:
-                self.table["func"].update({key: value})
+                # self.table["func"].update({key: value})
+                self._prepare_func_data(value)
 
     def __iadd__(self, other):
         if isinstance(other, (types.BaseGroup, AST)):
@@ -185,6 +231,9 @@ class SymbolTable:
         elif isinstance(other, tuple):
             self.table["func"].update({other[0]: other[1]})
         return self
+
+    def __contains__(self, item):
+        return item in self.table["func"].keys()
 
     def __repr__(self):
         return f"{self.table}"

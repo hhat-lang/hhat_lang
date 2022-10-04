@@ -21,6 +21,8 @@ class PreEvaluator:
             if code.name == "main":
                 self.table[code.name] = code.value
                 res = self.table
+            elif code.name == "func":
+                self.table[code.value[0]] = code.value
             else:
                 res = self.walk_tree(code.value)
         return res

@@ -11,14 +11,10 @@ from pre_hhat.operators import quantum as poq
 from pre_hhat.grammar.ast import AST
 
 
-def comment():
-    return [reg(r"\/\*.*\*\/"), reg(r"\/\-.*\-\/")]
-
-
-def parsing_code(example_name, print_code=False, debug=True):
+def parsing_code(example_name, print_code=False, debug=True, reduce_tree=True):
     file_dir = os.path.dirname(__file__)
     grammar = open(os.path.join(file_dir, "grammar.peg"), "r").read()
-    parser = ParserPEG(grammar, "program", comment_rule_name=comment, debug=debug, reduce_tree=True)
+    parser = ParserPEG(grammar, "program", debug=debug, reduce_tree=reduce_tree)
     code = open(os.path.join(examples_dir, example_name), "r").readlines()
     if print_code:
         for k in code:
@@ -53,6 +49,26 @@ class CST(PTNodeVisitor):
         print(f"protocol = {k}")
         k[0] = AST("protocol", *tuple(q for q in k if not isinstance(example, str)))
         return k
+
+    def visit_funcs(self, n, k):
+        if k[2].name == "params":
+            if len(k) > 2:
+                k = k[1], k[0], k[2], AST("func_body", *k[3:])
+            else:
+                k = k[1], k[0], k[2]
+        else:
+            k = k[1], k[0], AST("func_body", *k[2:])
+        return AST("func", *k)
+
+    def visit_params(self, n, k):
+        vals = ()
+        for p in range(0, len(k), 2):
+            k[p] = (k[p].value[0], k[p].value[1]) if len(k[p].value) == 2 else k[p].value
+            vals += (k[p+1], k[p]),
+        return AST("params", *vals)
+
+    def visit_func_body(self, n, k):
+        return AST("func_body", *k)
 
     def visit_main(self, n, k):
         return AST("main", *k)
@@ -104,7 +120,7 @@ class CST(PTNodeVisitor):
                 k[n] = AST("value_expr", self._define_str(p))
             else:
                 if n == 0 and len(k) >= 2:
-                    print(p, type(p), *p, isinstance(p, AST), k[n])
+                    # print(p, type(p), *p, isinstance(p, AST), k[n])
                     if isinstance(p, AST):
                         if not p.name == "id":
                             k[n] = AST("index_expr", *p)
@@ -113,14 +129,13 @@ class CST(PTNodeVisitor):
                     else:
                         k[n] = AST("index_expr", p)
                     # k[n] = AST("index_expr", *p if isinstance(p, AST) else (p,))
-                    print(k[n])
                     # print(k[n], type(k[n]), k[n].value, type(k[n].value[0]))
                 if (n != 0 and len(k) >= 2) or (n == 0 and len(k) == 1) and p.name != "value_expr":
                     k[n] = AST("value_expr", p)
         return AST("assign_expr", *k if len(k) > 1 else k)
 
     def visit_index_expr(self, n, k):
-        print(['index_expr'], k, type(k), [type(p) for p in k])
+        # print(['index_expr'], k, type(k), [type(p) for p in k])
         return AST("index_expr", *k)
 
     def visit_value_expr(self, n, k):
@@ -166,6 +181,14 @@ class CST(PTNodeVisitor):
 
     def visit_args(self, n, k):
         return AST("args", *k)
+
+    def visit_args2(self, n, k):
+        vals = ()
+        for p in range(0, len(k), 2):
+            # kp0 = (k[p].value[0], k[p].value[1]) if len(k[p]) == 2 else (k[p].value[0],)
+            # kp1 = (k[p+1].value[0], k[p+1].value[1]) if len(k[p + 1]) == 2 else (k[p+1].value[0],)
+            vals += (AST("value", k[p+1]), AST("key_arg", k[p])),
+        return AST("args2", *vals)
 
     def visit_collect(self, n, k):
         pass

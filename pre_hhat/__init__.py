@@ -21,7 +21,9 @@ examples_files = [
     "int_add_many_print.hht",
     "quantum_add_int.hht",
     "simple_quantum_opers.hht",
-    "simple_quantum_pipe.hht"
+    "simple_quantum_pipe.hht",
+    "func_call_no_param_no_return.hht",
+    "func_call_param_no_return.hht"
 ]
 
 

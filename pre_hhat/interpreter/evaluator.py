@@ -23,4 +23,4 @@ class Evaluator:
         interpreter = ast_exec.Exec()
         stack = interpreter.new_stack()
         main_code = self.init_main(stack)
-        interpreter.walk_tree(main_code, stack, self.code["func"])
+        interpreter.walk_tree(main_code, stack, memory.SymbolTable("func", self.code["func"])) # self.code["func"])

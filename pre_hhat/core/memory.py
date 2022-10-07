@@ -1,8 +1,7 @@
 """Memory"""
 
 import pre_hhat.types as types
-
-from pre_hhat.grammar.ast import AST
+import pre_hhat.grammar.ast as gast
 
 
 class Memory:
@@ -19,7 +18,7 @@ class Memory:
             self.stack = self._start()
 
     def _start(self):
-        stack = {"name": self.name, "var": dict(), "return": types.SingleNull()}
+        stack = {"name": self.name, "var": dict()}
         return stack
 
     @staticmethod
@@ -51,7 +50,7 @@ class Memory:
 
     def add_var(self, var_name, type_expr):
         if (
-            isinstance(var_name, (str, AST, types.SingleStr))
+            isinstance(var_name, (str, gast.AST, types.SingleStr))
             and var_name not in self.stack["var"].keys()
         ):
             self.stack["var"].update({var_name: self._init_var(type_expr.value, var_name)})
@@ -81,23 +80,19 @@ class Memory:
                 elif isinstance(key[1], tuple):
                     if not types.is_circuit(self.stack["var"][key[0]]["type"]):
                         if len(key[1]) == len(value):
-                                for idx, v in zip(key[1], value):
-                                    self.stack["var"][key[0]]["data"][idx] = v
+                            for idx, v in zip(key[1], value):
+                                self.stack["var"][key[0]]["data"][idx] = v
                         else:
                             for idx in key[1]:
                                 self.stack["var"][key[0]]["data"][idx] = value
                     else:
-                        # print(f'mem ? {value} {type(value)}')
                         for k in value:
                             self.stack["var"][key[0]]["data"] += k
-
                 else:
                     self.stack["var"][key[0]][key[1]] = value
         if key in self.stack["var"].keys():
             for k in self.stack["var"][key]["data"]:
                 self.stack["var"][key]["data"][k] = value
-        if key == "return":
-            self.stack["return"] = value
 
     def __getitem__(self, item):
         if isinstance(item, tuple):
@@ -107,7 +102,6 @@ class Memory:
                 if item[1] in self.stack["var"][item[0]].keys():
                     return (self.stack["var"][item[0]][item[1]],)
                 if item[1] in self.stack["var"][item[0]]["data"]:
-                    # print(f'mem {item[0]} {item[1]}')
                     return tuple(self.stack["var"][item[0]]["data"][item[1]])
                 if item[1] == "indices":
                     return self.stack["var"][item[0]]["data"].indices
@@ -115,15 +109,11 @@ class Memory:
                     res = ()
                     for k in item[1]:
                         if not types.is_circuit(self.stack["var"][item[0]]["type"]()):
-                            # print(f'{self.stack["var"][item[0]]}')
-                            # print(f'mem2 var {item[0]} get k ={k.value[0]} | get val={self.stack["var"][item[0]]["data"][k.value[0]]}')
                             res += (self.stack["var"][item[0]]["data"][k.value[0]],)
                         else:
                             _len = self.stack["var"][item[0]]["len"]
                             if k < self.stack["var"][item[0]]["len"]:
                                 res += k,
-                    # print(f'mem2 {item[0]}({item[1]}) res={res}')
-                    # print(f'mem2 {self.stack["var"][item[0]]["data"]}')
                     return res
             self.add_var(item[0], item[1])
             return tuple(self.stack["var"][item[0]])
@@ -133,7 +123,6 @@ class Memory:
             if not types.is_circuit(self.stack["var"][item]["type"]):
                 return tuple(self.stack["var"][item]["data"].value)
             return self.stack["var"][item]["data"],
-        # raise ValueError(f"No {item} found in memory.")
         return False
 
     def __contains__(self, item):
@@ -144,7 +133,8 @@ class Memory:
         return item in self.stack["var"].keys()
 
     def __repr__(self):
-        vals = " "*15 + "=[Memory Stack]=\n|"
+        vals = "\n"
+        vals += " "*15 + "=[Memory Stack]=\n|"
         vals += "-"*50 + "\n"
         vals += f"| * name: {self.stack['name']}\n|"
         for k, v in self.stack["var"].items():
@@ -161,14 +151,14 @@ class Memory:
 class SymbolTable:
     def __init__(self, name=None, data=None):
         if name == "main":
-            self.table = {"main": None}
+            self.table = {"main": ()}
         elif name == "func":
             if data is not None:
                 self.table = {"func": data}
             else:
                 self.table = {"func": dict()}
         else:
-            self.table = {"main": None, "func": dict()}
+            self.table = {"main": (), "func": dict()}
         self._name = self.__class__.__name__
 
     def has_func_params(self, name, data):
@@ -176,12 +166,20 @@ class SymbolTable:
         for k in self.table["func"][name].keys():
             if len(data) > 0 and len(k) > 0:
                 for p1, p2 in zip(k, data):
-                    if p1[1][0] == p2[1][0]:
-                        if len(p1) == 2:
-                            if p1[1][1] == p2[1][1]:
+                    if isinstance(p2[1](), types.ArrayType):
+                        if p1[1].value[0] == p2[1]:
+                            if len(p1[1]) == 2:
+                                if p1[1].value[1] == p2[2]:
+                                    vals += p1,
+                            if not p2[-1]:
                                 vals += p1,
-                        if not p2[1][-1]:
-                            vals += p1,
+                    elif isinstance(p2[1](), types.SingleType):
+                        if isinstance(p2[1](), p1[1].value[0]().value_type):
+                            if len(p1[1]) == 2:
+                                if p1[1].value[1] == types.SingleInt(1):
+                                    vals += p1,
+                            else:
+                                vals += p1,
                 return (True, vals) if len(vals) > 0 else (False, ())
             else:
                 return True, ()
@@ -193,13 +191,28 @@ class SymbolTable:
         params = data[2].value if data[2].name == "params" else ()
         body = data[3:][0].value if data[2].name == "params" else data[2:][0].value
         if name not in self:
-            self.table["func"].update({name: {params: {"data": body, "type": func_type}}})
+            self.table["func"].update({name: {params: {"data": body, "type": func_type, "return": types.SingleNull()}}})
         else:
             has_params, _ = self.has_func_params(name, params)
             if not has_params:
-                self.table["func"][name].update({params: {"data": body, "type": func_type}})
+                self.table["func"][name].update({params: {"data": body, "type": func_type, "return": types.SingleNull()}})
             else:
-                raise ValueError(f"{self._name}: func {name} already has params {params}.")
+                raise ValueError(f"{self._name}: var {name} already has params {params}.")
+
+    def write_return(self, name, args, data):
+        if name in self:
+            if args in self.table["func"][name].keys():
+                print(f"name={name} | args? {args in self.table['func'][name].keys()}")
+                print(data)
+                print(self.table["func"][name][args])
+                self.table["func"][name][args]["return"] = data
+                return
+        raise ValueError(f"{self._name}: have no var {name} or has no params {args}.")
+
+    def flush_return(self, name, args):
+        val = self.table["func"][name][args]["return"]
+        self.table["func"][name][args]["return"] = types.SingleNull()
+        return val
 
     def __getitem__(self, item):
         if item == "main":
@@ -210,23 +223,32 @@ class SymbolTable:
             return self.table["func"]
         if isinstance(item, tuple):
             if item[0] in self:
-                has_params, args = self.has_func_params(item[0], item[1])
-                if has_params:
-                    data = self.table["func"][item[0]][args]["data"]
-                    print(f'got data table={data}')
-                    return data
-        raise ValueError(f"{self._name}: error when getting data from symbol table.")
+                if len(item) == 2:
+                    # this branch is used to retrieve data using exact or external args for function
+                    has_params, args = self.has_func_params(item[0], item[1])
+                    if has_params:
+                        data = self.table["func"][item[0]][args]["data"]
+                        return data, args
+                if len(item) == 3:
+                    # this branch will be used to get things like 'return' data
+                    if item[1] in self.table["func"][item[0]].keys():
+                        # the args (item[1]) are exactly the function parameters
+                        if item[2] == "return":
+                            return self.flush_return(item[0], item[1])
+        raise ValueError(f"{self._name}: error when getting data from symbol table. Data: {item}")
 
     def __setitem__(self, key, value):
-        if isinstance(value, (types.BaseGroup, AST, tuple)):
+        if isinstance(value, (types.BaseGroup, gast.AST, tuple)):
             if key == "main":
                 self.table["main"] = value
             else:
-                # self.table["func"].update({key: value})
-                self._prepare_func_data(value)
+                if len(key) == 3:
+                    self.write_return(key[0], key[1], value)
+                else:
+                    self._prepare_func_data(value)
 
     def __iadd__(self, other):
-        if isinstance(other, (types.BaseGroup, AST)):
+        if isinstance(other, (types.BaseGroup, gast.AST)):
             self.table["main"] = other
         elif isinstance(other, tuple):
             self.table["func"].update({other[0]: other[1]})

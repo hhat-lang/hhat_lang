@@ -63,7 +63,6 @@ class CST(PTNodeVisitor):
     def visit_params(self, n, k):
         vals = ()
         for p in range(0, len(k), 2):
-            k[p] = (k[p].value[0], k[p].value[1]) if len(k[p].value) == 2 else k[p].value
             vals += (k[p+1], k[p]),
         return AST("params", *vals)
 
@@ -192,6 +191,9 @@ class CST(PTNodeVisitor):
 
     def visit_collect(self, n, k):
         pass
+
+    def visit_return(self, n, k):
+        return AST("return", *k)
 
     def visit_id(self, n, k):
         return AST("id", n.value)

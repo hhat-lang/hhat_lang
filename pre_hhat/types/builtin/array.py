@@ -682,7 +682,7 @@ class ArrayCircuit(group.ArrayAppender):
             elif k is None or isinstance(k, str):
                 continue
             else:
-                res += self._flatten_indices(k.indices)
+                res += self._flatten_indices(k.var_indices)
         return res
 
     def _get_true_len(self):

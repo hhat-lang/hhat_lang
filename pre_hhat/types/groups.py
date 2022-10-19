@@ -333,11 +333,11 @@ class Gate(BaseGroup):
         return True if len(self) > 0 else False
 
     def __add__(self, other):
-        inter_indices = set(self.indices).intersection(set(other.indices))
+        inter_indices = set(self.indices).intersection(set(other.var_indices))
         self_multi = isinstance(self, MultipleIndexGate)
         other_multi = isinstance(other, MultipleIndexGate)
         if (self_multi or other_multi) and not inter_indices and self.name == other.name:
-            return MultipleIndexGate(*(self.indices + other.indices), name=self.name[0])
+            return MultipleIndexGate(*(self.indices + other.var_indices), name=self.name[0])
         return GateArray(self, other)
 
     def __getitem__(self, item):
@@ -389,7 +389,7 @@ class GateArray(BaseGroup):
         if isinstance(value, list):
             indices = ()
             for k in value:
-                indices += k.indices
+                indices += k.var_indices
             return indices
         if isinstance(value, Gate):
             return value.indices
@@ -440,15 +440,15 @@ class GateArray(BaseGroup):
                             *(prev_indices + k_indices), name=prev_name[0]
                         )
                         if isinstance(indices[-1], tuple):
-                            indices = indices[:-1] + (indices[-1] + k.indices,)
+                            indices = indices[:-1] + (indices[-1] + k.var_indices,)
                         else:
-                            indices = indices[:-1] + ((indices[-1],) + k.indices,)
+                            indices = indices[:-1] + ((indices[-1],) + k.var_indices,)
                     else:
                         value[-1] = [prev[-1], k]
                         last_index = (
                             indices[-1] if isinstance(indices[-1], tuple) else indices[-1],
                         )
-                        indices = indices[:-1] + (last_index + k.indices,)
+                        indices = indices[:-1] + (last_index + k.var_indices,)
                         name = name[:-1] + ((name[-1], k.name[0]),)
                     prev = k
                     continue
@@ -456,7 +456,7 @@ class GateArray(BaseGroup):
                 value.extend(k.value)
             else:
                 value.append(k)
-            indices += k.indices
+            indices += k.var_indices
             name += k.name
             prev = k
         return value, indices, indices, name
@@ -517,7 +517,7 @@ class MultipleIndexGate(Gate):
         super().__init__(*value, name=name)
 
     def _format_value(self, value):
-        return [{k: self.name[0] for k in value}]
+        return [{k: self.name[0] for k in value if not isinstance(k, types.SingleNull)}]
 
 
 class ControlTargetGate(Gate):

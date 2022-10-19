@@ -1,0 +1,8 @@
+func null{} @test (circuit{1} @a circuit{1} @b) (
+  @a(:@h, :@cnot(@b))
+)
+
+main (
+  circuit{1} @c1 = @x
+  circuit{1} @c1 =
+)

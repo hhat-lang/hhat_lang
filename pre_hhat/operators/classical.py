@@ -28,17 +28,23 @@ class Add(Operators):
             args0_types = self._get_data_types(args[0])
             args1_types = self._get_data_types(args[1])
             data_types = args1_types.union(args0_types)
-            res = ()
             if len(data_types) == 1:
                 if len(args[0]) == len(args[1]):
+                    res = ()
                     for k, v in zip(*args):
                         res += kwargs["value_type"](k+v),
                 elif len(args[0]) == 1:
+                    res = ()
                     for k in args[1]:
                         res += kwargs["value_type"](args[0][0] + k),
                 elif len(args[1]) == 1:
+                    res = kwargs["value_type"]()
                     for k in args[0]:
-                        res += kwargs["value_type"](args[0][0] + k),
+                        res += kwargs["value_type"](args[1][0] + k)
+                    res = res,
+                else:
+                    print('= ADD got something else')
+                    res = ()
                 return res
             elif types.is_circuit(data_types):
                 default = kwargs['value_type']().default

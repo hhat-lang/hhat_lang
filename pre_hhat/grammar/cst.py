@@ -129,7 +129,7 @@ class CST(PTNodeVisitor):
                         k[n] = AST("index_expr", p)
                     # k[n] = AST("index_expr", *p if isinstance(p, AST) else (p,))
                     # print(k[n], type(k[n]), k[n].value, type(k[n].value[0]))
-                if (n != 0 and len(k) >= 2) or (n == 0 and len(k) == 1) and p.name != "value_expr":
+                if (n != 0 and len(k) >= 2) or (n == 0 and len(k) == 1): # and p.name != "value_expr":
                     k[n] = AST("value_expr", p)
         return AST("assign_expr", *k if len(k) > 1 else k)
 
@@ -141,9 +141,11 @@ class CST(PTNodeVisitor):
         # print(f'value expr?! {k}')
         ast_seq = []
         pipe = []
+        print('value expr!')
         for p in k:
+            print(f'which value? {p} {type(p)}')
             if isinstance(p, str):
-                ast_seq.append(AST("pipe", *pipe)) if pipe else ast_seq.extend(pipe)
+                ast_seq.append(AST("value_expr", AST("pipe", *pipe))) if pipe else ast_seq.extend(pipe)
                 ast_seq.append(self._define_str(p))
                 pipe = []
             else:
@@ -152,9 +154,10 @@ class CST(PTNodeVisitor):
                         pipe.append(*p.value)
                     else:
                         ast_seq.append(p)
-        ast_seq.append(AST("pipe", *pipe)) if pipe else res.extend(pipe)
+        if pipe:
+            ast_seq.append(AST("value_expr", AST("pipe", *pipe)))
         k = ast_seq if len(ast_seq) > 0 else k
-        # print(f"value expr after pipe: {k}")
+        print(f'value expr final >> {k}')
         return AST("value_expr", *k)
 
     def visit_pipe(self, n, k):

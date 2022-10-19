@@ -1,4 +1,5 @@
 from copy import deepcopy
+from pre_hhat import execute_mode
 import pre_hhat.types as types
 import pre_hhat.operators as oper
 import pre_hhat.grammar.ast as gast
@@ -22,7 +23,7 @@ class Exec:
             "assign_expr": self.node_assign_expr,
             "assign": self.node_assign,
             "gen_call": self.node_gen_call,
-            "collect": self.kw_collect,
+            "collect": self.node_collect,
             "var_assign": self.node_var_assign,
             "type_expr": self.node_type_expr,
             "var_decl": self.node_var_decl,
@@ -67,7 +68,7 @@ class Exec:
                 res += (k, k.name),
         return res
 
-    def transfer_dada(self, old_vars, new_vars, old_stack, new_stack):
+    def transfer_data(self, old_vars, new_vars, old_stack, new_stack):
         for old, new in zip(old_vars, new_vars):
             if isinstance(old[0], types.SingleType):
                 new_stack["mem"][new[0], new[1]]
@@ -85,12 +86,16 @@ class Exec:
         return new_stack
 
     def node_protocol(self, code, stack):
+        # not dealing with custom protocols yet
+        # return stack
+        raise NotImplementedError("[protocol] not implemented custom protocols yet.")
 
-        return stack
-
-    def kw_collect(self, code, stack):
-        collect = oper.Collector(code.value)
-        res = collect(stack)
+    def node_collect(self, code, stack):
+        if execute_mode == "one":
+            raise NotImplementedError(f"[collect] not implemented execute_mode=\"one\" yet.")
+        if execute_mode == "all":
+            # really nothing to do here (for now, at least)
+            pass
         return stack
 
     def role_dict(self, code, stack):
@@ -156,6 +161,7 @@ class Exec:
         prev_res = stack["res"]
         stack["res"] = ()
         self.get_node(code.value[0], stack)
+        res = ()
         if stack["var"]:
             if not stack["index"]:
                 stack["index"] = stack["mem"][stack["var"], "indices"]
@@ -163,13 +169,39 @@ class Exec:
                 var_index = stack["mem"][stack["var"]]
             else:
                 var_index = stack["mem"][stack["var"], stack["index"]]
-            res = code.value[1](
-                *(stack["res"], var_index),
-                value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
-                stack=stack,
-            )
+
+            if isinstance(code.value[1], oper.Operators):
+                res = code.value[1](
+                    *(stack["res"], var_index),
+                    value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
+                    stack=stack,
+                )
+            else:
+                if code.value[1] in self.func:
+                    func_return, old_idx, old_res = self.func_handler(code, stack)
+
+                    stack["res"] = old_res
+                    stack["index"] = old_idx
+                    if func_return:
+                        res += func_return
+                else:
+                    stack = self.get_node(code.value[1], stack)
         else:
-            res = code.value[1](*(stack["res"]))
+            if isinstance(code.value[1], oper.Operators):
+                res = code.value[1](
+                    *(stack["res"]),
+                    stack=stack
+                )
+            else:
+                if code.value[1] in self.func:
+                    func_return, old_idx, old_res = self.func_handler(code, stack)
+
+                    stack["res"] = old_res
+                    stack["index"] = old_idx
+                    if func_return:
+                        res += func_return
+                else:
+                    stack = self.get_node(code.value[1], stack)
 
         if res:
             stack["res"] = prev_res + res
@@ -183,6 +215,7 @@ class Exec:
         return stack
 
     def node_value_expr(self, code, stack):
+        res = ()
         for k in code:
             if not stack["index"]:
                 stack["index"] = stack["mem"][stack["var"], "indices"]
@@ -196,7 +229,15 @@ class Exec:
                 if res:
                     stack["res"] += res
             else:
-                stack = self.get_node(k, stack)
+                if k in self.func:
+                    func_return, old_idx, old_res = self.func_handler(k, stack)
+
+                    stack["res"] = old_res
+                    stack["index"] = old_idx
+                    if func_return:
+                        res += func_return
+                else:
+                    stack = self.get_node(k, stack)
         return stack
 
     def node_index_expr(self, code, stack):
@@ -212,6 +253,7 @@ class Exec:
         return stack
 
     def node_assign_expr(self, code, stack):
+        res = ()
         stack["index"] = ()
         stack["res"] = ()
         if len(code.value) == 1:
@@ -229,10 +271,22 @@ class Exec:
                     for k, idx in zip(res, stack["index"]):
                         stack["mem"][stack["var"], idx] = k
             else:
-                stack = self.get_node(code.value[0], stack)
-                # attempt to make it work:
-                for p, idx in zip(stack["res"], stack["index"]):
-                    stack["mem"][stack["var"], idx] = p
+                if code.value in self.func:
+                    func_return, old_idx, old_res = self.func_handler(code, stack)
+
+                    stack["res"] = old_res
+                    stack["index"] = old_idx
+                    if func_return:
+                        res += func_return
+                    if res:
+                        stack["res"] = res
+                        for k, idx in zip(res, stack["index"]):
+                            stack["mem"][stack["var"], idx] = k
+                else:
+                    stack = self.get_node(code.value[0], stack)
+                    # attempt to make it work:
+                    for p, idx in zip(stack["res"], stack["index"]):
+                        stack["mem"][stack["var"], idx] = p
         elif len(code.value) == 2:
             stack = self.get_node(code.value[0], stack)
             stack = self.get_node(code.value[1], stack)
@@ -253,6 +307,7 @@ class Exec:
     def node_gen_call(self, code, stack):
         if len(code.value[0].value) > 0:
             stack = self.get_node(code.value[0], stack)
+        res = ()
         if stack["var"]:
             if isinstance(code.value[1], oper.Operators):
                 res = code.value[1](
@@ -270,40 +325,41 @@ class Exec:
                     # func_return = self.func[code.value[1], args, "return"]
                     # res = []
                 else:
-                    res = []
+                    res = ()
         else:
             if isinstance(code.value[1], oper.Operators):
                 res = code.value[1](*((types.SingleNull(),) + stack["res"]), stack=stack)
             else:
                 if code.value[1] in self.func:
-                    old_res = stack["res"]
-                    old_idx = stack["index"]
-                    stack["res"] = ()
-                    stack["index"] = ()
-
-                    args = self._wrap_args(code.value[0], stack)
-
-                    func_stack = self.new_stack(code.value[1])
-                    new_code, new_args = self.func[code.value[1], args]
-                    if new_code:
-                        func_stack = self.transfer_dada(args, new_args, stack, func_stack)
-                        func_stack["scope"] = code.value[1]
-                        func_stack["scope_args"] = new_args
-                        func_stack = self.get_node(new_code, func_stack)
-                    # func_return = self.func[code.value[1], args, "return"]
-                    func_return = func_stack["res"]
+                    func_return, old_idx, old_res = self.func_handler(code, stack)
 
                     stack["res"] = old_res
                     stack["index"] = old_idx
                     if func_return:
-                        stack["res"] += func_return
-
-                    res = []
+                        # stack["res"] += func_return
+                        res += func_return
                 else:
-                    res = []
+                    res = ()
         if res:
             stack["res"] += res
         return stack
+
+    def func_handler(self, code, stack):
+        old_res = stack["res"]
+        old_idx = stack["index"]
+        stack["res"] = ()
+        stack["index"] = ()
+        args = self._wrap_args(code.value[0], stack)
+        func_stack = self.new_stack(code.value[1])
+        new_code, new_args = self.func[code.value[1], args]
+        if new_code:
+            func_stack = self.transfer_data(args, new_args, stack, func_stack)
+            func_stack["scope"] = code.value[1]
+            func_stack["scope_args"] = new_args
+            func_stack = self.get_node(new_code, func_stack)
+        func_return = self.func[code.value[1], new_args, "return"]
+        del func_stack
+        return func_return, old_idx, old_res
 
     def node_var_assign(self, code, stack):
         var = stack["var"]
@@ -335,7 +391,6 @@ class Exec:
 
     def node_return(self, code, stack):
         for k in code:
-            # stack = self.get_node(k, stack)
             if isinstance(k, types.SingleType):
                 stack["res"] += k,
             elif k in stack["mem"]:
@@ -346,8 +401,6 @@ class Exec:
                         stack["res"] += stack["mem"][k, p]
             else:
                 stack = self.get_node(k, stack)
-        print(f"node return (stack 'res')={stack['res']}")
-        print(f"scope args={stack['scope_args']}")
         self.func[stack["scope"], stack["scope_args"], "return"] = stack["res"]
         return stack
 

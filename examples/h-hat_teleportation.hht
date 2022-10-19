@@ -14,25 +14,22 @@ main (
 	hashmap{} msg2 = collect B(s:server, a:alice)
 )
 
-func bin{} B (hashmap{2} s, hashmap{2} a) ( bin{2} ans circuit{} @c = (:@broadcast_recv(s) |> ans(:broadcast_recv(a)) |> nez(ans(0)):@sign |> nez(ans(1)):@not) bin{} msg = @c return msg)
-main ( hashmap{2} server = ('host': '127.0.0.1', 'port': 8000) hashmap{2} alice = ('host': '127.0.0.2', 'port': 8002) bin{} msg for(0..1024:msg(B(s:server, a:alice):add(1))))
-
 
 # a.hht #
-func null A (str msg, hashmap(2) s, hashmap(2) a, hashmap(2) b) (
-	circuit() @data = @encode(msg)
-	circuit() @msg
-	circuit() @c = (:@broadcast_recv(s) |> @msg(:@data, :@hsync(@c1)))
+func null{} A (str{} msg, hashmap{1} s, hashmap{1} a, hashmap{1} b) (
+	circuit{} @data = @encode(msg)
+	circuit{} @msg
+	circuit{} @c = (:@broadcast_recv(s) |> @msg(:@data, :@hsync(@c1)))
 	broadcast_send(host:b, msg:(@c1 @msg))
 )
 
 main (
-	hashmap(2) server = ('host': '127.0.0.1', 'port': 8000)
-	hashmap(2) alice = ('host': '127.0.0.2', 'port': 8002)
-	hashmap(2) bob = ('host': '127.0.0.3', 'port': 8004)
+	hashmap{1} server = ('host': '127.0.0.1', 'port': 8000)
+	hashmap{1} alice = ('host': '127.0.0.2', 'port': 8002)
+	hashmap{1} bob = ('host': '127.0.0.3', 'port': 8004)
 	str msg = input('write the message:')
-	send_request_sync(sever:s, clients:(a b), msg_len:msg(len), shots:1024)
-	for(0..1024:A(msg:msg, s:server, a:alice, b:bob))
+	send_request_sync(sever:s, clients:(a b), msg_len:msg.len)
+	collect A(msg:msg, s:server, a:alice, b:bob)
 )
 
 # s.hht #

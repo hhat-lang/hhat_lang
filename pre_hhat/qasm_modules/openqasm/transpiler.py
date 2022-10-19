@@ -43,20 +43,29 @@ class Transpiler(BaseTranspiler):
 
     def unwrap_gates(self) -> str:
         code = ""
-        # print(f"** data: {self.data} {self.data.var}")
-        for k in self.data:
-            # print(f"gates? {k} {type(k)}")
+        # for k in self.data:
+        #     if isinstance(k, (types.Gate, types.GateArray, types.ArrayCircuit)):
+        #         for g in k.name:
+        #             gate = self.get_gate(g)
+        #             if k.ct is None:
+        #                 for p in self.get_indices(k.indices):
+        #                     code += f"{gate} q[{p}];\n"
+        #             else:
+        #                 indices = "q[" + "], q[".join(self.get_indices(k.indices)) + "];"
+        #                 code += f"{gate} {indices}\n"
+        #     else:
+        #         self.stack = self.ast_to_exec(k, self.stack, var=self.data.var)
+        cur_pos = 0
+        for n, k in enumerate(self.data):
             if isinstance(k, (types.Gate, types.GateArray, types.ArrayCircuit)):
                 for g in k.name:
                     gate = self.get_gate(g)
                     if k.ct is None:
                         for p in self.get_indices(k.indices):
-                            code += f"{gate} q[{p}];\n"
+                            pass
                     else:
-                        indices = "q[" + "], q[".join(self.get_indices(k.indices)) + "];"
-                        code += f"{gate} {indices}\n"
+                        indices = ""
             else:
-                # print(f"ast type? {self.stack['var']} {self.stack['res']} {k} {type(k)}")
                 self.stack = self.ast_to_exec(k, self.stack, var=self.data.var)
         return code
 

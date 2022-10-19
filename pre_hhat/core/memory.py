@@ -64,7 +64,7 @@ class Memory:
                     print("RED ALERT")
                     exit()
                 if isinstance(key[1], types.SingleInt):
-                    k1_keys = key[1] in self.stack["var"][key[0]]["data"].indices
+                    k1_keys = key[1] in self.stack["var"][key[0]]["data"].var_indices
                     if k1_keys:
                         if not types.is_circuit(self.stack["var"][key[0]]["type"]()):
                             self.stack["var"][key[0]]["data"][key[1]] = value
@@ -104,7 +104,7 @@ class Memory:
                 if item[1] in self.stack["var"][item[0]]["data"]:
                     return tuple(self.stack["var"][item[0]]["data"][item[1]])
                 if item[1] == "indices":
-                    return self.stack["var"][item[0]]["data"].indices
+                    return self.stack["var"][item[0]]["data"].var_indices
                 if isinstance(item[1], tuple):
                     res = ()
                     for k in item[1]:
@@ -128,7 +128,7 @@ class Memory:
     def __contains__(self, item):
         if isinstance(item, tuple):
             if item[0] in self.stack["var"].keys():
-                return item[1] in self.stack["var"][item[0]]["data"].indices
+                return item[1] in self.stack["var"][item[0]]["data"].var_indices
             return False
         return item in self.stack["var"].keys()
 
@@ -143,7 +143,6 @@ class Memory:
             vals += f"* len: {v['len']}\n|" + " "*6
             vals += f"* fixed_size: {v['fixed_size']}\n|" + " "*6
             vals += f"* data: {v['data']}\n|"
-        vals += f" * return: {self.stack['return']}\n|"
         vals += "-"*50
         return f"\n{vals}\n"
 
@@ -202,9 +201,6 @@ class SymbolTable:
     def write_return(self, name, args, data):
         if name in self:
             if args in self.table["func"][name].keys():
-                print(f"name={name} | args? {args in self.table['func'][name].keys()}")
-                print(data)
-                print(self.table["func"][name][args])
                 self.table["func"][name][args]["return"] = data
                 return
         raise ValueError(f"{self._name}: have no var {name} or has no params {args}.")

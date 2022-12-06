@@ -64,7 +64,7 @@ class Memory:
                     print("RED ALERT")
                     exit()
                 if isinstance(key[1], types.SingleInt):
-                    k1_keys = key[1] in self.stack["var"][key[0]]["data"].var_indices
+                    k1_keys = key[1] in self.stack["var"][key[0]]["data"].indices  # var_indices
                     if k1_keys:
                         if not types.is_circuit(self.stack["var"][key[0]]["type"]()):
                             self.stack["var"][key[0]]["data"][key[1]] = value
@@ -104,7 +104,9 @@ class Memory:
                 if item[1] in self.stack["var"][item[0]]["data"]:
                     return tuple(self.stack["var"][item[0]]["data"][item[1]])
                 if item[1] == "indices":
-                    return self.stack["var"][item[0]]["data"].var_indices
+                    # if not types.is_circuit(self.stack["var"][item[0]]["type"]()):
+                    #     return self.stack["var"][item[0]]["data"].indices
+                    return self.stack["var"][item[0]]["data"].indices  # var_indices
                 if isinstance(item[1], tuple):
                     res = ()
                     for k in item[1]:
@@ -128,7 +130,7 @@ class Memory:
     def __contains__(self, item):
         if isinstance(item, tuple):
             if item[0] in self.stack["var"].keys():
-                return item[1] in self.stack["var"][item[0]]["data"].var_indices
+                return item[1] in self.stack["var"][item[0]]["data"].indices  # .var_indices
             return False
         return item in self.stack["var"].keys()
 

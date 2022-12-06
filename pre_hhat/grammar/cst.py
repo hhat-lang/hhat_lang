@@ -18,7 +18,7 @@ def parsing_code(example_name, print_code=False, debug=True, reduce_tree=True):
     code = open(os.path.join(examples_dir, example_name), "r").readlines()
     if print_code:
         for k in code:
-            print(f"      {k}")
+            print(f"      {k.rstrip()}")
     code = "".join(code)
     pt = parser.parse(code)
     return visit_parse_tree(pt, CST())

@@ -4,5 +4,6 @@ func null{} @test (circuit{1} @a circuit{1} @b) (
 
 main (
   circuit{1} @c1 = @x
-  circuit{1} @c1 =
+  circuit{1} @c2 = @test(@c1)
+  int{2} x = add(6 @c2)
 )

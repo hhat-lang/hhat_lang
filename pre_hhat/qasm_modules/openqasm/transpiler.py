@@ -4,6 +4,7 @@ import os
 from pre_hhat import behavior_type
 import pre_hhat.types as types
 import pre_hhat.core.ast_exec as ast_exec
+import pre_hhat.grammar.ast as gast
 from pre_hhat.qasm_modules.base import BaseTranspiler
 
 
@@ -34,6 +35,24 @@ class Transpiler(BaseTranspiler):
                 res.append(str(k.value[0]))
         return res
 
+    def decode_expr(self, data, pos=0):
+        code = ""
+        opers = ()
+        for k in data:
+            if isinstance(k, (types.Gate, types.GateArray, types.ArrayCircuit)):
+                pass
+            elif isinstance(k, gast.AST):
+                if k.name == "id":
+                    pass
+                else:
+                    pass
+                res = self.decode_expr(k, pos)
+                code += res[0]
+                opers += res[1]
+            else:
+                pass
+        return code, opers
+
     def unwrap_header(self) -> str:
         code = """OPENQASM 2.0;\ninclude "qelib1.inc";\n"""
         return code
@@ -62,6 +81,7 @@ class Transpiler(BaseTranspiler):
                     gate = self.get_gate(g)
                     if k.ct is None:
                         for p in self.get_indices(k.indices):
+                            self.var_indices
                             pass
                     else:
                         indices = ""

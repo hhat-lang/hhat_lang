@@ -31,18 +31,18 @@ def example_run(debug=True, print_code=False, symboltable=True, interpreter=True
             print("*  SymbolTable:")
             print(f"      {table}")
             print()
-            if interpreter:
-                print()
-                print('-'*20)
-                print("*  Interpreter:")
-                print("_" * 20)
-                print()
-                ev = Evaluator(table)
-                t0 = process_time()
-                ev.run()
-                t1 = process_time()
-                print("_" * 20)
-                print(f"done in {round(t1-t0, 6)}s.")
+        if interpreter:
+            print()
+            print('-'*20)
+            print("*  Interpreter:")
+            print("_" * 20)
+            print()
+            ev = Evaluator(table)
+            t0 = process_time()
+            ev.run()
+            t1 = process_time()
+            print("_" * 20)
+            print(f"done in {round(t1-t0, 6)}s.")
 
 
 if __name__ == "__main__":

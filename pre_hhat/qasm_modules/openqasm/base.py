@@ -36,7 +36,9 @@ class OpenQasmBase(BaseQasm):
         ...
 
     def circuit_to_str(self, data, stack) -> str:
-        return Transpiler(data, stack).transpile()
+        # return Transpiler(data, stack).transpile()
+        transpile = Transpiler(data, stack)
+        return transpile.transpile(), transpile.stack
 
     def str_to_qasm(self, code: str) -> QuantumCircuit:
         qasm = Qasm(data=code)
@@ -48,9 +50,11 @@ class OpenQasmBase(BaseQasm):
         code = ""
         if isinstance(data, (tuple, list)):
             for k in data:
-                code = self.circuit_to_str(k, stack)
+                # code = self.circuit_to_str(k, stack)
+                code, stack = self.circuit_to_str(k, stack)
         else:
-            code = self.circuit_to_str(data, stack)
+            # code = self.circuit_to_str(data, stack)
+            code, stack = self.circuit_to_str(data, stack)
         # print(f"[OPENQASM] code:\n\n{code}\n")
         now_qasm = self.str_to_qasm(code)
         return now_qasm

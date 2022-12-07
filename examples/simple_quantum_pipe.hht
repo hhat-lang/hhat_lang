@@ -1,6 +1,8 @@
 main (
  int{1} a = 10
- circuit{2} @c2 = (:@x |> a(:add(3), :print('a =')) |> :print('@c2 =') )
- int{1} b = add(@c2)
- print(b)
+ circuit{2} @c2 = (:@x |> a(:add(9), :print('a =')) |> :print('@c2 =') )
+ int{1} b = (:print, :add(@c2 3 a))
+ print(b a)
+ b(:add(@c2 a), :print('b ='))
+ print(a)
 )

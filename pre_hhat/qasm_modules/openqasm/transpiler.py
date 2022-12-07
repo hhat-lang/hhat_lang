@@ -62,31 +62,32 @@ class Transpiler(BaseTranspiler):
 
     def unwrap_gates(self) -> str:
         code = ""
-        # for k in self.data:
-        #     if isinstance(k, (types.Gate, types.GateArray, types.ArrayCircuit)):
-        #         for g in k.name:
-        #             gate = self.get_gate(g)
-        #             if k.ct is None:
-        #                 for p in self.get_indices(k.indices):
-        #                     code += f"{gate} q[{p}];\n"
-        #             else:
-        #                 indices = "q[" + "], q[".join(self.get_indices(k.indices)) + "];"
-        #                 code += f"{gate} {indices}\n"
-        #     else:
-        #         self.stack = self.ast_to_exec(k, self.stack, var=self.data.var)
-        cur_pos = 0
-        for n, k in enumerate(self.data):
+        for k in self.data:
             if isinstance(k, (types.Gate, types.GateArray, types.ArrayCircuit)):
                 for g in k.name:
                     gate = self.get_gate(g)
                     if k.ct is None:
                         for p in self.get_indices(k.indices):
-                            self.var_indices
-                            pass
+                            code += f"{gate} q[{p}];\n"
                     else:
-                        indices = ""
+                        indices = "q[" + "], q[".join(self.get_indices(k.indices)) + "];"
+                        code += f"{gate} {indices}\n"
             else:
                 self.stack = self.ast_to_exec(k, self.stack, var=self.data.var)
+
+        # cur_pos = 0
+        # for n, k in enumerate(self.data):
+        #     if isinstance(k, (types.Gate, types.GateArray, types.ArrayCircuit)):
+        #         for g in k.name:
+        #             gate = self.get_gate(g)
+        #             if k.ct is None:
+        #                 for p in self.get_indices(k.indices):
+        #                     self.var_indices
+        #                     pass
+        #             else:
+        #                 indices = ""
+        #     else:
+        #         self.stack = self.ast_to_exec(k, self.stack, var=self.data.var)
         return code
 
     def unwrap_meas(self) -> str:

@@ -38,7 +38,11 @@ class Exec:
         }
 
     def get_node(self, node, stack):
-        return self._roles.get(type(node), self._get_ast_node(node))(node, stack)
+        if self._roles.get(type(node), self._get_ast_node(node)) is None:
+            print(f'roles: {self._roles.get(type(node), self._get_ast_node(node))}')
+            raise ValueError("?")
+        else:
+            return self._roles.get(type(node), self._get_ast_node(node))(node, stack)
 
     def _get_ast_node(self, node):
         if isinstance(node, types.SingleType):

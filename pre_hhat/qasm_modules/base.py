@@ -10,7 +10,7 @@ class BaseQasm(ABC):
     class to provide base specification for QASM modules.
     """
 
-    name = "base for QASM"
+    name = "BaseQASM"
 
     @abstractmethod
     def run(self, data, stack, **kwargs):
@@ -40,23 +40,23 @@ class BaseTranspiler(ABC):
         else:
             self.data = data
             self.stack = stack
-            # self.len = len(self.data)
-            self.var_indices, self.len = self.count_indices()
+            self.len = len(self.data)
+            # self.var_indices, self.len = self.count_indices()
 
     def count_indices(self):
         index_track = ()
         total_index = 0
-        print(self.data)
-        print(self.stack["mem"])
+        # print(self.data)
+        # print(self.stack["mem"])
         for n, k in enumerate(self.data):
             if isinstance(k, (types.Gate, types.GateArray)):
                 total_index += len(k)
                 index_track += tuple((self.data.var, p) for p in k.indices)
-                print(f"-[{n}] got some gate {k} with indices {k.indices} or {len(k)}")
+                # print(f"-[{n}] got some gate {k} with indices {k.indices} or {len(k)}")
             elif isinstance(k, types.ArrayCircuit):
                 index_track += tuple((k.var, p) for p in k.indices)
                 total_index += len(k)
-                print(f"-[{n}] got some var {k} with indices {k.indices} or {len(k)}")
+                # print(f"-[{n}] got some var {k} with indices {k.indices} or {len(k)}")
             elif isinstance(k, gast.AST):
                 if k.name == "id":
                     indices = self.stack["mem"][k, "indices"]
@@ -64,10 +64,10 @@ class BaseTranspiler(ABC):
                     index_track += tuple((k, p) for p in indices)
                 else:
                     index_track += ((),)
-                print(f"-[{n}] got some AST {k}")
+                # print(f"-[{n}] got some AST {k}")
             else:
                 print(f"{self.__class__.__name__}: unexpected type {type(k)}.")
-        print(f">> index track={index_track} | total index={total_index}")
+        # print(f">> index track={index_track} | total index={total_index}")
         return index_track, total_index
 
     @abstractmethod

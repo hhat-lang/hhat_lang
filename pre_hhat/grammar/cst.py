@@ -11,11 +11,15 @@ from pre_hhat.operators import quantum as poq
 from pre_hhat.grammar.ast import AST
 
 
-def parsing_code(example_name, print_code=False, debug=True, reduce_tree=True):
+def parsing_code(example_name, print_code=False, debug=True, reduce_tree=True, examples=True):
     file_dir = os.path.dirname(__file__)
     grammar = open(os.path.join(file_dir, "grammar.peg"), "r").read()
     parser = ParserPEG(grammar, "program", debug=debug, reduce_tree=reduce_tree)
-    code = open(os.path.join(examples_dir, example_name), "r").readlines()
+    if examples:
+        code = open(os.path.join(examples_dir, example_name), "r").readlines()
+    else:
+        code = open(example_name, "r").readlines()
+
     if print_code:
         for k in code:
             print(f"      {k.rstrip()}")

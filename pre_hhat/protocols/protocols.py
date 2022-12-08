@@ -17,7 +17,10 @@ class Protocols(ABC):
 class BiggestValue(Protocols):
     name = "biggest_value"
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, data, **kwargs):
+        if isinstance(data, (types.SingleHashmap, types.ArrayHashmap)):
+            res = sorted(data, key=lambda x: x[1], reverse=True)[0][0]
+            return int(res)
         raise NotImplementedError(f"{self.__class__.__name__}: not implemented yet.")
 
 

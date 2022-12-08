@@ -44,4 +44,5 @@ class QuantumHardware(OpenQasmBase):
 
     def run(self, data, **kwargs):
         device_run = self.device.run(data, **kwargs)
-        return types.SingleHashmap(tuple(device_run.result().items()))
+        result_items = tuple(device_run.result().items())
+        return types.SingleHashmap(result_items)

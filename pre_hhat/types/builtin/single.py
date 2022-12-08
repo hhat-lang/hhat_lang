@@ -269,6 +269,12 @@ class SingleBin(group.SingleMorpher):
             f"{self.name}: not implemented adding with {other.__class__.__name__}."
         )
 
+    def __int__(self):
+        return int(str(self), 2)
+
+    def __str__(self):
+        return str(self.value[0])
+
     def __repr__(self):
         return f"{self.value[0]}"
 
@@ -359,6 +365,12 @@ class SingleHex(group.SingleMorpher):
         raise NotImplementedError(
             f"{self.name}: not implemented adding with {other.__class__.__name__}."
         )
+
+    def __int__(self):
+        return int(str(self), 16)
+
+    def __str__(self):
+        return self.value[0]
 
     def __repr__(self):
         return f"{self.value[0]}"

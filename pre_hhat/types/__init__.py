@@ -4,6 +4,8 @@ from .builtin import (
     SingleInt,
     SingleStr,
     SingleHashmap,
+    SingleBin,
+    SingleHex,
     ArrayBool,
     ArrayInt,
     ArrayStr,
@@ -35,6 +37,8 @@ def get_type(name):
         "int": ArrayInt,
         "str": ArrayStr,
         "hashmap": ArrayHashmap,
+        "bin": SingleBin,
+        "hex": SingleHex,
         "circuit": ArrayCircuit,
     }
     return data_types.get(name, False)

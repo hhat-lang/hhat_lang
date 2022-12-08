@@ -1,3 +1,4 @@
+import pre_hhat.types as types
 import string
 
 valid_hex = set(string.hexdigits)
@@ -5,11 +6,15 @@ valid_bin = {"0", "1"}
 
 
 def is_hex(value):
-    return True if set(value.strip("0x")).issubset(valid_hex) else False
+    if isinstance(value, str):
+        return True if set(value.strip("0x")).issubset(valid_hex) else False
+    return isinstance(value, types.SingleHex)
 
 
 def is_bin(value):
-    return True if set(value.strip("0b")).issubset(valid_bin) else False
+    if isinstance(value, str):
+        return True if set(value.strip("0b")).issubset(valid_bin) else False
+    return isinstance(value, types.SingleBin)
 
 
 def hex2int(value):

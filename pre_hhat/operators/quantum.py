@@ -70,3 +70,11 @@ class Toffoli(QuantumOperator):
         if len(args) == 2 and isinstance(args[0], tuple):
             args = args[0] + args[1]
         return group.ControlTargetGate(*args, name=self.name, ct=(2, 1)),
+
+
+class Not(X):
+    pass
+
+
+class Init(H):
+    pass

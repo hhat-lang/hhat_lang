@@ -4,6 +4,6 @@
       "biggest_value",
       "weighted_average"
     ],
-    "default": "weighted_average"
+    "default": "biggest_value"
   }
 }

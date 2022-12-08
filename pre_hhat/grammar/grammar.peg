@@ -1,6 +1,6 @@
 program = protocols? funcs* main? EOF
 protocols = 'protocol' ':' (id / STR / ( '(' type ':' (id / STR) (',' type ':' (id / STR) )* ')' ))
-builtin = 'add' / 'print' / '@x' / '@h' / '@cnot'
+builtin = 'add' / 'print' / '@x' / '@h' / '@cnot' / '@not' / '@init'
 logic_builtin = 'eq' / 'neq' / 'and' / 'or' / 'not' / 'gt' / 'gte' / 'lt' / 'lte'
 funcs = 'func' type_expr id (( '(' params? ')' )/ ':' ) '(' body* return? ')'
 params =  type_expr id (type_expr id)*

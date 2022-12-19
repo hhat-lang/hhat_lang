@@ -40,8 +40,13 @@ class BaseTranspiler(ABC):
         else:
             self.data = data
             self.stack = stack
-            self.len = len(self.data)
-            # self.var_indices, self.len = self.count_indices()
+
+            # uncomment below for simple quantum variable operations
+            # self.len = len(self.data)
+
+            # uncomment below for nested quantum variable operations
+            self.var_indices, self.len = self.count_indices()
+            print(f"[base transp] var idx={self.var_indices} | len={self.len}")
 
     def count_indices(self):
         index_track = ()
@@ -51,10 +56,10 @@ class BaseTranspiler(ABC):
         for n, k in enumerate(self.data):
             if isinstance(k, (types.Gate, types.GateArray)):
                 total_index += len(k)
-                index_track += tuple((self.data.var, p) for p in k.indices)
+                index_track += tuple((self.data.var, p) for p in k.indices),
                 # print(f"-[{n}] got some gate {k} with indices {k.indices} or {len(k)}")
             elif isinstance(k, types.ArrayCircuit):
-                index_track += tuple((k.var, p) for p in k.indices)
+                index_track += tuple((k.var, p) for p in k.indices),
                 total_index += len(k)
                 # print(f"-[{n}] got some var {k} with indices {k.indices} or {len(k)}")
             elif isinstance(k, gast.AST):

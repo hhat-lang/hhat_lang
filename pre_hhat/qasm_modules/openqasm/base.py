@@ -35,7 +35,7 @@ class OpenQasmBase(BaseQasm):
     def run(self, data, stack, **kwargs):
         ...
 
-    def circuit_to_str(self, data, stack) -> str:
+    def circuit_to_str(self, data, stack) -> tuple:
         # return Transpiler(data, stack).transpile()
         transpile = Transpiler(data, stack)
         return transpile.transpile(), transpile.stack

@@ -62,32 +62,36 @@ class Transpiler(BaseTranspiler):
 
     def unwrap_gates(self) -> str:
         code = ""
-        for k in self.data:
-            if isinstance(k, (types.Gate, types.GateArray, types.ArrayCircuit)):
-                for g in k.name:
-                    gate = self.get_gate(g)
-                    if k.ct is None:
-                        for p in self.get_indices(k.indices):
-                            code += f"{gate} q[{p}];\n"
-                    else:
-                        indices = "q[" + "], q[".join(self.get_indices(k.indices)) + "];"
-                        code += f"{gate} {indices}\n"
-            else:
-                self.stack = self.ast_to_exec(k, self.stack, var=self.data.var)
-
-        # cur_pos = 0
-        # for n, k in enumerate(self.data):
+        # # working code for simple quantum variable operations
+        # for k in self.data:
         #     if isinstance(k, (types.Gate, types.GateArray, types.ArrayCircuit)):
         #         for g in k.name:
         #             gate = self.get_gate(g)
         #             if k.ct is None:
         #                 for p in self.get_indices(k.indices):
-        #                     self.var_indices
-        #                     pass
+        #                     code += f"{gate} q[{p}];\n"
         #             else:
-        #                 indices = ""
+        #                 indices = "q[" + "], q[".join(self.get_indices(k.indices)) + "];"
+        #                 code += f"{gate} {indices}\n"
         #     else:
         #         self.stack = self.ast_to_exec(k, self.stack, var=self.data.var)
+
+        # to-be-working code for nested quantum variable operations
+        cur_pos = 0
+        for n, k in enumerate(zip(self.data, self.var_indices)):
+            if isinstance(k[0], (types.Gate, types.GateArray, types.ArrayCircuit)):
+                for g in k[0].name:
+                    gate = self.get_gate(g)
+                    if k[0].ct is None:
+                        print(f'k -> {k[0].indices} {k[1]}')
+                        for p, q in zip(self.get_indices(k[0].indices), k[1]):
+                            print(f'indices? {p} {k[0].name} => {q}')
+                            pass
+                    else:
+                        print('else indices')
+                        indices = ""
+            else:
+                self.stack = self.ast_to_exec(k[0], self.stack, var=self.data.var)
         return code
 
     def unwrap_meas(self) -> str:

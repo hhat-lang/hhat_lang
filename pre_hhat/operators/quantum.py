@@ -78,3 +78,21 @@ class Not(X):
 
 class Init(H):
     pass
+
+
+class Sync(QuantumOperator):
+    name = "@SYNC"
+
+    def __call__(self, *args, **kwargs):
+        if len(args) == 2 and isinstance(args[0], tuple):
+            control_args = args[0]
+            target_args = args[1]
+            args = args[0] + args[1]
+            if len(control_args) == len(target_args):
+                # group.GateArray
+                first = H()(*control_args)
+                for k in zip(control_args, target_args):
+                    pass
+        else:
+            raise ValueError(f"{self.__class__.__name__} need two args: control and target quantum data.")
+        # second = Cnot()(*)

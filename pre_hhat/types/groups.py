@@ -383,13 +383,17 @@ class Gate(BaseGroup):
 class GateArray(BaseGroup):
     def __init__(self, *value, **kwargs):
         self.value, self.indices, self.raw_indices, self.name = self._format_value(value)
-        self.ct = self._format_ct(value)
+        self.ct = self._format_ct(self.value)
+        print(f"ct = {self.ct}")
 
     def _get_indices(self, value):
-        if isinstance(value, list):
+        if isinstance(value, (list, tuple)):
             indices = ()
             for k in value:
-                indices += k.var_indices
+                if isinstance(k, (Gate, GateArray)):
+                    indices += k.indices
+                else:
+                    indices += k.var_indices
             return indices
         if isinstance(value, Gate):
             return value.indices
@@ -400,7 +404,7 @@ class GateArray(BaseGroup):
         raise ValueError(f"{self.__class__.__name__}: cannot get indices from {value}.")
 
     def _get_names(self, value):
-        if isinstance(value, list):
+        if isinstance(value, (list, tuple)):
             names = ()
             for k in value:
                 names += self._get_names(k)
@@ -431,8 +435,8 @@ class GateArray(BaseGroup):
                 prev_indices = self._get_indices(prev[-1])
                 k_indices = self._get_indices(k)
                 inter_indices = self._indices_intersection(prev_indices, k_indices)
-                if not inter_indices and not isinstance(prev[1], gast.AST):
-                    prev_name = self._get_names(prev[1])
+                if not inter_indices and not isinstance(prev[-1], gast.AST):
+                    prev_name = self._get_names(prev[-1])
                     k_name = self._get_names(k)
                     inter_name = self._indices_intersection(prev_name, k_name)
                     if inter_name and len(prev[-1].name) == 1:
@@ -440,29 +444,38 @@ class GateArray(BaseGroup):
                             *(prev_indices + k_indices), name=prev_name[0]
                         )
                         if isinstance(indices[-1], tuple):
-                            indices = indices[:-1] + (indices[-1] + k.var_indices,)
+                            indices = indices[:-1] + (indices[-1] + k_indices,)
                         else:
-                            indices = indices[:-1] + ((indices[-1],) + k.var_indices,)
+                            indices = indices[:-1] + ((indices[-1],) + k_indices,)
                     else:
                         value[-1] = [prev[-1], k]
                         last_index = (
                             indices[-1] if isinstance(indices[-1], tuple) else indices[-1],
                         )
-                        indices = indices[:-1] + (last_index + k.var_indices,)
-                        name = name[:-1] + ((name[-1], k.name[0]),)
+                        indices = indices[:-1] + (last_index + k_indices,)
+                        name = name[:-1] + ((name[-1], k_name[0]),)
                     prev = k
                     continue
-            if isinstance(k.value, list):
-                value.extend(k.value)
+            print(f"type k -> {type(k)} {k}")
+            if isinstance(k, (list, tuple)):
+                value += list(k)
+                indices += tuple(p.indices for p in k)
+                name += tuple(p.name for p in k)
+                prev = k
+                continue
+            elif isinstance(k.value, (list, tuple)):
+                value += list(k.value)
             else:
                 value.append(k)
-            indices += k.var_indices
+            indices += k.indices
             name += k.name
             prev = k
+        print(f"gate array value={value} | idx={indices} | name={name}")
         return value, indices, indices, name
 
     @staticmethod
     def _format_ct(value):
+        print(f"format ct: value={value} | type={type(value)}")
         return tuple(k.ct for k in value)
 
     def __add__(self, other):
@@ -533,7 +546,7 @@ class ControlTargetGate(Gate):
         res = ()
         counter = 0
         for k in value:
-            if isinstance(k, int):
+            if isinstance(k, (int, types.SingleInt)):
                 counter += 1
             if isinstance(k, tuple):
                 res += (self.check_value_mask(k, ct),)

@@ -391,7 +391,8 @@ class GateArray(BaseGroup):
             indices = ()
             for k in value:
                 if isinstance(k, (Gate, GateArray)):
-                    indices += k.indices
+                    if not isinstance(k, ControlTargetGate):
+                        indices += k.indices
                 else:
                     indices += k.var_indices
             return indices
@@ -425,17 +426,22 @@ class GateArray(BaseGroup):
         right = set(right) if isinstance(right, tuple) else {right}
         return left.intersection(right)
 
+    # TODO: redo the functionality below
     def _format_value(self, gates):
         value = []
         indices = ()
         name = ()
         prev = None
+        print(f"gates seq: {gates} => {self.__class__.__name__}")
         for n, k in enumerate(gates):
+            print(f"format k={k}")
             if 0 < n < len(gates):
                 prev_indices = self._get_indices(prev[-1])
+                k_value = k[0]
                 k_indices = self._get_indices(k)
                 inter_indices = self._indices_intersection(prev_indices, k_indices)
                 if not inter_indices and not isinstance(prev[-1], gast.AST):
+                    print("no inter idx & not AST")
                     prev_name = self._get_names(prev[-1])
                     k_name = self._get_names(k)
                     inter_name = self._indices_intersection(prev_name, k_name)
@@ -448,19 +454,19 @@ class GateArray(BaseGroup):
                         else:
                             indices = indices[:-1] + ((indices[-1],) + k_indices,)
                     else:
-                        value[-1] = [prev[-1], k]
+                        value[-1] += list(prev) + [k_value]
                         last_index = (
                             indices[-1] if isinstance(indices[-1], tuple) else indices[-1],
                         )
                         indices = indices[:-1] + (last_index + k_indices,)
                         name = name[:-1] + ((name[-1], k_name[0]),)
-                    prev = k
+                    prev = k_value
                     continue
             print(f"type k -> {type(k)} {k}")
             if isinstance(k, (list, tuple)):
                 value += list(k)
                 indices += tuple(p.indices for p in k)
-                name += tuple(p.name for p in k)
+                name += tuple(p.name[0] for p in k)
                 prev = k
                 continue
             elif isinstance(k.value, (list, tuple)):
@@ -468,15 +474,60 @@ class GateArray(BaseGroup):
             else:
                 value.append(k)
             indices += k.indices
-            name += k.name
+            name += k.name[0]
             prev = k
         print(f"gate array value={value} | idx={indices} | name={name}")
         return value, indices, indices, name
 
-    @staticmethod
-    def _format_ct(value):
-        print(f"format ct: value={value} | type={type(value)}")
-        return tuple(k.ct for k in value)
+    def _flatten_idx(self, value):
+        idx = ()
+        for k in value:
+            if isinstance(k, Gate):
+                idx += k.indices
+            elif isinstance(k, (list, tuple, GateArray)):
+                idx += self._flatten_idx(k)
+        return idx
+
+    def _get_ct(self, data):
+        for k in data:
+            if isinstance(k, (Gate, GateArray)):
+                return k.ct
+            elif isinstance(k, (list, tuple)):
+                return self._get_ct(k)
+
+    def _format_value2(self, data):
+        value = []
+        indices = ()
+        name = ()
+        for k in data:
+            if value:
+                flat_idx = self._flatten_idx(k)
+                flat_prev = self._flatten_idx(indices[-1])
+                if not set(flat_idx).symmetric_difference(set(flat_prev)) and not (self._get_ct(k) or self._get_ct(value[-1])):
+                    value[-1] = MultipleIndexGate(*(ind))
+
+                value[-1] = value[1] + list(k)
+
+            else:
+                value = [k]
+                if not isinstance(k, gast.AST):
+                    if not isinstance(k, (list, tuple)):
+                        indices += k.indices
+                        name += k.name
+                    else:
+                        for p in k:
+                            indices += p.indices
+                            name += p.name
+        return value, indices, indices, name
+
+    def _format_ct(self, value):
+        _ct = ()
+        for k in value:
+            if isinstance(k, (Gate, GateArray)):
+                _ct += k.ct,
+            elif isinstance(k, (list, tuple)):
+                _ct += self._format_ct(k)
+        return _ct
 
     def __add__(self, other):
         return self.__class__(self, other)
@@ -510,7 +561,7 @@ class GateArray(BaseGroup):
             else:
                 elem = str(k)
             top_values.append(elem)
-        res = ", ".join(top_values)
+        res = " ".join(top_values)
         return f"( {res} )" if len(top_values) > 1 else f"{res}"
 
 

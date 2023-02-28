@@ -1,0 +1,11 @@
+main (
+ int{1} a = 10
+ circuit{4} @c2 = (
+    (0 1):@init,
+    (2 3):@not |>
+    a(:add(9), :print('a =')) |>
+    :print('@c2 =')
+ )
+ int{1} b = (:print('b ='), :add(@c2 3))
+ print(b a)
+)

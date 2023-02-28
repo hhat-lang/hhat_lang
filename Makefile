@@ -1,89 +1,113 @@
-.PHONY: clean clean-build clean-pyc clean-test coverage dist docs help install lint lint/flake8 lint/black
-.DEFAULT_GOAL := help
+#* Variables
+SHELL := /usr/bin/env bash
+PYTHON := python
+PYTHONPATH := `pwd`
 
-define BROWSER_PYSCRIPT
-import os, webbrowser, sys
+#* Docker variables
+IMAGE := pre_hhat
+VERSION := latest
 
-from urllib.request import pathname2url
+#* Poetry
+.PHONY: poetry-download
+poetry-download:
+	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | $(PYTHON) -
 
-webbrowser.open("file://" + pathname2url(os.path.abspath(sys.argv[1])))
-endef
-export BROWSER_PYSCRIPT
+.PHONY: poetry-remove
+poetry-remove:
+	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | $(PYTHON) - --uninstall
 
-define PRINT_HELP_PYSCRIPT
-import re, sys
+#* Installation
+.PHONY: install
+install:
+	poetry lock -n && poetry export --without-hashes > requirements.txt
+	poetry install -n
+	-poetry run mypy --install-types --non-interactive ./
 
-for line in sys.stdin:
-	match = re.match(r'^([a-zA-Z_-]+):.*?## (.*)$$', line)
-	if match:
-		target, help = match.groups()
-		print("%-20s %s" % (target, help))
-endef
-export PRINT_HELP_PYSCRIPT
+.PHONY: pre-commit-install
+pre-commit-install:
+	poetry run pre-commit install
 
-BROWSER := python -c "$$BROWSER_PYSCRIPT"
+#* Formatters
+.PHONY: codestyle
+codestyle:
+	poetry run pyupgrade --exit-zero-even-if-changed --py38-plus **/*.py
+	poetry run isort --settings-path pyproject.toml ./
+	poetry run black --config pyproject.toml ./
 
-help:
-	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
+.PHONY: formatting
+formatting: codestyle
 
-clean: clean-build clean-pyc clean-test ## remove all build, test, coverage and Python artifacts
+#* Linting
+.PHONY: test
+test:
+	PYTHONPATH=$(PYTHONPATH) poetry run pytest -c pyproject.toml --cov-report=html --cov=pre_hhat tests/
+	poetry run coverage-badge -o assets/images/coverage.svg -f
 
-clean-build: ## remove build artifacts
-	rm -fr build/
-	rm -fr dist/
-	rm -fr .eggs/
-	find . -name '*.egg-info' -exec rm -fr {} +
-	find . -name '*.egg' -exec rm -f {} +
+.PHONY: check-codestyle
+check-codestyle:
+	poetry run isort --diff --check-only --settings-path pyproject.toml ./
+	poetry run black --diff --check --config pyproject.toml ./
+	poetry run darglint --verbosity 2 pre_hhat tests
 
-clean-pyc: ## remove Python file artifacts
-	find . -name '*.pyc' -exec rm -f {} +
-	find . -name '*.pyo' -exec rm -f {} +
-	find . -name '*~' -exec rm -f {} +
-	find . -name '__pycache__' -exec rm -fr {} +
+.PHONY: mypy
+mypy:
+	poetry run mypy --config-file pyproject.toml ./
 
-clean-test: ## remove test and coverage artifacts
-	rm -fr .tox/
-	rm -f .coverage
-	rm -fr htmlcov/
-	rm -fr .pytest_cache
+.PHONY: check-safety
+check-safety:
+	poetry check
+	poetry run safety check --full-report
+	poetry run bandit -ll --recursive pre_hhat tests
 
-lint/flake8: ## check style with flake8
-	flake8 hhat_lang tests
-lint/black: ## check style with black
-	black --check hhat_lang tests
+.PHONY: lint
+lint: test check-codestyle mypy check-safety
 
-lint: lint/flake8 lint/black ## check style
+.PHONY: update-dev-deps
+update-dev-deps:
+	poetry add -D bandit@latest darglint@latest "isort[colors]@latest" mypy@latest pre-commit@latest pydocstyle@latest pylint@latest pytest@latest pyupgrade@latest safety@latest coverage@latest coverage-badge@latest pytest-html@latest pytest-cov@latest
+	poetry add -D --allow-prereleases black@latest
 
-test: ## run tests quickly with the default Python
-	pytest
+#* Docker
+# Example: make docker-build VERSION=latest
+# Example: make docker-build IMAGE=some_name VERSION=0.1.0
+.PHONY: docker-build
+docker-build:
+	@echo Building docker $(IMAGE):$(VERSION) ...
+	docker build \
+		-t $(IMAGE):$(VERSION) . \
+		-f ./docker/Dockerfile --no-cache
 
-test-all: ## run tests on every Python version with tox
-	tox
+# Example: make docker-remove VERSION=latest
+# Example: make docker-remove IMAGE=some_name VERSION=0.1.0
+.PHONY: docker-remove
+docker-remove:
+	@echo Removing docker $(IMAGE):$(VERSION) ...
+	docker rmi -f $(IMAGE):$(VERSION)
 
-coverage: ## check code coverage quickly with the default Python
-	coverage run --source hhat_lang -m pytest
-	coverage report -m
-	coverage html
-	$(BROWSER) htmlcov/index.html
+#* Cleaning
+.PHONY: pycache-remove
+pycache-remove:
+	find . | grep -E "(__pycache__|\.pyc|\.pyo$$)" | xargs rm -rf
 
-docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/hhat_lang.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ hhat_lang
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	$(BROWSER) docs/_build/html/index.html
+.PHONY: dsstore-remove
+dsstore-remove:
+	find . | grep -E ".DS_Store" | xargs rm -rf
 
-servedocs: docs ## compile the docs watching for changes
-	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
+.PHONY: mypycache-remove
+mypycache-remove:
+	find . | grep -E ".mypy_cache" | xargs rm -rf
 
-release: dist ## package and upload a release
-	twine upload dist/*
+.PHONY: ipynbcheckpoints-remove
+ipynbcheckpoints-remove:
+	find . | grep -E ".ipynb_checkpoints" | xargs rm -rf
 
-dist: clean ## builds source and wheel package
-	python setup.py sdist
-	python setup.py bdist_wheel
-	ls -l dist
+.PHONY: pytestcache-remove
+pytestcache-remove:
+	find . | grep -E ".pytest_cache" | xargs rm -rf
 
-install: clean ## install the package to the active Python's site-packages
-	python setup.py install
+.PHONY: build-remove
+build-remove:
+	rm -rf build/
+
+.PHONY: cleanup
+cleanup: pycache-remove dsstore-remove mypycache-remove ipynbcheckpoints-remove pytestcache-remove

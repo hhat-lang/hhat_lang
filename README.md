@@ -194,7 +194,7 @@ MIT
 -------
 Credits
 -------
-Code is being developed by Doomsk_. The author thanks Kaonan_, T1t0_, Anneriet_ and Penguim_ for great discussions and help developing the first language concepts.
+Code is being developed by Doomsk_. The author thanks Kaonan_, T1t0_, Anneriet_, Penguim_ and Lucasczpnk_ for great discussions and help developing the first language concepts.
 
 ----
 
@@ -205,5 +205,6 @@ Code is being developed by Doomsk_. The author thanks Kaonan_, T1t0_, Anneriet_ 
 .. _Kaonan: https://github.com/kaosmicadei
 .. _T1t0: https://github.com/adauto6
 .. _Penguim: https://github.com/danilodsp
+.. _Lucasczpnk: https://github.com/lucasczpnk
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage

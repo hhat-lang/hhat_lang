@@ -1,4 +1,4 @@
-# b.hht #
+# b.hat #
 func bin{} B (hashmap{2} s, hashmap{2} a) (
 	bin{2} ans
 	circuit{} @c = (:@broadcast_recv(s)
@@ -15,7 +15,7 @@ main (
 )
 
 
-# a.hht #
+# a.hat #
 func null{} A (str{} msg, hashmap{1} s, hashmap{1} a, hashmap{1} b) (
 	circuit{} @data = @encode(msg)
 	circuit{} @msg

@@ -314,8 +314,7 @@ class Gate(BaseGroup):
             elif isinstance(k, types.SingleInt):
                 res += (k,)
             elif isinstance(k, int):
-                print("GATE INT INDEX ERROR")
-                exit()
+                res += types.SingleInt(k),
         return res
 
     def _format_indices(self, value):
@@ -382,7 +381,7 @@ class Gate(BaseGroup):
 
 class GateArray(BaseGroup):
     def __init__(self, *value, **kwargs):
-        self.value, self.indices, self.raw_indices, self.name = self._format_value(value)
+        self.value, self.indices, self.raw_indices, self.name = self._format_value2(value)
         self.ct = self._format_ct(self.value)
         print(f"ct = {self.ct}")
 
@@ -486,30 +485,45 @@ class GateArray(BaseGroup):
                 idx += k.indices
             elif isinstance(k, (list, tuple, GateArray)):
                 idx += self._flatten_idx(k)
+            else:
+                idx += k,
         return idx
 
     def _get_ct(self, data):
-        for k in data:
-            if isinstance(k, (Gate, GateArray)):
-                return k.ct
-            elif isinstance(k, (list, tuple)):
+        if isinstance(data, (Gate, GateArray)):
+            return data.ct
+        if isinstance(data, (list, tuple)):
+            for k in data:
                 return self._get_ct(k)
 
     def _format_value2(self, data):
         value = []
         indices = ()
         name = ()
-        for k in data:
+        for n, k in enumerate(data):
+            print(f"gatearray format> k={k} {type(k)}")
             if value:
+                k_name = [p.name for p in k]
                 flat_idx = self._flatten_idx(k)
                 flat_prev = self._flatten_idx(indices[-1])
-                if not set(flat_idx).symmetric_difference(set(flat_prev)) and not (self._get_ct(k) or self._get_ct(value[-1])):
-                    value[-1] = MultipleIndexGate(*(ind))
-
-                value[-1] = value[1] + list(k)
+                cur_name = set(k_name)
+                prev_name = set([p.name for p in data[n-1]])
+                name_intersec = cur_name.intersection(prev_name)
+                idx_symm = len(set(flat_idx).symmetric_difference(set(flat_prev))) == (len(flat_idx) + len(flat_prev))
+                has_ct = self._get_ct(k) or self._get_ct(value[-1])
+                if idx_symm and not has_ct and name_intersec and len(cur_name) == 1:
+                    print(f"multipleindexgate {flat_prev} {flat_idx}")
+                    value[-1] = MultipleIndexGate(*(flat_prev + flat_idx), name=k[0].name[0])
+                elif has_ct and idx_symm:
+                    print(f"has ct & idx symm {value[-1]} {k}")
+                    value[-1] = [value[-1]] + [p for p in k]
+                else:
+                    value.extend([p for p in k])
+                indices += tuple(p.indices for p in k)
+                name += tuple(p.name for p in k)
 
             else:
-                value = [k]
+                value = [p for p in k]
                 if not isinstance(k, gast.AST):
                     if not isinstance(k, (list, tuple)):
                         indices += k.indices
@@ -518,6 +532,8 @@ class GateArray(BaseGroup):
                         for p in k:
                             indices += p.indices
                             name += p.name
+            print(f"gatearray> iter n={n}, value so far: {value} | idx: {indices}")
+        print(f"gatearray> value={value}")
         return value, indices, indices, name
 
     def _format_ct(self, value):

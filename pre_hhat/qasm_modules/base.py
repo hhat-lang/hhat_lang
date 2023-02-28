@@ -42,11 +42,11 @@ class BaseTranspiler(ABC):
             self.stack = stack
 
             # uncomment below for simple quantum variable operations
-            # self.len = len(self.data)
+            self.len = len(self.data)
 
             # uncomment below for nested quantum variable operations
-            self.var_indices, self.len = self.count_indices()
-            print(f"[base transp] var idx={self.var_indices} | len={self.len}")
+            # self.var_indices, self.len = self.count_indices()
+            # print(f"[base transp] var idx={self.var_indices} | len={self.len}")
 
     def count_indices(self):
         index_track = ()

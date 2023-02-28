@@ -4,5 +4,5 @@
   "@H": "h",
   "@CNOT": "cx",
   "@SWAP": "swap",
-  "@TOFFOLI": "@ccx"
+  "@TOFFOLI": "ccx"
 }

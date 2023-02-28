@@ -14,17 +14,17 @@ config_path = os.path.abspath(os.path.join(cur_path, "hhat_config.json"))
 
 
 examples_files = [
-    "hello.hht",
-    "simple_print.hht",
-    "add_and_print.hht",
-    "add_many_and_print.hht",
-    "int_add_many_print.hht",
-    "quantum_add_int.hht",
-    "simple_quantum_opers.hht",
-    "simple_quantum_pipe.hht",
-    "func_call_no_param_no_return.hht",
-    "func_call_param_no_return.hht",
-    "func_call_param_return.hht"
+    "hello.hat",
+    "simple_print.hat",
+    "add_and_print.hat",
+    "add_many_and_print.hat",
+    "int_add_many_print.hat",
+    "quantum_add_int.hat",
+    "simple_quantum_opers.hat",
+    "simple_quantum_pipe.hat",
+    "func_call_no_param_no_return.hat",
+    "func_call_param_no_return.hat",
+    "func_call_param_return.hat"
 ]
 
 

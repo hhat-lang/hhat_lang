@@ -10,7 +10,7 @@ pytest~=7.0.1
 arpeggio~=2.0.0
 typer~=0.4.2
 rich~=10.16.2
-qiskit~=0.36.2
+qiskit~=0.41.1
 
 click~=7.1.2
 netqasm~=0.8.6

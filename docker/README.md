@@ -1,4 +1,4 @@
-# Docker for pre_hhat
+# Docker for hhat_lang
 
 ## Installation
 
@@ -15,7 +15,7 @@ make docker-build VERSION=latest
 ```
 
 You may provide name and version for the image.
-Default name is `IMAGE := pre_hhat`.
+Default name is `IMAGE := hhat_lang`.
 Default version is `VERSION := latest`.
 
 ```bash
@@ -27,7 +27,7 @@ make docker-build IMAGE=some_name VERSION=0.1.0
 ```bash
 docker run -it --rm \
    -v $(pwd):/workspace \
-   pre_hhat bash
+   hhat_lang bash
 ```
 
 ## How to clean up

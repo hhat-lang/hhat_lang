@@ -1,6 +1,6 @@
 import pytest
 
-from pre_hhat.types import groups as g
+from hhat_lang.types import groups as g
 
 
 @pytest.mark.parametrize(

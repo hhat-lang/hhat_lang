@@ -4,14 +4,14 @@ requires = ["poetry_core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "pre_hhat"
+name = "hhat_lang"
 version = "0.1.0"
-description = "A micro H-hat version."
+description = "H-hat: a high level quantum programming language."
 readme = "README.md"
 authors = ["exo-labs <eduardo.maschio@theqube.io>"]
 license = "MIT"
-repository = "https://github.com/Doomsk/pre_hhat"
-homepage = "https://github.com/Doomsk/pre_hhat"
+repository = "https://github.com/Doomsk/hhat_lang"
+homepage = "https://github.com/Doomsk/hhat_lang"
 
 # Keywords description https://python-poetry.org/docs/pyproject/#keywords
 keywords = []  #! Update me
@@ -30,7 +30,7 @@ classifiers = [  #! Update me
 
 [tool.poetry.scripts]
 # Entry points for the package https://python-poetry.org/docs/pyproject/#scripts
-"hhat" = "pre_hhat.__main__:hhat2"
+"hhat" = "hhat_lang.__main__:hhat2"
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -137,7 +137,7 @@ addopts = [
 source = ["tests"]
 
 [coverage.paths]
-source = "pre_hhat"
+source = "hhat_lang"
 
 [coverage.run]
 branch = true

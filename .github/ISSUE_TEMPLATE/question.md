@@ -10,7 +10,7 @@ assignees:
 
 <!-- Mark with an `x` all the checkboxes that apply (like `[x]`) -->
 
-- [ ] I've searched the project's [`issues`](https://github.com/Doomsk/pre_hhat/issues?q=is%3Aissue).
+- [ ] I've searched the project's [`issues`](https://github.com/Doomsk/hhat_lang/issues?q=is%3Aissue).
 
 ## ❓ Question
 

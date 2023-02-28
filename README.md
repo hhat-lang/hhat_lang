@@ -84,12 +84,6 @@ How to Use
 
 To set up the language in your package manager you can use one of the following methods. (It is recommended to have anaconda_ installed with Python 3+ (preferably Python 3.8).)
 
-**Method 1**:
-
-* Run `python3 setup.py install` in the root folder `hhat_lang`
-
-**Method 2**:
-
 * Run `pip3 install -e .` in the root folder
 
 -----

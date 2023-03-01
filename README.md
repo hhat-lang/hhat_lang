@@ -1,21 +1,5 @@
 # $\hat{H}$ quantum language
 
-
-.. image:: https://img.shields.io/pypi/v/hhat_lang.svg
-        :target: https://pypi.python.org/pypi/hhat_lang
-
-.. image:: https://img.shields.io/travis/Doomsk/hhat_lang.svg
-        :target: https://travis-ci.com/Doomsk/hhat_lang
-
-.. image:: https://readthedocs.org/projects/hhat-lang/badge/?version=latest
-        :target: https://hhat-lang.readthedocs.io/en/latest/?version=latest
-        :alt: Documentation Status
-
-
-.. image:: https://pyup.io/repos/github/Doomsk/hhat_lang/shield.svg
-     :target: https://pyup.io/repos/github/Doomsk/hhat_lang/
-     :alt: Updates
-
 A high abstraction quantum programming language.
 
 *Disclaimer*: This is a work still in early stages and may be seeing as such. So errors, inconsistencies, tons of experimentation, modifications and trials will happen.
@@ -56,7 +40,7 @@ Features
 * static-typed
 * array-like programming
 * quantum functions for quantum data
-* quantum commands are referred with :code:`@` before the word, i.e. :code:`@init`, :code:`@sync`
+* quantum commands are referred with `@` before the word, i.e. `@init`, `@sync`
 * measurements automatically made after executing quantum variable content through interaction with classical functions and classical data
 * measurement result contextualized according to the data type it is interacting with
 
@@ -65,10 +49,10 @@ Data Types
 ------
 
 - **null**: no data
-- **bool**: binary data, i.e. true and false, full and empty; represented as :code:`T` and :code:`F`
+- **bool**: binary data, i.e. true and false, full and empty; represented as `T` and `F`
 - **int**: integer numbers
 - **float**: floating point numbers
-- **str**: sequence of 0 or more characters between quotes :code:`""`
+- **str**: sequence of 0 or more characters between quotes `""`
 - **circuit**: sequence of 1 or more quantum gates for 1 or more qubits in 1 or more steps (can include other circuits as well)
 - **hashmap**: an unordered associative array of keys and values
 
@@ -82,7 +66,7 @@ TODOs:
 How to Use
 ------
 
-To set up the language in your package manager you can use one of the following methods. (It is recommended to have anaconda_ installed with Python 3+ (preferably Python 3.8).)
+To set up the language in your package manager you can use one of the following methods. (It is recommended to have [anaconda](https://www.anaconda.com/products/individual) installed with Python 3+, preferably Python 3.8.)
 
 * Run `pip3 install -e .` in the root folder
 
@@ -194,17 +178,4 @@ MIT
 -------
 Credits
 -------
-Code is being developed by Doomsk_. The author thanks Kaonan_, T1t0_, Anneriet_, Penguim_ and Lucasczpnk_ for great discussions and help developing the first language concepts.
-
-----
-
-
-.. _anaconda: https://www.anaconda.com/products/individual
-.. _Anneriet: https://github.com/anneriet
-.. _Doomsk: https://github.com/Doomsk
-.. _Kaonan: https://github.com/kaosmicadei
-.. _T1t0: https://github.com/adauto6
-.. _Penguim: https://github.com/danilodsp
-.. _Lucasczpnk: https://github.com/lucasczpnk
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+Code is being developed by [Doomsk](https://github.com/Doomsk). The author thanks [Kaonan](https://github.com/kaosmicadei), [T1t0](https://github.com/adauto6), [Anneriet](https://github.com/anneriet), [Penguim](https://github.com/danilodsp) and [Lucasczpnk](https://github.com/lucasczpnk) for great discussions and help developing the first language concepts.

@@ -622,4 +622,4 @@ MigrationBackup/
 cookiecutter-config-file.yml
 pyproject.toml
 SECURITY.md
-.github/ISSUE_TEMPLATE .github/PULL_REQUEST_TEMPLATE.md .github/dependabot.yml .github/release-drafter.yml .github/workflows
+.github/*

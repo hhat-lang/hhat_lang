@@ -618,3 +618,7 @@ healthchecksdb
 MigrationBackup/
 
 # End of https://www.gitignore.io/api/osx,python,pycharm,windows,visualstudio,visualstudiocode
+.pre-commit-config.yaml
+cookiecutter-config-file.yml
+pyproject.toml
+SECURITY.md

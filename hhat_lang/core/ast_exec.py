@@ -39,6 +39,9 @@ class Exec:
             dict: self.role_dict,
         }
 
+    def get_io(self):
+        return io.StringIO() if self.kernel else None
+
     def get_node(self, node, stack):
         if self._roles.get(type(node), self._get_ast_node(node)) is None:
             print(f'roles: {self._roles.get(type(node), self._get_ast_node(node))}')
@@ -181,7 +184,7 @@ class Exec:
                     *(stack["res"], var_index),
                     value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
                     stack=stack,
-                    on_kernel=io.StringIO(),
+                    on_kernel=self.get_io(),
                     kernel=self.kernel
                 )
             else:
@@ -199,7 +202,7 @@ class Exec:
                 res = code.value[1](
                     *(stack["res"]),
                     stack=stack,
-                    on_kernel=io.StringIO(),
+                    on_kernel=self.get_io(),
                     kernel=self.kernel
                 )
             else:
@@ -235,7 +238,7 @@ class Exec:
                     *((types.SingleNull(),) + stack["res"], var_index),
                     value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
                     stack=stack,
-                    on_kernel=io.StringIO(),
+                    on_kernel=self.get_io(),
                     kernel=self.kernel
                 )
                 if res:
@@ -277,7 +280,7 @@ class Exec:
                     *((types.SingleNull(),) + var_index),
                     value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
                     stack=stack,
-                    on_kernel=io.StringIO(),
+                    on_kernel=self.get_io(),
                     kernel=self.kernel
                 )
                 if res:
@@ -328,7 +331,7 @@ class Exec:
                     *((types.SingleNull(),) + stack["res"]),
                     value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
                     stack=stack,
-                    on_kernel=io.StringIO(),
+                    on_kernel=self.get_io(),
                     kernel=self.kernel
                 )
             else:
@@ -347,7 +350,7 @@ class Exec:
                 res = code.value[1](
                     *((types.SingleNull(),) + stack["res"]),
                     stack=stack,
-                    on_kernel=io.StringIO(),
+                    on_kernel=self.get_io(),
                     kernel=self.kernel
                 )
             else:

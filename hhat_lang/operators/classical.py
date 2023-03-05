@@ -1,5 +1,7 @@
 """Implement classical operators/functions"""
 
+import io
+
 from .builtin import Operators
 
 import hhat_lang.types as types
@@ -90,6 +92,8 @@ class Print(Operators):
             kwargs.pop("value_type")
         if "stack" in kwargs.keys():
             kwargs.pop("stack")
+        _output = kwargs.get("on_kernel", None)
+        _kernel = kwargs.get("kernel", False)
 
         if len(args) == 2:
             if isinstance(args[0], tuple) and isinstance(args[1], tuple):
@@ -100,7 +104,13 @@ class Print(Operators):
             if not isinstance(k, types.SingleNull):
                 k = str(k).strip('"').strip("'") if isinstance(k, types.SingleStr) else k
                 if n < len(args) - 1:
-                    print(k, end=" ")
+                    print(k, file=_output, end=" ")
                 else:
-                    print(k)
+                    print(k, file=_output)
+                    if _kernel:
+                        _kernel.content += _output.getvalue()
+                        stream_content = {"name": "stdout", "text": _kernel.content}
+                        _kernel.send_response(_kernel.iopub_socket, 'stream', stream_content)
+                        _output.close()
+                        _kernel.content = ""
         return types.ArrayNull()

@@ -1,3 +1,4 @@
+import io
 from copy import deepcopy
 from hhat_lang import execute_mode
 import hhat_lang.types as types
@@ -8,7 +9,8 @@ import hhat_lang.core.memory as memory
 
 # noinspection PyStatementEffect,PyArgumentList
 class Exec:
-    def __init__(self):
+    def __init__(self, kernel=None):
+        self.kernel = kernel
         self.func = dict()
         self._ast_nodes = {
             "id": self.node_id,
@@ -179,6 +181,8 @@ class Exec:
                     *(stack["res"], var_index),
                     value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
                     stack=stack,
+                    on_kernel=io.StringIO(),
+                    kernel=self.kernel
                 )
             else:
                 if code.value[1] in self.func:
@@ -194,7 +198,9 @@ class Exec:
             if isinstance(code.value[1], oper.Operators):
                 res = code.value[1](
                     *(stack["res"]),
-                    stack=stack
+                    stack=stack,
+                    on_kernel=io.StringIO(),
+                    kernel=self.kernel
                 )
             else:
                 if code.value[1] in self.func:
@@ -228,7 +234,9 @@ class Exec:
                 res = k(
                     *((types.SingleNull(),) + stack["res"], var_index),
                     value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
-                    stack=stack
+                    stack=stack,
+                    on_kernel=io.StringIO(),
+                    kernel=self.kernel
                 )
                 if res:
                     stack["res"] += res
@@ -269,6 +277,8 @@ class Exec:
                     *((types.SingleNull(),) + var_index),
                     value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
                     stack=stack,
+                    on_kernel=io.StringIO(),
+                    kernel=self.kernel
                 )
                 if res:
                     stack["res"] = res
@@ -317,7 +327,9 @@ class Exec:
                 res = code.value[1](
                     *((types.SingleNull(),) + stack["res"]),
                     value_type=self._get_value_type(stack["mem"][stack["var"], "type"][0]),
-                    stack=stack
+                    stack=stack,
+                    on_kernel=io.StringIO(),
+                    kernel=self.kernel
                 )
             else:
                 if code.value[1] in self.func:
@@ -332,7 +344,12 @@ class Exec:
                     res = ()
         else:
             if isinstance(code.value[1], oper.Operators):
-                res = code.value[1](*((types.SingleNull(),) + stack["res"]), stack=stack)
+                res = code.value[1](
+                    *((types.SingleNull(),) + stack["res"]),
+                    stack=stack,
+                    on_kernel=io.StringIO(),
+                    kernel=self.kernel
+                )
             else:
                 if code.value[1] in self.func:
                     func_return, old_idx, old_res = self.func_handler(code, stack)

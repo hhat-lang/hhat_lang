@@ -4,3 +4,4 @@ rich~=10.16.2
 qiskit~=0.36.2
 click~=7.1.2
 netqasm[netqasm]~=0.8.6
+metakernel~=0.29.4

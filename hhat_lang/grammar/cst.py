@@ -28,6 +28,16 @@ def parsing_code(example_name, print_code=False, debug=True, reduce_tree=True, e
     return visit_parse_tree(pt, CST())
 
 
+def parsing_raw_code(code, print_code=False, debug=True, reduce_tree=True, examples=True):
+    if isinstance(code, str):
+        file_dir = os.path.dirname(__file__)
+        grammar = open(os.path.join(file_dir, "grammar.peg"), "r").read()
+        parser = ParserPEG(grammar, "program", debug=debug, reduce_tree=reduce_tree)
+        pt = parser.parse(code)
+        return visit_parse_tree(pt, CST())
+    raise ValueError("'parsing_raw_code' accepts only str type as 'code'.")
+
+
 def get_oper(value, kind="classical"):
     for k in dir(poq if kind == "quantum" else poc):
         if isinstance(q := getattr(poq, k), type):
@@ -67,7 +77,7 @@ class CST(PTNodeVisitor):
     def visit_params(self, n, k):
         vals = ()
         for p in range(0, len(k), 2):
-            vals += (k[p+1], k[p]),
+            vals += (k[p + 1], k[p]),
         return AST("params", *vals)
 
     def visit_func_body(self, n, k):
@@ -133,7 +143,8 @@ class CST(PTNodeVisitor):
                         k[n] = AST("index_expr", p)
                     # k[n] = AST("index_expr", *p if isinstance(p, AST) else (p,))
                     # print(k[n], type(k[n]), k[n].value, type(k[n].value[0]))
-                if (n != 0 and len(k) >= 2) or (n == 0 and len(k) == 1): # and p.name != "value_expr":
+                if (n != 0 and len(k) >= 2) or (
+                    n == 0 and len(k) == 1):  # and p.name != "value_expr":
                     k[n] = AST("value_expr", p)
         return AST("assign_expr", *k if len(k) > 1 else k)
 
@@ -149,7 +160,8 @@ class CST(PTNodeVisitor):
         for p in k:
             print(f'which value? {p} {type(p)}')
             if isinstance(p, str):
-                ast_seq.append(AST("value_expr", AST("pipe", *pipe))) if pipe else ast_seq.extend(pipe)
+                ast_seq.append(AST("value_expr", AST("pipe", *pipe))) if pipe else ast_seq.extend(
+                    pipe)
                 ast_seq.append(self._define_str(p))
                 pipe = []
             else:
@@ -193,7 +205,7 @@ class CST(PTNodeVisitor):
         for p in range(0, len(k), 2):
             # kp0 = (k[p].value[0], k[p].value[1]) if len(k[p]) == 2 else (k[p].value[0],)
             # kp1 = (k[p+1].value[0], k[p+1].value[1]) if len(k[p + 1]) == 2 else (k[p+1].value[0],)
-            vals += (AST("value", k[p+1]), AST("key_arg", k[p])),
+            vals += (AST("value", k[p + 1]), AST("key_arg", k[p])),
         return AST("args2", *vals)
 
     def visit_collect(self, n, k):

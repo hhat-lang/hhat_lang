@@ -1,14 +1,17 @@
 """Interpreter/Evaluator"""
+import io
+
 import hhat_lang.core.ast_exec as ast_exec
 import hhat_lang.core.memory as memory
 
 
 # noinspection PyArgumentList,PyStatementEffect
 class Evaluator:
-    def __init__(self, pre_eval_ast):
+    def __init__(self, pre_eval_ast, kernel=None):
         if isinstance(pre_eval_ast, memory.SymbolTable):
             self.code = pre_eval_ast
             self.main = self.code["main"]
+            self._kernel = kernel
         else:
             raise ValueError(
                 f"{self.__class__.__name__}: ast must be of SymbolTable type (from PreEvaluator)."
@@ -20,7 +23,7 @@ class Evaluator:
         return self.main
 
     def run(self):
-        interpreter = ast_exec.Exec()
+        interpreter = ast_exec.Exec(kernel=self._kernel)
         stack = interpreter.new_stack()
         main_code = self.init_main(stack)
         interpreter.walk_tree(main_code, stack, memory.SymbolTable("func", self.code["func"])) # self.code["func"])

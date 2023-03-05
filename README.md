@@ -77,7 +77,7 @@ So far, you can:
 * Run the lexer, the parser and the evaluator ("interpreter") for:
     - Variables of type: `int`, `circuit`
 
-    - Built-in functions :code:`add`, `print`, `@init`, `@not`, `@and`
+    - Built-in functions `add`, `print`, `@init`, `@not`, `@and`
 
 How?
 
@@ -86,82 +86,90 @@ How?
 
 ## Progress
 
-
-- [x] create lexer</summary>
-    - [x] tokens
-    - [x] comments/ignored symbols
-- [x] create parser (grammar)
-    - [x] main
-    - [x] params
-    - [x] body
-    - [x] return
-    - [ ] conditional (in progress)
-    - [ ] loop (in progress)
-    - [x] functions
-    - [ ] imports
-- [x] create ast
-- [ ] create interpreter
-    - [ ] types
-        - [x] int
-        - [x] bool (in progress)
-        - [ ] float (in progress)
-        - [ ] complex (future implementation)
-        - [x] str (in progress)
-        - [x] hashmap (in progress)
-        - [x] circuit
-    - [ ] create built-in functions
-        - [x] print
-        - [x] add
-        - [ ] mult
-        - [ ] div
-        - [ ] pow
-        - [ ] sqrt
-        - [x] @h
-        - [x] @x
-        - [x] @z
-        - [ ] @y
-        - [ ] @cnot
-        - [ ] @swap
-        - [ ] @cz
-        - [ ] @rx
-        - [ ] @rz
-        - [ ] @ry
-        - [ ] @t
-        - [ ] @tdag
-        - [ ] @s
-        - [ ] @sdag
-        - [ ] @cr
-        - [x] @toffoli
-        - [x] @and
-        - [x] @not
-        - [x] @init
-        - [ ] @ampl
-    - [ ] create functions handler
-        - [x] function calling
-        - [x] scope variables
-        - [x] returns
-- [ ] quantum variables
-  - [x] pipe
-  - [ ] correct qubit allocation on QASM transpilation when many quantum variables inside one quantum variable scope
-- [ ] base simulators
-  - [x] openQASM 2.0
-  - [ ] openQASM 3.0
-  - [ ] NetQASM
-  - [ ] cQASM
-- [ ] base QASM transpilers
-  - [x] openQASM 2.0
-  - [ ] openQASM 3.0
-  - [ ] NetQASM
-  - [ ] cQASM
-- [ ] protocols (for measurements results & context)
-  - [ ] simple context
-    - [x] weighted average
-    - [x] biggest value
-    - [ ] threshold
-  - [ ] user defined context
-- [ ] user defined types
-- [ ] include built-in error handler
+- [ ] language base
+  - [x] create lexer</summary>
+      - [x] tokens
+      - [x] comments/ignored symbols
+  - [x] create parser (grammar)
+      - [x] main
+      - [x] params
+      - [x] body
+      - [x] return
+      - [ ] conditional (in progress)
+      - [ ] loop (in progress)
+      - [x] functions
+      - [ ] function imports
+      - [ ] protocols imports
+      - [ ] user type imports
+  - [x] create ast
+  - [ ] create interpreter
+      - [ ] types
+          - [x] int
+          - [x] bool (in progress)
+          - [ ] float (in progress)
+          - [ ] complex (future implementation)
+          - [x] str (in progress)
+          - [x] hashmap (in progress)
+          - [x] circuit
+      - [ ] create built-in functions
+          - [x] print
+          - [x] add
+          - [ ] mult
+          - [ ] div
+          - [ ] pow
+          - [ ] sqrt
+          - [x] @h
+          - [x] @x
+          - [x] @z
+          - [ ] @y
+          - [ ] @cnot
+          - [ ] @swap
+          - [ ] @cz
+          - [ ] @rx
+          - [ ] @rz
+          - [ ] @ry
+          - [ ] @t
+          - [ ] @tdag
+          - [ ] @s
+          - [ ] @sdag
+          - [ ] @cr
+          - [x] @toffoli
+          - [x] @and
+          - [x] @not
+          - [x] @init
+          - [ ] @ampl
+      - [x] create functions handler
+          - [x] function calling
+          - [x] scope variables
+          - [x] returns
+  - [ ] quantum variables
+    - [x] pipe
+    - [ ] correct qubit allocation on QASM transpilation when many quantum variables inside one quantum variable scope
+  - [ ] base simulators
+    - [x] openQASM 2.0
+    - [ ] openQASM 3.0
+    - [ ] NetQASM
+    - [ ] cQASM
+  - [ ] base QASM transpilers
+    - [x] openQASM 2.0
+    - [ ] openQASM 3.0
+    - [ ] NetQASM
+    - [ ] cQASM
+  - [ ] protocols (for measurements results & context)
+    - [ ] simple context
+      - [x] weighted average
+      - [x] biggest value
+      - [ ] threshold
+      - [ ] others
+    - [ ] user defined context
+  - [ ] user defined types
+  - [ ] include built-in error handler
 - [ ] include debugger mode
+- [ ] IDE, notebooks
+  - [ ] define syntax model for:
+    - [ ] highlighting
+    - [ ] autocompletion
+  - [ ] include language kernel on jupyter notebook
 
 
 Got an error?

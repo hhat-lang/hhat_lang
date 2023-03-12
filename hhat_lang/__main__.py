@@ -1,5 +1,5 @@
 # type: ignore[attr-defined]
-from hhat_lang import version as hhat_version
+from hhat_lang import __version__ as hhat_version
 from hhat_lang.grammar.cst import parsing_code
 from hhat_lang.interpreter.pre_evaluator import PreEvaluator
 from hhat_lang.interpreter.evaluator import Evaluator

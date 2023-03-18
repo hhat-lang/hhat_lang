@@ -7,7 +7,7 @@ readme = open("README.md", "r").read()
 requirements = [f.strip('\n') for f in open("requirements.txt", "r").readlines()]
 
 setup(
-    name="H-hat",
+    name="hhat_lang",
     author="Eduardo Maschio",
     python_requires=">=3.8",
     description="H-hat: a high level quantum programming language.",

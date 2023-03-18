@@ -6,6 +6,20 @@ A high abstraction quantum programming language.
 
 To check on the syntax and some documentation, go to the `docs` folder.
 
+------
+Contents
+------
+* [Summary](#summary)
+* [Objectives](#objectives)
+* [Features](#features)
+* [Data Types](#data-types)
+* [TODOs](#todos-)
+* [Installation](#installation)
+* [Progress](#progress)
+* [Got an error?](#got-an-error)
+* [License](#license)
+* [Credits](#credits)
+
 
 --------
 Summary
@@ -63,13 +77,30 @@ TODOs:
 * Include explanation over the current language syntax, semantics and features
 
 ------
-How to Use
+Installation
 ------
 
 To set up the language in your package manager you can use one of the following methods. (It is recommended to have [anaconda](https://www.anaconda.com/products/individual) installed with Python 3+, preferably Python 3.8.)
 
-* Run `pip3 install -e .` in the root folder
+### Method 1: conda (easy)
 
+* In the root folder, run:
+```
+python3 -m pip install -r requirements.txt
+python3 -m pip install -e .
+```
+
+
+### Method 2: venv (advanced)
+
+Consider all the following commands to be typed in the terminal.
+
+* Create a venv (recommended python3.8 or 3.9): `python3.8 -m venv .venv` (the venv will be located in the folder `.venv` inside the hhat_lang root folder)
+* Deactivate any other environment you might have active, i.e. conda: `conda deactivate`, until you have no environment
+* Activate our new venv through: `source .venv/bin/activate`
+* Install all the requirements: `python3 -m pip install -r requirements.txt`
+* In the root folder, run: `python3 -m pip install -e .`
+* To deactivate the newly created environment, type: `deactivate`
 -----
 
 So far, you can:

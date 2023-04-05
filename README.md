@@ -1,6 +1,8 @@
-# $\hat{H}$ quantum language
+[![Unitary Fund](https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=for-the-badge)](https://unitary.fund)
 
-A high abstraction quantum programming language.
+# $\hat{H}$
+
+$\hat{H}$ (H-hat) is a high abstraction quantum programming language.
 
 *Disclaimer*: This is a work still in early stages and may be seeing as such. So errors, inconsistencies, tons of experimentation, modifications and trials will happen.
 
@@ -142,7 +144,7 @@ How?
           - [x] str (in progress)
           - [x] hashmap (in progress)
           - [x] circuit
-      - [ ] create built-in functions
+      - [ ] create built-in functions primitives
           - [x] print
           - [x] add
           - [ ] mult
@@ -184,7 +186,7 @@ How?
   - [ ] base QASM transpilers
     - [x] openQASM 2.0
     - [ ] openQASM 3.0
-    - [ ] NetQASM
+    - [ ] NetQASM - in progress (funded by [UnitaryFund](https://unitary.fund))
     - [ ] cQASM
   - [ ] protocols (for measurements results & context)
     - [ ] simple context

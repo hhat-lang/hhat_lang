@@ -1,49 +1,56 @@
-"""Example of code."""
-
-from time import process_time
-
-from hhat_lang import examples_files as examples
-from hhat_lang.interpreter.pre_evaluator import PreEvaluator
-from hhat_lang.interpreter.evaluator import Evaluator
-from hhat_lang.grammar.cst import parsing_code
+from hhat_parsing import parse_code
+from hhat_pre_eval import PreEval
+from hhat_eval import Eval
+from hhat_semantics import Analysis
 
 
-def example_run(debug=True, print_code=False, symboltable=True, interpreter=True):
-    for n, k in enumerate(examples):
-        print("=" * 50)
-        print("*  File:")
-        print(f"      {k}")
-        print()
-        print('-'*20)
-        print("*  Code:")
-        print()
-        code_ast = parsing_code(k, print_code=print_code, debug=debug)
-        print()
-        print('-'*20)
-        print("*  AST:")
-        print(f"      {code_ast}")
-        pre_eval = PreEvaluator(code_ast)
-        table = pre_eval.walk_tree()
-        print()
-        if symboltable:
-            print()
-            print('-'*20)
-            print("*  SymbolTable:")
-            print(f"      {table}")
-            print()
-        if interpreter:
-            print()
-            print('-'*20)
-            print("*  Interpreter:")
-            print("_" * 20)
-            print()
-            ev = Evaluator(table)
-            t0 = process_time()
-            ev.run()
-            t1 = process_time()
-            print("_" * 20)
-            print(f"done in {round(t1-t0, 6)}s.")
+def parsing(c):
+    pc_ = parse_code(c)
+    print(f"- code:\n{c}\n")
+    print(f"- parsed code:\n{pc_}\n")
+    return pc_
+
+
+def pre_evaluating(pc):
+    # pev_ = PreEval(pc)
+    # res_ = pev_.run()
+    print(f"- pre-evaluation:")
+    analysis = Analysis(pc)
+    res_ = analysis.run()
+    print("\n")
+    return res_
+
+
+def evaluating(c):
+    ev_ = Eval(c)
+    print("- executing code:\n")
+    ev_.run()
+
+
+def run_codes(c):
+    pc_ = parsing(c)
+    pev_ = pre_evaluating(pc_)
+    print("-" * 80)
+    evaluating(pev_)
+
+
+code_list = [
+    """
+    [2 3 4]:(sum times):print
+    [10 20]:sum(2):print
+    [50 60]:(sum:n times(n):m times):print
+    """,
+    # "[0 1]:sum [2 3 4]:times [5 6]:sum:print [7 8]:(sum times):print",
+    # "[0 1]:(@init:@q1 @sync(@q1):@q2)",
+    # "[0 1 2 3]:(@init:@ampl:@q1 @sync(@q1):@fflip(pi over(pi 2)):@q2)"
+]
 
 
 if __name__ == "__main__":
-    example_run(debug=False, print_code=True, interpreter=True)
+    print("***[START]***")
+    print("="*80)
+    for code in code_list:
+        # parsing(code)
+        run_codes(code)
+        print('='*80)
+    print("***[END]***")

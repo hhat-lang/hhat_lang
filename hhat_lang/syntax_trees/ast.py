@@ -1,6 +1,6 @@
 from abc import ABC
 from typing import Any
-from hhat_literal_define import (literal_bool_define, literal_int_define)
+from hhat_lang.syntax_trees.literal_define import (literal_bool_define, literal_int_define)
 
 
 literal_dict = dict(

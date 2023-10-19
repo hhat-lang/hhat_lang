@@ -1,5 +1,2 @@
-arpeggio~=2.0.0
-typer~=0.4.2
-rich~=10.16.2
-qiskit~=0.36.2
+arpeggio~=2.0.2
 click~=7.1.2

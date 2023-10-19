@@ -1,16 +1,15 @@
 from copy import deepcopy
-from typing import Any, Callable, Iterable
-from hhat_memory import Var, R
-from hhat_new_ast import AOT
-from hhat_data_type import (
+from typing import Any
+from hhat_lang.interpreter.memory import Var, R
+from hhat_lang.syntax_trees.ast import AOT
+from hhat_lang.datatypes.builtin_datatype import (
     builtin_data_types_dict,
     builtin_array_types_dict,
-    DefaultType,
-    DataType,
-    DataTypeArray
+    DefaultType
 )
-from hhat_builtin_fn import builtin_fn_dict
-from hhat_memory import Mem
+from hhat_lang.datatypes.base_datatype import DataType, DataTypeArray
+from hhat_lang.interpreter.builtins.builtin_fn import builtin_fn_dict
+from hhat_lang.interpreter.memory import Mem
 
 
 class Eval:
@@ -25,31 +24,31 @@ class Eval:
 
 def eval_token(code: AOT, mem: Mem) -> Any:
     if code.type in ["oper", "id"]:
-        print(f"  = oper:", end=" ")
+        # print(f"  = oper:", end=" ")
         if res := builtin_fn_dict.get(code.token, False):
             return res
         if code.token in mem:
             return mem.get_var(code.token)
         return Var(code.token)
-    print(f"  = literal:", end=" ")
+    # print(f"  = literal:", end=" ")
     return builtin_data_types_dict.get(code.type, DefaultType)(code.token)
 
 
 def eval_oper(code: R, mem: Mem) -> Any:
-    print("* oper:")
+    # print("* oper:")
     res = ()
-    print(f"  -> oper content: {code} {[(k, type(k)) for k in code]}")
+    # print(f"  -> oper content: {code} {[(k, type(k)) for k in code]}")
     for k in code:
         last = execute(k, mem)
         if isinstance(last[0], Var):
-            print(f"  => {type(k)} {code.role}")
+            # print(f"  => {type(k)} {code.role}")
             if code.role == "callee":
-                print("  ! oper callee found!")
+                # print("  ! oper callee found!")
                 var = mem.get_var(last[0].name)
-                print(f"  ! [oper callee] after mem: {mem}")
+                # print(f"  ! [oper callee] after mem: {mem}")
                 res += var,
             else:
-                print("IS VAR!!")
+                # print("IS VAR!!")
                 mem.put_expr(last[0])
                 res += last
         elif isinstance(last[0], (DataType, DataTypeArray)):
@@ -57,37 +56,37 @@ def eval_oper(code: R, mem: Mem) -> Any:
             res += last
         else:
             oper = last[0](mem, *mem.get_stack())
-            print(f"---> {type(oper)} {oper}")
+            # print(f"---> {type(oper)} {oper}")
             mem.put_expr(oper)
             # mem.put_stack(oper)
             res += oper,
-    print(f"  -> oper res: {res}")
+    # print(f"  -> oper res: {res}")
     return res
 
 
 def eval_args(code: R, mem: Mem) -> Any:
-    print("* args:")
+    # print("* args:")
     res = ()
-    print(f"    -> {len(code)} {code}")
+    # print(f"    -> {len(code)} {code}")
     for k in code:
-        print(f"  !=> what is k: {k} | {mem}")
+        # print(f"  !=> what is k: {k} | {mem}")
         last = execute(k, mem)
-        print(f"  => arg data: {last[0]} ({type(last[0])}) {type(last)} ({code}) {mem=}")
+        # print(f"  => arg data: {last[0]} ({type(last[0])}) {type(last)} ({code}) {mem=}")
         mem.put_stack(last[0])
         res += last
     return res
 
 
 def eval_call(code: R, mem: Mem) -> Any:
-    print("* call:")
+    # print("* call:")
     res = ()
     for k in code:
         res += execute(k, mem)
-    print(f"! what is call res: {res}")
+    # print(f"! what is call res: {res}")
     if len(code) == 2:
         args = mem.pop_stack()
         oper = mem.pop_expr()
-        print(f"call: {oper=} | {args=} ({type(args)})")
+        # print(f"call: {oper=} | {args=} ({type(args)})")
         new_res = oper(args)
         for p in new_res:
             mem.put_stack(p)
@@ -98,14 +97,15 @@ def eval_call(code: R, mem: Mem) -> Any:
                 new_res = res
             else:
                 mem.pop_expr()
-                print(f"VAR!? {code=} | {res[0]=} | {mem=}")
+                # print(f"VAR!? {code=} | {res[0]=} | {mem=}")
                 new_res = res[0](mem.pop_stack()),
                 mem.put_var(res[0], "")
+                mem.put_stack(res[0])
         else:
-            print("here pop expr?")
             oper = mem.pop_expr()
             if oper.token in builtin_fn_dict.keys():
                 new_res = oper()
+                # print(f"* [{oper}] received {new_res=}")
                 for p in new_res:
                     mem.put_stack(p)
             else:
@@ -115,42 +115,42 @@ def eval_call(code: R, mem: Mem) -> Any:
 
 
 def eval_array(code: R, mem: Mem) -> Any:
-    print("* array:")
+    # print("* array:")
     res = ()
     for k in code:
         res += execute(k, mem)
-    print(f"! {res=} {len(set(k.type for k in res))=}")
+    # print(f"! {res=} {len(set(k.type for k in res))=}")
     if len(set(k.type for k in res)) == 1:
         if isinstance(res[0], DataType):
             array = builtin_array_types_dict[res[0].type](*res)
             mem.put_stack(array)
             res = array,
         elif isinstance(res[0], int):
-            print("WE GOT AN INT!!")
+            print("* WE GOT AN INT!!")
     return res
 
 
 def eval_expr(code: R, mem: Mem) -> Any:
-    print("* expr:")
+    # print("* expr:")
     res = ()
     for k in code:
         res += execute(k, mem)
-        print(f"  [end][expr]-> after mem: {mem} | {res=}")
+        # print(f"  [end][expr]-> after mem: {mem} | {res=}")
     return (res[-1],) if res else ()
 
 
 def eval_many_expr(code: R, mem: Mem) -> Any:
-    print("* many-expr:")
-    print(f"  [cur]-> {mem}")
+    # print("* many-expr:")
+    # print(f"  [cur]-> {mem}")
     res = ()
     for n, k in enumerate(code):
         new_mem = deepcopy(mem)
-        print(f"  [{n}][start][many-expr]({k})")
-        print(f"     -> prev mem: {mem}")
-        print(f"     -> new mem: {new_mem}")
+        # print(f"  [{n}][start][many-expr]({k})")
+        # print(f"     -> prev mem: {mem}")
+        # print(f"     -> new mem: {new_mem}")
         res += execute(k, new_mem)
         new_mem.share_vars(mem)
-        print(f"  [{n}][end][many-expr]({k}) -> after new mem: {new_mem} | mem: {mem} | {res=}")
+        # print(f"  [{n}][end][many-expr]({k}) -> after new mem: {new_mem} | mem: {mem} | {res=}")
     mem.clear_stack()
     for k in res:
         mem.put_stack(k)
@@ -158,7 +158,7 @@ def eval_many_expr(code: R, mem: Mem) -> Any:
 
 
 def eval_main(code: R, mem: Mem) -> Any:
-    print("* main:")
+    # print("* main:")
     res = ()
     for k in code:
         res += execute(k, mem),
@@ -197,6 +197,6 @@ def execute(code: Any, mem: Mem) -> tuple[Any]:
 
         case AOT():
             res = eval_token(code, mem)
-            print(res)
+            # print(res)
             res = res,
     return res

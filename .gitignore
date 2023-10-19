@@ -1,0 +1,6 @@
+.venv/*
+dist/*
+build/*
+hhat_lang.egg-info/*
+.ipynb_checkpoints/*
+*.ipynb

@@ -1,98 +1,11 @@
-from typing import Any, Callable, Iterable
-from dataclasses import dataclass, field, InitVar
-from abc import ABC, abstractmethod
+from typing import Any
+
+from hhat_lang.datatypes.hhat_base_datatype import DataType, DataTypeArray
 
 
-class DataType(ABC):
-    def __init__(self, value: Any):
-        self.value = value
-        self.data = self.cast()
-        self.value = str(value)
-
-    @property
-    @abstractmethod
-    def token(self):
-        ...
-
-    @property
-    @abstractmethod
-    def type(self):
-        ...
-
-    @abstractmethod
-    def cast(self):
-        ...
-
-    @abstractmethod
-    def __add__(self, other: Any) -> Any:
-        ...
-
-    @abstractmethod
-    def __radd__(self, other: Any) -> Any:
-        ...
-
-    @abstractmethod
-    def __mul__(self, other: Any) -> Any:
-        ...
-
-    @abstractmethod
-    def __rmul__(self, other: Any) -> Any:
-        ...
-
-    def __len__(self) -> int:
-        return 1
-
-    def __iter__(self) -> Iterable:
-        yield from (self,)
-
-    def __repr__(self) -> str:
-        return f"{self.data}"
-
-
-class DataTypeArray(ABC):
-    def __init__(self, *values: Any):
-        self.value = values
-        self.data = self.cast()
-
-    @property
-    @abstractmethod
-    def token(self):
-        ...
-
-    @property
-    @abstractmethod
-    def type(self):
-        ...
-
-    @abstractmethod
-    def cast(self) -> Any:
-        ...
-
-    @abstractmethod
-    def __add__(self, other: Any) -> Any:
-        ...
-
-    @abstractmethod
-    def __radd__(self, other: Any) -> Any:
-        ...
-
-    @abstractmethod
-    def __mul__(self, other: Any) -> Any:
-        ...
-
-    @abstractmethod
-    def __rmul__(self, other: Any) -> Any:
-        ...
-
-    def __len__(self) -> int:
-        return len(self.data)
-
-    def __iter__(self) -> Iterable:
-        yield from self.data
-
-    def __repr__(self):
-        return f"[{' '.join(str(k) for k in self.data)}]"
-
+################
+# SINGLE TYPES #
+################
 
 class DefaultType(DataType):
     @property
@@ -123,7 +36,8 @@ class DefaultType(DataType):
 
 
 class Bool(DataType):
-    bool_dict = dict(T=True, F=False)
+    undo_bool_dict = {True: "T", False: "F"}
+    convert2bool_dict = dict(T=True, F=False)
 
     @property
     def token(self):
@@ -134,11 +48,13 @@ class Bool(DataType):
         return "bool"
 
     def cast(self) -> Any:
-        return self.bool_dict[self.value]
+        if self.value in self.convert2bool_dict.keys():
+            return self.value
+        raise ValueError(f"Wrong value for boolean: {self.value}.")
 
     def __add__(self, other: Any) -> Any:
         if isinstance(other, Bool):
-            return Bool(self.data and other.data)
+            return Bool(self.convert2bool_dict[self.data] and self.convert2bool_dict[other.data])
         raise ValueError(f"cannot add {self.__class__.__name__} with {other.__class__.__name__}")
 
     def __radd__(self, other: Any) -> Any:
@@ -172,6 +88,8 @@ class Int(DataType):
             return IntArray(*tuple(map(lambda x: self.data + x, other.data)))
         if isinstance(other, int):
             return Int(self.data + other)
+        if isinstance(other, tuple):
+            return IntArray(*tuple(map(lambda x: self.data + x.data, other)))
         raise ValueError(f"cannot add {self.__class__.__name__} with {other.__class__.__name__}")
 
     def __radd__(self, other: Any) -> Any:
@@ -181,6 +99,8 @@ class Int(DataType):
             return IntArray(*tuple(map(lambda x: x + self.data, other.data)))
         if isinstance(other, int):
             return Int(other + self.data)
+        if isinstance(other, tuple):
+            return IntArray(*tuple(map(lambda x: x.data + self.data, other)))
         raise ValueError(f"cannot add {self.__class__.__name__} with {other.__class__.__name__}")
 
     def __mul__(self, other: Any) -> Any:
@@ -201,6 +121,10 @@ class Int(DataType):
             return Int(other * self.data)
         raise ValueError(f"cannot multiply {self.__class__.__name__} with {other.__class__.__name__}")
 
+
+###############
+# ARRAY TYPES #
+###############
 
 class BoolArray(DataTypeArray):
     bool_dict = dict(T=True, F=False)
@@ -254,14 +178,14 @@ class IntArray(DataTypeArray):
             return IntArray(*tuple(map(lambda x, y: x + y, self.data, other.data)))
         if isinstance(other, Int):
             return IntArray(*tuple(map(lambda x: x + other.data, self.data)))
-        print(f"what is other? {type(other)}")
+        print(f"* [add] what is other? {type(other)} {other}")
 
     def __radd__(self, other: Any) -> Any:
         if isinstance(other, IntArray):
             return IntArray(*tuple(map(lambda x, y: x + y, other.data, self.data)))
         if isinstance(other, Int):
             return IntArray(*tuple(map(lambda x: other.data + x, self.data)))
-        print(f"what is other? {type(other)}")
+        print(f"* [radd] what is other? {type(other)} {other}")
 
     def __mul__(self, other: Any) -> Any:
         if isinstance(other, IntArray):
@@ -269,8 +193,7 @@ class IntArray(DataTypeArray):
             return IntArray(*tuple(map(lambda x, y: x * y, self.data, other.data)))
         if isinstance(other, Int):
             return IntArray(*tuple(map(lambda x: x * other.data, self.data)))
-        print("WUT")
-        print(f"mult int array: {self.data} ({type(self.data)}) | {other.data} ({type(other.data)})")
+        print(f"* [mul] mult int array: {self.data} ({type(self.data)}) | {other.data} ({type(other.data)})")
 
     def __rmul__(self, other: Any) -> Any:
         if isinstance(other, IntArray):
@@ -278,8 +201,108 @@ class IntArray(DataTypeArray):
             return IntArray(*tuple(map(lambda x, y: x + y, other.data, self.data)))
         if isinstance(other, Int):
             return IntArray(*tuple(map(lambda x: other.data * x, self.data)))
-        print("WUT")
-        print(f"mult int array: {self.data} ({type(self.data)}) | {other.data} ({type(other.data)})")
+        print(f"* [rmul] mult int array: {self.data} ({type(self.data)}) | {other.data} ({type(other.data)})")
+
+
+class QArray(DataTypeArray):
+    @property
+    def token(self) -> str:
+        return "@array"
+
+    @property
+    def type(self) -> str:
+        return "@array"
+
+    def cast(self) -> tuple[Any]:
+        return tuple(k for k in self.value)
+
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, QArray):
+            self.data += other,
+            return self
+        if isinstance(other, Int):
+            # TODO: implement the casting
+            return
+        if isinstance(other, IntArray):
+            # TODO: implement the casting
+            return
+        if isinstance(other, Bool):
+            # TODO: implement the casting
+            return
+        if isinstance(other, BoolArray):
+            # TODO: implement the casting
+            return
+
+        from hhat_memory import R
+
+        if isinstance(other, R):
+            self.data += other,
+            return self
+
+    def __radd__(self, other):
+        if isinstance(other, QArray):
+            other.data += self.data
+            return other
+        if isinstance(other, Int):
+            # TODO: implement the casting
+            return
+        if isinstance(other, IntArray):
+            # TODO: implement the casting
+            return
+        if isinstance(other, Bool):
+            # TODO: implement the casting
+            return
+        if isinstance(other, BoolArray):
+            # TODO: implement the casting
+            return
+
+        from hhat_memory import R
+
+        if isinstance(other, R):
+            self.data += other,
+            return self
+
+    def __mul__(self, other):
+        if isinstance(other, QArray):
+            pass
+        if isinstance(other, Int):
+            # TODO: implement the casting
+            return
+        if isinstance(other, IntArray):
+            # TODO: implement the casting
+            return
+        if isinstance(other, Bool):
+            # TODO: implement the casting
+            return
+        if isinstance(other, BoolArray):
+            # TODO: implement the casting
+            return
+
+        from hhat_memory import R
+
+        if isinstance(other, R):
+            pass
+
+    def __rmul__(self, other):
+        if isinstance(other, QArray):
+            pass
+        if isinstance(other, Int):
+            # TODO: implement the casting
+            return
+        if isinstance(other, IntArray):
+            # TODO: implement the casting
+            return
+        if isinstance(other, Bool):
+            # TODO: implement the casting
+            return
+        if isinstance(other, BoolArray):
+            # TODO: implement the casting
+            return
+
+        from hhat_memory import R
+
+        if isinstance(other, R):
+            pass
 
 
 builtin_data_types_dict = {
@@ -289,6 +312,7 @@ builtin_data_types_dict = {
 builtin_array_types_dict = {
     "bool": BoolArray,
     "int": IntArray,
+    "@array": QArray,
 }
 data_types_list = tuple(builtin_data_types_dict.keys())
 array_types_list = tuple(builtin_array_types_dict.keys())

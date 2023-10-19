@@ -1,4 +1,4 @@
-from hhat_new_ast import (
+from hhat_lang.syntax_trees.ast import (
     AST,
     Main,
     Expr,
@@ -7,7 +7,7 @@ from hhat_new_ast import (
     Array,
     Operation
 )
-from hhat_memory import R
+from hhat_lang.interpreter.memory import R
 
 
 class Analysis:

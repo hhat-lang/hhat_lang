@@ -2,13 +2,11 @@ from copy import deepcopy
 from typing import Any, Callable, Iterable
 from uuid import uuid4, uuid3, NAMESPACE_OID
 from dataclasses import dataclass, field
-from hhat_new_ast import AOT, AST
-from hhat_data_type import (
-    builtin_data_types_dict,
-    builtin_array_types_dict,
-    DataType,
-    DataTypeArray
+from hhat_lang.syntax_trees.ast import AOT, AST
+from hhat_lang.datatypes.builtin_datatype import (
+    builtin_array_types_dict
 )
+from hhat_lang.datatypes.base_datatype import DataType, DataTypeArray
 
 
 def transform_token_type(data: AOT):
@@ -126,8 +124,7 @@ class Var:
         yield from self.data
 
     def __repr__(self) -> str:
-        # content = "{" + " ".join(str(k) for k in self.data) + "}"
-        content = "{" + str(self.data) + "}"
+        content = str(self.data)
         var_type = f"<{self.type}>"
         return "%" + self.name + var_type + (content if self.data else "")
 

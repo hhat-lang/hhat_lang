@@ -1,9 +1,0 @@
-{
-  "protocols": {
-    "list": [
-      "biggest_value",
-      "weighted_average"
-    ],
-    "default": "biggest_value"
-  }
-}

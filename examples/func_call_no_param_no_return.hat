@@ -1,5 +1,0 @@
-func null{} hi() ( print(add(1 2)) print('hi!' add(5 10)) )
-
-func null{} ho() ( int{1} x = 5 int{1} y = 6 print("x + y=" add(x y)) )
-
-main ( hi() ho() )

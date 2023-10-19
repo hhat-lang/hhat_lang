@@ -1,5 +1,0 @@
-main (
-  int{1} a
-  circuit{2} @c = (a:@x, 1:@h)
-  print(@c)
-)

@@ -1,8 +1,0 @@
-{
-  "@X": "x",
-  "@Z": "z",
-  "@H": "h",
-  "@CNOT": "cx",
-  "@SWAP": "swap",
-  "@TOFFOLI": "ccx"
-}

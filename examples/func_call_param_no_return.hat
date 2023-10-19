@@ -1,5 +1,0 @@
-func null{} say_sum(int{1} x int{1} y) ( print('res' add(x y)) )
-
-func null{} do_sum(int{1} r int{1} s) ( int{1} t = (:add(r s), :print('t =')) )
-
-main ( int{1} a = 30 int{1} b = 60 say_sum(a b) say_sum(100 200) do_sum(a b) do_sum(150 250) )

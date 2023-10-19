@@ -233,7 +233,7 @@ class QArray(DataTypeArray):
             # TODO: implement the casting
             return
 
-        from hhat_memory import R
+        from hhat_lang.interpreter import R
 
         if isinstance(other, R):
             self.data += other,
@@ -256,7 +256,7 @@ class QArray(DataTypeArray):
             # TODO: implement the casting
             return
 
-        from hhat_memory import R
+        from hhat_lang.interpreter import R
 
         if isinstance(other, R):
             self.data += other,
@@ -278,7 +278,7 @@ class QArray(DataTypeArray):
             # TODO: implement the casting
             return
 
-        from hhat_memory import R
+        from hhat_lang.interpreter import R
 
         if isinstance(other, R):
             pass
@@ -299,7 +299,7 @@ class QArray(DataTypeArray):
             # TODO: implement the casting
             return
 
-        from hhat_memory import R
+        from hhat_lang.interpreter import R
 
         if isinstance(other, R):
             pass

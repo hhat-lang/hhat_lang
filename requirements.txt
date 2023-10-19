@@ -1,1 +1,2 @@
 Arpeggio~=2.0.2
+click~=8.1.7

@@ -5,7 +5,7 @@ $\hat{H}$ (H-hat) is a high abstraction quantum programming language.
 
 *Disclaimer*: This is a work still in early stages and may be seeing as such. So errors, inconsistencies, tons of experimentation, modifications and trials will happen.
 
----
+    ---
 
 **Note**: new documentation to be released.
 

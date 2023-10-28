@@ -1,12 +1,14 @@
 from hhat_lang.syntax_trees.ast import (
     Main,
-    Expr,
-    ManyExpr,
-    Operation,
     Array,
+    Expr,
+    Operation,
     Id,
-    Literal
+    Literal,
+    ExprParadigm,
+    LiteralEnum,
 )
+from hhat_lang.grammar import grammar_file
 from arpeggio import visit_parse_tree, PTNodeVisitor
 from arpeggio.cleanpeg import ParserPEG
 
@@ -16,50 +18,55 @@ class CST(PTNodeVisitor):
         super().__init__(defaults=defaults, **kwargs)
 
     def visit_program(self, n, k):
-        # return Program(*k)
-        # return NewMain(*k)
-        res = tuple(ManyExpr(p) for p in k)
-        return Main(*res)
+        res = Array(ExprParadigm.CONCURRENT, *k)
+        return Main(res)
 
     def visit_exprs(self, n, k):
-        # return Expr(*k)
-        return Expr(*k)
+        new_k = ()
+        for p in k:
+            if isinstance(p, Expr):
+                new_k += p.edges
+            else:
+                new_k += p,
+        return Expr(*new_k)
+
+    def visit_parallel(self, n, k):
+        return Array(ExprParadigm.PARALLEL, *k)
+
+    def visit_concurrent(self, n, k):
+        return Array(ExprParadigm.CONCURRENT, *k)
+
+    def visit_sequential(self, n, k):
+        return Array(ExprParadigm.SEQUENTIAL, *k)
 
     def visit_expr(self, n, k):
         if len(k) > 1:
-            # return Expr(*k)
-            return ManyExpr(*k)  # NewExpr(*k)
-        return k[0]
+            return Expr(*k)
+        return k
+
+    def visit_single(self, n, k):
+        return Expr(*k)
 
     def visit_operation(self, n, k):
         if len(k) > 1:
-            # return Operation(k[0], *k[1:])
-            return Operation(k[0], *k[1:])
-        # return Operation(k[0])
-        return Operation(k[0])
-
-    def visit_array(self, n, k):
-        # return Array(*k)
-        return Array(*k)
+            return Operation(k[0], k[1])
+        return Operation(k[0], None)
 
     def visit_id(self, n, k):
-        # return Id(n.value)
-        return Id(n.value)
+        return Id(token=n.value)
 
     def visit_literal(self, n, k):
         return k[0]
 
-    def visit_BOOL(self, n, k):
-        # return Literal(n.value, "bool")
-        return Literal(n.value, "bool")
-
     def visit_INT(self, n, k):
-        # return Literal(n.value, "int")
-        return Literal(n.value, "int")
+        return Literal(token=n.value, lit_type=LiteralEnum.INT)
+
+    def visit_BOOL(self, n, k):
+        return Literal(token=n.value, lit_type=LiteralEnum.BOOL)
 
 
 def parse_code(code):
-    peg_grammar = open("../grammar/grammar.peg", "r").read()
-    parsed_code = ParserPEG(peg_grammar, "program", reduce_tree=False)
+    peg_grammar = open(grammar_file, "r").read()
+    parsed_code = ParserPEG(peg_grammar, "program", reduce_tree=True)
     pt = parsed_code.parse(code)
     return visit_parse_tree(pt, CST())

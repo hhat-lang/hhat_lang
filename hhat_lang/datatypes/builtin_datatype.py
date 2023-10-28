@@ -1,6 +1,6 @@
 from typing import Any
 
-from hhat_lang.datatypes.hhat_base_datatype import DataType, DataTypeArray
+from hhat_lang.datatypes import DataType, DataTypeArray
 
 
 ################
@@ -214,6 +214,7 @@ class QArray(DataTypeArray):
         return "@array"
 
     def cast(self) -> tuple[Any]:
+        print(f">>> cast @array -> {self.value}")
         return tuple(k for k in self.value)
 
     def __add__(self, other: Any) -> Any:
@@ -232,6 +233,12 @@ class QArray(DataTypeArray):
         if isinstance(other, BoolArray):
             # TODO: implement the casting
             return
+
+        from hhat_lang.builtins.functions import MetaQFn
+
+        if isinstance(other, MetaQFn):
+            self.data += other,
+            return self
 
         from hhat_lang.interpreter import R
 
@@ -309,10 +316,18 @@ builtin_data_types_dict = {
     "bool": Bool,
     "int": Int,
 }
-builtin_array_types_dict = {
+builtin_classical_data_types_dict = {
     "bool": BoolArray,
     "int": IntArray,
+}
+builtin_quantum_data_types_dict = {
     "@array": QArray,
 }
+builtin_array_types_dict = {
+    **builtin_classical_data_types_dict,
+    **builtin_quantum_data_types_dict,
+}
 data_types_list = tuple(builtin_data_types_dict.keys())
+classical_array_types_list = tuple(builtin_classical_data_types_dict.keys())
+quantum_array_types_list = tuple(builtin_quantum_data_types_dict.keys())
 array_types_list = tuple(builtin_array_types_dict.keys())

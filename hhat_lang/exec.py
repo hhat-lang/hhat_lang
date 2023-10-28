@@ -1,4 +1,5 @@
-from hhat_lang.interpreter import parse_code, Analysis, Eval, R
+from hhat_lang.interpreter import parse_code, Analysis, Eval
+from hhat_lang.interpreter.post_ast import R
 from hhat_lang.syntax_trees import AST
 from hhat_lang import __version__
 import click

@@ -6,7 +6,7 @@ from hhat_lang.syntax_trees.ast import (
     Id,
     Literal,
     ExprParadigm,
-    LiteralEnum,
+    DataTypeEnum,
 )
 from hhat_lang.grammar import grammar_file
 from arpeggio import visit_parse_tree, PTNodeVisitor
@@ -59,10 +59,10 @@ class CST(PTNodeVisitor):
         return k[0]
 
     def visit_INT(self, n, k):
-        return Literal(token=n.value, lit_type=LiteralEnum.INT)
+        return Literal(token=n.value, lit_type=DataTypeEnum.INT)
 
     def visit_BOOL(self, n, k):
-        return Literal(token=n.value, lit_type=LiteralEnum.BOOL)
+        return Literal(token=n.value, lit_type=DataTypeEnum.BOOL)
 
 
 def parse_code(code):

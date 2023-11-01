@@ -4,14 +4,15 @@ from hhat_lang.syntax_trees.literal_define import (
     literal_bool_define,
     literal_int_define
 )
-from enum import IntFlag, auto
+from enum import Enum, auto, unique
 
 
 ################
 # ENUM CLASSES #
 ################
 
-class ExprParadigm(IntFlag):
+@unique
+class ExprParadigm(Enum):
     NONE = auto()
     SINGLE = auto()
     SEQUENTIAL = auto()
@@ -19,10 +20,12 @@ class ExprParadigm(IntFlag):
     PARALLEL = auto()
 
 
-class ASTType(IntFlag):
+@unique
+class ASTType(Enum):
     NONE        = auto()
     LITERAL     = auto()
     ID          = auto()
+    BUILTIN     = auto()
     OPERATION   = auto()
     CALL        = auto()
     ARGS        = auto()
@@ -33,17 +36,22 @@ class ASTType(IntFlag):
     PROGRAM     = auto()
 
 
-class LiteralEnum(IntFlag):
+@unique
+class DataTypeEnum(Enum):
+    NULL = auto()
     BOOL = auto()
     INT = auto()
+    Q_ARRAY = auto()
 
+
+operations_or_id = [ASTType.OPERATION, ASTType.Q_OPERATION, ASTType.ID]
 
 literal_dict = {
-    LiteralEnum.BOOL: literal_bool_define,
-    LiteralEnum.INT: literal_int_define
+    DataTypeEnum.BOOL: literal_bool_define,
+    DataTypeEnum.INT: literal_int_define
 }
 
-ato_types = Union[LiteralEnum, ASTType]
+ato_types = Union[DataTypeEnum, ASTType]
 
 
 ####################
@@ -121,7 +129,7 @@ class AST(ABC):
 ###############
 
 class Literal(ATO):
-    def __init__(self, token: str, lit_type: LiteralEnum):
+    def __init__(self, token: str, lit_type: DataTypeEnum):
         super().__init__(token, lit_type)
         self.value = literal_dict[self.type](self.token)
 

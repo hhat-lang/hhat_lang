@@ -35,4 +35,4 @@ class R:
         yield from self.value
 
     def __repr__(self) -> str:
-        return str(self.type) + f"[{self.paradigm.name}]" + "(" + " ".join(str(k) for k in self.value) + ")"
+        return str(self.type.name) + f"[{self.paradigm.name}]" + "(" + " ".join(str(k) for k in self.value) + ")"

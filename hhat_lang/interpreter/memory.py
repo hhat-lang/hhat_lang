@@ -6,18 +6,18 @@ from dataclasses import dataclass, field
 from hhat_lang.interpreter.var_handlers import Var
 from hhat_lang.interpreter.fn_handlers import Fn
 
-from hhat_lang.syntax_trees.ast import ATO, AST
+from hhat_lang.syntax_trees.ast import ATO, AST, ASTType, DataTypeEnum
 from hhat_lang.datatypes.base_datatype import DataType, DataTypeArray
 
 
 def transform_token_type(data: ATO):
     from hhat_lang.builtins.functions import builtin_fn_dict
     match data.type:
-        case "bool":
+        case DataTypeEnum.BOOL:
             return True if data.token == "T" else False if data.token == "F" else None
-        case "int":
+        case DataTypeEnum.INT:
             return int(data.token)
-        case "oper" | "@oper" | "id":
+        case ASTType.OPERATION | ASTType.Q_OPERATION | ASTType.ID:
             if data.token in builtin_fn_dict.keys():
                 return builtin_fn_dict[data.token]
             return data.token
@@ -212,8 +212,5 @@ class Mem:
 
     def __contains__(self, item: Any) -> bool:
         return (
-            item in self.data["shared"]["stack"]
-            or item in self.data["shared"]["data"]
-            or item in self.data["shared"]["vars"].keys()
-            or item in self.data["shared"]["exprs"]
+            item in self.data["shared"]["vars"].keys()
         )

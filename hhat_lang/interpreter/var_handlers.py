@@ -2,15 +2,16 @@ from typing import Any, Iterable
 from uuid import uuid4
 
 from hhat_lang.datatypes import DataType, DataTypeArray, builtin_array_types_dict
+from hhat_lang.syntax_trees.ast import DataTypeEnum
 
 
-def get_var_type(data: Any, types: set[str]) -> str:
+def get_var_type(data: Any, types: set[str]) -> DataTypeEnum:
     from hhat_lang.builtins.functions import (MetaFn, MetaQFn)
 
     # TODO: change this to a more general approach in the future
     # to account for more quantum data types
     if isinstance(data, MetaQFn):
-        return "@array"
+        return DataTypeEnum.Q_ARRAY
     if isinstance(data, MetaFn):
         raise NotImplementedError(
             "classical data with multiple data and functions not implemented yet."
@@ -31,7 +32,7 @@ class Var:
         self.data = ()
         self.id = str(uuid4())
         # TODO: generalize it for any quantum data type
-        self.type = "@array" if name.startswith("@") else ""
+        self.type = DataTypeEnum.Q_ARRAY if name.startswith("@") else DataTypeEnum.NULL
 
     def get_data_types(self, data: Any) -> set:
         if isinstance(data, tuple):
@@ -45,19 +46,18 @@ class Var:
 
     def analyze_data(self, data: Any) -> Any:
         if isinstance(data, (DataType, DataTypeArray)):
-            if not self.type:
+            if self.type is DataTypeEnum.NULL:
                 self.type = data.type
             return data
         if isinstance(data, tuple):
             types = self.get_data_types(data)  # set(k.type for k in data)
             if len(types) == 1 or (len(types) == 2 and "" in types):
-                if not self.type:
+                if self.type is DataTypeEnum.NULL:
                     self.type = data[0].type
                 return builtin_array_types_dict[self.type](*data)
             else:
-                if not self.type:
+                if self.type is DataTypeEnum.NULL:
                     self.type = get_var_type(data, types)
-                print(f"analyze data: {data}")
                 return builtin_array_types_dict[self.type](*data)
         if isinstance(data, (str, int, bool)):
             raise ValueError("got pure python data on variable. what to do?")
@@ -79,10 +79,9 @@ class Var:
 
     def __call__(self, *values: Any):
         if not self.initialized:
-            if self.type == "@array":
+            if self.type == DataTypeEnum.Q_ARRAY:
                 print(f"* [@array] var assign -> {type(values)} {values}")
             self.data = self.analyze_data(values)
-            print(f"* [var assign] data -> {self.data}")
             self.initialized = True
             return self
         else:
@@ -99,5 +98,5 @@ class Var:
 
     def __repr__(self) -> str:
         content = str(self.data)
-        var_type = f"<{self.type}>"
+        var_type = f"<{self.type.name}>"
         return "%" + self.name + var_type + (content if self.data else "")

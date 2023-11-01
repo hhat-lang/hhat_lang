@@ -2,7 +2,6 @@ from typing import Any
 
 
 def get_types_set(*data: Any) -> set:
-    print(f"get types set: {type(data)} {data} ")
     res = set()
     res_val = ()
     for k in data:

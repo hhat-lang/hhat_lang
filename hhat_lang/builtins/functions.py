@@ -22,22 +22,33 @@ class MetaFn(ABC):
 
     def __init__(self, mem: Mem, *values: Any):
         self.mem = self.check_mem(mem, *values)
-        self.values = self.check_data(values)
+        self.values = self.check_data(values)[0]
 
     def check_mem(self, mem: Mem, *values: Any) -> Mem:
         return mem
 
-    def check_data(self, data: Any) -> Any:
+    def check_data(self, data: Any) -> tuple:
         if isinstance(data, tuple):
             if len(data) > 1:
-                return tuple(self.check_data(k) for k in data)
+                res = tuple(self.check_data(k) for k in data)
+                types_set_other = get_types_set(res)
+                type_val_other = types_set_other.pop()
+                return builtin_array_types_dict[type_val_other](*res)
             return self.check_data(data[0])
-        if isinstance(data, (DataType, DataTypeArray)):
-            return data
+        if isinstance(data, DataType):
+            return data,
+        if isinstance(data, DataTypeArray):
+            res = ()
+            for k in data:
+                res += self.check_data(k)
+            types_set_other = get_types_set(*res)
+            type_val_other = types_set_other.pop()
+            array = builtin_array_types_dict[type_val_other](*res)
+            return array,
         if isinstance(data, Var):
-            return self.mem.get_var(data.name).data
+            return data.get_data(),
         if isinstance(data, MetaQFn):
-            return data
+            return data,
         if isinstance(data, MetaFn):
             return data,
 
@@ -95,14 +106,14 @@ class Sum(MetaFn):
     def __init__(self, mem: Mem, *values: Any):
         super().__init__(mem, *values)
 
-    def __call__(self, *values: Any) -> tuple[Any]:
-        types_set_self = get_types_set(*self.values)
+    def __call__(self, values: Any | None = None) -> tuple[Any]:
+        types_set_self = get_types_set(self.values)
         if len(types_set_self) == 1:
-            if len(values) == 0:
+            if not values:
                 return reduce(lambda x, y: x + y, self.values),
-            values = self.check_data(values)
+            values = self.check_data(values)[0]
             if len(values) == len(self.values):
-                return (values * self.values),
+                return (values + self.values),
             types_set_other = get_types_set(values)
             type_val_other = types_set_other.pop()
             other_res = reduce(lambda x, y: x + y, values)
@@ -119,15 +130,15 @@ class Times(MetaFn):
     def __init__(self, mem: Mem, *values: Any):
         super().__init__(mem, *values)
 
-    def __call__(self, *values: Any) -> tuple[Any]:
-        types_set_self = get_types_set(*self.values)
+    def __call__(self, values: Any | None = None) -> tuple[Any]:
+        types_set_self = get_types_set(self.values)
         if len(types_set_self) == 1:
-            if len(values) == 0:
+            if not values:
                 return reduce(lambda x, y: x * y, self.values),
             values = self.check_data(values)
             if len(values) == len(self.values):
                 return (values * self.values),
-            types_set_other = get_types_set(values)
+            types_set_other = get_types_set(*values)
             type_val_other = types_set_other.pop()
             other_res = reduce(lambda x, y: x * y, values)
             self_oper = map(lambda x: x * other_res, self.values)
@@ -143,11 +154,15 @@ class Print(MetaFn):
     def __init__(self, mem: Mem, *values: Any):
         super().__init__(mem, *values)
 
-    def __call__(self, *values: Any) -> tuple[Any]:
-        if len(values) == 0:
-            print(*tuple(self.check_data(k) for k in self.values))
+    def __call__(self, values: Any | None = None) -> tuple[Any]:
+        if not values:
+            iters = self.values
         else:
-            print(*tuple(self.check_data(k) for k in (values + self.values)))
+            iters = values + self.values
+        res = ()
+        for k in iters:
+            res += self.check_data(k)
+        print(*res)
         return self.values,
 
 

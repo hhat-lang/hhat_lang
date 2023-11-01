@@ -24,11 +24,11 @@ class Analysis:
         return res
 
 
-def iter_analyze(code_: AST, role: str = "") -> tuple[R | AST]:
+def iter_analyze(code_: AST, role: str = "") -> tuple[R | AST | ATO]:
     return tuple(analyze(code_=k, role=role) for k in code_)
 
 
-def analyze(code_: AST | ATO, role: str = ""):
+def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
     match code_:
         case Expr():
             res = iter_analyze(code_, role)
@@ -44,16 +44,24 @@ def analyze(code_: AST | ATO, role: str = ""):
         case Id():
             # TODO: implement a broader check for imported functions
             if code_.token in builtin_fn_dict.keys():
-                return R(
-                    ast_type=ASTType.OPERATION,
+                id_code = R(
+                    ast_type=ASTType.BUILTIN,
                     value=code_,
                     paradigm_type=ExprParadigm.SINGLE,
                     role="caller",
                     execute_after=None,
                 )
+            else:
+                id_code = R(
+                    ast_type=ASTType.ID,
+                    value=code_,
+                    paradigm_type=ExprParadigm.SINGLE,
+                    role=role,
+                    execute_after=None,
+                )
             return R(
-                ast_type=ASTType.ID,
-                value=code_,
+                ast_type=ASTType.CALL,
+                value=id_code,
                 paradigm_type=ExprParadigm.SINGLE,
                 role="",
                 execute_after=None,
@@ -69,34 +77,30 @@ def analyze(code_: AST | ATO, role: str = ""):
             )
         case Operation():
             res = iter_analyze(code_, role="callee")
-            if res:
-                return R(
-                    ast_type=ASTType.CALL,
-                    value=(
-                        code_.node,
-                        R(
-                            ast_type=ASTType.ARGS,
-                            value=res,
-                            paradigm_type=code_.edges.paradigm,
-                            role="callee",
-                            execute_after=None
-                        )
-                    ),
-                    paradigm_type=ExprParadigm.SINGLE,
-                    role="",
-                    execute_after=None,
-                )
+            if code_.node.token in builtin_fn_dict.keys():
+                caller_type = ASTType.BUILTIN
+            else:
+                caller_type = ASTType.ID
+
             return R(
                 ast_type=ASTType.CALL,
                 value=(
                     R(
-                        ast_type=ASTType.OPERATION,
+                        ast_type=caller_type,
                         value=code_.node,
-                        paradigm_type=code_.paradigm,
-                        role="caller" if not role else role,
+                        paradigm_type=ExprParadigm.SINGLE,
+                        role="caller",
+                        execute_after=None,
+                    ),
+                    R(
+                        ast_type=ASTType.ARGS,
+                        value=res,
+                        paradigm_type=code_.edges.paradigm,
+                        role="callee",
                         execute_after=None
-                    ),),
-                paradigm_type=code_.paradigm,
+                    )
+                ),
+                paradigm_type=ExprParadigm.SINGLE,
                 role="",
                 execute_after=None,
             )

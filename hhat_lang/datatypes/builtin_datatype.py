@@ -1,6 +1,8 @@
 from typing import Any
 
 from hhat_lang.datatypes import DataType, DataTypeArray
+from hhat_lang.syntax_trees.ast import ASTType, DataTypeEnum
+from hhat_lang.interpreter.post_ast import R
 
 
 ################
@@ -45,7 +47,7 @@ class Bool(DataType):
 
     @property
     def type(self):
-        return "bool"
+        return DataTypeEnum.BOOL
 
     def cast(self) -> Any:
         if self.value in self.convert2bool_dict.keys():
@@ -76,7 +78,7 @@ class Int(DataType):
 
     @property
     def type(self):
-        return "int"
+        return DataTypeEnum.INT
 
     def cast(self) -> Any:
         return int(self.value) if isinstance(self.value, str) else self.value
@@ -135,7 +137,7 @@ class BoolArray(DataTypeArray):
 
     @property
     def type(self):
-        return "bool"
+        return DataTypeEnum.BOOL
 
     def cast(self) -> Any:
         return tuple(Bool(k) for k in self.value)
@@ -162,7 +164,7 @@ class IntArray(DataTypeArray):
 
     @property
     def type(self):
-        return "int"
+        return DataTypeEnum.INT
 
     def cast(self):
         res = ()
@@ -171,6 +173,8 @@ class IntArray(DataTypeArray):
                 res += tuple(Int(p) for p in k)
             elif isinstance(k, Int):
                 res += Int(k),
+            else:
+                res += k,
         return res
 
     def __add__(self, other: Any) -> Any:
@@ -202,6 +206,31 @@ class IntArray(DataTypeArray):
         if isinstance(other, Int):
             return IntArray(*tuple(map(lambda x: other.data * x, self.data)))
         print(f"* [rmul] mult int array: {self.data} ({type(self.data)}) | {other.data} ({type(other.data)})")
+
+
+class MultiTypeArray(DataTypeArray):
+    @property
+    def token(self):
+        return "multi-array"
+
+    @property
+    def type(self):
+        return ASTType.ARRAY
+
+    def cast(self) -> Any:
+        pass
+
+    def __add__(self, other):
+        pass
+
+    def __radd__(self, other):
+        pass
+
+    def __mul__(self, other):
+        pass
+
+    def __rmul__(self, other):
+        pass
 
 
 class QArray(DataTypeArray):
@@ -240,8 +269,6 @@ class QArray(DataTypeArray):
             self.data += other,
             return self
 
-        from hhat_lang.interpreter import R
-
         if isinstance(other, R):
             self.data += other,
             return self
@@ -263,8 +290,6 @@ class QArray(DataTypeArray):
             # TODO: implement the casting
             return
 
-        from hhat_lang.interpreter import R
-
         if isinstance(other, R):
             self.data += other,
             return self
@@ -285,8 +310,6 @@ class QArray(DataTypeArray):
             # TODO: implement the casting
             return
 
-        from hhat_lang.interpreter import R
-
         if isinstance(other, R):
             pass
 
@@ -306,22 +329,21 @@ class QArray(DataTypeArray):
             # TODO: implement the casting
             return
 
-        from hhat_lang.interpreter import R
-
         if isinstance(other, R):
             pass
 
 
 builtin_data_types_dict = {
-    "bool": Bool,
-    "int": Int,
+    DataTypeEnum.BOOL: Bool,
+    DataTypeEnum.INT: Int,
 }
 builtin_classical_data_types_dict = {
-    "bool": BoolArray,
-    "int": IntArray,
+    DataTypeEnum.BOOL: BoolArray,
+    DataTypeEnum.INT: IntArray,
+    ASTType.ARRAY: MultiTypeArray,
 }
 builtin_quantum_data_types_dict = {
-    "@array": QArray,
+    DataTypeEnum.Q_ARRAY: QArray,
 }
 builtin_array_types_dict = {
     **builtin_classical_data_types_dict,

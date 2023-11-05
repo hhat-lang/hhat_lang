@@ -1,7 +1,9 @@
-from typing import Any, Iterable
+from __future__ import annotations
+
+from typing import Any, Iterable, Union
 from uuid import uuid4
 
-from hhat_lang.syntax_trees.ast import ASTType, ExprParadigm
+from hhat_lang.syntax_trees.ast import ATO, AST, ASTType, ExprParadigm
 
 
 class R:
@@ -13,17 +15,25 @@ class R:
     def __init__(
             self,
             ast_type: ASTType,
-            value: Any,
+            value: AST | ATO | R | tuple[Union[AST, ATO, R], ...],
             paradigm_type: ExprParadigm,
             role: str,
-            execute_after: tuple[str] | None
+            execute_after: tuple[str, ...] | None,
     ):
         self.type = ast_type
         self.value = value if isinstance(value, tuple) else (value,)
         self.id = str(uuid4())
+        self.parent_id = ""
         self.paradigm = paradigm_type
         self.role = role
         self.execute_after = execute_after if execute_after else ()
+        self.assign_id()
+
+    def assign_id(self):
+        for k in self.value:
+            if isinstance(k, R):
+                k.parent_id = self.id
+
 
     def __hash__(self) -> int:
         return hash(self.value)

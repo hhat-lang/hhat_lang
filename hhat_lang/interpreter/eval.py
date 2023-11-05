@@ -238,6 +238,11 @@ def eval_expr(code: R, mem: Mem) -> Any:
     res = ()
     for k in code:
         res += execute(k, mem)
+        if (
+            k.type in builtin_data_types_dict.keys()
+            or isinstance(k, Var)
+        ):
+            mem.put_stack(res[-1])
     return (res[-1],) if res else ()
 
 

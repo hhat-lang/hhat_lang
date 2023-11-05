@@ -73,7 +73,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                 value=res,
                 paradigm_type=code_.paradigm,
                 role="",
-                execute_after=None
+                execute_after=None,
             )
         case Operation():
             res = iter_analyze(code_, role="callee")
@@ -97,7 +97,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                         value=res,
                         paradigm_type=code_.edges.paradigm,
                         role="callee",
-                        execute_after=None
+                        execute_after=None,
                     )
                 ),
                 paradigm_type=ExprParadigm.SINGLE,
@@ -111,7 +111,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                 value=res,
                 paradigm_type=code_.paradigm,
                 role="",
-                execute_after=None
+                execute_after=None,
             )
         case _:
             print(f"!! no match on previous cases: is {type(code_)}!")

@@ -178,11 +178,9 @@ class Mem:
         else:
             data = data if isinstance(data, tuple) else data,
         # TODO: include `scope_id` as well
-        old_var1 = self.get_var(var.name)
-        old_var1_data = old_var1.get_data()
-        new_var = Var(var.name)
-        new_data = tuple(old_var1_data) + data
-        new_var(*new_data)
+        old_data = self.get_var(var.name).get_data()
+        new_data = tuple(old_data) + data
+        new_var = Var(var.name)(*new_data)
         self.put_var(new_var, "", key=key)
         return new_var
 

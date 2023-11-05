@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC
 from typing import Any, Callable, Iterable, Union
 from hhat_lang.syntax_trees.literal_define import (
@@ -13,11 +15,11 @@ from enum import Enum, auto, unique
 
 @unique
 class ExprParadigm(Enum):
-    NONE = auto()
-    SINGLE = auto()
-    SEQUENTIAL = auto()
-    CONCURRENT = auto()
-    PARALLEL = auto()
+    NONE        = auto()
+    SINGLE      = auto()
+    SEQUENTIAL  = auto()
+    CONCURRENT  = auto()
+    PARALLEL    = auto()
 
 
 @unique
@@ -38,9 +40,9 @@ class ASTType(Enum):
 
 @unique
 class DataTypeEnum(Enum):
-    NULL = auto()
-    BOOL = auto()
-    INT = auto()
+    NULL    = auto()
+    BOOL    = auto()
+    INT     = auto()
     Q_ARRAY = auto()
 
 
@@ -62,9 +64,10 @@ class ATO(ABC):
     """Abstract tree object
 
     """
-    def __init__(self, token: str, ato_type: ato_types):
+    def __init__(self, token: str, ato_type: ato_types, has_q: bool = False):
         self.token = token
         self.type = ato_type
+        self.has_q = has_q
 
     def __repr__(self) -> str:
         return self.token
@@ -79,12 +82,14 @@ class AST(ABC):
             node: ATO | None = None,
             ast_type: ASTType = ASTType.NONE,
             paradigm: ExprParadigm = ExprParadigm.NONE,
-            args: Any | None = None,
+            args: AST | tuple[AST, ...] | None = None,
+            has_q: bool = False,
     ):
         self.node = node or ""
         self.type = ast_type
         self.edges = args
         self.paradigm = paradigm
+        self.has_q = has_q
 
     def match_paradigm(self, args: str) -> str:
         match self.paradigm:
@@ -110,6 +115,7 @@ class AST(ABC):
 
     def __repr__(self) -> str:
         token = self.node.token if self.node else ""
+        has_q = "*" if self.has_q else ""
         if len(self.edges) > 0:
             args = " ".join(str(k) for k in self.edges)
             paradigm_name = self.match_paradigm(args)
@@ -119,9 +125,9 @@ class AST(ABC):
                 edges = paradigm_name
 
             if token:
-                return token + "(" + edges + ")"
-            return edges
-        return token
+                return has_q + token + "(" + edges + ")"
+            return has_q + edges
+        return has_q + token
 
 
 ###############
@@ -135,47 +141,67 @@ class Literal(ATO):
 
 
 class Id(ATO):
-    def __init__(self, token: str, ato_type: ASTType = ASTType.ID):
-        super().__init__(token=token, ato_type=ato_type)
+    def __init__(
+            self,
+            token: str,
+            ato_type: ASTType = ASTType.ID,
+    ):
+        has_q_var = True if token.startswith("@") else False
+        super().__init__(token=token, ato_type=ato_type, has_q=has_q_var)
         self.value = self.token
 
 
 class Expr(AST):
-    def __init__(self, *values: Any):
+    def __init__(self, *values: Any, parent_id: str = "", has_q: bool = False):
         super().__init__(
             node=None,
             ast_type=ASTType.EXPR,
             paradigm=ExprParadigm.SINGLE,
-            args=values
+            args=values,
+            has_q=has_q,
         )
 
 
 class Array(AST):
-    def __init__(self, paradigm: ExprParadigm, *values: Any):
+    def __init__(
+            self,
+            paradigm: ExprParadigm,
+            *values: Any,
+            parent_id: str = "",
+            has_q: bool = False
+    ):
         super().__init__(
             node=None,
             ast_type=ASTType.ARRAY,
             paradigm=paradigm,
-            args=values
+            args=values,
+            has_q=has_q,
         )
 
 
 class Operation(AST):
-    def __init__(self, oper_token: ATO | str, args: Array | None):
-        new_type = self.get_oper_type(oper_token)
+    def __init__(
+            self,
+            oper_token: ATO | str,
+            args: Array | None,
+            parent_id: str = "",
+    ):
+        new_type, has_q_var = self.get_oper_type(oper_token)
         oper_token = self.set_oper_token(oper_token, new_type)
         super().__init__(
             node=oper_token,
             ast_type=new_type,
             paradigm=(ExprParadigm.SINGLE if args is None else args.paradigm),
-            args=args or ()
+            args=args or (),
+            has_q=has_q_var,
         )
 
     @staticmethod
-    def get_oper_type(oper_token: ATO) -> ASTType:
+    def get_oper_type(oper_token: ATO) -> tuple[ASTType, bool]:
         if oper_token.token.startswith("@"):
-            return ASTType.Q_OPERATION
-        return ASTType.OPERATION
+            print("oper quantum?")
+            return ASTType.Q_OPERATION, True
+        return ASTType.OPERATION, False
 
     @staticmethod
     def set_oper_token(oper_token: ATO | str, new_type: ASTType) -> ATO:

@@ -15,7 +15,7 @@ class R:
     def __init__(
             self,
             ast_type: ASTType,
-            value: AST | ATO | R | tuple[Union[AST, ATO, R], ...],
+            value: ATO | R | tuple[Union[ATO, R], ...],
             paradigm_type: ExprParadigm,
             role: str,
             execute_after: tuple[str, ...] | None,
@@ -27,9 +27,9 @@ class R:
         self.paradigm = paradigm_type
         self.role = role
         self.execute_after = execute_after if execute_after else ()
-        self.assign_id()
+        self.assign_parent_id()
 
-    def assign_id(self):
+    def assign_parent_id(self):
         for k in self.value:
             if isinstance(k, R):
                 k.parent_id = self.id

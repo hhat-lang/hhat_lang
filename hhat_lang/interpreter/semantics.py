@@ -36,7 +36,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                 ast_type=code_.type,
                 value=res,
                 paradigm_type=code_.paradigm,
-                role="",
+                role=role,
                 execute_after=None,
             )
         case Literal():
@@ -63,7 +63,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                 ast_type=ASTType.CALL,
                 value=id_code,
                 paradigm_type=ExprParadigm.SINGLE,
-                role="",
+                role=role,
                 execute_after=None,
             )
         case Array():
@@ -72,7 +72,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                 ast_type=code_.type,
                 value=res,
                 paradigm_type=code_.paradigm,
-                role="",
+                role=role,
                 execute_after=None,
             )
         case Operation():
@@ -101,7 +101,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                     )
                 ),
                 paradigm_type=ExprParadigm.SINGLE,
-                role="",
+                role=role,
                 execute_after=None,
             )
         case Main():

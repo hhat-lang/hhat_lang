@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 from hhat_lang.interpreter.var_handlers import Var
 from hhat_lang.interpreter.fn_handlers import Fn
+from hhat_lang.interpreter.post_ast import R
 
 from hhat_lang.syntax_trees.ast import ATO, AST, ASTType, DataTypeEnum
 from hhat_lang.datatypes.base_datatype import DataType, DataTypeArray
@@ -105,6 +106,9 @@ class Mem:
                 stack=(),
                 data=(),
                 exprs=(),
+            ),
+            quantum=dict(
+                stack=(),
             )
         )
 
@@ -148,6 +152,11 @@ class Mem:
         # TODO: implement it properly
         raise NotImplemented("Mem.get_fn not implemented yet.")
 
+    def get_q(self) -> R | tuple[R]:
+        res = deepcopy(self.data["quantum"]["stack"])
+        self.data["quantum"]["stack"] = ()
+        return res
+
     def put_stack(self, value: Any, key: str = "shared") -> None:
         self.data[key]["stack"] += value,
 
@@ -161,7 +170,7 @@ class Mem:
         self.data[key]["vars"][data.name] = dict(data=data, scope_id=scope_id)
         return data.id, scope_id
 
-    def put_fn(self, data: "Fn"):
+    def put_fn(self, data: "Fn") -> None:
         # TODO: implement properly how to deal with the data args
         mem_fn = self.data["shared"]["fn"]
         if data.name not in mem_fn:
@@ -171,6 +180,13 @@ class Mem:
                 mem_fn[data.name][len(data.args)].update({data.args: data.body})
             else:
                 mem_fn[data.name][len(data.args)] = {data.args: data.body}
+
+    def put_q(self, data2: R | tuple | tuple[R]) -> None:
+        if data2:
+            self.data["quantum"]["stack"] += (data2 if isinstance(data2, tuple) else (data2,))
+
+    def to_quantum(self, key: str = "shared"):
+        self.data["quantum"]["stack"] += self.data[key]["stack"][-1],
 
     def append_var_data(self, var: Var, data: Any, key: str = "shared") -> Var:
         if data is None:

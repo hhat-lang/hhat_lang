@@ -19,6 +19,7 @@ class R:
             paradigm_type: ExprParadigm,
             role: str,
             execute_after: tuple[str, ...] | None,
+            has_q: bool = False,
     ):
         self.type = ast_type
         self.value = value if isinstance(value, tuple) else (value,)
@@ -28,12 +29,12 @@ class R:
         self.role = role
         self.execute_after = execute_after if execute_after else ()
         self.assign_parent_id()
+        self.has_q = has_q
 
     def assign_parent_id(self):
         for k in self.value:
             if isinstance(k, R):
                 k.parent_id = self.id
-
 
     def __hash__(self) -> int:
         return hash(self.value)
@@ -45,4 +46,5 @@ class R:
         yield from self.value
 
     def __repr__(self) -> str:
-        return str(self.type.name) + f"[{self.paradigm.name}]" + "(" + " ".join(str(k) for k in self.value) + ")"
+        has_q = "<" + ("あ" if self.has_q else "う") + ">"
+        return str(self.type.name) + has_q + f"[{self.paradigm.name}]" + "(" + " ".join(str(k) for k in self.value) + ")"

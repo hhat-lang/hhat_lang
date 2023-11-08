@@ -7,8 +7,9 @@ code_list = [
         .[5 7 11]:.(sum times):print
         .[68 9]:sum(12 35):print
         .[45 56 67]:.(sum:n times(n):m):print
-        1:print
         4:@shuffle:@q1
+        1:print
+        
     """,
     # """
     # .[2 3 4]:.(sum times):print

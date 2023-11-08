@@ -254,6 +254,19 @@ def eval_main(code: R, mem: Mem) -> Any:
     return res
 
 
+def eval_has_q(code: R, mem: Mem) -> tuple | tuple[R]:
+    res = ()
+    print(f"* has q: {code}")
+    for k in code:
+        if isinstance(k, R):
+            res += eval_has_q(k, mem)
+        else:
+            res += k,
+            mem.put_q(res)
+    print(f"  > has q {res=}")
+    return res
+
+
 ####################
 # EXECUTE FUNCTION #
 ####################
@@ -262,28 +275,32 @@ def execute(code: R | ATO, mem: Mem) -> tuple[Any]:
     res = ()
     match code:
         case R():
-            match code.type:
-                case ASTType.PROGRAM:
-                    pass
+            if code.has_q:
+                print(f"? execute {code.type}")
+                res = eval_has_q(code, mem)
+            else:
+                match code.type:
+                    case ASTType.PROGRAM:
+                        pass
 
-                case ASTType.MAIN:
-                    res = eval_main(code, mem)
+                    case ASTType.MAIN:
+                        res = eval_main(code, mem)
 
-                case ASTType.EXPR:
-                    res = eval_expr(code, mem)
+                    case ASTType.EXPR:
+                        res = eval_expr(code, mem)
 
-                case ASTType.ARRAY:
-                    res = eval_array(code, mem)
+                    case ASTType.ARRAY:
+                        res = eval_array(code, mem)
 
-                case ASTType.CALL:
-                    res = eval_call(code, mem)
+                    case ASTType.CALL:
+                        res = eval_call(code, mem)
 
-                case ASTType.ARGS:
-                    res = eval_args(code, mem)
+                    case ASTType.ARGS:
+                        res = eval_args(code, mem)
 
-                # TODO: separate in different cases?
-                case ASTType.OPERATION | ASTType.Q_OPERATION | ASTType.ID | ASTType.BUILTIN:
-                    res = eval_oper(code, mem)
+                    # TODO: separate in different cases?
+                    case ASTType.OPERATION | ASTType.Q_OPERATION | ASTType.ID | ASTType.BUILTIN:
+                        res = eval_oper(code, mem)
 
         case ATO():
             res = eval_token(code, mem)

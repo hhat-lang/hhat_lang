@@ -46,5 +46,5 @@ class R:
         yield from self.value
 
     def __repr__(self) -> str:
-        has_q = "<" + ("あ" if self.has_q else "う") + ">"
+        has_q = "<" + ("含" if self.has_q else "無") + ">"
         return str(self.type.name) + has_q + f"[{self.paradigm.name}]" + "(" + " ".join(str(k) for k in self.value) + ")"

@@ -9,7 +9,7 @@ def get_var_type(data: Any, types: set[str]) -> DataTypeEnum:
     from hhat_lang.builtins.functions import (MetaFn, MetaQFn)
 
     # TODO: change this to a more general approach in the future
-    # to account for more quantum data types
+    #  to account for more quantum data types
     if isinstance(data, MetaQFn):
         return DataTypeEnum.Q_ARRAY
     if isinstance(data, MetaFn):
@@ -50,7 +50,7 @@ class Var:
                 self.type = data.type
             return data
         if isinstance(data, tuple):
-            types = self.get_data_types(data)  # set(k.type for k in data)
+            types = self.get_data_types(data)
             if len(types) == 1 or (len(types) == 2 and "" in types):
                 if self.type is DataTypeEnum.NULL:
                     self.type = data[0].type
@@ -79,8 +79,8 @@ class Var:
 
     def __call__(self, *values: Any):
         if not self.initialized:
-            if self.type == DataTypeEnum.Q_ARRAY:
-                print(f"* [@array] var assign -> {type(values)} {values}")
+            # if self.type == DataTypeEnum.Q_ARRAY:
+            #     print(f"* [@array] var assign -> {type(values)} {values}")
             self.data = self.analyze_data(values)
             self.initialized = True
             return self

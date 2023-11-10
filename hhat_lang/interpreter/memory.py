@@ -78,6 +78,10 @@ class Data:
         yield from self.value
 
 
+# TODO: make memory class lightweight
+#  1- memory methods into a separated entity
+#  2- only memory data inside memory
+
 @dataclass
 class Mem:
     """Memory class
@@ -152,7 +156,7 @@ class Mem:
         # TODO: implement it properly
         raise NotImplemented("Mem.get_fn not implemented yet.")
 
-    def get_q(self) -> R | tuple[R]:
+    def get_q(self) -> R | Var | tuple[R | Var]:
         res = deepcopy(self.data["quantum"]["stack"])
         self.data["quantum"]["stack"] = ()
         return res
@@ -181,12 +185,12 @@ class Mem:
             else:
                 mem_fn[data.name][len(data.args)] = {data.args: data.body}
 
-    def put_q(self, data2: R | tuple | tuple[R]) -> None:
+    def put_q(self, data2: R | tuple | tuple[R] | Var | ATO) -> None:
         if data2:
             self.data["quantum"]["stack"] += (data2 if isinstance(data2, tuple) else (data2,))
 
     def to_quantum(self, key: str = "shared"):
-        self.data["quantum"]["stack"] += self.data[key]["stack"][-1],
+        self.data["quantum"]["stack"] += self.data[key]["stack"]
 
     def append_var_data(self, var: Var, data: Any, key: str = "shared") -> Var:
         if data is None:
@@ -220,6 +224,9 @@ class Mem:
 
     def clear_exprs(self, key: str = "shared") -> None:
         self.data[key]["exprs"] = ()
+
+    def clear_q(self):
+        self.data["quantum"]["stack"] = ()
 
     def clear_all(self) -> None:
         self.data = self._reset_data()

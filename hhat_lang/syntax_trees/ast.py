@@ -115,7 +115,7 @@ class AST(ABC):
 
     def __repr__(self) -> str:
         token = self.node.token if self.node else ""
-        has_q = "*" if self.has_q else ""
+        has_q = "含" if self.has_q else ""
         if len(self.edges) > 0:
             args = " ".join(str(k) for k in self.edges)
             paradigm_name = self.match_paradigm(args)
@@ -125,7 +125,7 @@ class AST(ABC):
                 edges = paradigm_name
 
             if token:
-                return has_q + token + "(" + edges + ")"
+                return has_q + "(" + token + "(" + edges + ")" + ")"
             return has_q + edges
         return has_q + token
 

@@ -197,7 +197,59 @@ class QShuffle(MetaQFn):
         pass
 
     def __call__(self, *values: Any) -> tuple[Any]:
-        print(f"{self.token} values: {self.values}")
+        print(f">> @shuffle {self.token} values: {self.values}")
+        *new_self_vals, ast_data = self.values
+        new_self_vals = tuple(new_self_vals)
+        print(f">> {new_self_vals=} | {ast_data=}")
+        types_set_self = get_types_set(*new_self_vals)
+        if len(types_set_self) == 1:
+            if len(values) == 0:
+                for k in new_self_vals:
+                    if isinstance(k, Var):
+                        self.mem.append_var_data(k, ast_data)
+                    else:
+                        print("dunno what to do here")
+                return new_self_vals
+            raise NotImplementedError(
+                f"operation {self.token} is not implemented for extra args."
+            )
+        raise NotImplementedError(
+            f"operation {self.token} with more than one data type not implemented."
+        )
+
+
+class QSync(MetaQFn):
+    token = "@sync"
+
+    def __init__(self, mem: Mem, *values: Any):
+        super().__init__(mem, *values)
+
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, QSync):
+            pass
+        if isinstance(other, Var):
+            pass
+        if isinstance(other, tuple):
+            pass
+        if isinstance(other, MetaQFn):
+            pass
+        if isinstance(other, MetaFn):
+            pass
+        from hhat_lang.interpreter.post_ast import R
+        if isinstance(other, R):
+            pass
+
+    def __radd__(self, other: Any) -> Any:
+        pass
+
+    def __mul__(self, other: Any) -> Any:
+        pass
+
+    def __rmul__(self, other: Any) -> Any:
+        pass
+
+    def __call__(self, *values: Any) -> tuple[Any]:
+        print(f">> @sync: {self.token} values: {self.values}")
         *new_self_vals, ast_data = self.values
         new_self_vals = tuple(new_self_vals)
         print(f">> {new_self_vals=} | {ast_data=}")
@@ -225,6 +277,7 @@ builtin_classical_fn_dict = {
 }
 builtin_quantum_fn_dict = {
     "@shuffle": QShuffle,
+    "@sync": QSync,
 }
 builtin_fn_dict = {
     **builtin_classical_fn_dict,

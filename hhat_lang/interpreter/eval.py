@@ -4,7 +4,7 @@ from copy import deepcopy
 import asyncio
 from hhat_lang.interpreter.post_ast import R
 from hhat_lang.interpreter.var_handlers import Var
-from hhat_lang.syntax_trees.ast import ATO, ASTType, operations_or_id
+from hhat_lang.syntax_trees.ast import ATO, ASTType, operations_or_id, ExprParadigm
 from hhat_lang.datatypes.builtin_datatype import (
     builtin_data_types_dict,
     builtin_array_types_dict,
@@ -219,9 +219,9 @@ def eval_array(code: R, mem: Mem) -> Any:
     print("* array:")
 
     # TODO: implement the paradigms in separated functions:
-    # 1- sequential
-    # 2- concurrent
-    # 3- parallel
+    #  1- sequential
+    #  2- concurrent
+    #  3- parallel
 
     res = ()
     for k in code:
@@ -254,17 +254,104 @@ def eval_main(code: R, mem: Mem) -> Any:
     return res
 
 
-def eval_has_q(code: R, mem: Mem) -> tuple | tuple[R]:
+##########################
+# EVAL QUANTUM FUNCTIONS #
+##########################
+
+def eval_q_expr(code: R, mem: Mem) -> tuple[R]:
+    print(f"@* expr: {code}")
     res = ()
-    print(f"* has q: {code}")
     for k in code:
-        if isinstance(k, R):
-            res += eval_has_q(k, mem)
+        if isinstance(k, ATO):
+            res += k,
+            mem.put_q(k)
+        else:
+            res += execute(k, mem)
+            mem.put_q(res[-1])
+    mem.clear_q()
+    new_r = R(
+        ast_type=code.type,
+        value=res,
+        paradigm_type=code.paradigm,
+        role=code.role,
+        execute_after=code.execute_after,
+        has_q=code.has_q,
+    )
+    return new_r,
+
+
+def eval_q_call(code: R, mem: Mem) -> tuple[R]:
+    print(f"@* call: {code}")
+    res = ()
+    for k in code:
+        res += execute(k, mem)
+    new_r = R(
+        ast_type=code.type,
+        value=res,
+        paradigm_type=code.paradigm,
+        role=code.role,
+        execute_after=code.execute_after,
+        has_q=code.has_q,
+    )
+    return new_r,
+
+
+def eval_q_array(code: R, mem: Mem) -> tuple[R]:
+    print(f"@* array: {code}")
+    res = ()
+    for k in code:
+        if not isinstance(k, ATO):
+            res += execute(k, mem)
         else:
             res += k,
-            mem.put_q(res)
-    print(f"  > has q {res=}")
-    return res
+        mem.put_q(res[-1])
+    new_r = R(
+        ast_type=code.type,
+        value=res,
+        paradigm_type=code.paradigm,
+        role=code.role,
+        execute_after=code.execute_after,
+        has_q=code.has_q,
+    )
+    mem.put_q(new_r)
+    return new_r,
+
+
+def eval_q_oper(code: R, mem: Mem) -> Any:
+    print(f"@* oper: {code} | {code.type}")
+    res = ()
+    for k in code:
+        if k.token in builtin_quantum_fn_dict.keys():
+            res += k,
+        elif k.type == ASTType.ID:
+            if k.token in mem:
+                res += k,
+            else:
+                q_var = Var(k.token)
+                data = mem.get_q()
+                data_r = R(
+                    ast_type=ASTType.EXPR,
+                    value=data,
+                    paradigm_type=ExprParadigm.SINGLE,
+                    role="",
+                    execute_after=None,
+                    has_q=True,
+                )
+                q_var(data_r)
+                mem.put_var(q_var, "")
+                mem.put_q(q_var)
+                res += q_var,
+        else:
+            res += k,
+    new_r = R(
+        ast_type=code.type,
+        value=res,
+        paradigm_type=code.paradigm,
+        role=code.role,
+        execute_after=code.execute_after,
+        has_q=code.has_q,
+    )
+    return new_r,
 
 
 ####################
@@ -276,8 +363,16 @@ def execute(code: R | ATO, mem: Mem) -> tuple[Any]:
     match code:
         case R():
             if code.has_q:
-                print(f"? execute {code.type}")
-                res = eval_has_q(code, mem)
+                match code.type:
+                    case ASTType.EXPR:
+                        mem.to_quantum()
+                        res = eval_q_expr(code, mem)
+                    case ASTType.CALL:
+                        res = eval_q_call(code, mem)
+                    case ASTType.ARRAY:
+                        res = eval_q_array(code, mem)
+                    case ASTType.OPERATION | ASTType.Q_OPERATION | ASTType.ID | ASTType.BUILTIN:
+                        res = eval_q_oper(code, mem)
             else:
                 match code.type:
                     case ASTType.PROGRAM:

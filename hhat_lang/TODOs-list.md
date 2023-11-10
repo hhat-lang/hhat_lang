@@ -40,10 +40,12 @@
     - [x] literals
     - [ ] quantum data
       - [ ] reads R backwards until reaches the beginning of its expression
-      - [ ] holds R data structure to be executed at the right moment
+        - [x] for single expressions
+        - [ ] for intricate expressions
+      - [x] holds R data structure to be executed at the right moment
   - [ ] main
     - [ ] checking expressions
-      - [ ] transform into a data
+      - [x] transform into data
     - [ ] checking scopes
       - [ ] concurrent & parallel scopes
         - [ ] _a posteriori_ variable calls wait until variable is unlocked from usage on current expression
@@ -64,6 +66,13 @@
   - [x] data as arrays
   - [x] built-in functions
   - [x] variables are immutable
+  - [x] data passes only to the next element expression
+    - [x] to
+      - [x] single element expression
+      - [x] scope expression
+    - [x] from
+      - [x] single element expression
+      - [x] scope expression
 - [ ] scope
   - [x] scopes create array of data
   - [ ] sequential scopes produce sequential code execution
@@ -75,9 +84,10 @@
     - [ ] unless the last data is a variable that will live on the upper scope lifetime
 - [ ] quantum helm
   - [ ] quantum data
-    - [ ] quantum data as an R data structure holder for later execution... thing
+    - [x] quantum data as an R data structure holder for later execution... thing
   - [ ] quantum function
     - [ ] quantum functions as symbolic structures
+      - [ ] make arithmetic operations work with them
     - [ ] transpiled into the correct representation on transpilation + quantum compilation time
   - [ ] quantum compiling
     - [ ] write quantum function transpiler
@@ -109,3 +119,22 @@
   - [ ] network
     - [ ] input
     - [ ] output
+
+
+## QASM-like languages and pulse sequence-oriented instructions
+
+- [ ] OpenQASM
+  - [ ] 2
+  - [ ] 3
+- [ ] NetQASM
+- [ ] Pulser
+- [ ] cQASM
+- [ ] Q1ASM
+
+
+## Quantum backends
+
+- [ ] Qiskit
+- [ ] Simulaqron
+- [ ] Netsquid
+- [ ] SquidASM

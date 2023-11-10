@@ -22,7 +22,6 @@ class CST(PTNodeVisitor):
         return Main(res)
 
     def visit_exprs(self, n, k):
-        print(f"EXPRS! {k}")
         new_k = ()
         has_q_var = any(p.has_q for p in k)
         for p in k:
@@ -30,20 +29,18 @@ class CST(PTNodeVisitor):
                 new_k += p.edges
             else:
                 new_k += p,
-        if has_q_var:
-            print(f"  > has quantum!")
         return Expr(*new_k, has_q=has_q_var)
 
     def visit_parallel(self, n, k):
-        has_q_var = any(p.has_q for p in k)
+        has_q_var = all(p.has_q for p in k)
         return Array(ExprParadigm.PARALLEL, *k, has_q=has_q_var)
 
     def visit_concurrent(self, n, k):
-        has_q_var = any(p.has_q for p in k)
+        has_q_var = all(p.has_q for p in k)
         return Array(ExprParadigm.CONCURRENT, *k, has_q=has_q_var)
 
     def visit_sequential(self, n, k):
-        has_q_var = any(p.has_q for p in k)
+        has_q_var = all(p.has_q for p in k)
         return Array(ExprParadigm.SEQUENTIAL, *k, has_q=has_q_var)
 
     def visit_expr(self, n, k):

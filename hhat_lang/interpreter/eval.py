@@ -1,14 +1,18 @@
-from copy import deepcopy
 from typing import Any
-from hhat_lang.interpreter.memory import Var, R
-from hhat_lang.syntax_trees.ast import AOT
+
+from copy import deepcopy
+import asyncio
+from hhat_lang.interpreter.post_ast import R
+from hhat_lang.interpreter.var_handlers import Var
+from hhat_lang.syntax_trees.ast import ATO, ASTType, operations_or_id, ExprParadigm
 from hhat_lang.datatypes.builtin_datatype import (
     builtin_data_types_dict,
     builtin_array_types_dict,
-    DefaultType
+    quantum_array_types_list,
 )
 from hhat_lang.datatypes.base_datatype import DataType, DataTypeArray
-from hhat_lang.interpreter.builtins.builtin_fn import builtin_fn_dict
+from hhat_lang.builtins.functions import builtin_fn_dict, builtin_quantum_fn_dict
+from hhat_lang.utils.utils import get_types_set
 from hhat_lang.interpreter.memory import Mem
 
 
@@ -19,74 +23,151 @@ class Eval:
     def run(self):
         mem = Mem()
         execute(self.code, mem)
-        print(mem)
+        print("\n", mem)
 
 
-def eval_token(code: AOT, mem: Mem) -> Any:
-    if code.type in ["oper", "id"]:
-        # print(f"  = oper:", end=" ")
-        if res := builtin_fn_dict.get(code.token, False):
-            return res
+#######################
+# AUXILIARY FUNCTIONS #
+#######################
+
+def arrange_array_output(res: tuple, mem: Mem) -> tuple[Any]:
+    # TODO: implement a function to deal with single or
+    #  multiple array elements
+    if len(set(k.type for k in res)) == 1:
+        res_type = res[0].type
+    else:
+        res_type = ASTType.ARRAY
+
+    array = builtin_array_types_dict[res_type](*res)
+    mem.put_stack(array)
+    return array,
+
+
+def handle_literals(code: ATO | R, mem: Mem) -> Any:
+    pass
+
+
+def handle_variables(code: ATO | R, mem: Mem) -> Any:
+    pass
+
+
+def handle_functions(code: ATO | R, mem: Mem) -> Any:
+    pass
+
+
+#################################
+# SEQUENTIAL PARADIGM FUNCTIONS #
+#################################
+
+def eval_seq_fn(code: ATO | R, mem: Mem) -> Any:
+    pass
+
+
+def sequential_paradigm_fn(code: R, mem: Mem) -> Any:
+    pass
+
+
+#################################
+# CONCURRENT PARADIGM FUNCTIONS #
+#################################
+
+
+# pain :{{{{{{{{{{{{{{{{{{{{{{{{{{{{
+
+async def eval_conc_fn(code: ATO | R, mem: Mem) -> Any:
+    pass
+
+
+async def concurrent_paradigm_fn(code: R, mem: Mem) -> Any:
+    return await asyncio.gather(*[eval_conc_fn(k, mem) for k in code])
+
+
+###############################
+# PARALLEL PARADIGM FUNCTIONS #
+###############################
+
+# TODO: start is a good starting point
+
+def eval_par_fn(code: ATO | R, mem: Mem) -> Any:
+    pass
+
+
+def parallel_paradigm_fn(code: R, mem: Mem) -> Any:
+    pass
+
+
+##################
+# EVAL FUNCTIONS #
+##################
+
+def eval_token(code: ATO, mem: Mem) -> Any:
+    print(f"* token: {code}")
+    if code.type in operations_or_id:
+        if code.token in builtin_fn_dict.keys():
+            return builtin_fn_dict[code.token]
         if code.token in mem:
             return mem.get_var(code.token)
         return Var(code.token)
-    # print(f"  = literal:", end=" ")
-    return builtin_data_types_dict.get(code.type, DefaultType)(code.token)
+    if code.type in builtin_data_types_dict.keys():
+        return builtin_data_types_dict[code.type](code.token)
+    raise NotImplementedError(f"Type {code.type} not implemented yet.")
 
 
 def eval_oper(code: R, mem: Mem) -> Any:
-    # print("* oper:")
+    print("* oper:")
     res = ()
-    # print(f"  -> oper content: {code} {[(k, type(k)) for k in code]}")
     for k in code:
         last = execute(k, mem)
         if isinstance(last[0], Var):
-            # print(f"  => {type(k)} {code.role}")
+            # in case the operation is inside the argument
             if code.role == "callee":
-                # print("  ! oper callee found!")
                 var = mem.get_var(last[0].name)
-                # print(f"  ! [oper callee] after mem: {mem}")
                 res += var,
             else:
-                # print("IS VAR!!")
                 mem.put_expr(last[0])
                 res += last
         elif isinstance(last[0], (DataType, DataTypeArray)):
             mem.put_stack(last[0])
             res += last
         else:
-            oper = last[0](mem, *mem.get_stack())
-            # print(f"---> {type(oper)} {oper}")
+            # if data is not variable or data array (should be function?)
+            data = mem.pop_stack()
+            types = get_types_set(data)
+            if (
+                len(set(quantum_array_types_list).intersection(types)) > 0
+                and last[0].token in builtin_quantum_fn_dict.keys()
+            ):
+                # this has some quantum, let's do the magic
+                print(f"* * has quantum! {code} -> {data}")
+                data = data + (code,)
+                oper = last[0](mem, *data)
+            else:
+                oper = last[0](mem, data)
             mem.put_expr(oper)
-            # mem.put_stack(oper)
             res += oper,
-    # print(f"  -> oper res: {res}")
     return res
 
 
 def eval_args(code: R, mem: Mem) -> Any:
-    # print("* args:")
+    print("* args:")
     res = ()
-    # print(f"    -> {len(code)} {code}")
     for k in code:
-        # print(f"  !=> what is k: {k} | {mem}")
         last = execute(k, mem)
-        # print(f"  => arg data: {last[0]} ({type(last[0])}) {type(last)} ({code}) {mem=}")
-        mem.put_stack(last[0])
         res += last
+    res = arrange_array_output(res, mem)
     return res
 
 
 def eval_call(code: R, mem: Mem) -> Any:
-    # print("* call:")
+    print("* call:")
     res = ()
     for k in code:
         res += execute(k, mem)
-    # print(f"! what is call res: {res}")
+
+    # if call has arguments
     if len(code) == 2:
         args = mem.pop_stack()
         oper = mem.pop_expr()
-        # print(f"call: {oper=} | {args=} ({type(args)})")
         new_res = oper(args)
         for p in new_res:
             mem.put_stack(p)
@@ -96,8 +177,8 @@ def eval_call(code: R, mem: Mem) -> Any:
             if res[0].initialized:
                 new_res = res
             else:
+                # if var is not initialized yet
                 mem.pop_expr()
-                # print(f"VAR!? {code=} | {res[0]=} | {mem=}")
                 new_res = res[0](mem.pop_stack()),
                 mem.put_var(res[0], "")
                 mem.put_stack(res[0])
@@ -105,60 +186,67 @@ def eval_call(code: R, mem: Mem) -> Any:
             oper = mem.pop_expr()
             if oper.token in builtin_fn_dict.keys():
                 new_res = oper()
-                # print(f"* [{oper}] received {new_res=}")
                 for p in new_res:
                     mem.put_stack(p)
             else:
-                print("WHAT")
+                print("/!\\ unexpected code /!\\")
                 new_res = res
     return new_res
 
 
 def eval_array(code: R, mem: Mem) -> Any:
-    # print("* array:")
+    """Evaluating array expressions.
+
+    Everything that contains more than one full expression
+    is an array and should be handled by this function.
+
+    Arrays can be sequential, concurrent or parallel sets of data.
+
+    Process:
+    - code enters
+    - according to its paradigm (sequential, concurrent, parallel),
+        it will be handled accordingly
+    - iteration over each code element
+    - every code element is a full expression by itself
+    - at the end of execution of each element, its last element
+        will be stored in the outer scope memory, in the same
+        order the code was written
+    - at the end of array's execution, the last result from each
+        full expression will be placed in an array of the same
+        paradigm and will be passed forward to the next expression
+        to evaluate it
+    """
+    print("* array:")
+
+    # TODO: implement the paradigms in separated functions:
+    #  1- sequential
+    #  2- concurrent
+    #  3- parallel
+
     res = ()
     for k in code:
-        res += execute(k, mem)
-    # print(f"! {res=} {len(set(k.type for k in res))=}")
-    if len(set(k.type for k in res)) == 1:
-        if isinstance(res[0], DataType):
-            array = builtin_array_types_dict[res[0].type](*res)
-            mem.put_stack(array)
-            res = array,
-        elif isinstance(res[0], int):
-            print("* WE GOT AN INT!!")
+        new_mem = deepcopy(mem)
+        res += execute(k, new_mem)
+        new_mem.share_vars(mem)
+    mem.clear_stack()
+    res = arrange_array_output(res, mem)
     return res
 
 
 def eval_expr(code: R, mem: Mem) -> Any:
-    # print("* expr:")
+    print("* expr:")
     res = ()
     for k in code:
         res += execute(k, mem)
-        # print(f"  [end][expr]-> after mem: {mem} | {res=}")
+        if (
+            k.type in builtin_data_types_dict.keys()
+            or isinstance(k, Var)
+        ):
+            mem.put_stack(res[-1])
     return (res[-1],) if res else ()
 
 
-def eval_many_expr(code: R, mem: Mem) -> Any:
-    # print("* many-expr:")
-    # print(f"  [cur]-> {mem}")
-    res = ()
-    for n, k in enumerate(code):
-        new_mem = deepcopy(mem)
-        # print(f"  [{n}][start][many-expr]({k})")
-        # print(f"     -> prev mem: {mem}")
-        # print(f"     -> new mem: {new_mem}")
-        res += execute(k, new_mem)
-        new_mem.share_vars(mem)
-        # print(f"  [{n}][end][many-expr]({k}) -> after new mem: {new_mem} | mem: {mem} | {res=}")
-    mem.clear_stack()
-    for k in res:
-        mem.put_stack(k)
-    return res
-
-
 def eval_main(code: R, mem: Mem) -> Any:
-    # print("* main:")
     res = ()
     for k in code:
         res += execute(k, mem),
@@ -166,37 +254,150 @@ def eval_main(code: R, mem: Mem) -> Any:
     return res
 
 
-def execute(code: Any, mem: Mem) -> tuple[Any]:
+##########################
+# EVAL QUANTUM FUNCTIONS #
+##########################
+
+def eval_q_expr(code: R, mem: Mem) -> tuple[R]:
+    print(f"@* expr: {code}")
+    res = ()
+    for k in code:
+        if isinstance(k, ATO):
+            res += k,
+            mem.put_q(k)
+        else:
+            res += execute(k, mem)
+            mem.put_q(res[-1])
+    mem.clear_q()
+    new_r = R(
+        ast_type=code.type,
+        value=res,
+        paradigm_type=code.paradigm,
+        role=code.role,
+        execute_after=code.execute_after,
+        has_q=code.has_q,
+    )
+    return new_r,
+
+
+def eval_q_call(code: R, mem: Mem) -> tuple[R]:
+    print(f"@* call: {code}")
+    res = ()
+    for k in code:
+        res += execute(k, mem)
+    new_r = R(
+        ast_type=code.type,
+        value=res,
+        paradigm_type=code.paradigm,
+        role=code.role,
+        execute_after=code.execute_after,
+        has_q=code.has_q,
+    )
+    return new_r,
+
+
+def eval_q_array(code: R, mem: Mem) -> tuple[R]:
+    print(f"@* array: {code}")
+    res = ()
+    for k in code:
+        if not isinstance(k, ATO):
+            res += execute(k, mem)
+        else:
+            res += k,
+        mem.put_q(res[-1])
+    new_r = R(
+        ast_type=code.type,
+        value=res,
+        paradigm_type=code.paradigm,
+        role=code.role,
+        execute_after=code.execute_after,
+        has_q=code.has_q,
+    )
+    mem.put_q(new_r)
+    return new_r,
+
+
+def eval_q_oper(code: R, mem: Mem) -> Any:
+    print(f"@* oper: {code} | {code.type}")
+    res = ()
+    for k in code:
+        if k.token in builtin_quantum_fn_dict.keys():
+            res += k,
+        elif k.type == ASTType.ID:
+            if k.token in mem:
+                res += k,
+            else:
+                q_var = Var(k.token)
+                data = mem.get_q()
+                data_r = R(
+                    ast_type=ASTType.EXPR,
+                    value=data,
+                    paradigm_type=ExprParadigm.SINGLE,
+                    role="",
+                    execute_after=None,
+                    has_q=True,
+                )
+                q_var(data_r)
+                mem.put_var(q_var, "")
+                mem.put_q(q_var)
+                res += q_var,
+        else:
+            res += k,
+    new_r = R(
+        ast_type=code.type,
+        value=res,
+        paradigm_type=code.paradigm,
+        role=code.role,
+        execute_after=code.execute_after,
+        has_q=code.has_q,
+    )
+    return new_r,
+
+
+####################
+# EXECUTE FUNCTION #
+####################
+
+def execute(code: R | ATO, mem: Mem) -> tuple[Any]:
     res = ()
     match code:
         case R():
-            match code.type:
-                case "program":
-                    pass
+            if code.has_q:
+                match code.type:
+                    case ASTType.EXPR:
+                        mem.to_quantum()
+                        res = eval_q_expr(code, mem)
+                    case ASTType.CALL:
+                        res = eval_q_call(code, mem)
+                    case ASTType.ARRAY:
+                        res = eval_q_array(code, mem)
+                    case ASTType.OPERATION | ASTType.Q_OPERATION | ASTType.ID | ASTType.BUILTIN:
+                        res = eval_q_oper(code, mem)
+            else:
+                match code.type:
+                    case ASTType.PROGRAM:
+                        pass
 
-                case "main":
-                    res = eval_main(code, mem)
+                    case ASTType.MAIN:
+                        res = eval_main(code, mem)
 
-                case "many-expr":
-                    res = eval_many_expr(code, mem)
+                    case ASTType.EXPR:
+                        res = eval_expr(code, mem)
 
-                case "expr":
-                    res = eval_expr(code, mem)
+                    case ASTType.ARRAY:
+                        res = eval_array(code, mem)
 
-                case "array":
-                    res = eval_array(code, mem)
+                    case ASTType.CALL:
+                        res = eval_call(code, mem)
 
-                case "call":
-                    res = eval_call(code, mem)
+                    case ASTType.ARGS:
+                        res = eval_args(code, mem)
 
-                case "args":
-                    res = eval_args(code, mem)
+                    # TODO: separate in different cases?
+                    case ASTType.OPERATION | ASTType.Q_OPERATION | ASTType.ID | ASTType.BUILTIN:
+                        res = eval_oper(code, mem)
 
-                case "oper" | "id":
-                    res = eval_oper(code, mem)
-
-        case AOT():
+        case ATO():
             res = eval_token(code, mem)
-            # print(res)
             res = res,
     return res

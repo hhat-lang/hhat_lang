@@ -1,4 +1,5 @@
-from hhat_lang.interpreter import parse_code, Analysis, Eval, R
+from hhat_lang.interpreter import parse_code, Analysis, Eval
+from hhat_lang.interpreter.post_ast import R
 from hhat_lang.syntax_trees import AST
 from hhat_lang import __version__
 import click
@@ -12,13 +13,16 @@ def read_file(file: str) -> str:
 def execute_parsing_code(c: str, verbose: bool = False) -> AST:
     pc_ = parse_code(c)
     if verbose:
-        print(f"- code:\n{c}\n")
+        print("-" * 80)
+        print(f"- code:\n{c}")
+        print("-" * 80)
         print(f"- parsed code:\n{pc_}\n")
     return pc_
 
 
 def execute_analysis(pc: AST, verbose: bool = False) -> R:
     if verbose:
+        print("-" * 80)
         print(f"- analysis (pre-evaluation):")
     analysis = Analysis(pc)
     res_ = analysis.run()

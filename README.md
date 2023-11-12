@@ -7,7 +7,7 @@ $\hat{H}$ (H-hat) is a high abstraction quantum programming language.
 
 ---
 
-**Note**: new documentation to be released.
+**Note**: Documentation is in progress and can be found [here](https://docs.hhat-lang.org).
 
 
 ------
@@ -112,7 +112,7 @@ After proceeding on your preferred installation method, it's time to run some co
 Progress
 ----
 
-Progress will soon be updated.
+You can follow the progress in the [TODOs list](hhat_lang/TODOs-list.md).
 
 
 ------

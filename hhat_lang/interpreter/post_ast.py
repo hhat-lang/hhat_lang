@@ -36,6 +36,11 @@ class R:
             if isinstance(k, R):
                 k.parent_id = self.id
 
+    def get_value(self) -> tuple | Any:
+        if len(self) == 1:
+            return self.value[0]
+        return self.value
+
     def __hash__(self) -> int:
         return hash(self.value)
 

@@ -3,14 +3,14 @@ from hhat_lang.exec import run_codes
 
 code_list = [
     """
-        .[2 3 4]:sum:print:z:print
+        .[2 3 4]:sum:print:=z:print
         .[5 7 11]:.(sum times):print
         .[68 9]:sum(12 35):print
-        .[45 56 67]:.(sum:n times(n):m):print
-        4:@shuffle:@q1
+        .[45 56 67]:.(sum:=n times(n):=m):print
+        4:@shuffle:=@q1
         1:print
-        .[1 1]:sum:.(@shuffle:@q2 y)
-        @q1:@sync:@q3
+        .[1 1]:sum:.(@shuffle:=@q2 y)
+        @q1:@sync:=@q3
     """,
     # """
     # .[2 3 4]:.(sum times):print

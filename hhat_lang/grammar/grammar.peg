@@ -1,6 +1,8 @@
 program    = exprs* EOF
-exprs      = (single / ('.' sequential) / ('.' concurrent) / ('.' parallel)) (':' exprs)*
+exprs      = (single / (scope_id (sequential / concurrent / parallel))) (pipe_assign exprs)*
 expr       = literal / operation
+scope_id   = r"\.|\?"
+pipe_assign= r"\:(\=\+?)?"
 single     = expr
 sequential = '[' exprs+ ']'
 concurrent = '(' exprs+ ')'

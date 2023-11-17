@@ -45,5 +45,8 @@ setup(
     entry_points={
         "console_scripts": ["hhat=hhat_lang.exec:main"]
     },
-    project_urls={"Unitary Fund": "https://unitary.fund/"}
+    project_urls={
+        "Unitary Fund": "https://unitary.fund/",
+        "H-hat documentation": "https://docs.hhat-lang.org"
+    }
 )

@@ -34,6 +34,9 @@ class ASTType(Enum):
     Q_OPERATION = auto()
     EXPR        = auto()
     ARRAY       = auto()
+    EXTEND      = auto()
+    ASSIGN      = auto()
+    CONDITIONAL = auto()
     MAIN        = auto()
     PROGRAM     = auto()
 
@@ -45,6 +48,19 @@ class DataTypeEnum(Enum):
     INT     = auto()
     Q_ARRAY = auto()
 
+
+@unique
+class BehaviorATO(Enum):
+    CALL    = auto()
+    ASSIGN  = auto()
+    EXTEND  = auto()
+
+
+behavior_types_dict = {
+    BehaviorATO.CALL: ASTType.CALL,
+    BehaviorATO.ASSIGN: ASTType.ASSIGN,
+    BehaviorATO.EXTEND: ASTType.EXTEND,
+}
 
 operations_or_id = [ASTType.OPERATION, ASTType.Q_OPERATION, ASTType.ID]
 
@@ -64,10 +80,16 @@ class ATO(ABC):
     """Abstract tree object
 
     """
-    def __init__(self, token: str, ato_type: ato_types, has_q: bool = False):
+    def __init__(
+            self, token: str,
+            ato_type: ato_types,
+            has_q: bool = False,
+            behavior: BehaviorATO = BehaviorATO.CALL
+    ):
         self.token = token
         self.type = ato_type
         self.has_q = has_q
+        self.behavior = behavior
 
     def __repr__(self) -> str:
         return self.token
@@ -148,6 +170,34 @@ class Id(ATO):
     ):
         has_q_var = True if token.startswith("@") else False
         super().__init__(token=token, ato_type=ato_type, has_q=has_q_var)
+        self.value = self.token
+
+
+class Assign(ATO):
+    def __init__(self):
+        super().__init__(
+            token="'assign",
+            ato_type=ASTType.ASSIGN,
+            has_q=False,
+            behavior=BehaviorATO.ASSIGN,
+        )
+        self.value = self.token
+
+
+class Extend(ATO):
+    def __init__(self):
+        super().__init__(
+            token="'extend",
+            ato_type=ASTType.EXTEND,
+            has_q=False,
+            behavior=BehaviorATO.EXTEND,
+        )
+        self.value = self.token
+
+
+class Conditional(ATO):
+    def __init__(self):
+        super().__init__(token="'cond", ato_type=ASTType.CONDITIONAL, has_q=False)
         self.value = self.token
 
 

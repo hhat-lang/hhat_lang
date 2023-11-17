@@ -174,6 +174,7 @@ def eval_call(code: R, mem: Mem) -> Any:
         new_res = ()
     else:
         if isinstance(res[0], Var):
+            print("/!\\ WAIT, VAR!?")
             if res[0].initialized:
                 new_res = res
             else:
@@ -192,6 +193,31 @@ def eval_call(code: R, mem: Mem) -> Any:
                 print("/!\\ unexpected code /!\\")
                 new_res = res
     return new_res
+
+
+def eval_assign(code: R, mem: Mem) -> Any:
+    print("* assign:")
+    res = ()
+    for k in code:
+        res += execute(k, mem)
+    mem.pop_expr()
+    new_res = res[0](mem.pop_stack()),
+    mem.put_var(res[0], "")
+    mem.put_stack(res[0])
+    return new_res
+
+
+def eval_extend(code: R, mem: Mem) -> Any:
+    print("* extend:")
+    # res = ()
+    # for k in code:
+    #     res += execute(k, mem)
+    # mem.pop_expr()
+    # new_res = res[0](mem.pop_stack()),
+    # mem.put_var(res[0], "")
+    # mem.put_stack(res[0])
+    # return new_res
+    raise ReferenceError("Shouldn't have 'extend' functionality for classical data")
 
 
 def eval_array(code: R, mem: Mem) -> Any:
@@ -269,19 +295,82 @@ def eval_q_expr(code: R, mem: Mem) -> tuple[R]:
             res += execute(k, mem)
             mem.put_q(res[-1])
     mem.clear_q()
-    new_r = R(
+    return R(
         ast_type=code.type,
         value=res,
         paradigm_type=code.paradigm,
         role=code.role,
         execute_after=code.execute_after,
         has_q=code.has_q,
-    )
-    return new_r,
+    ),
 
 
-def eval_q_call(code: R, mem: Mem) -> tuple[R]:
+def eval_q_call(code: R, mem: Mem) -> Any:
     print(f"@* call: {code}")
+    res = ()
+    # for k in code:
+    #     res += execute(k, mem)
+    # return R(
+    #     ast_type=code.type,
+    #     value=res,
+    #     paradigm_type=code.paradigm,
+    #     role=code.role,
+    #     execute_after=code.execute_after,
+    #     has_q=code.has_q,
+    # ),
+    for k in code:
+        if isinstance(k.get_value(), ATO):
+            call_id = k.get_value().token
+            if call_id in mem:
+                res += mem.get_var(call_id),
+            else:
+                res += execute(k, mem)
+        else:
+            res += execute(k, mem)
+    print(f"   >: {res}")
+    if len(res) == 1:
+        return res
+    return R(
+        ast_type=code.type,
+        value=res,
+        paradigm_type=code.paradigm,
+        role=code.role,
+        execute_after=code.execute_after,
+        has_q=code.has_q,
+    ),
+
+
+def eval_q_assign(code: R, mem: Mem) -> tuple[R]:
+    print(f"@* assign: {code}")
+    res = ()
+    for k in code:
+        # res += execute(k, mem)
+        q_var = Var(k.get_value().token)
+        data = mem.get_q()
+        data_r = R(
+            ast_type=ASTType.EXPR,
+            value=data,
+            paradigm_type=ExprParadigm.SINGLE,
+            role="",
+            execute_after=None,
+            has_q=True,
+        )
+        q_var(data_r)
+        mem.put_var(q_var, "")
+        mem.put_q(q_var)
+        res += q_var,
+    return R(
+        ast_type=code.type,
+        value=res,
+        paradigm_type=code.paradigm,
+        role=code.role,
+        execute_after=code.execute_after,
+        has_q=code.has_q,
+    ),
+
+
+def eval_q_extend(code: R, mem: Mem) -> tuple[R]:
+    print(f"@* extend: {code}")
     res = ()
     for k in code:
         res += execute(k, mem)
@@ -321,37 +410,37 @@ def eval_q_oper(code: R, mem: Mem) -> Any:
     print(f"@* oper: {code} | {code.type}")
     res = ()
     for k in code:
-        if k.token in builtin_quantum_fn_dict.keys():
-            res += k,
-        elif k.type == ASTType.ID:
-            if k.token in mem:
-                res += k,
-            else:
-                q_var = Var(k.token)
-                data = mem.get_q()
-                data_r = R(
-                    ast_type=ASTType.EXPR,
-                    value=data,
-                    paradigm_type=ExprParadigm.SINGLE,
-                    role="",
-                    execute_after=None,
-                    has_q=True,
-                )
-                q_var(data_r)
-                mem.put_var(q_var, "")
-                mem.put_q(q_var)
-                res += q_var,
-        else:
-            res += k,
-    new_r = R(
+        # if k.token in builtin_quantum_fn_dict.keys():
+        #     res += k,
+        # elif k.type == ASTType.ID:
+        #     if k.token in mem:
+        #         res += k,
+        #     else:
+        #         q_var = Var(k.token)
+        #         data = mem.get_q()
+        #         data_r = R(
+        #             ast_type=ASTType.EXPR,
+        #             value=data,
+        #             paradigm_type=ExprParadigm.SINGLE,
+        #             role="",
+        #             execute_after=None,
+        #             has_q=True,
+        #         )
+        #         q_var(data_r)
+        #         mem.put_var(q_var, "")
+        #         mem.put_q(q_var)
+        #         res += q_var,
+        # else:
+        #     res += k,
+        res += k,
+    return R(
         ast_type=code.type,
         value=res,
         paradigm_type=code.paradigm,
         role=code.role,
         execute_after=code.execute_after,
         has_q=code.has_q,
-    )
-    return new_r,
+    ),
 
 
 ####################
@@ -369,6 +458,10 @@ def execute(code: R | ATO, mem: Mem) -> tuple[Any]:
                         res = eval_q_expr(code, mem)
                     case ASTType.CALL:
                         res = eval_q_call(code, mem)
+                    case ASTType.ASSIGN:
+                        res = eval_q_assign(code, mem)
+                    case ASTType.EXTEND:
+                        res = eval_q_extend(code, mem)
                     case ASTType.ARRAY:
                         res = eval_q_array(code, mem)
                     case ASTType.OPERATION | ASTType.Q_OPERATION | ASTType.ID | ASTType.BUILTIN:
@@ -390,6 +483,11 @@ def execute(code: R | ATO, mem: Mem) -> tuple[Any]:
                     case ASTType.CALL:
                         res = eval_call(code, mem)
 
+                    case ASTType.ASSIGN:
+                        res = eval_assign(code, mem)
+
+                    case ASTType.EXTEND:
+                        res = eval_extend(code, mem)
                     case ASTType.ARGS:
                         res = eval_args(code, mem)
 

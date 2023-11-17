@@ -2,6 +2,8 @@ from hhat_lang.syntax_trees.ast import (
     ATO,
     AST,
     Main,
+    Assign,
+    Extend,
     Expr,
     Literal,
     Id,
@@ -9,6 +11,7 @@ from hhat_lang.syntax_trees.ast import (
     Operation,
     ASTType,
     ExprParadigm,
+    behavior_types_dict,
 )
 from hhat_lang.builtins.functions import builtin_fn_dict
 from hhat_lang.interpreter.post_ast import R
@@ -63,7 +66,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                     has_q=code_.has_q,
                 )
             return R(
-                ast_type=ASTType.CALL,
+                ast_type=behavior_types_dict[code_.behavior],
                 value=id_code,
                 paradigm_type=ExprParadigm.SINGLE,
                 role=role,
@@ -112,6 +115,10 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                 execute_after=None,
                 has_q=code_.has_q,
             )
+        case Assign():
+            print("ASSIGN!?")
+        case Extend():
+            print("EXTEND!?")
         case Main():
             res = iter_analyze(code_, role)
             return R(

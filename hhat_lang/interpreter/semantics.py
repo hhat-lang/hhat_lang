@@ -41,7 +41,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                 paradigm_type=code_.paradigm,
                 role=role,
                 execute_after=None,
-                has_q=code_.has_q,
+                assign_q=code_.assign_q,
             )
         case Literal():
             return code_
@@ -54,7 +54,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                     paradigm_type=ExprParadigm.SINGLE,
                     role="caller",
                     execute_after=None,
-                    has_q=code_.has_q,
+                    assign_q=code_.assign_q,
                 )
             else:
                 id_code = R(
@@ -63,7 +63,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                     paradigm_type=ExprParadigm.SINGLE,
                     role=role,
                     execute_after=None,
-                    has_q=code_.has_q,
+                    assign_q=code_.assign_q,
                 )
             return R(
                 ast_type=behavior_types_dict[code_.behavior],
@@ -71,7 +71,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                 paradigm_type=ExprParadigm.SINGLE,
                 role=role,
                 execute_after=None,
-                has_q=code_.has_q,
+                assign_q=code_.assign_q,
             )
         case Array():
             res = iter_analyze(code_, role)
@@ -81,7 +81,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                 paradigm_type=code_.paradigm,
                 role=role,
                 execute_after=None,
-                has_q=code_.has_q,
+                assign_q=code_.assign_q,
             )
         case Operation():
             res = iter_analyze(code_, role="callee")
@@ -99,7 +99,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                         paradigm_type=ExprParadigm.SINGLE,
                         role="caller",
                         execute_after=None,
-                        has_q=code_.has_q,
+                        assign_q=code_.assign_q,
                     ),
                     R(
                         ast_type=ASTType.ARGS,
@@ -107,13 +107,13 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                         paradigm_type=code_.edges.paradigm,
                         role="callee",
                         execute_after=None,
-                        has_q=code_.has_q,
+                        assign_q=code_.assign_q,
                     )
                 ),
                 paradigm_type=ExprParadigm.SINGLE,
                 role=role,
                 execute_after=None,
-                has_q=code_.has_q,
+                assign_q=code_.assign_q,
             )
         case Assign():
             print("ASSIGN!?")
@@ -127,7 +127,7 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                 paradigm_type=code_.paradigm,
                 role="",
                 execute_after=None,
-                has_q=code_.has_q,
+                assign_q=code_.assign_q,
             )
         case _:
             print(f"!! no match on previous cases: is {type(code_)}!")

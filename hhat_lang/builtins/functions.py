@@ -152,6 +152,7 @@ class Print(MetaFn):
     token = "print"
 
     def __init__(self, mem: Mem, *values: Any):
+        print(f"[!] print debugger: {[type(p) for p in values]} | {mem=}")
         super().__init__(mem, *values)
 
     def __call__(self, values: Any | None = None) -> tuple[Any]:

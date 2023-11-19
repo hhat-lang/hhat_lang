@@ -27,6 +27,7 @@ class ASTType(Enum):
     NONE        = auto()
     LITERAL     = auto()
     ID          = auto()
+    Q_ID        = auto()
     BUILTIN     = auto()
     OPERATION   = auto()
     CALL        = auto()
@@ -62,7 +63,7 @@ behavior_types_dict = {
     BehaviorATO.EXTEND: ASTType.EXTEND,
 }
 
-operations_or_id = [ASTType.OPERATION, ASTType.Q_OPERATION, ASTType.ID]
+operations_or_id = [ASTType.OPERATION, ASTType.Q_OPERATION, ASTType.ID, ASTType.Q_ID]
 
 literal_dict = {
     DataTypeEnum.BOOL: literal_bool_define,
@@ -83,12 +84,13 @@ class ATO(ABC):
     def __init__(
             self, token: str,
             ato_type: ato_types,
-            has_q: bool = False,
+            assign_q: bool = False,
             behavior: BehaviorATO = BehaviorATO.CALL
     ):
         self.token = token
         self.type = ato_type
-        self.has_q = has_q
+        self.assign_q = assign_q
+        self.is_q = True if self.token.startswith("@") else False
         self.behavior = behavior
 
     def __repr__(self) -> str:
@@ -105,13 +107,13 @@ class AST(ABC):
             ast_type: ASTType = ASTType.NONE,
             paradigm: ExprParadigm = ExprParadigm.NONE,
             args: AST | tuple[AST, ...] | None = None,
-            has_q: bool = False,
+            assign_q: bool = False,
     ):
         self.node = node or ""
         self.type = ast_type
         self.edges = args
         self.paradigm = paradigm
-        self.has_q = has_q
+        self.assign_q = assign_q
 
     def match_paradigm(self, args: str) -> str:
         match self.paradigm:
@@ -135,9 +137,12 @@ class AST(ABC):
     def __iter__(self) -> Iterable:
         yield from self.edges
 
+    def __getitem__(self, item: int) -> Any:
+        return self.edges[item]
+
     def __repr__(self) -> str:
         token = self.node.token if self.node else ""
-        has_q = "含" if self.has_q else ""
+        assign_q = "含" if self.assign_q else ""
         if len(self.edges) > 0:
             args = " ".join(str(k) for k in self.edges)
             paradigm_name = self.match_paradigm(args)
@@ -147,9 +152,9 @@ class AST(ABC):
                 edges = paradigm_name
 
             if token:
-                return has_q + "(" + token + "(" + edges + ")" + ")"
-            return has_q + edges
-        return has_q + token
+                return assign_q + "(" + token + "(" + edges + ")" + ")"
+            return assign_q + edges
+        return assign_q + token
 
 
 ###############
@@ -166,10 +171,14 @@ class Id(ATO):
     def __init__(
             self,
             token: str,
-            ato_type: ASTType = ASTType.ID,
     ):
-        has_q_var = True if token.startswith("@") else False
-        super().__init__(token=token, ato_type=ato_type, has_q=has_q_var)
+        if token.startswith("@"):
+            assign_q = True
+            ato_type = ASTType.Q_ID
+        else:
+            assign_q = False
+            ato_type = ASTType.ID
+        super().__init__(token=token, ato_type=ato_type, assign_q=assign_q)
         self.value = self.token
 
 
@@ -178,7 +187,7 @@ class Assign(ATO):
         super().__init__(
             token="'assign",
             ato_type=ASTType.ASSIGN,
-            has_q=False,
+            assign_q=False,
             behavior=BehaviorATO.ASSIGN,
         )
         self.value = self.token
@@ -189,7 +198,7 @@ class Extend(ATO):
         super().__init__(
             token="'extend",
             ato_type=ASTType.EXTEND,
-            has_q=False,
+            assign_q=False,
             behavior=BehaviorATO.EXTEND,
         )
         self.value = self.token
@@ -197,18 +206,18 @@ class Extend(ATO):
 
 class Conditional(ATO):
     def __init__(self):
-        super().__init__(token="'cond", ato_type=ASTType.CONDITIONAL, has_q=False)
+        super().__init__(token="'cond", ato_type=ASTType.CONDITIONAL, assign_q=False)
         self.value = self.token
 
 
 class Expr(AST):
-    def __init__(self, *values: Any, parent_id: str = "", has_q: bool = False):
+    def __init__(self, *values: Any, parent_id: str = "", assign_q: bool = False):
         super().__init__(
             node=None,
             ast_type=ASTType.EXPR,
             paradigm=ExprParadigm.SINGLE,
             args=values,
-            has_q=has_q,
+            assign_q=assign_q,
         )
 
 
@@ -218,14 +227,14 @@ class Array(AST):
             paradigm: ExprParadigm,
             *values: Any,
             parent_id: str = "",
-            has_q: bool = False
+            assign_q: bool = False
     ):
         super().__init__(
             node=None,
             ast_type=ASTType.ARRAY,
             paradigm=paradigm,
             args=values,
-            has_q=has_q,
+            assign_q=assign_q,
         )
 
 
@@ -236,14 +245,14 @@ class Operation(AST):
             args: Array | None,
             parent_id: str = "",
     ):
-        new_type, has_q_var = self.get_oper_type(oper_token)
+        new_type, assign_q = self.get_oper_type(oper_token)
         oper_token = self.set_oper_token(oper_token, new_type)
         super().__init__(
             node=oper_token,
             ast_type=new_type,
             paradigm=(ExprParadigm.SINGLE if args is None else args.paradigm),
             args=args or (),
-            has_q=has_q_var,
+            assign_q=assign_q,
         )
 
     @staticmethod

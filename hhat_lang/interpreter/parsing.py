@@ -35,7 +35,7 @@ class CST(PTNodeVisitor):
     def visit_exprs(self, n, k):
         print(f"exprs -> {k}")
         new_k = ()
-        has_q_var = any(p.has_q for p in k if not isinstance(p, str))
+        assign_q = any(p.assign_q for p in k if not isinstance(p, str))
         behavior = BehaviorATO.CALL
         for p in k:
             if isinstance(p, Expr):
@@ -46,6 +46,7 @@ class CST(PTNodeVisitor):
             elif isinstance(p, (Assign, Extend)):
                 behavior = p.behavior
             elif isinstance(p, Id):
+                print(f"    > id {p}")
                 p.behavior = behavior
                 new_k += p,
                 behavior = self.set_behavior(behavior)
@@ -53,7 +54,28 @@ class CST(PTNodeVisitor):
                 continue
             else:
                 new_k += p,
-        return Expr(*new_k, has_q=has_q_var)
+
+        # experimental: give assign_q correctly
+        last_k = ()
+        assign_q = False
+        for p in new_k[::-1]:
+            if isinstance(p, Expr):
+                for v in p.edges[::-1]:
+                    if isinstance(v, Id) and v.behavior == BehaviorATO.ASSIGN:
+                        assign_q = v.is_q
+                    else:
+                        v.assign_q = assign_q
+                if p[-1].assign_q:
+                    p.assign_q = True
+            elif isinstance(p, Id):
+                if isinstance(p, Id) and p.behavior == BehaviorATO.ASSIGN:
+                    assign_q = p.is_q
+                else:
+                    p.assign_q = assign_q
+            else:
+                print("    > unknown state!")
+
+        return Expr(*new_k, assign_q=assign_q)
 
     def visit_scope_id(self, n, k):
         print(f"scope id {n.value=}")
@@ -70,16 +92,16 @@ class CST(PTNodeVisitor):
         return
 
     def visit_parallel(self, n, k):
-        has_q_var = all(p.has_q for p in k)
-        return Array(ExprParadigm.PARALLEL, *k, has_q=has_q_var)
+        assign_q = all(p.assign_q for p in k)
+        return Array(ExprParadigm.PARALLEL, *k, assign_q=assign_q)
 
     def visit_concurrent(self, n, k):
-        has_q_var = all(p.has_q for p in k)
-        return Array(ExprParadigm.CONCURRENT, *k, has_q=has_q_var)
+        assign_q = all(p.assign_q for p in k)
+        return Array(ExprParadigm.CONCURRENT, *k, assign_q=assign_q)
 
     def visit_sequential(self, n, k):
-        has_q_var = all(p.has_q for p in k)
-        return Array(ExprParadigm.SEQUENTIAL, *k, has_q=has_q_var)
+        assign_q = all(p.assign_q for p in k)
+        return Array(ExprParadigm.SEQUENTIAL, *k, assign_q=assign_q)
 
     def visit_expr(self, n, k):
         print("EXPR!")
@@ -111,6 +133,6 @@ class CST(PTNodeVisitor):
 
 def parse_code(code):
     peg_grammar = open(grammar_file, "r").read()
-    parsed_code = ParserPEG(peg_grammar, "program", reduce_tree=True)
+    parsed_code = ParserPEG(peg_grammar, "program", reduce_tree=True, comment_rule_name="comment")
     pt = parsed_code.parse(code)
     return visit_parse_tree(pt, CST())

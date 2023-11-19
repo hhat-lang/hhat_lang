@@ -113,7 +113,7 @@ def eval_token(code: ATO, mem: Mem) -> Any:
     raise NotImplementedError(f"Type {code.type} not implemented yet.")
 
 
-def eval_oper(code: R, mem: Mem) -> Any:
+def eval_oper(code: R, mem: Mem) -> tuple:
     print("* oper:")
     res = ()
     for k in code:
@@ -148,7 +148,7 @@ def eval_oper(code: R, mem: Mem) -> Any:
     return res
 
 
-def eval_args(code: R, mem: Mem) -> Any:
+def eval_args(code: R, mem: Mem) -> tuple:
     print("* args:")
     res = ()
     for k in code:
@@ -158,7 +158,7 @@ def eval_args(code: R, mem: Mem) -> Any:
     return res
 
 
-def eval_call(code: R, mem: Mem) -> Any:
+def eval_call(code: R, mem: Mem) -> tuple:
     print("* call:")
     res = ()
     for k in code:
@@ -195,7 +195,7 @@ def eval_call(code: R, mem: Mem) -> Any:
     return new_res
 
 
-def eval_assign(code: R, mem: Mem) -> Any:
+def eval_assign(code: R, mem: Mem) -> tuple:
     print("* assign:")
     res = ()
     for k in code:
@@ -220,7 +220,7 @@ def eval_extend(code: R, mem: Mem) -> Any:
     raise ReferenceError("Shouldn't have 'extend' functionality for classical data")
 
 
-def eval_array(code: R, mem: Mem) -> Any:
+def eval_array(code: R, mem: Mem) -> tuple:
     """Evaluating array expressions.
 
     Everything that contains more than one full expression
@@ -259,7 +259,7 @@ def eval_array(code: R, mem: Mem) -> Any:
     return res
 
 
-def eval_expr(code: R, mem: Mem) -> Any:
+def eval_expr(code: R, mem: Mem) -> tuple:
     print("* expr:")
     res = ()
     for k in code:
@@ -272,7 +272,7 @@ def eval_expr(code: R, mem: Mem) -> Any:
     return (res[-1],) if res else ()
 
 
-def eval_main(code: R, mem: Mem) -> Any:
+def eval_main(code: R, mem: Mem) -> tuple:
     res = ()
     for k in code:
         res += execute(k, mem),
@@ -301,12 +301,12 @@ def eval_q_expr(code: R, mem: Mem) -> tuple[R]:
         paradigm_type=code.paradigm,
         role=code.role,
         execute_after=code.execute_after,
-        has_q=code.has_q,
+        assign_q=code.assign_q,
     ),
 
 
-def eval_q_call(code: R, mem: Mem) -> Any:
-    print(f"@* call: {code}")
+def eval_q_call(code: R, mem: Mem) -> tuple:
+    print(f"@* call: {code.assign_q=} | {code}")
     res = ()
     # for k in code:
     #     res += execute(k, mem)
@@ -316,7 +316,7 @@ def eval_q_call(code: R, mem: Mem) -> Any:
     #     paradigm_type=code.paradigm,
     #     role=code.role,
     #     execute_after=code.execute_after,
-    #     has_q=code.has_q,
+    #     assign_q=code.assign_q,
     # ),
     for k in code:
         if isinstance(k.get_value(), ATO):
@@ -336,7 +336,7 @@ def eval_q_call(code: R, mem: Mem) -> Any:
         paradigm_type=code.paradigm,
         role=code.role,
         execute_after=code.execute_after,
-        has_q=code.has_q,
+        assign_q=code.assign_q,
     ),
 
 
@@ -353,7 +353,7 @@ def eval_q_assign(code: R, mem: Mem) -> tuple[R]:
             paradigm_type=ExprParadigm.SINGLE,
             role="",
             execute_after=None,
-            has_q=True,
+            assign_q=True,
         )
         q_var(data_r)
         mem.put_var(q_var, "")
@@ -365,7 +365,7 @@ def eval_q_assign(code: R, mem: Mem) -> tuple[R]:
         paradigm_type=code.paradigm,
         role=code.role,
         execute_after=code.execute_after,
-        has_q=code.has_q,
+        assign_q=code.assign_q,
     ),
 
 
@@ -380,7 +380,7 @@ def eval_q_extend(code: R, mem: Mem) -> tuple[R]:
         paradigm_type=code.paradigm,
         role=code.role,
         execute_after=code.execute_after,
-        has_q=code.has_q,
+        assign_q=code.assign_q,
     )
     return new_r,
 
@@ -400,7 +400,7 @@ def eval_q_array(code: R, mem: Mem) -> tuple[R]:
         paradigm_type=code.paradigm,
         role=code.role,
         execute_after=code.execute_after,
-        has_q=code.has_q,
+        assign_q=code.assign_q,
     )
     mem.put_q(new_r)
     return new_r,
@@ -424,7 +424,7 @@ def eval_q_oper(code: R, mem: Mem) -> Any:
         #             paradigm_type=ExprParadigm.SINGLE,
         #             role="",
         #             execute_after=None,
-        #             has_q=True,
+        #             assign_q=True,
         #         )
         #         q_var(data_r)
         #         mem.put_var(q_var, "")
@@ -439,7 +439,7 @@ def eval_q_oper(code: R, mem: Mem) -> Any:
         paradigm_type=code.paradigm,
         role=code.role,
         execute_after=code.execute_after,
-        has_q=code.has_q,
+        assign_q=code.assign_q,
     ),
 
 
@@ -451,7 +451,7 @@ def execute(code: R | ATO, mem: Mem) -> tuple[Any]:
     res = ()
     match code:
         case R():
-            if code.has_q:
+            if code.assign_q:
                 match code.type:
                     case ASTType.EXPR:
                         mem.to_quantum()

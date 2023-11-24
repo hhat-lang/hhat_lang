@@ -1,0 +1,16 @@
+{
+  "openqasm2+qiskit_config": {
+    "quantum_language": {
+      "name": "openqasm",
+      "version": "2.0"
+    },
+    "quantum_backend": {
+      "name": "qiskit",
+      "version": "0.45.0"
+    }
+  },
+  "openqasm3+qiskit_config": {},
+  "netqasm+simulaqron_config": {},
+  "netqasm+squidasm_config": {},
+  "netqasm+netsquid_config": {}
+}

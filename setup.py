@@ -33,8 +33,6 @@ setup(
     python_requires=">=3.10, <4",
     install_requires=requirements,
     packages=find_packages(),
-    # package_dir={"": "hhat_lang"},
-    # package_data={"": ["*.txt"]},
     data_files=[
         ("version", ["hhat_lang/version.txt"]),
     ],

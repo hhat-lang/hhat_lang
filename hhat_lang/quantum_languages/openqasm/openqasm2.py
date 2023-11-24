@@ -1,20 +1,24 @@
 from __future__ import annotations
 from typing import Any, Callable
 
+from enum import StrEnum
 
-qubit_register  = "qreg"
-bit_register    = "creg"
-qubit_label     = "q"
-bit_label       = "c"
 
-x        = "x"
-y        = "y"
-z        = "z"
-hadamard = "h"
-cnot     = "cx"
-cz       = "cz"
+class QasmKeyword(StrEnum):
+    QUBIT_REGISTER  = "qreg"
+    BIT_REGISTER    = "creg"
 
-measurement = "measure"
+    QUBIT_LABEL     = "q"
+    BIT_LABEL       = "c"
+
+    X_OPER          = "x"
+    Y_OPER          = "y"
+    Z_OPER          = "z"
+    HADAMARD_OPER   = "h"
+    CNOT_OPER       = "cx"
+    CZ_OPER         = "cz"
+
+    MEASUREMENT     = "measure"
 
 
 def header_expr() -> str:
@@ -22,11 +26,18 @@ def header_expr() -> str:
     return code
 
 
+def init_expr(num_qubits: int, num_bits: int) -> str:
+    return f"qreg q[{num_qubits}];\ncreg c[{num_bits}];\n"
+
+
 def oper_expr(operations: tuple, qubits: tuple) -> str:
     code = ""
     for o, qs in zip(operations, qubits):
         code += f"{o} "
-        code += ", ".join(f"{qubit_label}[{q}]" for q in qs)
+        if isinstance(qs, int):
+            code += f"{QasmKeyword.QUBIT_LABEL}[{qs}]"
+        else:
+            code += ", ".join(f"{QasmKeyword.QUBIT_LABEL}[{q}]" for q in qs)
         code += ";\n"
     return code
 
@@ -34,7 +45,5 @@ def oper_expr(operations: tuple, qubits: tuple) -> str:
 def measurement_expr(qubit: tuple, bit: tuple) -> str:
     code = ""
     for q, b in zip(qubit, bit):
-        code += f"{measurement} {qubit_register}[{q}] -> {bit_label}[{b}];\n"
+        code += f"{QasmKeyword.MEASUREMENT} {QasmKeyword.QUBIT_REGISTER}[{q}] -> {QasmKeyword.BIT_REGISTER}[{b}];\n"
     return code
-
-

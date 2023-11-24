@@ -2,6 +2,7 @@ from typing import Any
 
 from hhat_lang.datatypes import DataType, DataTypeArray
 from hhat_lang.syntax_trees.ast import ASTType, DataTypeEnum
+from hhat_lang.builtins.type_tokens import TypeToken
 from hhat_lang.interpreter.post_ast import R
 
 
@@ -12,7 +13,7 @@ from hhat_lang.interpreter.post_ast import R
 class DefaultType(DataType):
     @property
     def token(self):
-        return "default-type"
+        return TypeToken.DEFAULT
 
     @property
     def type(self):
@@ -43,7 +44,7 @@ class Bool(DataType):
 
     @property
     def token(self):
-        return "bool"
+        return TypeToken.BOOLEAN
 
     @property
     def type(self):
@@ -74,7 +75,7 @@ class Bool(DataType):
 class Int(DataType):
     @property
     def token(self):
-        return "int"
+        return TypeToken.INTEGER
 
     @property
     def type(self):
@@ -133,7 +134,7 @@ class BoolArray(DataTypeArray):
 
     @property
     def token(self):
-        return "bool-array"
+        return TypeToken.BOOLEAN_ARRAY
 
     @property
     def type(self):
@@ -160,7 +161,7 @@ class BoolArray(DataTypeArray):
 class IntArray(DataTypeArray):
     @property
     def token(self):
-        return "int-array"
+        return TypeToken.INTEGER_ARRAY
 
     @property
     def type(self):
@@ -211,7 +212,7 @@ class IntArray(DataTypeArray):
 class MultiTypeArray(DataTypeArray):
     @property
     def token(self):
-        return "multi-array"
+        return TypeToken.MULTI_ARRAY
 
     @property
     def type(self):
@@ -236,11 +237,11 @@ class MultiTypeArray(DataTypeArray):
 class QArray(DataTypeArray):
     @property
     def token(self) -> str:
-        return "@array"
+        return TypeToken.Q_ARRAY
 
     @property
     def type(self) -> str:
-        return "@array"
+        return DataTypeEnum.Q_ARRAY
 
     def cast(self) -> tuple[Any]:
         print(f">>> cast @array -> {self.value}")

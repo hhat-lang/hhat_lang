@@ -1,9 +1,20 @@
 from __future__ import annotations
-from typing import Any, Callable
 
-from hhat_lang.quantum_languages.api import QASMAPI
+from enum import StrEnum
 
 
-class NetQASM(QASMAPI):
-    def parse_code(self, code: Any) -> Any:
-        pass
+class QasmKeyword(StrEnum):
+    QUBIT_REGISTER  = "qreg"
+    BIT_REGISTER    = "creg"
+
+    QUBIT_LABEL     = "q"
+    BIT_LABEL       = "c"
+
+    X_OPER          = "x"
+    Y_OPER          = "y"
+    Z_OPER          = "z"
+    HADAMARD_OPER   = "h"
+    CNOT_OPER       = "cx"
+    CZ_OPER         = "cz"
+
+    MEASUREMENT     = "measure"

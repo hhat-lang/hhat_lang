@@ -1,0 +1,17 @@
+program = header include* exprs* EOF
+header = "OPENQASM" FLOAT ";"
+include = "include" STR ";"
+exprs = (init_registers / operations / measurement)
+init_registers = quantum_reg / classical_reg
+quantum_reg = "qreg"
+classical_reg = "creg"
+operations = operator registers ";"
+operator = id ("(" (id / INT / FLOAT) ("," id / INT / FLOAT)* ")")?
+register = id ("[" INT "]")?
+registers = register ("," register)+
+measurement = "measure" register "->" register ";"
+id = r"[a-zA-Z]+[a-zA-Z0-9]*"
+INT =
+FLOAT = r"[-]?[0-9]*\.?[0-9]+"
+STR = r"\".*\""
+comment = r"//.*\n"

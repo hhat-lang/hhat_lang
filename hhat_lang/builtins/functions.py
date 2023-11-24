@@ -9,6 +9,7 @@ from hhat_lang.datatypes import (
 )
 from hhat_lang.datatypes import DataType, DataTypeArray
 from hhat_lang.utils import get_types_set
+from hhat_lang.builtins.function_tokens import FnToken, QFnToken, MetaFnToken
 
 
 class MetaTypeFn(type):
@@ -17,7 +18,7 @@ class MetaTypeFn(type):
 
 
 class MetaFn(ABC):
-    token = "meta-default"
+    token = MetaFnToken.META
     type = "fn"
 
     def __init__(self, mem: Mem, *values: Any):
@@ -61,7 +62,7 @@ class MetaFn(ABC):
 
 
 class MetaQFn(MetaFn, ABC):
-    token = "@meta-default"
+    token = MetaFnToken.Q_META
 
     # This `check_mem` can be used when placing MetaQFn into
     # quantum variables data, so it can be used as a wildcard
@@ -101,7 +102,7 @@ class MetaQFn(MetaFn, ABC):
 
 
 class Sum(MetaFn):
-    token = "sum"
+    token = FnToken.SUM
 
     def __init__(self, mem: Mem, *values: Any):
         super().__init__(mem, *values)
@@ -125,7 +126,7 @@ class Sum(MetaFn):
 
 
 class Times(MetaFn):
-    token = "times"
+    token = FnToken.TIMES
 
     def __init__(self, mem: Mem, *values: Any):
         super().__init__(mem, *values)
@@ -149,7 +150,7 @@ class Times(MetaFn):
 
 
 class Print(MetaFn):
-    token = "print"
+    token = FnToken.PRINT
 
     def __init__(self, mem: Mem, *values: Any):
         print(f"[!] print debugger: {[type(p) for p in values]} | {mem=}")
@@ -168,7 +169,7 @@ class Print(MetaFn):
 
 
 class QShuffle(MetaQFn):
-    token = "@shuffle"
+    token = QFnToken.SHUFFLE
 
     def __init__(self, mem: Mem, *values: Any):
         super().__init__(mem, *values)
@@ -220,7 +221,7 @@ class QShuffle(MetaQFn):
 
 
 class QSync(MetaQFn):
-    token = "@sync"
+    token = QFnToken.SYNC
 
     def __init__(self, mem: Mem, *values: Any):
         super().__init__(mem, *values)
@@ -272,13 +273,13 @@ class QSync(MetaQFn):
 
 
 builtin_classical_fn_dict = {
-    "sum": Sum,
-    "times": Times,
-    "print": Print,
+    FnToken.SUM: Sum,
+    FnToken.TIMES: Times,
+    FnToken.PRINT: Print,
 }
 builtin_quantum_fn_dict = {
-    "@shuffle": QShuffle,
-    "@sync": QSync,
+    QFnToken.SHUFFLE: QShuffle,
+    QFnToken.SYNC: QSync,
 }
 builtin_fn_dict = {
     **builtin_classical_fn_dict,

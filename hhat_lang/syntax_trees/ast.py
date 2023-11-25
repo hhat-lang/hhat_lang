@@ -47,7 +47,9 @@ class DataTypeEnum(Enum):
     NULL    = auto()
     BOOL    = auto()
     INT     = auto()
+    ATOMIC  = auto()
     Q_ARRAY = auto()
+    HASHMAP = auto()
 
 
 @unique

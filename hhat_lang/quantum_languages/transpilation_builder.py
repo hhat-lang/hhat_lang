@@ -15,7 +15,6 @@ class TranspilerBuilder:
     def add_rules(self, name: str, rule: Any) -> None:
         pass
 
-
     def execute(self) -> None:
         pass
 

@@ -1,9 +1,10 @@
+from __future__ import annotations
 from typing import Any
 
 from hhat_lang.datatypes import DataType, DataTypeArray
 from hhat_lang.syntax_trees.ast import ASTType, DataTypeEnum
 from hhat_lang.builtins.type_tokens import TypeToken
-from hhat_lang.interpreter.post_ast import R
+from hhat_lang.interpreter.post_ast import R, ATO
 
 
 ################
@@ -125,6 +126,38 @@ class Int(DataType):
         raise ValueError(f"cannot multiply {self.__class__.__name__} with {other.__class__.__name__}")
 
 
+class Atomic(DataType):
+    @property
+    def token(self):
+        return TypeToken.ATOMIC
+
+    @property
+    def type(self):
+        return DataTypeEnum.ATOMIC
+
+    def cast(self) -> str:
+        if isinstance(self.value, str):
+            return str(self.value)
+        if isinstance(self.value, ATO):
+            return self.value.token
+        raise ValueError(f"Casting to Atomic not found for {self.value}.")
+
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, Atomic):
+            return AtomicArray(*tuple(map(lambda x: x, (self.data,) + (other.data,))))
+        if isinstance(other, AtomicArray):
+            return AtomicArray(*tuple(map(lbmda x: x, (self.data,) + other.data)))
+
+    def __radd__(self, other: Any) -> Any:
+        pass
+
+    def __mul__(self, other: Any) -> Any:
+        pass
+
+    def __rmul__(self, other: Any) -> Any:
+        pass
+
+
 ###############
 # ARRAY TYPES #
 ###############
@@ -207,6 +240,63 @@ class IntArray(DataTypeArray):
         if isinstance(other, Int):
             return IntArray(*tuple(map(lambda x: other.data * x, self.data)))
         print(f"* [rmul] mult int array: {self.data} ({type(self.data)}) | {other.data} ({type(other.data)})")
+
+
+class AtomicArray(DataTypeArray):
+    @property
+    def token(self):
+        return TypeToken.ATOMIC_ARRAY
+
+    @property
+    def type(self):
+        return DataTypeEnum.ATOMIC
+
+    def cast(self) -> Any:
+        res = ()
+        for k in self.value:
+            if isinstance(k, Atomic):
+                res += k,
+            elif isinstance(k, AtomicArray):
+                res += k.data
+            else:
+                raise ValueError(f"Casting to AtomicArray on unknown data {k}.")
+        return res
+
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, Atomic):
+            return AtomicArray(*(self.data + (other.data,)))
+        if isinstance(other, AtomicArray):
+            return AtomicArray(*(self.data + other.data))
+        raise ValueError(f"AtomicArray add method on unknown data {other}.")
+
+    def __radd__(self, other: Any) -> Any:
+        if isinstance(other, Atomic):
+            return AtomicArray(*((other.data,) + self.data))
+        if isinstance(other, AtomicArray):
+            return AtomicArray(*(other.data + self.data))
+        raise ValueError(f"AtomicArray add method on unknown data {other}.")
+
+    def __mul__(self, other: Any) -> Any:
+        raise NotImplementedError("Multiplication of AtomicArray not implemented.")
+
+    def __rmul__(self, other: Any) -> Any:
+        raise NotImplementedError("Multiplication of AtomicArray not implemented.")
+
+
+class Hashmap(DataTypeArray):
+    @property
+    def token(self):
+        return TypeToken.HASHMAP
+
+    @property
+    def type(self):
+        return DataTypeEnum.HASHMAP
+
+    def cast(self) -> Any:
+        res = ()
+        for k in self.value:
+            pass
+        return
 
 
 class MultiTypeArray(DataTypeArray):

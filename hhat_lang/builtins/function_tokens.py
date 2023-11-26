@@ -1,18 +1,18 @@
 from __future__ import annotations
-from enum import StrEnum
+from enum import Enum
 
 
-class MetaFnToken(StrEnum):
-    META = "meta-default"
-    Q_META = "@meta-default"
+class MetaFnToken(str, Enum):
+    META    = "meta-default"
+    Q_META  = "@meta-default"
 
 
-class FnToken(StrEnum):
+class FnToken(str, Enum):
     SUM     = "sum"
     TIMES   = "times"
     PRINT   = "print"
 
 
-class QFnToken(StrEnum):
+class QFnToken(str, Enum):
     SHUFFLE   = "@shuffle"
     SYNC      = "@sync"

@@ -11,7 +11,7 @@ code_list = [
         1:print
         .[1 1]:sum:.(@shuffle:=@q2 y)
         @q1:@sync:=@q3
-        //.[@q2:@sync:=@q4 .[z y]:sum:print]:sum:print
+        .[@q2:@sync:=@q4 .[z y]:sum:print]:sum:print
         1
         /( this
         is

@@ -10,6 +10,10 @@ from hhat_lang.config_files import (
     BASE_Q_LANG_VERSION,
 )
 from hhat_lang.quantum_languages import QUANTUM_LANGUAGES_PATH
+from hhat_lang.quantum_languages.error import (
+    InvalidQuantumLanguageError,
+    NoQuantumLanguageError
+)
 from hhat_lang.interpreter.post_ast import R
 
 
@@ -30,11 +34,29 @@ class QLanguageConfig:
 class QuantumLanguageAPI:
     def __init__(self, config: QLanguageConfig):
         self.config = config
-        self.module_name = self.config.data[self.config.name][self.config.version]
+        if lang_name := self.config.data.get(self.config.name, False):
+            if lang_name:
+                self.module_name = lang_name[self.config.version]
+            else:
+                raise NoQuantumLanguageError(
+                    f"No language found in '{self.config.version}' version."
+                )
+        else:
+            raise InvalidQuantumLanguageError(
+                f"Invalid language '{self.config.name}'."
+            )
+        self.code = ""
+        self.mapper = self.get_lang_mapper()
 
     def get_lang_mapper(self) -> Callable:
-        quantum_language = import_module(f"{QUANTUM_LANGUAGES_PATH}.{self.module_name}")
+        quantum_language = import_module(
+            f"{QUANTUM_LANGUAGES_PATH}.{self.module_name}"
+        )
         return quantum_language.builtin_quantum_fn_mapper
+
+    def append_code(self, code: tuple) -> None:
+        for k in code:
+            self.code += self.mapper()
 
     def parse_code(self, code: Any) -> Any:
         ...

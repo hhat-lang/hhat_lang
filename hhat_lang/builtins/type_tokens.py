@@ -1,8 +1,8 @@
 from __future__ import annotations
-from enum import StrEnum
+from enum import Enum
 
 
-class TypeToken(StrEnum):
+class TypeToken(str, Enum):
     DEFAULT = "default-type"
     ATOMIC  = "atomic"
 

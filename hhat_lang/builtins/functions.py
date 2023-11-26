@@ -29,6 +29,7 @@ class MetaFn(ABC):
         return mem
 
     def check_data(self, data: Any) -> tuple:
+        print(f"* fn: data -> {data}")
         if isinstance(data, tuple):
             if len(data) > 1:
                 res = tuple(self.check_data(k) for k in data)

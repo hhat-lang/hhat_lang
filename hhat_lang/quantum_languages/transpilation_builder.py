@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, Callable, Iterable
 
 from hhat_lang.interpreter.memory import Mem
-from hhat_lang.quantum_languages.api import QuantumLanguageAPI
+from hhat_lang.quantum_languages.api import LanguageTranspiler
 
 
 class TranspilerBuilder:

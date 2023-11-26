@@ -31,12 +31,12 @@ class QLanguageConfig:
         self.data = json_data["languages"]
 
 
-class QuantumLanguageAPI:
+class LanguageTranspiler:
     def __init__(self, config: QLanguageConfig):
         self.config = config
-        if lang_name := self.config.data.get(self.config.name, False):
+        if lang_name := self.config.data.get(self.config.name, None):
             if lang_name:
-                self.module_name = lang_name[self.config.version]
+                self.module_name = lang_name[self.config.version]["dir"]
             else:
                 raise NoQuantumLanguageError(
                     f"No language found in '{self.config.version}' version."
@@ -46,6 +46,8 @@ class QuantumLanguageAPI:
                 f"Invalid language '{self.config.name}'."
             )
         self.code = ""
+        self.name = self.config.name
+        self.version = self.config.version
         self.mapper = self.get_lang_mapper()
 
     def get_lang_mapper(self) -> Callable:

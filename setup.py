@@ -38,6 +38,8 @@ setup(
     ],
     include_package_data=True,
     extras_require={
+        "openqasm": ["qiskit"],
+        "qiskit": ["qiskit", "qiskit-aer"],
         # "netqasm": ["netqasm"],
     },
     entry_points={

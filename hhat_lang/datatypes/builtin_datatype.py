@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any
 
+from copy import deepcopy
 from hhat_lang.datatypes import DataType, DataTypeArray
 from hhat_lang.syntax_trees.ast import ASTType, DataTypeEnum
 from hhat_lang.builtins.type_tokens import TypeToken
@@ -59,18 +60,50 @@ class Bool(DataType):
     def __add__(self, other: Any) -> Any:
         if isinstance(other, Bool):
             return Bool(self.convert2bool_dict[self.data] and self.convert2bool_dict[other.data])
+        if isinstance(other, BoolArray):
+            return BoolArray(
+                *tuple(map(
+                    lambda x: self.convert2bool_dict[self.data] and self.convert2bool_dict[x],
+                    other.data
+                ))
+            )
         raise ValueError(f"cannot add {self.__class__.__name__} with {other.__class__.__name__}")
 
     def __radd__(self, other: Any) -> Any:
         if isinstance(other, Bool):
-            return Bool(other.data and self.data)
+            return Bool(self.convert2bool_dict[other.data] and self.convert2bool_dict[self.data])
+        if isinstance(other, BoolArray):
+            return BoolArray(
+                *tuple(map(
+                    lambda x: self.convert2bool_dict[x] and self.convert2bool_dict[self.data],
+                    other.data
+                ))
+            )
         raise ValueError(f"cannot add {self.__class__.__name__} with {other.__class__.__name__}")
 
     def __mul__(self, other: Any) -> Any:
-        ...
+        if isinstance(other, Bool):
+            return Bool(self.convert2bool_dict[self.data] or self.convert2bool_dict[other.data])
+        if isinstance(other, BoolArray):
+            return BoolArray(
+                *tuple(map(
+                    lambda x: self.convert2bool_dict[self.data] or self.convert2bool_dict[x],
+                    other.data
+                ))
+            )
+        raise ValueError(f"cannot multiply {self.__class__.__name__} with {other.__class__.__name__}")
 
     def __rmul__(self, other: Any) -> Any:
-        ...
+        if isinstance(other, Bool):
+            return Bool(self.convert2bool_dict[other.data] or self.convert2bool_dict[self.data])
+        if isinstance(other, BoolArray):
+            return BoolArray(
+                *tuple(map(
+                    lambda x: self.convert2bool_dict[x] or self.convert2bool_dict[self.data],
+                    other.data
+                ))
+            )
+        raise ValueError(f"cannot multiply {self.__class__.__name__} with {other.__class__.__name__}")
 
 
 class Int(DataType):
@@ -146,7 +179,7 @@ class Atomic(DataType):
         if isinstance(other, Atomic):
             return AtomicArray(*tuple(map(lambda x: x, (self.data,) + (other.data,))))
         if isinstance(other, AtomicArray):
-            return AtomicArray(*tuple(map(lbmda x: x, (self.data,) + other.data)))
+            return AtomicArray(*tuple(map(lambda x: x, (self.data,) + other.data)))
 
     def __radd__(self, other: Any) -> Any:
         pass
@@ -178,17 +211,19 @@ class BoolArray(DataTypeArray):
 
     def __add__(self, other: Any) -> Any:
         if isinstance(other, BoolArray):
-            return BoolArray(*tuple(map(lambda x, y: x and y, self.data, other.data)))
+            return BoolArray(*tuple(map(lambda x, y: x + y, self.data, other.data)))
 
     def __radd__(self, other: Any) -> Any:
         if isinstance(other, BoolArray):
-            return BoolArray(*tuple(map(lambda x, y: x and y, other.data, self.data)))
+            return BoolArray(*tuple(map(lambda x, y: x + y, other.data, self.data)))
 
     def __mul__(self, other: Any) -> Any:
-        ...
+        if isinstance(other, BoolArray):
+            return BoolArray(*tuple(map(lambda x, y: x * y, self.data, other.data)))
 
     def __rmul__(self, other: Any) -> Any:
-        ...
+        if isinstance(other, BoolArray):
+            return BoolArray(*tuple(map(lambda x, y: x * y, other.data, self.data)))
 
 
 class IntArray(DataTypeArray):
@@ -293,10 +328,36 @@ class Hashmap(DataTypeArray):
         return DataTypeEnum.HASHMAP
 
     def cast(self) -> Any:
-        res = ()
+        res = dict()
         for k in self.value:
-            pass
-        return
+            if isinstance(k[0], Atomic):
+                res.update({k[0]: k[1]})
+            else:
+                raise ValueError(f"Casting to Hashmap error: unknown '{k[0]}' key.")
+        return res
+
+    @staticmethod
+    def _add_fn(self: Hashmap, second: Hashmap) -> Hashmap:
+        first_data = deepcopy(self.data)
+        second_data = deepcopy(second.data)
+        first_data.update(second_data)
+        return Hashmap(*first_data.items())
+
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, Hashmap):
+            return self._add_fn(self, other)
+        raise ValueError(f"Cannot add {self.__class__.__name__} and {other.__class__.__name__}.")
+
+    def __radd__(self, other: Any) -> Any:
+        if isinstance(other, Hashmap):
+            return self._add_fn(other, self)
+        raise ValueError(f"Cannot add {self.__class__.__name__} and {other.__class__.__name__}.")
+
+    def __mul__(self, other):
+        pass
+
+    def __rmul__(self, other):
+        pass
 
 
 class MultiTypeArray(DataTypeArray):
@@ -312,16 +373,16 @@ class MultiTypeArray(DataTypeArray):
         pass
 
     def __add__(self, other):
-        pass
+        raise NotImplementedError("Addition not implemented for multi-array.")
 
     def __radd__(self, other):
-        pass
+        raise NotImplementedError("Addition not implemented for multi-array.")
 
     def __mul__(self, other):
-        pass
+        raise NotImplementedError("Multiplication not implemented for multi-array.")
 
     def __rmul__(self, other):
-        pass
+        raise NotImplementedError("Multiplication not implemented for multi-array.")
 
 
 class QArray(DataTypeArray):
@@ -427,20 +488,23 @@ class QArray(DataTypeArray):
 builtin_data_types_dict = {
     DataTypeEnum.BOOL: Bool,
     DataTypeEnum.INT: Int,
+    DataTypeEnum.ATOMIC: Atomic,
 }
-builtin_classical_data_types_dict = {
+builtin_classical_array_types_dict = {
     DataTypeEnum.BOOL: BoolArray,
     DataTypeEnum.INT: IntArray,
+    DataTypeEnum.ATOMIC: AtomicArray,
+    DataTypeEnum.HASHMAP: Hashmap,
     ASTType.ARRAY: MultiTypeArray,
 }
-builtin_quantum_data_types_dict = {
+builtin_quantum_array_types_dict = {
     DataTypeEnum.Q_ARRAY: QArray,
 }
 builtin_array_types_dict = {
-    **builtin_classical_data_types_dict,
-    **builtin_quantum_data_types_dict,
+    **builtin_classical_array_types_dict,
+    **builtin_quantum_array_types_dict,
 }
 data_types_list = tuple(builtin_data_types_dict.keys())
-classical_array_types_list = tuple(builtin_classical_data_types_dict.keys())
-quantum_array_types_list = tuple(builtin_quantum_data_types_dict.keys())
+classical_array_types_list = tuple(builtin_classical_array_types_dict.keys())
+quantum_array_types_list = tuple(builtin_quantum_array_types_dict.keys())
 array_types_list = tuple(builtin_array_types_dict.keys())

@@ -1,16 +1,29 @@
 {
-  "openqasm2+qiskit_config": {
-    "quantum_language": {
-      "name": "openqasm",
-      "version": "2.0"
+  "languages": {
+    "openqasm": {
+      "2.0": "openqasm2_0",
+      "3.0": "openqasm3_0"
     },
-    "quantum_backend": {
-      "name": "qiskit",
-      "version": "0.45.0"
+    "netqasm": {
+      "0.8": "netqasm0_8"
     }
   },
-  "openqasm3+qiskit_config": {},
-  "netqasm+simulaqron_config": {},
-  "netqasm+squidasm_config": {},
-  "netqasm+netsquid_config": {}
+  "backends": {
+    "qiskit": {
+      "0.45.0": {
+        "simulator": "qasm_simulator",
+        "hardware": ""
+      }
+    },
+    "simulaqron": {
+      "1.0.0": {
+        "simulator": "simulaqron",
+        "hardware": ""
+      }
+    },
+    "squidasm": {},
+    "netsquid": {},
+    "cqasm": {},
+    "pulser": {}
+  }
 }

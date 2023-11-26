@@ -1,0 +1,5 @@
+
+
+devices_dict = {
+    "simulator": ""
+}

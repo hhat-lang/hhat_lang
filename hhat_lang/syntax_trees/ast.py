@@ -34,6 +34,7 @@ class ASTType(Enum):
     ARGS        = auto()
     Q_OPERATION = auto()
     EXPR        = auto()
+    Q_EXPR      = auto()
     ARRAY       = auto()
     EXTEND      = auto()
     ASSIGN      = auto()

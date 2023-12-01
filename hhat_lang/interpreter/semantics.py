@@ -35,8 +35,13 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
     match code_:
         case Expr():
             res = iter_analyze(code_, role)
+            if code_.assign_q:
+                print(f"[!] CODE ASSIGN Q: {code_}")
+                ast_type = ASTType.Q_EXPR
+            else:
+                ast_type = ASTType.EXPR
             return R(
-                ast_type=code_.type,
+                ast_type=ast_type,
                 value=res,
                 paradigm_type=code_.paradigm,
                 role=role,

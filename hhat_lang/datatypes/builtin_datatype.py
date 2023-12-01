@@ -239,7 +239,8 @@ class IntArray(DataTypeArray):
         res = ()
         for k in self.value:
             if isinstance(k, IntArray):
-                res += tuple(Int(p) for p in k)
+                # res += tuple(Int(p) for p in k)
+                res += k,
             elif isinstance(k, Int):
                 res += Int(k),
             else:
@@ -370,7 +371,8 @@ class MultiTypeArray(DataTypeArray):
         return ASTType.ARRAY
 
     def cast(self) -> Any:
-        pass
+        print(f">>> multi-array -> {self.value}")
+        return tuple(k for k in self.value)
 
     def __add__(self, other):
         raise NotImplementedError("Addition not implemented for multi-array.")
@@ -404,9 +406,11 @@ class QArray(DataTypeArray):
             return self
         if isinstance(other, Int):
             # TODO: implement the casting
+            print("++ @array & int")
             return
         if isinstance(other, IntArray):
             # TODO: implement the casting
+            print("++ @array & int-array")
             return
         if isinstance(other, Bool):
             # TODO: implement the casting
@@ -431,9 +435,11 @@ class QArray(DataTypeArray):
             return other
         if isinstance(other, Int):
             # TODO: implement the casting
+            print("++r @array & int")
             return
         if isinstance(other, IntArray):
             # TODO: implement the casting
+            print("++r @array & int-array")
             return
         if isinstance(other, Bool):
             # TODO: implement the casting

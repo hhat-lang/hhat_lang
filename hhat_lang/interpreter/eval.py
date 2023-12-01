@@ -12,6 +12,7 @@ from hhat_lang.datatypes.builtin_datatype import (
 )
 from hhat_lang.datatypes.base_datatype import DataType, DataTypeArray
 from hhat_lang.builtins.functions import builtin_fn_dict, builtin_quantum_fn_dict
+from hhat_lang.builtins.type_tokens import TypeToken
 from hhat_lang.utils.utils import get_types_set
 from hhat_lang.interpreter.memory import Mem
 
@@ -105,11 +106,14 @@ def eval_token(code: ATO, mem: Mem) -> Any:
     if code.type in operations_or_id:
         if code.token in builtin_fn_dict.keys():
             return builtin_fn_dict[code.token]
+        if TypeToken.has(code.token):
+            return builtin_array_types_dict[TypeToken.get_member(code.token)]
         if code.token in mem:
             return mem.get_var(code.token)
         return Var(code.token)
     if code.type in builtin_data_types_dict.keys():
         return builtin_data_types_dict[code.type](code.token)
+
     raise NotImplementedError(f"Type {code.type} not implemented yet.")
 
 
@@ -209,14 +213,6 @@ def eval_assign(code: R, mem: Mem) -> tuple:
 
 def eval_extend(code: R, mem: Mem) -> Any:
     print("* extend:")
-    # res = ()
-    # for k in code:
-    #     res += execute(k, mem)
-    # mem.pop_expr()
-    # new_res = res[0](mem.pop_stack()),
-    # mem.put_var(res[0], "")
-    # mem.put_stack(res[0])
-    # return new_res
     raise ReferenceError("Shouldn't have 'extend' functionality for classical data")
 
 
@@ -293,7 +289,18 @@ def eval_q_expr(code: R, mem: Mem) -> tuple[R]:
             mem.put_q(k)
         else:
             res += execute(k, mem)
+            print(f"   > @* expr: {len(res)} | {res=}")
             mem.put_q(res[-1])
+        if res[-1].type == ASTType.ASSIGN:
+            res = R(
+                ast_type=ASTType.EXPR,
+                value=res[-1].value,
+                paradigm_type=res[-1].paradigm,
+                role=res[-1].role,
+                execute_after=res[-1].execute_after,
+                assign_q=res[-1].assign_q,
+            ),
+
     mem.clear_q()
     return R(
         ast_type=code.type,
@@ -346,7 +353,9 @@ def eval_q_assign(code: R, mem: Mem) -> tuple[R]:
     for k in code:
         # res += execute(k, mem)
         q_var = Var(k.get_value().token)
+        print(f"   >: {q_var.type=}")
         data = mem.get_q()
+        print(f"   >: {data=}")
         data_r = R(
             ast_type=ASTType.EXPR,
             value=data,
@@ -359,6 +368,9 @@ def eval_q_assign(code: R, mem: Mem) -> tuple[R]:
         mem.put_var(q_var, "")
         mem.put_q(q_var)
         res += q_var,
+    print(f"   >: {res=}")
+    print(f"   >: {mem=}")
+    print(f"   >: {code.type=}")
     return R(
         ast_type=code.type,
         value=res,
@@ -453,7 +465,7 @@ def execute(code: R | ATO, mem: Mem) -> tuple[Any]:
         case R():
             if code.assign_q:
                 match code.type:
-                    case ASTType.EXPR:
+                    case ASTType.Q_EXPR:
                         mem.to_quantum()
                         res = eval_q_expr(code, mem)
                     case ASTType.CALL:

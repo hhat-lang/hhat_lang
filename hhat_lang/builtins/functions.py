@@ -2,6 +2,8 @@ from typing import Any
 from abc import ABC, abstractmethod
 from functools import reduce
 from hhat_lang.interpreter.memory import Mem
+from hhat_lang.interpreter.post_ast import R
+from hhat_lang.syntax_trees.ast import ASTType
 from hhat_lang.interpreter.var_handlers import Var
 from hhat_lang.datatypes import (
     builtin_array_types_dict,
@@ -29,7 +31,7 @@ class MetaFn(ABC):
         return mem
 
     def check_data(self, data: Any) -> tuple:
-        print(f"* fn: data -> {data}")
+        print(f"* fn: data -> {data} ")
         if isinstance(data, tuple):
             if len(data) > 1:
                 res = tuple(self.check_data(k) for k in data)
@@ -44,14 +46,19 @@ class MetaFn(ABC):
             for k in data:
                 res += self.check_data(k)
             types_set_other = get_types_set(*res)
+            print(f"    > fn: check_data -> {types_set_other}")
             type_val_other = types_set_other.pop()
-            array = builtin_array_types_dict[type_val_other](*res)
-            return array,
+            if isinstance(type_val_other, ASTType):
+                return res
+            else:
+                return builtin_array_types_dict[type_val_other](*res),
         if isinstance(data, Var):
             return data.get_data(),
         if isinstance(data, MetaQFn):
             return data,
         if isinstance(data, MetaFn):
+            return data,
+        if isinstance(data, R):
             return data,
 
     @abstractmethod
@@ -102,16 +109,32 @@ class MetaQFn(MetaFn, ABC):
         ...
 
 
-class Sum(MetaFn):
-    token = FnToken.SUM
+class Cast(MetaFn):
+    token = FnToken.CAST
 
     def __init__(self, mem: Mem, *values: Any):
         super().__init__(mem, *values)
 
+    def check_data(self, data: Any) -> tuple:
+        pass
+
     def __call__(self, values: Any | None = None) -> tuple[Any]:
-        types_set_self = get_types_set(self.values)
+        pass
+
+
+class Sum(MetaFn):
+    token = FnToken.SUM
+
+    def __init__(self, mem: Mem, *values: Any):
+        print(f"++ sum gets: {values}")
+        super().__init__(mem, *values)
+
+    def __call__(self, values: Any | None = None) -> tuple[Any]:
+        types_set_self = get_types_set(*self.values)
+        print(f"   > sum: {types_set_self} | {self.values}")
         if len(types_set_self) == 1:
             if not values:
+                print(f"  > sum: {[(k, k.type) for k in self.values]}")
                 return reduce(lambda x, y: x + y, self.values),
             values = self.check_data(values)[0]
             if len(values) == len(self.values):
@@ -174,8 +197,10 @@ class QShuffle(MetaQFn):
 
     def __init__(self, mem: Mem, *values: Any):
         super().__init__(mem, *values)
+        print("++ @SHUFFLE!")
 
     def __add__(self, other: Any) -> Any:
+        print("++ adding @shuffle")
         if isinstance(other, QShuffle):
             pass
         if isinstance(other, Var):
@@ -274,6 +299,7 @@ class QSync(MetaQFn):
 
 
 builtin_classical_fn_dict = {
+    FnToken.CAST: Cast,
     FnToken.SUM: Sum,
     FnToken.TIMES: Times,
     FnToken.PRINT: Print,

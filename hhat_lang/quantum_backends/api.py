@@ -1,3 +1,6 @@
+# TODO: redo this file entirely (probably)
+#  for reference: check hhat_quantum_base_config.json
+
 from __future__ import annotations
 from typing import Any, Callable
 

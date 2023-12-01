@@ -8,6 +8,7 @@ class MetaFnToken(str, Enum):
 
 
 class FnToken(str, Enum):
+    CAST    = "cast"
     SUM     = "sum"
     TIMES   = "times"
     PRINT   = "print"

@@ -2,7 +2,8 @@ from typing import Any, Iterable
 from uuid import uuid4
 
 from hhat_lang.datatypes import DataType, DataTypeArray, builtin_array_types_dict
-from hhat_lang.syntax_trees.ast import DataTypeEnum
+from hhat_lang.syntax_trees.ast import DataTypeEnum, ASTType
+from hhat_lang.datatypes.builtin_datatype import QArray
 
 
 def get_var_type(data: Any, types: set[str]) -> DataTypeEnum:
@@ -66,7 +67,11 @@ class Var:
         from hhat_lang.interpreter.post_ast import R
 
         if isinstance(data, (R, MetaFn)):
-            return data,
+            print(f"******** IS R?! {data.type} | {data.assign_q}")
+            if data.assign_q:
+                print("!!!!!!!! Q EXPR!!")
+                return QArray(data)
+            return data
         raise ValueError(f"what is this? {type(data)} | {data}")
 
     def get_data(self) -> tuple:
@@ -81,7 +86,7 @@ class Var:
         if not self.initialized:
             # if self.type == DataTypeEnum.Q_ARRAY:
             #     print(f"* [@array] var assign -> {type(values)} {values}")
-            self.data = self.analyze_data(values)
+            self.data = self.analyze_data(*values)
             self.initialized = True
             return self
         else:

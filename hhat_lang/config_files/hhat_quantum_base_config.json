@@ -20,8 +20,9 @@
   "backends": {
     "qiskit": {
       "0.45.0": {
-        "simulator": "qasm_simulator",
-        "hardware": ""
+        "qasm_simulator": {
+          "max_qubits": 28
+        }
       }
     },
     "simulaqron": {

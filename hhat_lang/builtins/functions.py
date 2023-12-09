@@ -9,7 +9,7 @@ from hhat_lang.datatypes import (
     builtin_array_types_dict,
     quantum_array_types_list,
 )
-from hhat_lang.datatypes import DataType, DataTypeArray
+from hhat_lang.datatypes import DataType, ArrayDataType
 from hhat_lang.utils import get_types_set
 from hhat_lang.builtins.function_tokens import FnToken, QFnToken, MetaFnToken
 
@@ -41,7 +41,7 @@ class MetaFn(ABC):
             return self.check_data(data[0])
         if isinstance(data, DataType):
             return data,
-        if isinstance(data, DataTypeArray):
+        if isinstance(data, ArrayDataType):
             res = ()
             for k in data:
                 res += self.check_data(k)

@@ -1,6 +1,6 @@
 from .base_datatype import (
     DataType,
-    DataTypeArray
+    ArrayDataType
 )
 from .builtin_datatype import (
     builtin_array_types_dict,

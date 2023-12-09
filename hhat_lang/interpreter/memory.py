@@ -8,7 +8,7 @@ from hhat_lang.interpreter.fn_handlers import Fn
 from hhat_lang.interpreter.post_ast import R
 
 from hhat_lang.syntax_trees.ast import ATO, AST, ASTType, DataTypeEnum
-from hhat_lang.datatypes.base_datatype import DataType, DataTypeArray
+from hhat_lang.datatypes.base_datatype import DataType, ArrayDataType
 
 
 def transform_token_type(data: ATO):
@@ -167,7 +167,7 @@ class Mem:
     def put_expr(self, value: Any, key: str = "shared") -> None:
         self.data[key]["exprs"] += value,
 
-    def put_data(self, value: Data | DataType | DataTypeArray, key: str = "shared") -> None:
+    def put_data(self, value: Data | DataType | ArrayDataType, key: str = "shared") -> None:
         self.data[key]["data"] += value,
 
     def put_var(self, data: Var, scope_id: str, key: str = "shared") -> tuple[str, str]:

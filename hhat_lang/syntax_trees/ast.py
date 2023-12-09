@@ -4,7 +4,11 @@ from abc import ABC
 from typing import Any, Callable, Iterable, Union
 from hhat_lang.syntax_trees.literal_define import (
     literal_bool_define,
-    literal_int_define
+    literal_int_define,
+    literal_bin_define,
+    literal_atomic_define,
+    literal_hex_define,
+    literal_str_define,
 )
 from enum import Enum, auto, unique
 
@@ -24,30 +28,36 @@ class ExprParadigm(Enum):
 
 @unique
 class ASTType(Enum):
-    NONE        = auto()
-    LITERAL     = auto()
-    ID          = auto()
-    Q_ID        = auto()
-    BUILTIN     = auto()
-    OPERATION   = auto()
-    CALL        = auto()
-    ARGS        = auto()
-    Q_OPERATION = auto()
-    EXPR        = auto()
-    Q_EXPR      = auto()
-    ARRAY       = auto()
-    EXTEND      = auto()
-    ASSIGN      = auto()
-    CONDITIONAL = auto()
-    MAIN        = auto()
-    PROGRAM     = auto()
+    NONE            = auto()
+    LITERAL         = auto()
+    ID              = auto()
+    Q_ID            = auto()
+    BUILTIN         = auto()
+    OPERATION       = auto()
+    CALL            = auto()
+    ARGS            = auto()
+    Q_OPERATION     = auto()
+    EXPR            = auto()
+    Q_EXPR          = auto()
+    ARRAY           = auto()
+    EXTEND          = auto()
+    ASSIGN          = auto()
+    SCOPETOALL      = auto()
+    SCOPETOEACH     = auto()
+    SCOPECOND       = auto()
+    MAIN            = auto()
+    PROGRAM         = auto()
 
 
 @unique
 class DataTypeEnum(Enum):
     NULL    = auto()
     BOOL    = auto()
+    BIN     = auto()
+    HEX     = auto()
     INT     = auto()
+    FLOAT   = auto()
+    STR     = auto()
     ATOMIC  = auto()
     Q_ARRAY = auto()
     HASHMAP = auto()
@@ -70,10 +80,20 @@ operations_or_id = [ASTType.OPERATION, ASTType.Q_OPERATION, ASTType.ID, ASTType.
 
 literal_dict = {
     DataTypeEnum.BOOL: literal_bool_define,
-    DataTypeEnum.INT: literal_int_define
+    DataTypeEnum.INT: literal_int_define,
+    DataTypeEnum.STR: literal_str_define,
+    DataTypeEnum.BIN: literal_bin_define,
+    DataTypeEnum.HEX: literal_hex_define,
+    DataTypeEnum.ATOMIC: literal_atomic_define,
 }
 
 ato_types = Union[DataTypeEnum, ASTType]
+
+behavior_str = {
+    BehaviorATO.CALL: "'call",
+    BehaviorATO.ASSIGN: "'assign",
+    BehaviorATO.EXTEND: "'extend",
+}
 
 
 ####################
@@ -85,7 +105,8 @@ class ATO(ABC):
 
     """
     def __init__(
-            self, token: str,
+            self,
+            token: str,
             ato_type: ato_types,
             assign_q: bool = False,
             behavior: BehaviorATO = BehaviorATO.CALL
@@ -97,7 +118,8 @@ class ATO(ABC):
         self.behavior = behavior
 
     def __repr__(self) -> str:
-        return self.token
+        frame = f"{behavior_str[self.behavior]}[{self.token}]" if isinstance(self.type, ASTType) else self.token
+        return frame
 
 
 class AST(ABC):
@@ -144,18 +166,18 @@ class AST(ABC):
         return self.edges[item]
 
     def __repr__(self) -> str:
-        token = self.node.token if self.node else ""
+        token = str(self.node) if self.node else ""
         assign_q = "含" if self.assign_q else ""
         if len(self.edges) > 0:
             args = " ".join(str(k) for k in self.edges)
             paradigm_name = self.match_paradigm(args)
             if self.type == ASTType.EXPR:
-                edges = f"({paradigm_name})"
+                edges = f"❰{paradigm_name}❱"
             else:
                 edges = paradigm_name
 
             if token:
-                return assign_q + "(" + token + "(" + edges + ")" + ")"
+                return assign_q + token + "(" + edges + ")"
             return assign_q + edges
         return assign_q + token
 
@@ -188,7 +210,7 @@ class Id(ATO):
 class Assign(ATO):
     def __init__(self):
         super().__init__(
-            token="'assign",
+            token="=",
             ato_type=ASTType.ASSIGN,
             assign_q=False,
             behavior=BehaviorATO.ASSIGN,
@@ -199,7 +221,7 @@ class Assign(ATO):
 class Extend(ATO):
     def __init__(self):
         super().__init__(
-            token="'extend",
+            token="=+",
             ato_type=ASTType.EXTEND,
             assign_q=False,
             behavior=BehaviorATO.EXTEND,
@@ -207,9 +229,21 @@ class Extend(ATO):
         self.value = self.token
 
 
-class Conditional(ATO):
+class ScopeToAll(ATO):
     def __init__(self):
-        super().__init__(token="'cond", ato_type=ASTType.CONDITIONAL, assign_q=False)
+        super().__init__(token="'.", ato_type=ASTType.SCOPETOALL, assign_q=False)
+        self.value = self.token
+
+
+class ScopeToEach(ATO):
+    def __init__(self):
+        super().__init__(token="'/", ato_type=ASTType.SCOPETOEACH, assign_q=False)
+        self.value = self.token
+
+
+class ScopeCond(ATO):
+    def __init__(self):
+        super().__init__(token="'?", ato_type=ASTType.SCOPECOND, assign_q=False)
         self.value = self.token
 
 
@@ -232,8 +266,14 @@ class Array(AST):
             parent_id: str = "",
             assign_q: bool = False
     ):
+        if values[0].type in (ASTType.SCOPETOALL, ASTType.SCOPETOEACH, ASTType.SCOPECOND):
+            node = values[0]
+            values = values[1:]
+        else:
+            node = None
+
         super().__init__(
-            node=None,
+            node=node,
             ast_type=ASTType.ARRAY,
             paradigm=paradigm,
             args=values,
@@ -248,30 +288,14 @@ class Operation(AST):
             args: Array | None,
             parent_id: str = "",
     ):
-        new_type, assign_q = self.get_oper_type(oper_token)
-        oper_token = self.set_oper_token(oper_token, new_type)
+        assign_q = oper_token.assign_q
         super().__init__(
             node=oper_token,
-            ast_type=new_type,
+            ast_type=oper_token.type,
             paradigm=(ExprParadigm.SINGLE if args is None else args.paradigm),
             args=args or (),
             assign_q=assign_q,
         )
-
-    @staticmethod
-    def get_oper_type(oper_token: ATO) -> tuple[ASTType, bool]:
-        if oper_token.token.startswith("@"):
-            print("oper quantum?")
-            return ASTType.Q_OPERATION, True
-        return ASTType.OPERATION, False
-
-    @staticmethod
-    def set_oper_token(oper_token: ATO | str, new_type: ASTType) -> ATO:
-        if isinstance(oper_token, Id):
-            oper_token.type = new_type
-        else:
-            oper_token = Id(token=oper_token, ato_type=new_type)
-        return oper_token
 
 
 class Main(AST):

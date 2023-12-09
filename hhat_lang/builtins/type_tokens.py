@@ -9,6 +9,10 @@ class TypeToken(str, Enum):
 
     BOOLEAN = "bool"
     INTEGER = "int"
+    FLOAT   = "float"
+    STRING  = "str"
+    BINARY  = "bin"
+    HEXADEC = "hex"
     Q_ARRAY = "@array"
     HASHMAP = "hashmap"
 

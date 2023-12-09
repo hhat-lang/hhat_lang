@@ -10,7 +10,7 @@ from hhat_lang.datatypes.builtin_datatype import (
     builtin_array_types_dict,
     quantum_array_types_list,
 )
-from hhat_lang.datatypes.base_datatype import DataType, DataTypeArray
+from hhat_lang.datatypes.base_datatype import DataType, ArrayDataType
 from hhat_lang.builtins.functions import builtin_fn_dict, builtin_quantum_fn_dict
 from hhat_lang.builtins.type_tokens import TypeToken
 from hhat_lang.utils.utils import get_types_set
@@ -130,7 +130,7 @@ def eval_oper(code: R, mem: Mem) -> tuple:
             else:
                 mem.put_expr(last[0])
                 res += last
-        elif isinstance(last[0], (DataType, DataTypeArray)):
+        elif isinstance(last[0], (DataType, ArrayDataType)):
             mem.put_stack(last[0])
             res += last
         else:

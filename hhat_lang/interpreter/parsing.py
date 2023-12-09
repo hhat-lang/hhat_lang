@@ -3,7 +3,9 @@ from hhat_lang.syntax_trees.ast import (
     Assign,
     Extend,
     Array,
-    Conditional,
+    ScopeToAll,
+    ScopeToEach,
+    ScopeCond,
     Expr,
     Operation,
     Id,
@@ -11,6 +13,7 @@ from hhat_lang.syntax_trees.ast import (
     ExprParadigm,
     DataTypeEnum,
     BehaviorATO,
+    ASTType,
 )
 from hhat_lang.grammar import grammar_file
 from arpeggio import visit_parse_tree, PTNodeVisitor
@@ -21,75 +24,76 @@ class CST(PTNodeVisitor):
     def __init__(self, defaults=True, **kwargs):
         super().__init__(defaults=defaults, **kwargs)
 
-    def set_behavior(self, behavior: BehaviorATO) -> BehaviorATO:
-        return (
-            behavior
-            if behavior in (BehaviorATO.ASSIGN, BehaviorATO.EXTEND)
-            else BehaviorATO.CALL
-        )
+    @staticmethod
+    def unfold_exprs(k):
+        scope = None
+        new_k = ()
+        for p in k:
+            if isinstance(p, (ScopeCond, ScopeToEach, ScopeToAll)):
+                scope = p.token
+            elif isinstance(p, Array):
+                p.node = scope
+                scope = None
+                new_k += p,
+            elif isinstance(p, (Assign, Extend)):
+                print(f"  -> assign/extend {p}")
+            elif isinstance(p, Expr):
+                new_k += p.edges
+            elif isinstance(p, Id):
+                new_k += Operation(p, None),
+            else:
+                new_k += p,
+        return new_k
+
+    def define_q_exprs(self, k, assign_q=False):
+        res = ()
+        for p in k:
+            if isinstance(p, (Expr, Array)):
+                self.define_q_exprs(p.edges[::-1], assign_q)
+                res += p,
+            elif isinstance(p, Operation):
+                p.assign_q = assign_q
+                if p.node.behavior in (BehaviorATO.ASSIGN, BehaviorATO.EXTEND):
+                    assign_q = p.node.is_q
+                self.define_q_exprs(p.edges[::-1], assign_q)
+                if any(x.assign_q for x in p.edges):
+                    assign_q = True
+                    p.assign_q = True
+                res += p,
+            elif isinstance(p, (Assign, Extend)):
+                continue
+            elif isinstance(p, Id):
+                p.assign_q = assign_q
+                res += p,
+            else:
+                p.assign_q = assign_q
+                res += p,
+        return res
 
     def visit_program(self, n, k):
         res = Array(ExprParadigm.CONCURRENT, *k)
         return Main(res)
 
     def visit_exprs(self, n, k):
-        print(f"exprs -> {k}")
-        new_k = ()
-        assign_q = any(p.assign_q for p in k if not isinstance(p, str))
-        behavior = BehaviorATO.CALL
-        for p in k:
-            if isinstance(p, Expr):
-                if behavior:
-                    p.edges[0].behavior = behavior
-                    behavior = self.set_behavior(behavior)
-                new_k += p.edges
-            elif isinstance(p, (Assign, Extend)):
-                behavior = p.behavior
-            elif isinstance(p, Id):
-                print(f"    > id {p}")
-                p.behavior = behavior
-                new_k += p,
-                behavior = self.set_behavior(behavior)
-            elif isinstance(p, str):
-                continue
-            else:
-                new_k += p,
-
-        # experimental: give assign_q correctly
-        last_k = ()
-        assign_q = False
-        for p in new_k[::-1]:
-            if isinstance(p, Expr):
-                for v in p.edges[::-1]:
-                    if isinstance(v, Id) and v.behavior == BehaviorATO.ASSIGN:
-                        assign_q = v.is_q
-                    else:
-                        v.assign_q = assign_q
-                if p[-1].assign_q:
-                    p.assign_q = True
-            elif isinstance(p, Id):
-                if isinstance(p, Id) and p.behavior == BehaviorATO.ASSIGN:
-                    assign_q = p.is_q
-                else:
-                    p.assign_q = assign_q
-            else:
-                print("    > unknown state!")
-
-        return Expr(*new_k, assign_q=assign_q)
+        new_k = self.unfold_exprs(k)
+        new_k = self.define_q_exprs(new_k[::-1])[::-1]
+        return Expr(*new_k)
 
     def visit_scope_id(self, n, k):
-        print(f"scope id {n.value=}")
         if n.value == "?":
-            return Conditional()
-        return n.value
+            return ScopeCond()
+        if n.value == ".":
+            return ScopeToAll()
+        if n.value == "/":
+            return ScopeToEach()
+        raise ValueError(f"Wrong value for scope id: '{n.value}'.")
 
-    def visit_pipe_assign(self, n, k):
-        print(f"pipe/assign {n=} {k=}")
-        if n.value == ":=":
+    def visit_assign(self, n, k):
+        if n.value == "=":
             return Assign()
-        if n.value == ":=+":
+        if n.value == "=+":
             return Extend()
-        return
+        raise ValueError(f"Unknown value {k}")
 
     def visit_parallel(self, n, k):
         assign_q = all(p.assign_q for p in k)
@@ -103,19 +107,18 @@ class CST(PTNodeVisitor):
         assign_q = all(p.assign_q for p in k)
         return Array(ExprParadigm.SEQUENTIAL, *k, assign_q=assign_q)
 
-    def visit_expr(self, n, k):
-        print("EXPR!")
-        if len(k) > 1:
-            return Expr(*k)
-        return k
-
-    def visit_single(self, n, k):
-        print("SINGLE!")
-        return Expr(*k)
+    def visit_pipe(self, n, k):
+        return
 
     def visit_operation(self, n, k):
-        if len(k) > 1:
+        if len(k) == 2:
+            if k[0].type in (ASTType.ASSIGN, ASTType.EXTEND):
+                k[1].behavior = k[0].behavior
+                return Operation(k[1], None)
             return Operation(k[0], k[1])
+        if len(k) == 3:
+            k[1].behavior = k[0].behavior
+            return Operation(k[1], k[2])
         return Operation(k[0], None)
 
     def visit_id(self, n, k):
@@ -124,8 +127,23 @@ class CST(PTNodeVisitor):
     def visit_literal(self, n, k):
         return k[0]
 
+    def visit_ATOMIC(self, n, k):
+        return Literal(token=n.value, lit_type=DataTypeEnum.ATOMIC)
+
     def visit_INT(self, n, k):
         return Literal(token=n.value, lit_type=DataTypeEnum.INT)
+
+    def visit_FLOAT(self, n, k):
+        return Literal(token=n.value, lit_type=DataTypeEnum.FLOAT)
+
+    def visit_STR(self, n, k):
+        return Literal(token=n.value, lit_type=DataTypeEnum.STR)
+
+    def visit_BIN(self, n, k):
+        return Literal(token=n.value, lit_type=DataTypeEnum.BIN)
+
+    def visit_HEX(self, n, k):
+        return Literal(token=n.value, lit_type=DataTypeEnum.HEX)
 
     def visit_BOOL(self, n, k):
         return Literal(token=n.value, lit_type=DataTypeEnum.BOOL)

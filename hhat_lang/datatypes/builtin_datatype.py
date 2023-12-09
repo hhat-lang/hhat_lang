@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any
 
 from copy import deepcopy
-from hhat_lang.datatypes import DataType, DataTypeArray
+from hhat_lang.datatypes import DataType, ArrayDataType
 from hhat_lang.syntax_trees.ast import ASTType, DataTypeEnum
 from hhat_lang.builtins.type_tokens import TypeToken
 from hhat_lang.interpreter.post_ast import R, ATO
@@ -21,8 +21,8 @@ class DefaultType(DataType):
     def type(self):
         return "default-type"
 
-    def cast(self) -> Any:
-        return self.value
+    def cast2native(self) -> Any:
+        return self.values
 
     def __add__(self, other: Any) -> Any:
         raise ValueError(f"cannot add with {self.__class__.__name__}.")
@@ -52,10 +52,10 @@ class Bool(DataType):
     def type(self):
         return DataTypeEnum.BOOL
 
-    def cast(self) -> Any:
-        if self.value in self.convert2bool_dict.keys():
-            return self.value
-        raise ValueError(f"Wrong value for boolean: {self.value}.")
+    def cast2native(self) -> Any:
+        if self.values in self.convert2bool_dict.keys():
+            return self.values
+        raise ValueError(f"Wrong value for boolean: {self.values}.")
 
     def __add__(self, other: Any) -> Any:
         if isinstance(other, Bool):
@@ -115,8 +115,8 @@ class Int(DataType):
     def type(self):
         return DataTypeEnum.INT
 
-    def cast(self) -> Any:
-        return int(self.value) if isinstance(self.value, str) else self.value
+    def cast2native(self) -> Any:
+        return int(self.values) if isinstance(self.values, str) else self.values
 
     def __add__(self, other: Any) -> Any:
         if isinstance(other, Int):
@@ -168,12 +168,12 @@ class Atomic(DataType):
     def type(self):
         return DataTypeEnum.ATOMIC
 
-    def cast(self) -> str:
-        if isinstance(self.value, str):
-            return str(self.value)
-        if isinstance(self.value, ATO):
-            return self.value.token
-        raise ValueError(f"Casting to Atomic not found for {self.value}.")
+    def cast2native(self) -> str:
+        if isinstance(self.values, str):
+            return str(self.values)
+        if isinstance(self.values, ATO):
+            return self.values.token
+        raise ValueError(f"Casting to Atomic not found for {self.values}.")
 
     def __add__(self, other: Any) -> Any:
         if isinstance(other, Atomic):
@@ -191,11 +191,44 @@ class Atomic(DataType):
         pass
 
 
+class Str(DataType):
+    @property
+    def token(self):
+        return TypeToken.STRING
+
+    @property
+    def type(self):
+        return DataTypeEnum.STR
+
+    def cast2native(self) -> str:
+        if isinstance(self.values, str):
+            return str(self.values)
+        if isinstance(self.values, ATO):
+            return self.values.token
+        raise ValueError(f"Casting to Atomic not found for {self.values}.")
+
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, Str):
+            return AtomicArray(*tuple(map(lambda x: x, (self.data,) + (other.data,))))
+        if isinstance(other, AtomicArray):
+            return AtomicArray(*tuple(map(lambda x: x, (self.data,) + other.data)))
+
+    def __radd__(self, other: Any) -> Any:
+        pass
+
+    def __mul__(self, other: Any) -> Any:
+        pass
+
+    def __rmul__(self, other: Any) -> Any:
+        pass
+
+
+
 ###############
 # ARRAY TYPES #
 ###############
 
-class BoolArray(DataTypeArray):
+class BoolArray(ArrayDataType):
     bool_dict = dict(T=True, F=False)
 
     @property
@@ -206,8 +239,8 @@ class BoolArray(DataTypeArray):
     def type(self):
         return DataTypeEnum.BOOL
 
-    def cast(self) -> Any:
-        return tuple(Bool(k) for k in self.value)
+    def cast2native(self) -> Any:
+        return tuple(Bool(k) for k in self.values)
 
     def __add__(self, other: Any) -> Any:
         if isinstance(other, BoolArray):
@@ -226,7 +259,7 @@ class BoolArray(DataTypeArray):
             return BoolArray(*tuple(map(lambda x, y: x * y, other.data, self.data)))
 
 
-class IntArray(DataTypeArray):
+class IntArray(ArrayDataType):
     @property
     def token(self):
         return TypeToken.INTEGER_ARRAY
@@ -235,9 +268,9 @@ class IntArray(DataTypeArray):
     def type(self):
         return DataTypeEnum.INT
 
-    def cast(self):
+    def cast2native(self):
         res = ()
-        for k in self.value:
+        for k in self.values:
             if isinstance(k, IntArray):
                 # res += tuple(Int(p) for p in k)
                 res += k,
@@ -278,7 +311,7 @@ class IntArray(DataTypeArray):
         print(f"* [rmul] mult int array: {self.data} ({type(self.data)}) | {other.data} ({type(other.data)})")
 
 
-class AtomicArray(DataTypeArray):
+class AtomicArray(ArrayDataType):
     @property
     def token(self):
         return TypeToken.ATOMIC_ARRAY
@@ -287,9 +320,9 @@ class AtomicArray(DataTypeArray):
     def type(self):
         return DataTypeEnum.ATOMIC
 
-    def cast(self) -> Any:
+    def cast2native(self) -> Any:
         res = ()
-        for k in self.value:
+        for k in self.values:
             if isinstance(k, Atomic):
                 res += k,
             elif isinstance(k, AtomicArray):
@@ -319,7 +352,7 @@ class AtomicArray(DataTypeArray):
         raise NotImplementedError("Multiplication of AtomicArray not implemented.")
 
 
-class Hashmap(DataTypeArray):
+class Hashmap(ArrayDataType):
     @property
     def token(self):
         return TypeToken.HASHMAP
@@ -328,9 +361,9 @@ class Hashmap(DataTypeArray):
     def type(self):
         return DataTypeEnum.HASHMAP
 
-    def cast(self) -> Any:
+    def cast2native(self) -> Any:
         res = dict()
-        for k in self.value:
+        for k in self.values:
             if isinstance(k[0], Atomic):
                 res.update({k[0]: k[1]})
             else:
@@ -361,7 +394,7 @@ class Hashmap(DataTypeArray):
         pass
 
 
-class MultiTypeArray(DataTypeArray):
+class MultiTypeArray(ArrayDataType):
     @property
     def token(self):
         return TypeToken.MULTI_ARRAY
@@ -370,9 +403,9 @@ class MultiTypeArray(DataTypeArray):
     def type(self):
         return ASTType.ARRAY
 
-    def cast(self) -> Any:
-        print(f">>> multi-array -> {self.value}")
-        return tuple(k for k in self.value)
+    def cast2native(self) -> Any:
+        print(f">>> multi-array -> {self.values}")
+        return tuple(k for k in self.values)
 
     def __add__(self, other):
         raise NotImplementedError("Addition not implemented for multi-array.")
@@ -387,7 +420,7 @@ class MultiTypeArray(DataTypeArray):
         raise NotImplementedError("Multiplication not implemented for multi-array.")
 
 
-class QArray(DataTypeArray):
+class QArray(ArrayDataType):
     @property
     def token(self) -> str:
         return TypeToken.Q_ARRAY
@@ -396,9 +429,9 @@ class QArray(DataTypeArray):
     def type(self) -> str:
         return DataTypeEnum.Q_ARRAY
 
-    def cast(self) -> tuple[Any]:
-        print(f">>> cast @array -> {self.value}")
-        return tuple(k for k in self.value)
+    def cast2native(self) -> tuple[Any]:
+        print(f">>> cast @array -> {self.values}")
+        return tuple(k for k in self.values)
 
     def __add__(self, other: Any) -> Any:
         if isinstance(other, QArray):

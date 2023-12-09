@@ -1,7 +1,7 @@
 from typing import Any, Iterable
 from uuid import uuid4
 
-from hhat_lang.datatypes import DataType, DataTypeArray, builtin_array_types_dict
+from hhat_lang.datatypes import DataType, ArrayDataType, builtin_array_types_dict
 from hhat_lang.syntax_trees.ast import DataTypeEnum, ASTType
 from hhat_lang.datatypes.builtin_datatype import QArray
 
@@ -46,7 +46,7 @@ class Var:
         return {data.type}
 
     def analyze_data(self, data: Any) -> Any:
-        if isinstance(data, (DataType, DataTypeArray)):
+        if isinstance(data, (DataType, ArrayDataType)):
             if self.type is DataTypeEnum.NULL:
                 self.type = data.type
             return data

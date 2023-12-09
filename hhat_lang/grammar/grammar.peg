@@ -1,15 +1,20 @@
 program    = exprs* EOF
-exprs      = (single / (scope_id (sequential / concurrent / parallel))) (pipe_assign exprs)*
-expr       = literal / operation
-scope_id   = r"\.|\?"
-pipe_assign= r"\:(\=\+?)?"
-single     = expr
+exprs      = (single / (scope_id (sequential / concurrent / parallel))) (pipe exprs)*
+scope_id   = r"\.|/|\?"
+assign     = r"=\+?"
+pipe       = r"\:"
+single     = literal / operation
 sequential = '[' exprs+ ']'
 concurrent = '(' exprs+ ')'
 parallel   = '{' exprs+ '}'
-operation  = id ( sequential / concurrent / parallel )?
+operation  = assign? id ( sequential / concurrent / parallel )?
 id         = r"(\!)?(\`)?(\@)?[a-zA-Z\-\+][a-zA-Z\-\+_0-9]*"
-literal    = BOOL / INT
+literal    = ATOMIC / BOOL / INT / FLOAT / STR
+ATOMIC     = r"\'[a-zA-Z][a-zA-Z\-_0-9]*"
 BOOL       = r"T|F"
+BIN        = r"0[bB][0-1]+"
+HEX        = r"0[xX][0-9a-fA-F]+"
 INT        = r"(0|-?[1-9][0-9]*)"
-comment    = r"//.*\n|/\([.\s\w\d]*\)/"
+FLOAT      = r"[-]?[0-9]*\.?[0-9]+"
+STR        = r"\"[.\s\w]*\""
+comment    = r"//.*\n|/\*[.\s\w\d]*\*/"

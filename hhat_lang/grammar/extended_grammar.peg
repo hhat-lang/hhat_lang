@@ -1,4 +1,6 @@
-program    = exprs* EOF
+program    = fns* main? EOF
+fns        = 'fn' ':' id '(' exprs* ')' '(' exprs* ')' ':' exprs
+main       = 'main' '(' exprs* ')'
 exprs      = (single / (scope_id (sequential / concurrent / parallel))) (pipe exprs)*
 scope_id   = r"\.|/|\?"
 assign     = r"=\+?"
@@ -8,7 +10,7 @@ sequential = '[' exprs+ ']'
 concurrent = '(' exprs+ ')'
 parallel   = '{' exprs+ '}'
 operation  = assign? id ( sequential / concurrent / parallel )?
-id         = r"(\!)?(\`)?(\@)?[a-zA-Z\-\+][a-zA-Z\-\+_0-9]*"
+id         = r"(\!)?(\@)?[a-zA-Z\-\+][a-zA-Z\-\+_0-9]*"
 literal    = ATOMIC / BOOL / BIN / HEX / INT / FLOAT / STR
 ATOMIC     = r"\'[a-zA-Z][a-zA-Z\-_0-9]*"
 BOOL       = r"T|F"

@@ -201,17 +201,17 @@ class Str(DataType):
         return DataTypeEnum.STR
 
     def cast2native(self) -> str:
-        if isinstance(self.values, str):
-            return str(self.values)
-        if isinstance(self.values, ATO):
-            return self.values.token
-        raise ValueError(f"Casting to Atomic not found for {self.values}.")
+        if isinstance(self.values[0], str):
+            return str(self.values[0])
+        if isinstance(self.values[0], ATO):
+            return self.values[0].token
+        raise ValueError(f"Casting to Str not found for {self.values[0]}.")
 
     def __add__(self, other: Any) -> Any:
         if isinstance(other, Str):
-            return AtomicArray(*tuple(map(lambda x: x, (self.data,) + (other.data,))))
-        if isinstance(other, AtomicArray):
-            return AtomicArray(*tuple(map(lambda x: x, (self.data,) + other.data)))
+            return Str(*tuple(map(lambda x: x, (self.data,) + (other.data,))))
+        if isinstance(other, StrArray):
+            return StrArray(*tuple(map(lambda x: x, (self.data,) + other.data)))
 
     def __radd__(self, other: Any) -> Any:
         pass
@@ -223,7 +223,6 @@ class Str(DataType):
         pass
 
 
-
 ###############
 # ARRAY TYPES #
 ###############
@@ -233,7 +232,7 @@ class BoolArray(ArrayDataType):
 
     @property
     def token(self):
-        return TypeToken.BOOLEAN_ARRAY
+        return TypeToken.BOOLEAN
 
     @property
     def type(self):
@@ -262,7 +261,7 @@ class BoolArray(ArrayDataType):
 class IntArray(ArrayDataType):
     @property
     def token(self):
-        return TypeToken.INTEGER_ARRAY
+        return TypeToken.INTEGER
 
     @property
     def type(self):
@@ -314,7 +313,7 @@ class IntArray(ArrayDataType):
 class AtomicArray(ArrayDataType):
     @property
     def token(self):
-        return TypeToken.ATOMIC_ARRAY
+        return TypeToken.ATOMIC
 
     @property
     def type(self):
@@ -350,6 +349,47 @@ class AtomicArray(ArrayDataType):
 
     def __rmul__(self, other: Any) -> Any:
         raise NotImplementedError("Multiplication of AtomicArray not implemented.")
+
+
+class StrArray(ArrayDataType):
+    @property
+    def token(self):
+        return TypeToken.STRING
+
+    @property
+    def type(self):
+        return DataTypeEnum.STR
+
+    def cast2native(self) -> Any:
+        res = ()
+        for k in self.values:
+            if isinstance(k, Str):
+                res += k,
+            elif isinstance(k, StrArray):
+                res += k.data
+            else:
+                raise ValueError(f"Casting to StrArray on unknown data {k}.")
+        return res
+
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, Str):
+            return StrArray(*(self.data + (other.data,)))
+        if isinstance(other, StrArray):
+            return StrArray(*(self.data + other.data))
+        raise ValueError(f"StrArray add method on unknown data {other}.")
+
+    def __radd__(self, other: Any) -> Any:
+        if isinstance(other, Str):
+            return StrArray(*((other.data,) + self.data))
+        if isinstance(other, StrArray):
+            return StrArray(*(other.data + self.data))
+        raise ValueError(f"StrArray add method on unknown data {other}.")
+
+    def __mul__(self, other: Any) -> Any:
+        raise NotImplementedError("Multiplication of StrArray not implemented.")
+
+    def __rmul__(self, other: Any) -> Any:
+        raise NotImplementedError("Multiplication of StrArray not implemented.")
 
 
 class Hashmap(ArrayDataType):
@@ -528,11 +568,13 @@ builtin_data_types_dict = {
     DataTypeEnum.BOOL: Bool,
     DataTypeEnum.INT: Int,
     DataTypeEnum.ATOMIC: Atomic,
+    DataTypeEnum.STR: Str,
 }
 builtin_classical_array_types_dict = {
     DataTypeEnum.BOOL: BoolArray,
     DataTypeEnum.INT: IntArray,
     DataTypeEnum.ATOMIC: AtomicArray,
+    DataTypeEnum.STR: Str,
     DataTypeEnum.HASHMAP: Hashmap,
     ASTType.ARRAY: MultiTypeArray,
 }

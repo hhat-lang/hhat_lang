@@ -115,8 +115,10 @@ class CST(PTNodeVisitor):
             if k[0].type in (ASTType.ASSIGN, ASTType.EXTEND):
                 k[1].behavior = k[0].behavior
                 return Operation(k[1], None)
+            print(f"k==2 -> {k[0]}, {k[1]} ({type(k[1])})")
             return Operation(k[0], k[1])
         if len(k) == 3:
+            print(f"k==3 -> {k}")
             k[1].behavior = k[0].behavior
             return Operation(k[1], k[2])
         return Operation(k[0], None)

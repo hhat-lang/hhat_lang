@@ -89,32 +89,49 @@ def analyze(code_: AST | ATO, role: str = "") -> R | AST | ATO:
                 assign_q=code_.assign_q,
             )
         case Operation():
+            print(f"-> operation {code_} ({code_.type}) -> edges: {code_.edges}")
             res = iter_analyze(code_, role="callee")
             if code_.node.token in builtin_fn_dict.keys():
                 caller_type = ASTType.BUILTIN
             else:
                 caller_type = ASTType.ID
 
+            if len(code_.edges) > 0:
+                return R(
+                    ast_type=ASTType.CALL,
+                    value=(
+                        R(
+                            ast_type=caller_type,
+                            value=code_.node,
+                            paradigm_type=ExprParadigm.SINGLE,
+                            role="caller",
+                            execute_after=None,
+                            assign_q=code_.assign_q,
+                        ),
+                        R(
+                            ast_type=ASTType.ARGS,
+                            value=res,
+                            paradigm_type=code_.edges.paradigm,
+                            role="callee",
+                            execute_after=None,
+                            assign_q=code_.assign_q,
+                        )
+                    ),
+                    paradigm_type=ExprParadigm.SINGLE,
+                    role=role,
+                    execute_after=None,
+                    assign_q=code_.assign_q,
+                )
             return R(
                 ast_type=ASTType.CALL,
-                value=(
-                    R(
-                        ast_type=caller_type,
-                        value=code_.node,
-                        paradigm_type=ExprParadigm.SINGLE,
-                        role="caller",
-                        execute_after=None,
-                        assign_q=code_.assign_q,
+                value=R(
+                    ast_type=caller_type,
+                    value=code_.node,
+                    paradigm_type=ExprParadigm.SINGLE,
+                    role="caller",
+                    execute_after=None,
+                    assign_q=code_.assign_q,
                     ),
-                    R(
-                        ast_type=ASTType.ARGS,
-                        value=res,
-                        paradigm_type=code_.edges.paradigm,
-                        role="callee",
-                        execute_after=None,
-                        assign_q=code_.assign_q,
-                    )
-                ),
                 paradigm_type=ExprParadigm.SINGLE,
                 role=role,
                 execute_after=None,

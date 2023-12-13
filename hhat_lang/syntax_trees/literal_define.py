@@ -14,6 +14,12 @@ def literal_int_define(value: str) -> int:
     raise ValueError(f"wrong value for integer ({value}).")
 
 
+def literal_float_define(value: str) -> float:
+    if res := re.match(r"[-]?[0-9]*\.[0-9]+", value):
+        return float(res.group())
+    raise ValueError(f"wrong value for integer ({value}).")
+
+
 def literal_str_define(value: str) -> str:
     if res := re.match(r"\"[.\s\w]*\"", value):
         return res.group()

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "setuptools_scm>=8"]
+requires = ["setuptools>=61.0", "setuptools_scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -28,8 +28,16 @@ dependencies = [
 
 ]
 
+[tool.setuptools_scm]
+root = ".."
+version_scheme = "no-guess-dev"
+local_scheme = "no-local-version"
+
 [project.urls]
 Home = "https://github.com/hhat-lang/hhat_lang"
 Issues = "https://github.com/hhat-lang/hhat_lang/issues"
 Documentation ="https://docs.hhat-lang.org"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["hhat_lang"]

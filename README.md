@@ -6,7 +6,7 @@ H-hat is a high-level abstraction quantum programming language.
 
 
 > [!WARNING]
-> 
+>
 >   This is a work in progress and may be seeing as such. Errors, inconsistencies, tons of experimentation, modifications and trials are happening. Until there is a stable version, it is prone to breaking changes.
 
 As of now, the language is being developed as an *interpreted language* mostly to experiment some ideas and mechanisms on the quantum side. Once it is mature enough, the compiled version will take place.
@@ -71,9 +71,9 @@ A vanilla version of the language for reference and concrete demonstration purpo
 ## Documentation
 
 > [!NOTE]
-> 
+>
 > Although there is a documentation, it is outdated and should be replaced soon.
- 
+
 
 A documentation can be found [here](https://docs.hhat-lang.org).
 

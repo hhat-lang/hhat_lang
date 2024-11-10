@@ -28,6 +28,18 @@ dependencies = [
 
 ]
 
+[project.optional-dependencies]
+dev = [
+    "mypy",
+    "pytest",
+    "pytest-xdist",
+    "pytest-mypy",
+    "ipython",
+    "black",
+    "isort",
+    "pre-commit",
+]
+
 [tool.setuptools_scm]
 root = ".."
 version_scheme = "no-guess-dev"

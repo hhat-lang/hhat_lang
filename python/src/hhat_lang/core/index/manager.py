@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from collections import deque
 from copy import deepcopy
-from typing import Iterable
+from typing import Iterable, Any
 
+from hhat_lang.core.constructors import FullName, QSize
 from hhat_lang.dialect_builder.ir.result_handler import Result, ResultType
 
 
@@ -107,6 +108,19 @@ class MappedIndexes:
         return text
 
 
+class IndexKeeping:
+    """
+    To keep track of the minimum and maximum number of indexes that types will use.
+    """
+
+    def __init__(self):
+        self._data: dict[FullName, QSize] = dict()
+
+    def add(self, name: FullName, qsize: QSize) -> Any:
+        self._data[name] = qsize
+
+
 class IndexManager:
     def __init__(self):
         self._mapped = MappedIndexes()
+        self._keeping = IndexKeeping()

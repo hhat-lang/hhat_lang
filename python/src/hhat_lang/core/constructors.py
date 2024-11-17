@@ -4,11 +4,8 @@ Useful properties to help building the IRs (CoreIR depends on them).
 
 from __future__ import annotations
 
-from collections import OrderedDict
 from enum import StrEnum
-from typing import Any, Iterable
-
-from hhat_lang.dialect_builder.ir.result_handler import Result, ResultType
+from typing import Any
 
 
 class DataTypesEnum(StrEnum):
@@ -16,6 +13,28 @@ class DataTypesEnum(StrEnum):
     STRUCT = "struct"
     UNION = "union"
     MEMBER = "member"
+
+
+class QSize:
+    def __init__(self):
+        self._min: int = 0
+        self._max: int | None = None
+
+    @property
+    def min(self) -> int:
+        return self._min
+
+    @property
+    def max(self) -> int | None:
+        return self._max
+
+    def add_min(self, value: int) -> QSize:
+        self._min = value if isinstance(value, int) else 0
+        return self
+
+    def add_max(self, value: int) -> QSize:
+        self._max = value if isinstance(value, int) else None
+        return self
 
 
 class NameSpace:
@@ -27,7 +46,7 @@ class NameSpace:
         return NameSpace((*self._names, *sub_namespaces))
 
     @property
-    def full_name(self) -> str:
+    def namespace_str(self) -> str:
         return self._full_name
 
     def __call__(self, *sub_namespaces: str) -> NameSpace:
@@ -41,45 +60,37 @@ class NameSpace:
             return self._names == other._names
         raise NotImplementedError
 
+    def __repr__(self) -> str:
+        return self.namespace_str
 
-class TypeName:
+
+class FullName:
     def __init__(self, namespace: NameSpace, name: str):
-        self._namespace = namespace
-        self._name = name
+        self._namespace: NameSpace = namespace
+        self._name: str = name
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     @property
     def namespace(self) -> NameSpace:
         return self._namespace
 
     @property
-    def name(self) -> str:
-        return self._name
+    def full_name(self) -> str:
+        return self._namespace.namespace_str + self._name
 
-    @property
-    def full_name(self):
-        return f"{self._namespace}.{self._name}"
+    def __hash__(self) -> int:
+        return hash(self.full_name)
 
-    @property
-    def full_name_tuple(self):
-        return self._namespace, self._name
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, FullName):
+            return self._namespace == other._namespace and self._name == other._name
+        raise NotImplementedError
 
-
-class TypeMember:
-    def __init__(self, member_name: str, member_type: str):
-        self._name = member_name
-        self._type = member_type
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def full_name_tuple(self) -> tuple[str]:
-        return (self._name,)
-
-    @property
-    def type(self) -> str:
-        return self._type
+    def __repr__(self) -> str:
+        return ".".join((self.namespace.namespace_str, self.name))
 
 
 # class TypeOld:
@@ -160,51 +171,3 @@ class TypeMember:
 #     def __contains__(self, item: Any) -> bool:
 #         return item in self._body
 
-
-class Type:
-    def __init__(self, datatype: DataTypesEnum, namespace: str, name: str):
-        self.type: DataTypesEnum = datatype
-        self._namespace: str = namespace
-        self._name: str = name
-
-    @property
-    def namespace(self):
-        return self._namespace
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def full_name_tuple(self):
-        return self.namespace, self.name
-
-
-TypeBodyData = OrderedDict[tuple[str, ...], Type | TypeMember]
-
-
-class TypeBody:
-
-    def __init__(self):
-        self._data: TypeBodyData = OrderedDict()
-
-    def add(self, member: Type | TypeMember) -> Result:
-        if member.full_name_tuple not in self._data:
-            self._data[member.full_name_tuple] = member
-            result = Result(ResultType.OK)
-        else:
-            result = Result(ResultType.ERROR)
-        return result(member.full_name_tuple)
-
-    @property
-    def data(self) -> TypeBodyData:
-        return self._data
-
-    def __getitem__(self, item: tuple[str, ...]) -> Result:
-        data = self._data.get(item, False)
-        if data:
-            return Result(ResultType.OK)(data)
-        return Result(ResultType.ERROR)(item)
-
-    def __iter__(self) -> Iterable:
-        yield from self._data.values()

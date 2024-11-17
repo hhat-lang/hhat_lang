@@ -4,7 +4,7 @@ The IR recognized by H-hat's core code.
 
 from __future__ import annotations
 
-from hhat_lang.dialect_builder.ir.constructors import Type
+from hhat_lang.dialect_builder.ir.types import Type
 
 
 class CoreIR:

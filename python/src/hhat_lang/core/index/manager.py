@@ -2,13 +2,21 @@ from __future__ import annotations
 
 from collections import deque
 from copy import deepcopy
-from typing import Iterable, Any
+from typing import Any, Iterable
 
-from hhat_lang.core.constructors import FullName, QSize
-from hhat_lang.dialect_builder.ir.result_handler import Result, ResultType
+from hhat_lang.core.type_system.utils import FullName, QSize
+from hhat_lang.core.utils.result_handler import Result, ResultType
 
 
 class ItemIndexes:
+    """
+    Provides a container for indexes of a quantum variable. It works basically
+    as a deque of integers, but it pushes from the right and pop from the left.
+
+    This class should be used in the context of `MappedIndexes`, as one of its
+    base data.
+    """
+
     def __init__(self):
         self._size: int = 0
         self._data: deque[int] = deque()
@@ -44,6 +52,12 @@ class ItemIndexes:
         return deque([self.pop() for _ in range(num)])
 
     def free(self) -> deque[int]:
+        """
+        Free index data and return it as deque of integers.
+
+        Returns:
+            The object data as deque of integers
+        """
         res = deepcopy(self._data)
         self._size = 0
         self._data.clear()
@@ -51,6 +65,10 @@ class ItemIndexes:
 
 
 class MappedIndexes:
+    """
+    Serves as a data container for variables and their indexes usage during program execution.
+    """
+
     def __init__(self):
         self._data: dict[str, ItemIndexes] = dict()
         self._total: int = 0
@@ -85,7 +103,12 @@ class MappedIndexes:
 
     def free(self, variable: str) -> deque[int]:
         self._total -= self._data[variable].size
-        return self._data.pop(variable).free()
+        if self._total == 0:
+            return self._data.pop(variable).free()
+        raise ValueError(
+            f"tried to free indexes, but the total mapped indexes ({self._total}) is "
+            f"different from the variable '{variable}' index data ({self._data[variable].size})"
+        )
 
     def __setitem__(self, variable: str, value: int | Iterable[int]) -> None:
         if isinstance(value, int):
@@ -110,7 +133,8 @@ class MappedIndexes:
 
 class IndexKeeping:
     """
-    To keep track of the minimum and maximum number of indexes that types will use.
+    To keep track of the minimum and maximum number of indexes that types will use
+    during the execution of a quantum variable of a specific quantum datatype.
     """
 
     def __init__(self):
@@ -121,6 +145,13 @@ class IndexKeeping:
 
 
 class IndexManager:
+    """
+    Manages the index usage throughout the program execution.
+
+    Indexes are qubits labelled differently to avoid unnecessary complexity and
+    ambiguity for the user to build programs.
+    """
+
     def __init__(self):
         self._mapped = MappedIndexes()
         self._keeping = IndexKeeping()

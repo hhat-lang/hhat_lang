@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import deque
 from typing import Any
 
-from hhat_lang.core.constructors import FullName
+from hhat_lang.core.type_system.utils import FullName
 
 
 class DataTable:
@@ -44,7 +44,7 @@ class ReferenceKeeping:
         self._data[key] = index
 
     def __repr__(self) -> str:
-        return "Ref{" + " ".join(f"{k}:{v}" for k,v in self._data.items()) + "}"
+        return "Ref{" + " ".join(f"{k}:{v}" for k, v in self._data.items()) + "}"
 
 
 class MemoryData:
@@ -71,7 +71,7 @@ class MemoryData:
         return self.get_data(self.get_index(type_name))
 
     def ref_view(self) -> str:
-        return self.name +str(self._ref)
+        return self.name + str(self._ref)
 
     def data_view(self) -> str:
         return self.name + str(self._data)
@@ -126,4 +126,8 @@ class MemoryManager:
         return self._view(self._var_mem)
 
     def mem_view(self) -> str:
-        return self._view(self._type_mem) + self._view(self._fn_mem) + self._view(self._var_mem)
+        return (
+            self._view(self._type_mem)
+            + self._view(self._fn_mem)
+            + self._view(self._var_mem)
+        )

@@ -1,20 +1,27 @@
 from __future__ import annotations
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections import OrderedDict
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar, Union
 
-from hhat_lang.core.type_system.utils import FullName, QSize, Size
+from hhat_lang.core.type_system import DataTypesEnum, FullName, QSize, Size
+from hhat_lang.core.utils.result_handler import ResultType
 
-MemberType = TypeVar("MemberType")
-ContainerType = TypeVar("ContainerType")
+T = TypeVar("T", bound="BaseMember")
 
 
-class BaseDataType(ABC, Generic[MemberType]):
-    _size: Size
-    _qsize: QSize
+class BaseDataType(ABC, Generic[T]):
     _name: FullName
-    _data: MemberType
+    _data: DataTypeContainer[T]
+    _type: DataTypesEnum
+    _is_builtin: bool
+    _size: Size = Size()
+    _qsize: QSize = QSize()
+
+    def __init__(self, name: FullName):
+        self._name = name
+        self._data = DataTypeContainer(self._type)
+        self._is_builtin = False
 
     @property
     def size(self) -> Size:
@@ -28,23 +35,126 @@ class BaseDataType(ABC, Generic[MemberType]):
     def name(self) -> FullName:
         return self._name
 
+    @property
+    def type(self) -> DataTypesEnum:
+        return self._type
 
-class DataTypeContainer(Generic[ContainerType]):
-    _data: OrderedDict[FullName, ContainerType]
+    @property
+    def is_builtin(self) -> bool:
+        return self._is_builtin
 
-    def __init__(self):
-        self._data = OrderedDict()
+    @abstractmethod
+    def add_member(self, new_member: T) -> Any: ...
+
+    def add_size(self, size: int) -> Any:
+        match self._size.add_size(size):
+            case ResultType.OK:
+                pass
+            case ResultType.ERROR:
+                raise ValueError("size (alignment) for type definition must be integer")
+        return self
+
+    def add_qsize(self, min_index: int, max_index: int) -> Any:
+        self._qsize.add_min(min_index).add_max(max_index)
+        return self
+
+    def __getitem__(self, item: Any) -> T:
+        return self._data[item]
+
+    def __repr__(self) -> str:
+        return f"{self.name}" + "{" + str(self._data) + "}"
 
 
-class TypedMember:
-    pass
+class BaseMember(ABC):
+    _name: str
+    _member_type: FullName | None
+    _type: DataTypesEnum
+
+    def __init__(
+        self,
+        member_datatype: DataTypesEnum,
+        name: str | None = None,
+        member_type: FullName | None = None,
+    ):
+        if (
+            (isinstance(name, str) or name is None)
+            and (isinstance(member_type, FullName) or member_type is None)
+            and isinstance(member_datatype, DataTypesEnum)
+        ):
+            self._name = name or ""
+            self._member_type = member_type
+            self._type = member_datatype
+        else:
+            raise ValueError(
+                f"name must be str, member name must be FullName and"
+                f" member type must be DataTypesEnum; got {type(name)},"
+                f" {type(member_type)} and {type(member_datatype)} instead"
+            )
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def member_type(self) -> FullName | None:
+        return self._member_type
+
+    @property
+    def datatype(self) -> DataTypesEnum:
+        return self._type
 
 
-class StructType(BaseDataType[TypedMember]):
-    _data: TypedMember
+class SingleBaseMember(BaseMember):
+    def __init__(self, member_type: FullName, member_datatype: DataTypesEnum):
+        super().__init__(member_datatype=member_datatype, member_type=member_type)
 
-    def __init__(self, name: FullName):
-        self._size = Size()
-        self._qsize = QSize()
-        self._name = name
-        self._data = TypedMember()
+
+class DataTypeContainer(Generic[T]):
+    _data: OrderedDict[Union[str, FullName], T] = OrderedDict()
+    _type: tuple[DataTypesEnum]
+
+    def __init__(self, member_type: DataTypesEnum | tuple[DataTypesEnum]):
+        is_valid_member: bool
+
+        if isinstance(member_type, tuple):
+            is_valid_member = all(self._check_member_type(k) for k in member_type)
+        else:
+            is_valid_member = self._check_member_type(member_type)
+            member_type = (member_type,)
+
+        self._resolve_members_types(member=member_type, is_valid_member=is_valid_member)
+
+    @classmethod
+    def _check_member_type(cls, member_type: Any) -> bool:
+        return isinstance(member_type, DataTypesEnum)
+
+    def _resolve_members_types(self, member: Any, is_valid_member: bool) -> None:
+        if is_valid_member:
+            self._type = member
+        else:
+            raise ValueError(
+                f"member types must be DataTypesEnum or a tuple of them, not {member}"
+            )
+
+    def _check_new_member(self, member: Any) -> bool:
+        return set(member).issubset(set(self._type))
+
+    def _add(self, name: str | FullName, member: T) -> None:
+        if self._check_new_member(member.datatype):
+            self._data[name] = member
+        else:
+            raise ValueError(
+                f"member {name} is not of a valid member type {self._type}"
+            )
+
+    def add(self, new_member: T) -> None:
+        self._add(new_member.name, new_member)
+
+    def __getitem__(self, item: str | FullName) -> T:
+        return self._data[item]
+
+    def __setitem__(self, key: str | FullName, value: T) -> None:
+        self._add(key, value)
+
+    def __repr__(self) -> str:
+        return " ".join(f"{k}:{v}" for k, v in self._data.items())

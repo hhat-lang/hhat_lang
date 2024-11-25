@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .base import StructType, TypedMember
+from .datatypes import StructType, TypedMember
 from .utils import (
     DataTypesEnum,
     FullName,
@@ -15,6 +15,4 @@ __all__ = [
     "FullName",
     "Size",
     "QSize",
-    "TypedMember",
-    "StructType",
 ]

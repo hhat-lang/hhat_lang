@@ -9,5 +9,5 @@ Throughout the codebase and the documentation, H-hat and $\hat{H}$ will be used 
 For more documentation style information, please visit [H-hat documentation website](https://docs.hhat-lang.org)[^1].
 
 
----
+
 [^1]: It is expected to have the codebase and its README files with the latest developments and concepts, compared to the documentation website, while the paper is not published.

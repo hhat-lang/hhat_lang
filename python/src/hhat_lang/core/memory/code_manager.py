@@ -1,36 +1,47 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Generic, Iterator, TypeVar
 
 from hhat_lang.core.fn_system.base import BaseFunctionData
 from hhat_lang.core.type_system import FullName
 from hhat_lang.core.type_system.base import BaseDataType
 
+T = TypeVar("T")
 
-class CodeReference:
+
+class CodeReference(Generic[T]):
     """
     Stores reference for types and functions that are used in the program.
     """
 
-    _ref: dict[FullName, Any] = dict()
+    _ref: dict[FullName, T] = dict()
 
-    def add(self, name: FullName, value: Any) -> None:
+    def add(self, name: FullName, value: T) -> None:
         if isinstance(name, FullName):
             self._ref[name] = value
         else:
             raise ValueError(f"name must be a FullName; got {name} ({type(name)})")
 
-    def get(self, name: FullName) -> Any:
+    def get(self, name: FullName) -> T:
         return self._ref[name]
 
-    def __getitem__(self, name: FullName) -> Any:
+    def __getitem__(self, name: FullName) -> T:
         return self.get(name)
 
-    def __setitem__(self, name: FullName, value: Any) -> None:
+    def __setitem__(self, name: FullName, value: T) -> None:
         return self.add(name, value)
 
     def __contains__(self, name: FullName) -> bool:
         return name in self._ref
+
+    def __iter__(self) -> Iterator:
+        yield from self._ref.items()
+
+    def names(self) -> Iterator[FullName]:
+        yield from self._ref.keys()
+
+    def items(self) -> Iterator:
+        yield from self._ref.items()
 
     def view(self) -> str:
         res = "#CodeReference\n  "
@@ -43,8 +54,8 @@ class CodeReference:
 
 
 class CodeManager:
-    _type_ref: CodeReference
-    _fn_ref: CodeReference
+    _type_ref: CodeReference[BaseDataType]
+    _fn_ref: CodeReference[BaseFunctionData]
 
     def __init__(self):
         self._type_ref = CodeReference()

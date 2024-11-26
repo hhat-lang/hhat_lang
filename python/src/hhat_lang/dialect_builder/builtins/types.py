@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from hhat_lang.core.type_system import DataTypesEnum
-from hhat_lang.core.type_system.builtin import (
-    BuiltinNamespace,
+from hhat_lang.core.type_system.base import (
     BuiltinType,
     SingleBaseMember,
 )
-from hhat_lang.core.type_system.utils import FullName
+from hhat_lang.core.type_system.utils import BuiltinNamespace, FullName
 
 U8: BuiltinType = (
     BuiltinType("u8")

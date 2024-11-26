@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from typing import Any, Generic, TypeVar, Union
+from typing import Any, Generic, Iterator, TypeVar, Union
 
 from hhat_lang.core.type_system import DataTypesEnum, FullName, QSize, Size
+from hhat_lang.core.type_system.utils import BuiltinNamespace
 from hhat_lang.core.utils.result_handler import ResultType
 
 T = TypeVar("T", bound="BaseMember")
@@ -14,14 +15,14 @@ class BaseDataType(ABC, Generic[T]):
     _name: FullName
     _data: DataTypeContainer[T]
     _type: DataTypesEnum
-    _is_builtin: bool
+    _is_primitive: bool
     _size: Size = Size()
     _qsize: QSize = QSize()
 
     def __init__(self, name: FullName):
         self._name = name
         self._data = DataTypeContainer(self._type)
-        self._is_builtin = False
+        self._is_primitive = False
 
     @property
     def size(self) -> Size:
@@ -41,7 +42,7 @@ class BaseDataType(ABC, Generic[T]):
 
     @property
     def is_builtin(self) -> bool:
-        return self._is_builtin
+        return self._is_primitive
 
     @abstractmethod
     def add_member(self, new_member: T) -> Any: ...
@@ -55,11 +56,17 @@ class BaseDataType(ABC, Generic[T]):
         return self
 
     def add_qsize(self, min_index: int, max_index: int) -> Any:
-        self._qsize.add_min(min_index).add_max(max_index)
+        self._qsize.add_sizes(min_index, max_index)
         return self
 
     def __getitem__(self, item: Any) -> T:
         return self._data[item]
+
+    def __iter__(self) -> Iterator:
+        yield from self._data.items()
+
+    def members(self) -> Iterator:
+        yield from self._data.items()
 
     def __repr__(self) -> str:
         return f"{self.name}" + "{" + str(self._data) + "}"
@@ -68,7 +75,7 @@ class BaseDataType(ABC, Generic[T]):
 class BaseMember(ABC):
     _name: str
     _member_type: FullName | None
-    _type: DataTypesEnum
+    _datatype: DataTypesEnum
 
     def __init__(
         self,
@@ -83,7 +90,7 @@ class BaseMember(ABC):
         ):
             self._name = name or ""
             self._member_type = member_type
-            self._type = member_datatype
+            self._datatype = member_datatype
         else:
             raise ValueError(
                 f"name must be str, member name must be FullName and"
@@ -96,12 +103,12 @@ class BaseMember(ABC):
         return self._name
 
     @property
-    def member_type(self) -> FullName | None:
+    def type(self) -> FullName | None:
         return self._member_type
 
     @property
     def datatype(self) -> DataTypesEnum:
-        return self._type
+        return self._datatype
 
 
 class SingleBaseMember(BaseMember):
@@ -156,5 +163,24 @@ class DataTypeContainer(Generic[T]):
     def __setitem__(self, key: str | FullName, value: T) -> None:
         self._add(key, value)
 
+    def __iter__(self) -> Iterator:
+        yield from self._data.items()
+
+    def names(self) -> Iterator:
+        yield from self._data.keys()
+
+    def items(self) -> Iterator:
+        yield from self._data.items()
+
     def __repr__(self) -> str:
         return " ".join(f"{k}:{v}" for k, v in self._data.items())
+
+
+class BuiltinType(BaseDataType[SingleBaseMember]):
+    def __init__(self, name: str):
+        super().__init__(FullName(BuiltinNamespace(name), name))
+        self._is_primitive = True
+
+    def add_member(self, new_member: SingleBaseMember) -> BuiltinType:
+        self._data[self._name] = new_member
+        return self

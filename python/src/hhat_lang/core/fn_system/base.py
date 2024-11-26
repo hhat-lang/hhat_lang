@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from abc import ABC
 
+from hhat_lang.core.type_system import FullName
+
 
 class BaseFunctionData(ABC):
     """
@@ -9,7 +11,10 @@ class BaseFunctionData(ABC):
     args (BaseFunctionArgs class) and body (BaseFunctionBody class).
     """
 
-    pass
+    _name: FullName
+    _type: FullName
+    _args: BaseFunctionArgs
+    _body: BaseFunctionBody
 
 
 class BaseFunctionArgs(ABC):

@@ -39,6 +39,7 @@ class QSize:
     def __init__(self):
         self._min: int = 0
         self._max: int | None = None
+        self._defined: bool = False
 
     @property
     def min(self) -> int:
@@ -48,22 +49,54 @@ class QSize:
     def max(self) -> int | None:
         return self._max
 
-    def add_min(self, value: int) -> QSize:
-        self._min = value if isinstance(value, int) else 0
+    @property
+    def defined(self) -> bool:
+        return self._defined
+
+    def inc_min(self, value: int) -> QSize:
+        if isinstance(value, int):
+            self._min += value
         return self
 
-    def add_max(self, value: int) -> QSize:
-        self._max = value if isinstance(value, int) else None
+    def inc_max(self, value: int | None) -> QSize:
+
+        if self._max is None:
+
+            if isinstance(value, int):
+                self._max = value
+                return self
+
+            if value is None:
+                return self
+
+            raise ValueError("max value for QSize must be integer (or None)")
+
+        if isinstance(value, int):
+            self._max += value
+
         return self
+
+    def add_sizes(self, min_value: int, max_value: int) -> QSize:
+
+        if not self._defined:
+
+            if isinstance(min_value, int) and isinstance(max_value, int):
+                self._min = min_value
+                self._max = max_value
+                self._defined = True
+                return self
+
+            raise ValueError(f"min {min_value} and max {max_value} must be integers")
+        raise ValueError("Qsizes already defined")
 
 
 class NameSpace:
-    _is_builtin: bool
+    _is_primitive: bool
 
     def __init__(self, *names: Any):
         self._names: tuple[str, ...] = names
         self._full_name: str = ".".join(name for name in self._names)
-        self._is_builtin = False
+        self._is_primitive = False
 
     def add(self, *sub_namespaces: str) -> NameSpace:
         return NameSpace((*self._names, *sub_namespaces))
@@ -73,8 +106,8 @@ class NameSpace:
         return self._full_name
 
     @property
-    def is_builtin(self) -> bool:
-        return self._is_builtin
+    def is_primitive(self) -> bool:
+        return self._is_primitive
 
     def __call__(self, *sub_namespaces: str) -> NameSpace:
         return self.add(*sub_namespaces)
@@ -132,3 +165,8 @@ class FullName:
 
     def __repr__(self) -> str:
         return ".".join((self.namespace.namespace_str, self.name))
+
+
+class BuiltinNamespace(NameSpace):
+    _is_primitive = True
+    _names = ()

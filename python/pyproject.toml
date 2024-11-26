@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "setuptools_scm>=8"]
+requires = ["setuptools>=61.0", "setuptools_scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,7 +11,7 @@ authors = [
 ]
 readme = "README"
 requires-python = ">=3.12"
-license = "MIT"
+license = { text="MIT" }
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: MIT License",
@@ -28,8 +28,43 @@ dependencies = [
 
 ]
 
+[project.optional-dependencies]
+dev = [
+    "mypy",
+    "pytest",
+    "pytest-xdist",
+    "pytest-mypy",
+    "ipython",
+    "black",
+    "isort",
+    "pre-commit",
+]
+
+[tool.setuptools_scm]
+root = ".."
+version_scheme = "no-guess-dev"
+local_scheme = "no-local-version"
+
 [project.urls]
 Home = "https://github.com/hhat-lang/hhat_lang"
 Issues = "https://github.com/hhat-lang/hhat_lang/issues"
 Documentation ="https://docs.hhat-lang.org"
 
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
+[tool.ruff]
+select = ["E", "F", "I", "Q"]
+extend-ignore = ["F841", "F403"]
+line-length = 100
+
+[tool.ruff.isort]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401", "E402", "I002"]
+
+[tool.mypy]
+python_version = "3.12"

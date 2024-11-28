@@ -1,18 +1,18 @@
 """
-Use to build the FirstIR.
+Use to build the ASTtoIR.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from hhat_lang.core.ast import AST
-from hhat_lang.dialect_builder.ir.first_ir import FirstIR
+from hhat_lang.core.ast import BaseAST
+from hhat_lang.dialect_builder.ir.ast_to_ir import ASTtoIR
 
 
-class FirstIRBuilder:
+class ASTtoIRBuilder:
     def resolve_macros(self, *args: Any, **kwargs: Any) -> Any:
-        # to resolve the macros into the FirstIR
+        # to resolve the macros into the ASTtoIR
         pass
 
     def resolve_imports(self) -> Any:
@@ -27,8 +27,8 @@ class FirstIRBuilder:
         # to resolve the types
         pass
 
-    def build(self, ast_code: AST) -> Any:
+    def build(self, ast_code: BaseAST) -> Any:
         # TODO: implement it
-        first_ir = FirstIR()
+        ast_to_ir = ASTtoIR()
 
         raise NotImplementedError()

@@ -40,7 +40,7 @@ def resolve_qsize(mem_ref: CodeReference[BaseDataType], data: BaseDataType) -> Q
     return total_qsize
 
 
-def compute_qsize(mem_ref: CodeReference[BaseDataType], data: BaseDataType) -> None:
+def runtime_compute_qsize(mem_ref: CodeReference[BaseDataType], data: BaseDataType) -> None:
     """
     Computes qsize min and max values for composite types at runtime.
     """

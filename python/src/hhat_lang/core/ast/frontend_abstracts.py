@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Generator
 
 
-class AST(ABC):
+class BaseAST(ABC):
     @property
     @abstractmethod
     def name(self) -> str: ...
 
     @property
     @abstractmethod
-    def value(self) -> Any: ...
+    def value(self) -> tuple[Any, ...]: ...
+
+    def __iter__(self) -> Generator:
+        yield from self.value

@@ -1,3 +1,22 @@
+"""
+The core built-in types should be defined here, such as:
+- simple literals
+    - boolean
+    - unsigned integer 8 (u8)
+    - char (char)
+    - unsigned integer 32 (u32)
+    - unsigned integer 64 (64)
+    - quantum boolean (@bool)
+    - quantum unsigned integer 2 (@u2)
+    - quantum unsigned integer 3 (@u3)
+    - quantum unsigned integer 4 (@u4)
+    - quantum char (@char) TODO
+- composite literals
+    - string (str) TODO
+    - array (array) TODO
+    - hashmap (hashmap) TODO
+"""
+
 from __future__ import annotations
 
 from hhat_lang.core.type_system import DataTypesEnum
@@ -24,6 +43,18 @@ Bool: BuiltinType = (
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "bool"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_size(8)
+)
+
+
+Char: BuiltinType = (
+    BuiltinType("char")
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "char"),
             member_datatype=DataTypesEnum.SINGLE,
         )
     )

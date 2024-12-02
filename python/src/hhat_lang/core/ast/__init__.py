@@ -1,1 +1,1 @@
-from .frontend_abstracts import AST
+from .frontend_abstracts import BaseAST

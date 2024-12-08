@@ -18,9 +18,18 @@ class TypedMember(BaseMember):
 
 class SingleType(BaseDataType[SingleBaseMember]):
     _type = DataTypesEnum.SINGLE
+    _supported_members = (DataTypesEnum.SINGLE,)
 
     def add_member(self, new_member: SingleBaseMember) -> None:
-        self._data[self.name] = new_member
+        if isinstance(new_member, SingleBaseMember):
+            if new_member.datatype in self.supported_members:
+                self._data[self.name] = new_member
+            else:
+                raise ValueError(f"SingleType only accepts {self.supported_members}")
+        else:
+            raise ValueError(
+                f"SingleType accepts only SingleBaseMember, got {type(new_member)}"
+            )
 
     def __repr__(self) -> str:
         return f"{self.name}:{self._data[self.name]}"
@@ -28,26 +37,45 @@ class SingleType(BaseDataType[SingleBaseMember]):
 
 class StructType(BaseDataType[TypedMember]):
     _type = DataTypesEnum.STRUCT
+    _supported_members = (DataTypesEnum.TYPED_MEMBER,)
 
     def add_member(self, new_member: TypedMember) -> None:
         if isinstance(new_member, TypedMember):
-            self._data[new_member.name] = new_member
+            if new_member.datatype in self.supported_members:
+                self._data[new_member.name] = new_member
+            else:
+                raise ValueError(f"StructType only supports {self.supported_members}")
         else:
             raise ValueError(f"{new_member} must be a typed member")
 
 
 class UnionType(BaseDataType[TypedMember]):
     _type = DataTypesEnum.UNION
+    _supported_members = (DataTypesEnum.TYPED_MEMBER,)
 
     def add_member(self, new_member: TypedMember) -> None:
         if isinstance(new_member, TypedMember):
-            self._data[new_member.name] = new_member
+            if new_member.datatype in self.supported_members:
+                self._data[new_member.name] = new_member
+            else:
+                raise ValueError(f"UnionType only supports {self.supported_members}")
         else:
             raise ValueError(f"{new_member} must be a typed member")
 
 
 class EnumType(BaseDataType[BaseMember]):
     _type = DataTypesEnum.ENUM
+    _supported_members = (
+        DataTypesEnum.STRUCT,
+        DataTypesEnum.MEMBER,
+        DataTypesEnum.UNION,
+    )
 
     def add_member(self, new_member: BaseMember) -> None:
-        self._data[new_member.name] = new_member
+        if isinstance(new_member, BaseMember):
+            if new_member.datatype in self.supported_members:
+                self._data[new_member.name] = new_member
+            else:
+                raise ValueError(f"EnumType only supports {self.supported_members}")
+        else:
+            raise ValueError(f"{new_member} must be a base member")

@@ -14,6 +14,7 @@ class DataTypesEnum(StrEnum):
     ENUM = "enum"
     STRUCT = "struct"
     UNION = "union"
+    TYPED_MEMBER = "typed_member"
     SINGLE = "single"
     MEMBER = "member"
 

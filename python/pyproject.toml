@@ -57,7 +57,7 @@ addopts = [
 
 [tool.ruff]
 select = ["E", "F", "I", "Q"]
-extend-ignore = ["F841", "F403"]
+extend-ignore = ["F841", "F403", "F401"]
 line-length = 100
 
 [tool.ruff.isort]

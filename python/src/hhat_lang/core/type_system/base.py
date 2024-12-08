@@ -15,6 +15,7 @@ class BaseDataType(ABC, Generic[T]):
     _name: FullName
     _data: DataTypeContainer[T]
     _type: DataTypesEnum
+    _supported_members: tuple[DataTypesEnum, ...] = ()
     _is_primitive: bool
     _size: Size = Size()
     _qsize: QSize = QSize()
@@ -43,6 +44,10 @@ class BaseDataType(ABC, Generic[T]):
     @property
     def is_builtin(self) -> bool:
         return self._is_primitive
+
+    @property
+    def supported_members(self) -> tuple[DataTypesEnum, ...]:
+        return self._supported_members
 
     @abstractmethod
     def add_member(self, new_member: T) -> Any: ...

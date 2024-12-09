@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from hhat_lang.core.quantum_lowlevel_api.base import BackendConfig, BackendInfo
+from hhat_lang.core.quantum_lowlevel_api.base import BackendInfo
 
 
 # TODO: finish this builder, using BackendConfig and
@@ -30,7 +30,3 @@ class BackendInfoBuilder:
     def add_config(self, config: dict[str, Any]) -> BackendInfoBuilder:
         self._config = config
         return self
-
-
-class BackendConfigBuilder:
-    pass

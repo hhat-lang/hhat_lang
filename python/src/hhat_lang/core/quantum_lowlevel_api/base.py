@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 import json
-from abc import ABC
+from abc import ABC, abstractmethod
+from dataclasses import asdict, dataclass, field
 from enum import StrEnum
+from functools import singledispatchmethod
 from pathlib import Path
 from typing import Any
+
+from hhat_lang.core.ir import BaseIR
+from hhat_lang.core.memory.manager import MemoryManager
 
 
 class BackendDataFileType(StrEnum):
@@ -13,30 +18,28 @@ class BackendDataFileType(StrEnum):
     TOML = "toml"
 
 
-# TODO: finish writing BackendConfig with methods to serialize and deserialize data
-class BackendConfig:
-    """
-    Contains number of qubits, their arrangements, and other device
-    technical specifications.
-    """
-
-    _max_num_qubits: int
-    _qubits_arrangements: dict[str, tuple[int, ...]]
-
-    def __init__(self, data: dict[str, Any]):
-        # fetch data somehow
-        pass
-
-    @property
-    def max_num_qubits(self) -> int:
-        return self._max_num_qubits
-
-    @property
-    def qubits_arrangements(self) -> dict[str, tuple[int, ...]]:
-        return self._qubits_arrangements
+class BackendDeviceType(StrEnum):
+    SIMULATOR = "simulator"
+    EMULATOR = "emulator"
+    REAL_DEVICE = "real_device"
 
 
-# TODO: finish writing BackendInfo with methods to serialize and deserialize data
+class BackendSupportedInstr(StrEnum):
+    # quantum gate-based instructions
+    DIGITAL = "digital"
+    # pulse-based instructions
+    ANALOG = "analog"
+    # classical instructions
+    CLASSICAL = "classical"
+
+
+@dataclass(slots=True, frozen=True)
+class BackendMetadata:
+    metadata_version: str
+    lang_version: str
+
+
+@dataclass(slots=True, frozen=True)
 class BackendInfo:
     """
     All the parameters that backend uses, such as name, version and its
@@ -44,9 +47,15 @@ class BackendInfo:
     (if relevant), and other device technical specifications.
     """
 
-    _name: str
-    _version: str
-    _config: BackendConfig
+    name: str
+    version: str
+    max_num_qubits: int
+    device_type: BackendDeviceType
+    support_dyn_circuit: bool
+    support_single_shots: bool
+    metadata: BackendMetadata
+    qubits_arrangements: dict[str, tuple[int, ...]] = field(default_factory=dict)
+    supported_instr: set[BackendSupportedInstr] = field(default_factory=set)
 
     @classmethod
     def _load_error(cls, file_type: BackendDataFileType) -> BaseException:
@@ -54,19 +63,6 @@ class BackendInfo:
             f"Loading Quantum Backend data from {file_type.value} "
             f"file is not available at the moment."
         )
-
-    def __init__(self, name: str, version: str, config: dict[str, Any]):
-        self._name = name
-        self._version = version
-        self._config = BackendConfig(config)
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def version(self) -> str:
-        return self._version
 
     @classmethod
     def _load_json(cls, file_name: str | Path) -> dict[str, Any]:
@@ -95,6 +91,24 @@ class BackendInfo:
         data = getattr(cls, str(file_type.value))(file_name)
         return BackendInfo(**data)
 
+    def serialize(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    @singledispatchmethod
+    def deserialize(cls, data: Any, extra: BackendDataFileType) -> BackendInfo:
+        raise NotImplementedError()
+
+    @classmethod
+    @deserialize.register(dict)
+    def _(cls, data: dict[str, Any], _extra: BackendDataFileType) -> BackendInfo:
+        return BackendInfo(**data)
+
+    @classmethod
+    @deserialize.register(str)
+    def _(cls, data: str, extra: BackendDataFileType) -> BackendInfo:
+        return cls.load(data, extra)
+
 
 # TODO: include methods to handle H-hat memory to store and retrieve data from
 #  it and also to handle the low-level data, parse, compile, execute and
@@ -104,12 +118,35 @@ class BaseLowLevelAPI(ABC):
     Use it to build the connection with the low level quantum language implementation.
     """
 
-    _backend_info: BackendInfo
+    _backend: BackendInfo
+    _mem: MemoryManager
 
     @property
-    def name(self) -> str:
-        return self._backend_info.name
+    def backend(self) -> BackendInfo:
+        return self._backend
 
-    @property
-    def version(self) -> str:
-        return self._backend_info.version
+    @abstractmethod
+    def parse_hhat_to_native(self, data: BaseIR) -> Any:
+        """
+        Parse from H-hat (`BaseIR` instance) to native low-level quantum
+        language code.
+        """
+
+        pass
+
+    @abstractmethod
+    def execute(self, data: Any, **options: Any) -> Any:
+        """
+        Execute low-level quantum language generated code on the device defined
+        at the `backend` instance attribute.
+        """
+
+        pass
+
+    @abstractmethod
+    def retrieve_result(self, **options: Any) -> Any:
+        """
+        Retrieve measurements result from low-level quantum language execution.
+        """
+
+        pass

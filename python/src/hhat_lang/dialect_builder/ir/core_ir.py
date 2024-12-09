@@ -7,6 +7,7 @@ from __future__ import annotations
 from hhat_lang.core.type_system.base import BaseDataType
 
 
+# TODO: make it child of `hhat_lang.core.ir.BaseIR`
 class CoreIR:
     def __init__(self):
         self._functions: IRFns = IRFns()

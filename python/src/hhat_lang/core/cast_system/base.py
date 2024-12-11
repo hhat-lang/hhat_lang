@@ -3,24 +3,25 @@ from __future__ import annotations
 from typing import Any
 
 from hhat_lang.core import DataParadigm
+from hhat_lang.core.ir.base import BaseIR
 from hhat_lang.core.type_system import FullName
 
 
 class Cast:
-    _from_paradigm: DataParadigm
-    _to_paradigm: DataParadigm
+    _origin_paradigm: DataParadigm
+    _target_paradigm: DataParadigm
     _origin_type: FullName
     _target_type: FullName
 
-    def __init__(self, origin_type: FullName, target_type: FullName) -> None:
+    def __init__(self, origin_type: FullName, target_type: FullName):
         self._origin_type = origin_type
         self._target_type = target_type
-        self._from_paradigm = (
+        self._origin_paradigm = (
             DataParadigm.QUANTUM
             if self._origin_type.is_quantum
             else DataParadigm.CLASSICAL
         )
-        self._to_paradigm = (
+        self._target_paradigm = (
             DataParadigm.QUANTUM
             if self._target_type.is_quantum
             else DataParadigm.CLASSICAL
@@ -35,14 +36,14 @@ class Cast:
         return self._target_type
 
     @property
-    def from_paradigm(self) -> DataParadigm:
-        return self._from_paradigm
+    def origin_paradigm(self) -> DataParadigm:
+        return self._origin_paradigm
 
     @property
-    def to_paradigm(self) -> DataParadigm:
-        return self._to_paradigm
+    def target_paradigm(self) -> DataParadigm:
+        return self._target_paradigm
 
-    def __call__(self, _origin_data: Any) -> Any:
+    def __call__(self, _origin_data: BaseIR) -> Any:
         """
         Get the origin data and invoke the appropriate casting process to the type.
         """

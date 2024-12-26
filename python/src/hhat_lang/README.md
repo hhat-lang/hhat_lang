@@ -2,7 +2,7 @@
 
 This codebase holds all the base structure and behavior for development a functioning $\hat{H}$ quantum programming language dialect, using the principles that define the language.
 
-In this package you will find a few super-modules, namely: [core](./core/README.md#h-hat-language-core-super-module), [dialect builder](./dialect_builder/README.md#h-hat-language-dialect-builder-super-module), and [interpreter](dialect/README.md#h-hat-language-interpreter-super-module). Each one has their own README files and modules (that contain README files as well). Check them out for more detailed description of functionalities, purposes, and how-tos.
+In this package you will find a few super-modules, namely: [core](./core/README.md#h-hat-language-core-super-module), [dialect builder](./dialect_builder/README.md#h-hat-language-dialect-builder-super-module), and [interpreter](dialects/README.md#h-hat-language-interpreter-super-module). Each one has their own README files and modules (that contain README files as well). Check them out for more detailed description of functionalities, purposes, and how-tos.
 
 Throughout the codebase and the documentation, H-hat and $\hat{H}$ will be used interchangeably to signify the same thing: this very own high-level abstraction quantum programming language.
 

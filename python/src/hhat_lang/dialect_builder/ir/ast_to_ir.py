@@ -1,7 +1,7 @@
 """
-The IR that a dialect BaseAST will be converted to.
+The IR that a dialects BaseAST will be converted to.
 
-This is a dialect-specific IR, but H-hat provides it as a way
+This is a dialects-specific IR, but H-hat provides it as a way
 to have common structure for easy of conversion during the
 CoreIR pass. It also should be used to do some import checking
 for types and functions.

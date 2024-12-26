@@ -29,6 +29,17 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# to insert the relevant libraries for each backend
+heather_openqasm = [
+
+]
+heather_netqasm = [
+
+]
+heather_cqasm = [
+
+]
+
 dev = [
     "mypy",
     "pytest",

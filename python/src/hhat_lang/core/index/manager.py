@@ -11,7 +11,7 @@ from hhat_lang.core.utils.result_handler import Result, ResultType
 class ItemIndexes:
     """
     Provides a container for indexes of a quantum variable. It works basically
-    as a deque of integers, but it pushes from the right and pop from the left.
+    as a deque of integers, but it pushes from the right and pops from the left.
 
     This class should be used in the context of `MappedIndexes`, as one of its
     base data.
@@ -50,6 +50,12 @@ class ItemIndexes:
     def pop_many(self, num: int) -> deque[int]:
         self._size -= num
         return deque([self.pop() for _ in range(num)])
+
+    def peek(self) -> list[int]:
+        return list(self._data)
+
+    def filter(self, mask: Iterable[int]) -> list[int]:
+        return list(k for k in self.peek() if k in mask)
 
     def free(self) -> deque[int]:
         """

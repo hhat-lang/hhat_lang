@@ -17,16 +17,16 @@ class QuantumInstr(ABC):
 
 
 class QRedim(QuantumInstr, ABC):
-    pass
+    name: str = "@redim"
 
 
 class QSync(QuantumInstr, ABC):
-    pass
+    name: str = "@sync"
 
 
 class QIf(QuantumInstr, ABC):
-    pass
+    name: str = "@if"
 
 
 class QNot(QuantumInstr, ABC):
-    pass
+    name: str = "@not"

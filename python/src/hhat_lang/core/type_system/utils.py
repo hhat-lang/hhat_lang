@@ -165,7 +165,11 @@ class FullName:
         return False
 
     def __repr__(self) -> str:
-        return ".".join((self.namespace.namespace_str, self.name))
+        return (
+            ".".join((self.namespace.namespace_str, self.name))
+            if self.namespace.namespace_str
+            else self.name
+        )
 
 
 class BuiltinNamespace(NameSpace):

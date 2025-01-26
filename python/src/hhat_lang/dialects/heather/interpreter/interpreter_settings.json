@@ -1,0 +1,10 @@
+{
+  "backend": {
+    "name": "qiskit",
+    "version": "v1.3.1"
+  },
+  "frontend": {
+    "name": "openqasm",
+    "version": "v2"
+  }
+}

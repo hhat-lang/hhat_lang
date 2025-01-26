@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from .datatypes import StructType, TypedMember
 from .utils import (
     DataTypesEnum,
     FullName,

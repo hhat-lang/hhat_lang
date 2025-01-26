@@ -6,9 +6,10 @@ from typing import Any
 
 class Scope:
     _name: str
-    _access: deque[str] = deque()
+    _access: deque[str]
 
     def __init__(self, name: str, parent: Scope | None = None):
+        self._access = deque()
         self._name = name
         if isinstance(parent, Scope):
             self._access.extend(parent._access)

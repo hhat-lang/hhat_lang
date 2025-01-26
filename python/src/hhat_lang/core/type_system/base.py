@@ -17,12 +17,15 @@ class BaseDataType(ABC, Generic[T]):
     _type: DataTypesEnum
     _supported_members: tuple[DataTypesEnum, ...] = ()
     _is_primitive: bool
-    _size: Size = Size()
-    _qsize: QSize = QSize()
+    _size: Size
+    _qsize: QSize
 
-    def __init__(self, name: FullName):
-        self._name = name
-        self._data = DataTypeContainer(self._type)
+    def __init__(self, name: FullName, datatype: DataTypesEnum):
+        self._name: FullName = name
+        self._type: DataTypesEnum = datatype
+        self._data = DataTypeContainer(self._supported_members)
+        self._size: Size = Size()
+        self._qsize: QSize = QSize()
         self._is_primitive = False
 
     @property
@@ -74,7 +77,12 @@ class BaseDataType(ABC, Generic[T]):
         yield from self._data.items()
 
     def __repr__(self) -> str:
-        return f"{self.name}" + "{" + str(self._data) + "}"
+        return f"{self.name}[{self._type.value}]" + "{" + str(self._data) + "}"
+
+
+class GenericBaseDataType(BaseDataType[Generic[T]]):
+    # TODO: implement it
+    pass
 
 
 class BaseMember(ABC):
@@ -84,6 +92,7 @@ class BaseMember(ABC):
 
     def __init__(
         self,
+        *,
         member_datatype: DataTypesEnum,
         name: str | None = None,
         member_type: FullName | None = None,
@@ -108,24 +117,35 @@ class BaseMember(ABC):
         return self._name
 
     @property
-    def type(self) -> FullName | None:
+    def type_name(self) -> FullName | None:
         return self._member_type
 
     @property
-    def datatype(self) -> DataTypesEnum:
+    def type(self) -> DataTypesEnum:
         return self._datatype
+
+    def __repr__(self) -> str:
+        return f"{self.name}({self.type_name})"
+
+
+class GenericBaseMember(BaseMember):
+    # TODO: implement it
+    pass
 
 
 class SingleBaseMember(BaseMember):
     def __init__(self, member_type: FullName, member_datatype: DataTypesEnum):
         super().__init__(member_datatype=member_datatype, member_type=member_type)
 
+    def __repr__(self) -> str:
+        return f"{self.type_name}"
+
 
 class DataTypeContainer(Generic[T]):
-    _data: OrderedDict[Union[str, FullName], T] = OrderedDict()
+    _data: OrderedDict[Union[str, FullName], T]
     _type: tuple[DataTypesEnum]
 
-    def __init__(self, member_type: DataTypesEnum | tuple[DataTypesEnum]):
+    def __init__(self, member_type: DataTypesEnum | tuple[DataTypesEnum, ...]):
         is_valid_member: bool
 
         if isinstance(member_type, tuple):
@@ -134,6 +154,7 @@ class DataTypeContainer(Generic[T]):
             is_valid_member = self._check_member_type(member_type)
             member_type = (member_type,)
 
+        self._data = OrderedDict()
         self._resolve_members_types(member=member_type, is_valid_member=is_valid_member)
 
     @classmethod
@@ -149,10 +170,10 @@ class DataTypeContainer(Generic[T]):
             )
 
     def _check_new_member(self, member: Any) -> bool:
-        return set(member).issubset(set(self._type))
+        return member in self._type
 
     def _add(self, name: str | FullName, member: T) -> None:
-        if self._check_new_member(member.datatype):
+        if self._check_new_member(member.type):
             self._data[name] = member
         else:
             raise ValueError(
@@ -178,12 +199,14 @@ class DataTypeContainer(Generic[T]):
         yield from self._data.items()
 
     def __repr__(self) -> str:
-        return " ".join(f"{k}:{v}" for k, v in self._data.items())
+        return " ".join(f"{v}" for k, v in self._data.items())
 
 
 class BuiltinType(BaseDataType[SingleBaseMember]):
-    def __init__(self, name: str):
-        super().__init__(FullName(BuiltinNamespace(name), name))
+    _supported_members: tuple[DataTypesEnum, ...] = (DataTypesEnum.SINGLE,)
+
+    def __init__(self, name: str, datatype: DataTypesEnum):
+        super().__init__(FullName(BuiltinNamespace(), name), datatype)
         self._is_primitive = True
 
     def add_member(self, new_member: SingleBaseMember) -> BuiltinType:

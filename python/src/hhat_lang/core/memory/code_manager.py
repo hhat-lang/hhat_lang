@@ -14,7 +14,10 @@ class CodeReference(Generic[T]):
     Stores reference for types and functions that are used in the program.
     """
 
-    _ref: dict[FullName, T] = dict()
+    _ref: dict[FullName, T]
+
+    def __init__(self):
+        self._ref = dict()
 
     def add(self, name: FullName, value: T) -> None:
         if isinstance(name, FullName):
@@ -54,30 +57,34 @@ class CodeReference(Generic[T]):
 
 
 class CodeManager:
-    _type_ref: CodeReference[BaseDataType]
-    _fn_ref: CodeReference[BaseFunctionData]
+    type_ref: CodeReference[BaseDataType]
+    fn_ref: CodeReference[BaseFunctionData]
+    pragma_ref: Any  # TODO: implement it in the future
 
     def __init__(self):
-        self._type_ref = CodeReference()
-        self._fn_ref = CodeReference()
+        self.type_ref = CodeReference[BaseDataType]()
+        self.fn_ref = CodeReference[BaseFunctionData]()
 
     def add_type(self, name: FullName, body: BaseDataType) -> None:
-        self._type_ref.add(name, body)
+        self.type_ref.add(name, body)
 
     def get_type(self, name: FullName) -> BaseDataType:
-        return self._type_ref.get(name)
+        return self.type_ref.get(name)
 
     def add_fn(self, name: FullName, body: BaseFunctionData) -> None:
-        self._fn_ref.add(name, body)
+        self.fn_ref.add(name, body)
 
     def get_fn(self, name: FullName) -> BaseFunctionData:
-        return self._fn_ref.get(name)
+        return self.fn_ref.get(name)
 
     def find_name(self, name: FullName) -> Any:
-        if name in self._type_ref:
-            return self._type_ref[name]
-        if name in self._fn_ref:
-            return self._fn_ref[name]
+        if name in self.type_ref:
+            return self.type_ref[name]
+        if name in self.fn_ref:
+            return self.fn_ref[name]
         raise ValueError(
             f"{name} not found in type or function references for this code"
         )
+
+    def __repr__(self) -> str:
+        return f"Types={self.type_ref.view()}\nFunctions={self.fn_ref.view()}"

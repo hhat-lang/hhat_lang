@@ -1,0 +1,35 @@
+program = typedef* fndef* main? EOF
+typedef = 'type' id (generic)? (enum / struct)
+generic = '[' id* ']'
+struct = '{' elem* '}'
+elem = id ':' (prop_id / id / array / q__array)
+enum = '{' enums_struct+ '}'
+enums_struct = id struct
+id = r'\??@?[a-zA-Z][a-zA-Z0-9_\-\+]*'
+fndef = 'fn' id generic? args ':' (prop_id / id) body
+args = '(' elem* ')'
+main = 'main' body
+body = '{' (expr)* '}'
+expr = declare_assign / declare / assign / call
+prop_id = id ('.' id)+
+declare = id ':' (prop_id / id)
+assign = id '=' ( expr / prop_id / id / literal / body )
+declare_assign = (prop_id / id) ':' (prop_id / id) '=' (expr / prop_id / id / literal / body)
+call = (prop_id / id) generic_call? call_args
+generic_call = '[' (prop_id / id)+ ']'
+call_args = '(' (expr / prop_id / id / literal)* ')'
+hash_elem = (prop_id / id) ':' (prop_id / id / literal / array / q__array)
+literal = null / bool / bin / str / int / float / array / hashmap / q__int / q__float / q__array / q__bool
+null = 'null'
+bool = 'true' / 'false'
+bin = r'0b[0-1]+'
+str = r'"([^"]*)"'
+int = r'-?([1-9]\d*|0)'
+float = r'0(\.\d+)?|[1-9]\d*(\.\d+)?'
+array = '[' (prop_id / id / literal)* ']'
+hashmap = '[' hash_elem* ']'
+q__bool = '@true' / '@false'
+q__int = r'-?@([1-9]\d*|0)'
+q__float = r'\@0(\.\d+)?|[1-9]\d*(\.\d+)?'
+q__array = '@[' (prop_id / id / literal)* ']'
+comment = r'\/\-.*?\-\/'

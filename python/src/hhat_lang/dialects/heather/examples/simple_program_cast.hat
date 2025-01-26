@@ -1,0 +1,7 @@
+fn sum(a:int b:int):int { add(a b) }
+
+main {
+    @num:@u2 = @redim(@0)
+    num:u64 = cast(u64 @num)
+    print(num)
+}

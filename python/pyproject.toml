@@ -29,12 +29,18 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# to insert the relevant libraries for each backend
-heather_openqasm = [
-
+heather_base = [
+    "arpeggio",
 ]
-heather_netqasm = [
-
+# to insert the relevant libraries for each low level language and backend
+heather_qiskit = [
+    "hhat-lang[heather_base]",
+    "qiskit",
+]
+heather_squidasm = [
+    "hhat-lang[heather_base]",
+    "netqasm",
+    "squidasm"
 ]
 heather_cqasm = [
 

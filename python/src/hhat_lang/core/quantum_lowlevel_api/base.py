@@ -21,10 +21,10 @@ class BackendDataFileType(StrEnum):
 class BackendDeviceType(StrEnum):
     SIMULATOR = "simulator"
     EMULATOR = "emulator"
-    REAL_DEVICE = "real_device"
+    QPU = "qpu"
 
 
-class BackendSupportedInstr(StrEnum):
+class BackendParadigm(StrEnum):
     # quantum gate-based instructions
     DIGITAL = "digital"
     # pulse-based instructions
@@ -37,6 +37,11 @@ class BackendSupportedInstr(StrEnum):
 class BackendMetadata:
     metadata_version: str
     lang_version: str
+
+
+@dataclass(slots=True)
+class QubitLayout:
+    layout: dict[str, tuple[int, int]]
 
 
 @dataclass(slots=True, frozen=True)
@@ -54,8 +59,8 @@ class BackendInfo:
     support_dyn_circuit: bool
     support_single_shots: bool
     metadata: BackendMetadata
-    qubits_arrangements: dict[str, tuple[int, ...]] = field(default_factory=dict)
-    supported_instr: set[BackendSupportedInstr] = field(default_factory=set)
+    qubit_layout: QubitLayout
+    supported_paradigm: set[BackendParadigm] = field(default_factory=set)
 
     @classmethod
     def _load_error(cls, file_type: BackendDataFileType) -> BaseException:
@@ -131,7 +136,6 @@ class BaseLowLevelAPI(ABC):
         Parse from H-hat (`BaseIR` instance) to native low-level quantum
         language code.
         """
-
         pass
 
     @abstractmethod
@@ -140,7 +144,6 @@ class BaseLowLevelAPI(ABC):
         Execute low-level quantum language generated code on the device defined
         at the `backend` instance attribute.
         """
-
         pass
 
     @abstractmethod
@@ -148,5 +151,4 @@ class BaseLowLevelAPI(ABC):
         """
         Retrieve measurements result from low-level quantum language execution.
         """
-
         pass

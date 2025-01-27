@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Generic, TypeVar
 
 from hhat_lang.core import DataParadigm
-from hhat_lang.core.ir.base import BaseIR
 from hhat_lang.core.type_system import FullName
 
+T = TypeVar("T")
 
-class Cast:
+
+class Cast(Generic[T]):
     _origin_paradigm: DataParadigm
     _target_paradigm: DataParadigm
     _origin_type: FullName
@@ -43,7 +44,7 @@ class Cast:
     def target_paradigm(self) -> DataParadigm:
         return self._target_paradigm
 
-    def __call__(self, _origin_data: BaseIR) -> Any:
+    def __call__(self, _origin_data: T) -> Any:
         """
         Get the origin data and invoke the appropriate casting process to the type.
         """

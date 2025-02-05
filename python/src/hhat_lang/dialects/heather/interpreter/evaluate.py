@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from hhat_lang.core.memory.utils import Scope
 from hhat_lang.core.type_system import FullName, NameSpace
 from hhat_lang.dialects.heather.syntax.ast import (
+    Body,
     Declare,
     Assign,
     DeclareAssign,
@@ -11,7 +13,7 @@ from hhat_lang.dialects.heather.syntax.ast import (
     Call,
     Args,
 )
-from hhat_lang.dialects.heather.syntax.base import Node, Terminal, AST
+from hhat_lang.dialects.heather.syntax.base import Node, Terminal, AST, Symbol, Literal
 from hhat_lang.dialects.heather.ir.ast_to_ir import IR, IRMain, IRHeader
 from hhat_lang.core.memory.manager import MemoryManager
 
@@ -25,55 +27,77 @@ class Evaluate:
     main: IRMain
     ref: IRHeader
     mem: MemoryManager
+    cur_scope: str
 
     def __init__(self, ir_code: IR):
         self.ir_code = ir_code
         self.main = ir_code.data.main
         self.ref = ir_code.data.header
         self.mem = MemoryManager()
+        self.cur_scope = "main"
 
     def run(self):
         self._walk(code=self.ir_code.data.main)
 
     def _walk(self, code: AST | Node | Terminal | IRMain) -> Any:
+        print(f"({type(code)}) {code}")
         match code:
-            case Node():
-                for expr in code:
-                    match expr:
-                        case Declare():
-                            self._code_declare(expr)
+            case Body():
+                self._code_body(code)
 
-                        case Assign():
-                            self._code_assign(expr)
+            case Declare():
+                self._code_declare(code)
 
-                        case DeclareAssign():
-                            self._code_declareassign(expr)
+            case Assign():
+                self._code_assign(code)
 
-                        case Call():
-                            self._code_call(expr)
+            case DeclareAssign():
+                self._code_declareassign(code)
 
-                        case CallWithBody():
-                            self._code_callwithbody(expr)
+            case Call():
+                self._code_call(code)
 
-                        case Args():
-                            self._code_args(expr)
+            case CallWithBody():
+                self._code_callwithbody(code)
 
-            case Terminal():
-                _fullname = FullName(NameSpace(), code.value)
-                self.mem.stack.put(_fullname)
-                # debug(f"got terminal? ({type(code)}) {code}")
+            case Args():
+                self._code_args(code)
+
+            case Terminal() | Symbol() | Literal():
+                self._walk_terminal(code)
 
             case IRMain():
                 self._walk(code.data)
+
+            case _:
+                raise NotImplementedError(f"({code}) '{code.value}' not implemented yet")
+
+    def _walk_terminal(self, code: Terminal) -> Any:
+        match code:
+            case Literal():
+                _data = code.value
+            case Symbol():
+                _data = FullName(NameSpace(), code.value)
+            case _:
+                _data = code
+
+        print(f" --> terminal into stack: {code} ({type(code)})")
+        self.mem.stack.put(_data, block=False)
+        print(f"   -> mem stack: {self.mem.stack.queue}")
+        # debug(f"got terminal? ({type(code)}) {code}")
 
     #############
     # CODE EVAL #
     #############
 
-    def _code_declare(self, code: Node):
+    def _code_body(self, code: Node) -> Any:
+        for expr in code:
+            self._walk(expr)
+
+    def _code_declare(self, code: Node) -> Any:
         raise NotImplementedError("Declare not implemented")
 
-    def _code_assign(self, code: Node):
+    def _code_assign(self, code: Node) -> Any:
         raise NotImplementedError("Assign not implemented")
 
     def _code_declareassign(self, code: Node):
@@ -84,7 +108,11 @@ class Evaluate:
         # walk to evaluate code.nodes[2] and put it into the memory stack (self.mem.stack)
         self._walk(code.nodes[2])
         # retrieve the result from walking in the memory stack
-        _var_assign = self.mem.stack.get()
+        _var_assign = self.mem.stack.get(block=False)
+        # allocated var data into heap
+        self.mem.heap.add(Scope(self.cur_scope), _var_name, _var_assign)
+        print(f"  ?-> what is in stack: {self.mem.stack.queue}")
+        print(f"  ?-> what is in heap: {self.mem.heap}")
 
         if len(code.nodes) > 3:
             raise ValueError(
@@ -92,21 +120,26 @@ class Evaluate:
             )
 
     def _code_call(self, code: Node):
+        debug(f"calling {code}")
         # assure there is only the caller and the args, or only a caller (to be decided)
         assert len(code.nodes) == 2 or len(code.nodes) == 1
 
         # get caller name (str) transformed as FullName; for now namespace is local
+        print(f" --> caller name {code.nodes[0]}")
         self._walk(code.nodes[0])
-        _caller_name = self.mem.stack.get()
+        _caller_name = self.mem.stack.get(block=False)
         # find the caller in function code reference
         _caller = self.ref.data.fn_ref.get(_caller_name)
         # resolve args
+        print(f"  --> args? {code.nodes[1]}")
         self._code_args(code.nodes[1])
 
         len_args = len(code.nodes[1].nodes)
-        _args = [self.mem.stack.get() for k in range(len_args)]
+        print(f" => mem stack: {len(self.mem.stack.queue)}")
+        _args = [self.mem.stack.get(block=False) for k in range(len_args)]
         # call _caller with _args arguments
-        _caller
+        _caller(mem=self.mem, args=_args)
+        print(f"  -> after call done, stack: {self.mem.stack.queue}")
 
     def _code_callwithbody(self, code: Node):
         raise NotImplementedError("CallWithBody not implemented")
@@ -115,8 +148,9 @@ class Evaluate:
         # len_args = len(code.nodes)
         args_list = []
         for arg in code.nodes:
+            print(f" --> code arg: {arg}")
             self._walk(arg)
-            args_list.append(self.mem.stack.get())
+            # args_list.append(self.mem.stack.get(block=False))
 
     #####################
     # MEMORY MANAGEMENT #

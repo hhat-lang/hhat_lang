@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from abc import ABC
-from typing import Iterable, TypeVar, Generic
+from abc import ABC, abstractmethod
+from typing import Any, TypeVar, Generic
 
 from hhat_lang.core.type_system import FullName
+from hhat_lang.dialects.heather.syntax.ast import Member
+from hhat_lang.dialects.heather.syntax.base import FnArgId, FnArgType, FnArgItem
 
 T = TypeVar("T")
 
@@ -19,18 +21,22 @@ class BaseFunctionData(ABC):
     _args: BaseFunctionArgs
     _body: BaseFunctionBody
 
-    def add_name(self, name: FullName) -> None:
+    def add_name(self, name: FullName) -> BaseFunctionData:
         self._name = name
+        return self
 
-    def add_type(self, fn_type: FullName) -> None:
+    def add_type(self, fn_type: FullName) -> BaseFunctionData:
         self._type = fn_type
+        return self
 
-    def add_args(self, *args: T) -> None:
+    def add_args(self, *args: T) -> BaseFunctionData:
         self._args = BaseFunctionArgs()
         self._args.add(*args)
+        return self
 
-    def add_body(self, body: T) -> None:
+    def add_body(self, body: T) -> BaseFunctionData:
         self._body = BaseFunctionBody(body)
+        return self
 
     @property
     def name(self) -> FullName:
@@ -48,6 +54,10 @@ class BaseFunctionData(ABC):
     def body(self) -> BaseFunctionBody:
         return self._body
 
+    @abstractmethod
+    def __call__(self, *args: Any, **options: Any) -> T:
+        pass
+
     def __repr__(self) -> str:
         return f"Fn(Name:{self.name} Type:{self.type} Args:({self.args}) Body:({self.body}))"
 
@@ -60,11 +70,13 @@ class BaseFunctionArgs(ABC, Generic[T]):
     args: tuple[T, ...]
 
     def add(self, *args: T) -> None:
-        self.args = ()
-        for arg in args:
-            match arg:
-                case T:
-                    pass
+        # TODO: implement when some arg is an expression other than a terminal value
+        self.args = tuple(
+            FnArgItem(arg[0], arg[1])
+            if isinstance(arg, Member)
+            else arg
+            for arg in args
+        )
 
     def __repr__(self) -> str:
         return " ".join(str(k) for k in self.args)

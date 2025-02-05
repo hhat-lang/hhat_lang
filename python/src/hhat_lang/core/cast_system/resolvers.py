@@ -22,7 +22,7 @@ class RawValue(Resolver):
 class WeightedAverageValue(Resolver):
     def __call__(self, raw_value: dict[str, int | float], type_spec: Callable, **options: Any) -> Any:
         total = sum(raw_value.values())
-        w_value = sum((v/total) * ord(k) for k, v in raw_value.items())
+        w_value = sum((v/total) * int(k) for k, v in raw_value.items())
         return type_spec(w_value)
 
 

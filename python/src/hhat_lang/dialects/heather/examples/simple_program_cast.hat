@@ -1,4 +1,4 @@
-fn sum(a:int b:int):int { add(a b) }
+fn sum(a:u32 b:u32):u16 { add(a b) }
 
 main {
     @num:@u2 = @redim(@0)

@@ -48,7 +48,7 @@ class CodeReference(Generic[T]):
 
     def view(self) -> str:
         res = "#CodeReference\n  "
-        res += "\n  ".join(f"{k}:{v}" for k, v in self._ref.items())
+        res += "\n  ".join(f"=> {k}:{v}" for k, v in self._ref.items())
         res += "\n" + "-" * 40 + "\n#.\n"
         return res
 

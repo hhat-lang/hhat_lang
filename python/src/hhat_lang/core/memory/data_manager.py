@@ -4,8 +4,17 @@ from typing import Any, Iterator
 
 from hhat_lang.core.memory.utils import Scope
 
+from hhat_lang.dialects.heather.syntax.base import (
+    BaseVariableContainer,
+    Immutable,
+    Replaceable,
+    Appendable,
+)
+
 
 class DataReference:
+    # TODO: reimplement it
+    #  - needs to use `BaseVariableContainer` class as values
     _data: dict[Scope, dict[str, Any]]
 
     def __init__(self):

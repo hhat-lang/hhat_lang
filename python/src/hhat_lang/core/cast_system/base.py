@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Generic, TypeVar
 
 from hhat_lang.core import DataParadigm
+from hhat_lang.core.cast_system.resolvers import Resolver, RawValue
 from hhat_lang.core.type_system import FullName
 
 T = TypeVar("T")
@@ -44,9 +45,33 @@ class Cast(Generic[T]):
     def target_paradigm(self) -> DataParadigm:
         return self._target_paradigm
 
-    def __call__(self, _origin_data: T) -> Any:
+    def __call__(
+        self,
+        origin_data: T,
+        to_type: Any | None = None,
+        resolver: Resolver | None = None,
+    ) -> Any:
         """
         Get the origin data and invoke the appropriate casting process to the type.
         """
+        if to_type is None:
+            return self._default_cast(origin_data)
+        return self._to_type_cast(origin_data, to_type, resolver)
 
+    def _default_cast(self, data: T) -> dict[str, int | float]:
+        # TODO: implement it
+        # ...
+        # return RawValue()()
+        pass
+
+    def _to_type_cast(
+        self,
+        data: T,
+        to_type: Any,
+        resolver: Resolver | None,
+    ) -> Any:
+        # TODO: implement it
+        # ...
+        # resolver = RawValue() if resolver is None else resolver
+        # return resolver()
         pass

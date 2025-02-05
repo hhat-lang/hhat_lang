@@ -10,6 +10,9 @@ as the `main` closure. One the code is working and running, the above will be bu
 
 from __future__ import annotations
 
+from typing import Any, Iterable
+from importlib import import_module
+
 from hhat_lang.core.fn_system.base import BaseFunctionData
 from hhat_lang.core.type_system import FullName, NameSpace, DataTypesEnum
 from hhat_lang.core.memory.code_manager import CodeManager, CodeReference
@@ -24,9 +27,14 @@ from hhat_lang.core.type_system.datatypes import (
 )
 from hhat_lang.dialect_builder.builtins.types import datatypes_dict
 
+from hhat_lang.dialects.heather.core.functions import FunctionData
 from hhat_lang.dialects.heather.syntax.base import (
     AST,
+    Node as ASTNode,
     Terminal as ASTTerminal,
+    QSymbol,
+    CSymbol,
+    Symbol,
 )
 from hhat_lang.dialects.heather.syntax.ast import (
     Program as ASTProgram,
@@ -41,7 +49,9 @@ from hhat_lang.dialects.heather.syntax.ast import (
     EnumsStruct as ASTEnumsStruct,
     Member as ASTMember,
     Args as ASTArgs,
+    Call as ASTCall, DeclareAssign, Declare,
 )
+from hhat_lang.dialects.heather.builtins import functions
 
 
 class IR:
@@ -64,13 +74,20 @@ class IR:
         for block in self.parsed_code:
             match block:
                 case ASTMain():
-                    self.data.main = block
+                    self.data.main = block.nodes[0]
+
                 case ASTTypeDef() | ASTGenericTypeDef():
                     self.data.header.build_type(block)
+                    self.data.get_refs(block)
+
                 case ASTFunctionDef() | ASTGenericFunctionDef():
                     self.data.header.build_fns(block)
+                    self.data.get_refs(block)
+
                 case _:
                     pass
+
+        self.data.build_refs()
         return self
 
     def __repr__(self) -> str:
@@ -90,6 +107,57 @@ class IRData:
     # TODO: refactor it afterward to include imports
     header: IRHeader
     main: IRMain
+
+    def build_refs(self) -> None:
+        for expr in self.main:
+            self.get_refs(expr)
+
+    def get_refs(self, expr: ASTNode | ASTTerminal):
+        match expr:
+            case ASTCall():
+                caller = expr.nodes[0]
+
+                if isinstance(caller, QSymbol):
+                    fullname = FullName(NameSpace(), caller.value)
+                    caller_fn = getattr(functions, caller.value.replace("@", "fn_q__"))
+
+                elif isinstance(caller, CSymbol):
+                    fullname = FullName(NameSpace(), caller.value)
+                    caller_fn = getattr(functions, "fn_" + caller.value)
+
+                else:
+                    raise NotImplementedError(f"'{caller}' ({type(caller)}) is not implemented")
+
+                self.header.data.fn_ref.add(fullname, caller_fn)
+
+            case ASTTerminal():
+                pass
+
+            case DeclareAssign() | Declare():
+                type_fn = self._add_type_ref(expr.nodes[0])
+                self.header.data.type_ref.add(type_fn.name, type_fn)
+                self.get_refs(expr.nodes[2])
+
+            case ASTFunctionDef():
+                type_fn = self._add_type_ref(expr.nodes[0])
+                self.header.data.type_ref.add(type_fn.name, type_fn)
+                self.get_refs(expr.nodes[1:])
+
+            case ASTMember():
+                type_fn = self._add_type_ref(expr.nodes[1])
+                self.header.data.type_ref.add(type_fn.name, type_fn)
+
+            case _:
+                for k in expr:
+                    self.get_refs(k)
+
+    def _add_type_ref(self, type_name: Symbol) -> Any:
+        type_fn = datatypes_dict.get(type_name.value, None)
+
+        if type_fn is None:
+            raise NotImplementedError(f"'{type_name}' is not implemented yet")
+
+        return type_fn
 
 
 class IRHeader:
@@ -117,7 +185,6 @@ class IRTypes:
         elems = pcode.nodes[1:]
         ns = NameSpace()  # work out on it when the types are located elsewhere
         fullname = FullName(ns, name.value)
-        # print(f"> type {type(pcode)} fullname: {fullname}")
 
         if fullname in type_ref:
             raise ValueError(f"type '{fullname}' already defined")
@@ -127,14 +194,18 @@ class IRTypes:
                 case ASTEnum():
                     datatype = EnumType(name=fullname, datatype=DataTypesEnum.ENUM)
                     cls._build_enum(elem, datatype)
+
                 case ASTStruct():
                     datatype = StructType(name=fullname, datatype=DataTypesEnum.STRUCT)
                     cls._build_struct(elem, datatype)
+
                 case ASTMember():
                     datatype = None
                     cls._build_member(elem)
+
                 case ASTEnumsStruct():
                     datatype = None
+
                 case _:
                     print(f"|build type| what has it? ({type(elem)}) {elem}")
                     datatype = None
@@ -215,7 +286,7 @@ class IRFns:
         # get function name
         _fn_name = FullName(NameSpace(), pcode.nodes[1].value)
 
-        fn_data = BaseFunctionData()
+        fn_data = FunctionData()
         fn_data.add_name(_fn_name)
         fn_data.add_type(_fn_type)
         fn_data.add_args(*pcode.nodes[2].nodes)
@@ -234,6 +305,9 @@ class IRMain:
 
     def __init__(self, data: ASTBody):
         self.data = data
+
+    def __iter__(self) -> Iterable:
+        yield from self.data
 
     def __repr__(self) -> str:
         return f"MAIN:\n{self.data}\n"

@@ -4,6 +4,7 @@ from abc import abstractmethod, ABC
 from typing import Any, Iterable
 from enum import StrEnum, auto, Enum
 
+from hhat_lang.core.type_system import FullName
 from hhat_lang.core.utils.dialect_descriptor import DialectDescriptor
 
 
@@ -20,16 +21,64 @@ class VariableAssignEnum(Enum):
     APPENDABLE = auto()
 
 
-class BaseVariableAssign(ABC):
+class BaseVariableContainer(ABC):
     assign_type: tuple[VariableAssignEnum, ...]
+    _name: FullName
+    _type: FullName
+    _size: int | None
+    _data: Any
+
+    def __init__(self, name: FullName, var_type: FullName, size: int | None = None):
+        self._name = name
+        self._type = var_type
+        self._size = size
+        self._data = None
+
+    @property
+    def name(self) -> FullName:
+        return self._name
+
+    @property
+    def type(self) -> FullName:
+        return self._type
+
+    @property
+    def size(self) -> int | None:
+        return self._size
+
+    @abstractmethod
+    def add(self, value: Any) -> None:
+        pass
+
+    def get(self) -> Any:
+        return self._data
+
+    def __iter__(self) -> Iterable[Any]:
+        if isinstance(self._data, Iterable):
+            yield from self._data
+        else:
+            yield from [self._data]
 
 
-class Immutable(BaseVariableAssign):
+class Immutable(BaseVariableContainer):
     assign_type: tuple[VariableAssignEnum, ...] = VariableAssignEnum.IMMUTABLE,
 
+    def add(self, value: Any) -> None:
+        if value.type == self.type:
+            if self._data is None:
+                self._data = value
+            else:
+                raise ValueError("cannot change an immutable variable")
+        else:
+            raise ValueError("type error")
 
-class Mutable(BaseVariableAssign):
+
+class Mutable(BaseVariableContainer):
     assign_type: tuple[VariableAssignEnum, ...] = VariableAssignEnum.MUTABLE,
+
+    @abstractmethod
+    def add(self, value: Any) -> None:
+        ...
 
 
 class Replaceable(Mutable):
@@ -38,12 +87,21 @@ class Replaceable(Mutable):
         VariableAssignEnum.REPLACEABLE
     )
 
+    def add(self, value: Any) -> None:
+        self._data = value
+
 
 class Appendable(Mutable):
     assign_type: tuple[VariableAssignEnum, ...] = (
         VariableAssignEnum.MUTABLE,
         VariableAssignEnum.APPENDABLE
     )
+
+    def add(self, value: Any) -> None:
+        if self._data is None:
+            self._data = (value,)
+        else:
+            self._data += (value,)
 
 
 class Assignable:
@@ -170,21 +228,15 @@ class Symbol(Terminal):
     def _generic_mark(self) -> str:
         return "?" if self.is_generic else ""
 
+    def __repr__(self) -> str:
+        return f"{self._generic_mark()}{self.value}<{self.dialect}>"
+
 
 class CSymbol(Symbol):
-    def __init__(self, value: str, is_generic: bool, dialect: DialectDescriptor):
-        super().__init__(value, is_generic, dialect)
-
-    def __repr__(self) -> str:
-        return f"{self._generic_mark()}{self.value}<{self.dialect}>"
-
+    pass
 
 class QSymbol(Symbol):
-    def __init__(self, value: str, is_generic: bool, dialect: DialectDescriptor):
-        super().__init__(value, is_generic, dialect)
-
-    def __repr__(self) -> str:
-        return f"{self._generic_mark()}{self.value}<{self.dialect}>"
+    pass
 
 
 class Literal(Terminal, Assignable):
@@ -219,7 +271,7 @@ class Literal(Terminal, Assignable):
         return False
 
     def __repr__(self) -> str:
-        return f"[{self.type}]<{self.dialect}>({self.value})"
+        return f"{self.value}[{self.type}]<{self.dialect}>"
 
 
 class CompositeLiteral(Node, Assignable):
@@ -239,7 +291,27 @@ class CompositeLiteral(Node, Assignable):
                 and self.type == other.type
                 and self.dialect == other.dialect
             )
+        return False
 
     def __repr__(self) -> str:
         return f"[{self.type}]<{self.dialect}>({' '.join(str(k) for k in self)})"
 
+
+
+class FnArgId(Symbol):
+    def __init__(self, arg: Symbol):
+        super().__init__(arg.value, arg.is_generic, arg.dialect)
+
+
+class FnArgType(Symbol):
+    def __init__(self, arg: Symbol):
+        super().__init__(arg.value, arg.is_generic, arg.dialect)
+
+
+class FnArgItem:
+    def __init__(self, arg_id: Symbol, arg_type: Symbol):
+        self.arg_id = FnArgId(arg_id)
+        self.arg_type = FnArgType(arg_type)
+
+    def __repr__(self) -> str:
+        return f"({self.arg_id}:{self.arg_type})"

@@ -28,137 +28,162 @@ from hhat_lang.core.type_system.base import (
 from hhat_lang.core.type_system.utils import BuiltinNamespace, FullName
 
 
+null_type = (
+    BuiltinType("null", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "null"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_size(0)
+)
+
+u8_type = (
+    BuiltinType("u8", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "u8"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_size(8)
+)
+
+bool_type =  (
+    BuiltinType("bool", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "bool"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_size(8)
+)
+
+char_type = (
+    BuiltinType("char", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "char"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_size(8)
+)
+
+u16_type =(
+    BuiltinType("u16", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "u16"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_size(16)
+)
+
+u32_type = (
+    BuiltinType("u32", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "u32"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_size(32)
+)
+
+u64_type = (
+    BuiltinType("u64", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "u64"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_size(64)
+)
+
+str_type = (
+    BuiltinType("str", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "str"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+)
+
+q__bool_type = (
+    BuiltinType("@bool", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "@bool"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_qsize(1, 1)
+)
+
+q__u2_type = (
+    BuiltinType("@u2", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "@u2"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_qsize(2, 2)
+)
+
+q__u3_type = (
+    BuiltinType("@u3", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "@u3"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_qsize(3, 3)
+)
+
+q__u4_type = (
+    BuiltinType("@u4", DataTypesEnum.SINGLE)
+    .add_member(
+        SingleBaseMember(
+            member_type=FullName(BuiltinNamespace(), "@u4"),
+            member_datatype=DataTypesEnum.SINGLE,
+        )
+    )
+    .add_qsize(4, 4)
+)
+
+
 datatypes_dict = {
 
-    "null": (
-        BuiltinType("null", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "null"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-        .add_size(0)
-    ),
+    "null": null_type,
 
-    "u8": (
-        BuiltinType("u8", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "u8"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-        .add_size(8)
-    ),
+    "u8": u8_type,
 
-    "bool": (
-        BuiltinType("bool", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "bool"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-        .add_size(8)
-    ),
+    "bool": bool_type,
 
-    "char": (
-        BuiltinType("char", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "char"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-        .add_size(8)
-    ),
+    "char": char_type,
 
-    "u16": (
-        BuiltinType("u16", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "u16"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-        .add_size(16)
-    ),
+    "u16": u16_type,
 
-    "u32": (
-        BuiltinType("u32", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "u32"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-        .add_size(32)
-    ),
+    "u32": u32_type,
 
-    "u64": (
-        BuiltinType("u64", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "u64"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-        .add_size(64)
-    ),
+    "u64": u64_type,
 
-    "str": (
-        BuiltinType("str", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "str"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-    ),
+    "str": str_type,
 
-    "@bool": (
-        BuiltinType("@bool", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "@bool"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-        .add_qsize(1, 1)
-    ),
+    "@bool": q__bool_type,
 
-    "@u2": (
-        BuiltinType("@u2", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "@u2"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-        .add_qsize(2, 2)
-    ),
+    "@u2": q__u2_type,
 
-    "@u3": (
-        BuiltinType("@u3", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "@u3"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-        .add_qsize(3, 3)
-    ),
+    "@u3": q__u3_type,
 
-    "@u4": (
-        BuiltinType("@u4", DataTypesEnum.SINGLE)
-        .add_member(
-            SingleBaseMember(
-                member_type=FullName(BuiltinNamespace(), "@u4"),
-                member_datatype=DataTypesEnum.SINGLE,
-            )
-        )
-        .add_qsize(4, 4)
-    ),
+    "@u4": q__u4_type,
 
 }

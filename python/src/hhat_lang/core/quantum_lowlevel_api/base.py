@@ -152,3 +152,11 @@ class BaseLowLevelAPI(ABC):
         Retrieve measurements result from low-level quantum language execution.
         """
         pass
+
+
+class BaseShotEstimator(ABC):
+    shots: int
+
+    @abstractmethod
+    def __call__(self, **options: Any) -> int:
+        pass

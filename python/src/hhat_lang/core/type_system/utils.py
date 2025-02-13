@@ -22,10 +22,19 @@ class DataTypesEnum(StrEnum):
 class Size:
     def __init__(self):
         self._size: int | None = None
+        self._composite_size: int | None = None
 
     @property
     def size(self) -> int | None:
         return self._size
+
+    @property
+    def total_size(self) -> int | None:
+        if self.size is not None:
+            if self._composite_size is not None:
+                return self.size * self._composite_size
+            return self._size
+        return None
 
     def add_size(self, size: int) -> Result:
         if self._size is None and isinstance(size, int):
@@ -34,6 +43,14 @@ class Size:
         else:
             res = Result(ResultType.ERROR)
         return res(self._size)
+
+    def add_composite_size(self, size: int) -> Result:
+        if self._composite_size is None and isinstance(size, int):
+            self._composite_size = size
+            res = Result(ResultType.OK)
+        else:
+            res = Result(ResultType.ERROR)
+        return res(self._composite_size)
 
 
 class QSize:

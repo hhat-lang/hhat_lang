@@ -3,22 +3,34 @@ from __future__ import annotations
 from typing import Any, Callable
 from importlib import import_module
 
+from hhat_lang.core.builtin.quantum_instr import BaseQuantumInstr
 from hhat_lang.core.fn_system.base import BaseFunctionData
 from hhat_lang.core.memory.manager import MemoryManager
 from hhat_lang.core.type_system import FullName, NameSpace
 from hhat_lang.core.utils.dialect_descriptor import get_dialect_data
-from hhat_lang.dialect_builder.builtins.functions import ArgsWildCard
-from hhat_lang.dialect_builder.builtins.types import null_type
+from hhat_lang.dialect_builder.builtins.functions import ArgsWildCard, any_type, any_q__type
+from hhat_lang.dialect_builder.builtins.types import (
+    uint_types,
+    sint_types,
+    q__uint_types, null_type, q__u2_type,
+)
 from hhat_lang.dialects.heather import DIALECT_PATH
+from hhat_lang.dialects.heather.interpreter.evaluate import Evaluate
 from hhat_lang.dialects.heather.syntax.base import Literal
 
-# TODO: implement it properly without harcode
+# TODO: implement it properly without hardcoding it
 QUANTUM_INSTR = import_module(
     "hhat_lang.quantum_lowlevel.qiskit.frontend.openqasm.v2.quantum_instr"
 )
 
 
-def fn_print(*, mem: MemoryManager, args: Any, **kwargs: Any) -> Any:
+def fn_print(
+    *,
+    mem: MemoryManager,
+    args: Any,
+    evaluate: Evaluate,
+    **kwargs: Any
+) -> Any:
     print(f"[PRINT]", *args, **kwargs)
     return Literal(
         value="null",
@@ -27,7 +39,18 @@ def fn_print(*, mem: MemoryManager, args: Any, **kwargs: Any) -> Any:
     )
 
 
-def fn_cast(*, mem: MemoryManager, data: Any, to: FullName | None = None, **kwargs: Any) -> Any:
+def fn_cast(
+    *,
+    mem: MemoryManager,
+    data: Any,
+    evaluate: Evaluate,
+    to: FullName | None = None,
+    **kwargs: Any
+) -> Any:
+    match data:
+        case _:
+            pass
+
     match to.name:
         case "u16":
             pass
@@ -78,10 +101,19 @@ def fn_mod(mem: MemoryManager, *args: Any, **kwargs: Any) -> None:
     pass
 
 
-def fn_q__redim(*, mem: MemoryManager, args: Any, **kwargs: Any) -> None:
-    res = QUANTUM_INSTR.q__redim(mem=mem, idxs=args, **kwargs)
-    mem.stack.put(res, block=False)
+def fn_q__redim(*, mem: MemoryManager, args: Any, evaluate: Evaluate, **kwargs: Any) -> Any:
+    match args:
+        case Literal():
+            if args.type == "@int":
+                pass
+            elif args.type in q__uint_types:
+                pass
+
+    res: BaseQuantumInstr = QUANTUM_INSTR.QRedim()
+    _instr = res.apply(idxs=args, mem=mem, evaluate=evaluate).get_instr()
+    mem.stack.put(_instr, block=False)
     print(f" [fn=>in] stack: {mem.stack.queue}")
+    return
 
 
 def fn_q__sync(mem: MemoryManager, *args: Any, **kwargs: Any) -> None:
@@ -103,45 +135,46 @@ inside there is another dictionary that contain a tuple of values, where the fir
 function type and the second is the function args, both as `FullName` instances.
 Inside there's the actual `BuiltinFunctionData` instance defining the corresponding function.
 """
-print_name = FullName(NameSpace(), "print")
-cast_name = FullName(NameSpace(), "cast")
-add_name = FullName(NameSpace(), "add")
-q__redim_name = FullName(NameSpace(), "@redim")
+print_fn = FullName(NameSpace(), "print")
+cast_fn = FullName(NameSpace(), "cast")
+add_fn = FullName(NameSpace(), "add")
+q__redim_fn = FullName(NameSpace(), "@redim")
 
+# functions objects with keys as FullName and values as BuiltinFunctionData callables
 functions_dict = {
-    # print function, type null with any type of arguments
-    print_name: {
-        (FullName(NameSpace(), "null"), ArgsWildCard()): (
+    # print function
+    print_fn: {
+        (null_type.name, ArgsWildCard()): (
             BuiltinFunctionData()
-            .add_name(print_name)
-            .add_type()
+            .add_name(print_fn)
+            .add_type(null_type.name)
             .add_args()(callback=fn_print)
         ),
     },
     # cast function
-    cast_name: {
-        (None, ArgsWildCard()): (
+    cast_fn: {
+        (any_type.name, ArgsWildCard()): (
             BuiltinFunctionData()
-            .add_name(cast_name)
-            .add_type()
+            .add_name(cast_fn)
+            .add_type(any_type.name)
             .add_args()(callback=fn_cast)
         )
     },
     # add function
-    add_name: {
-        (None, ArgsWildCard()): (
+    add_fn: {
+        (any_type.name, ArgsWildCard()): (
             BuiltinFunctionData()
-            .add_name(add_name)
-            .add_type()
+            .add_name(add_fn)
+            .add_type(any_type.name)
             .add_args()(callback=fn_add)
         )
     },
     # @redim function
-    q__redim_name: {
-        (FullName(NameSpace(), "@u2"), ArgsWildCard()): (
+    q__redim_fn: {
+        (any_q__type.name, ArgsWildCard()): (
             BuiltinFunctionData()
-            .add_name(q__redim_name)
-            .add_type()
+            .add_name(q__redim_fn)
+            .add_type(any_q__type.name)
             .add_args()(callback=fn_q__redim)
         )
     }

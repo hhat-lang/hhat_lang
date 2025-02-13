@@ -22,14 +22,14 @@ from __future__ import annotations
 
 from hhat_lang.core.type_system import DataTypesEnum
 from hhat_lang.core.type_system.base import (
-    BuiltinType,
+    SingleBuiltinType,
     SingleBaseMember,
 )
 from hhat_lang.core.type_system.utils import BuiltinNamespace, FullName
 
 
 null_type = (
-    BuiltinType("null", DataTypesEnum.SINGLE)
+    SingleBuiltinType("null")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "null"),
@@ -40,7 +40,7 @@ null_type = (
 )
 
 u8_type = (
-    BuiltinType("u8", DataTypesEnum.SINGLE)
+    SingleBuiltinType("u8")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "u8"),
@@ -51,7 +51,7 @@ u8_type = (
 )
 
 bool_type =  (
-    BuiltinType("bool", DataTypesEnum.SINGLE)
+    SingleBuiltinType("bool")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "bool"),
@@ -62,7 +62,7 @@ bool_type =  (
 )
 
 char_type = (
-    BuiltinType("char", DataTypesEnum.SINGLE)
+    SingleBuiltinType("char")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "char"),
@@ -73,7 +73,7 @@ char_type = (
 )
 
 u16_type =(
-    BuiltinType("u16", DataTypesEnum.SINGLE)
+    SingleBuiltinType("u16")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "u16"),
@@ -84,7 +84,7 @@ u16_type =(
 )
 
 u32_type = (
-    BuiltinType("u32", DataTypesEnum.SINGLE)
+    SingleBuiltinType("u32")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "u32"),
@@ -95,7 +95,7 @@ u32_type = (
 )
 
 u64_type = (
-    BuiltinType("u64", DataTypesEnum.SINGLE)
+    SingleBuiltinType("u64")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "u64"),
@@ -106,7 +106,7 @@ u64_type = (
 )
 
 str_type = (
-    BuiltinType("str", DataTypesEnum.SINGLE)
+    SingleBuiltinType("str")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "str"),
@@ -116,7 +116,7 @@ str_type = (
 )
 
 q__bool_type = (
-    BuiltinType("@bool", DataTypesEnum.SINGLE)
+    SingleBuiltinType("@bool")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "@bool"),
@@ -127,7 +127,7 @@ q__bool_type = (
 )
 
 q__u2_type = (
-    BuiltinType("@u2", DataTypesEnum.SINGLE)
+    SingleBuiltinType("@u2")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "@u2"),
@@ -138,7 +138,7 @@ q__u2_type = (
 )
 
 q__u3_type = (
-    BuiltinType("@u3", DataTypesEnum.SINGLE)
+    SingleBuiltinType("@u3")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "@u3"),
@@ -149,7 +149,7 @@ q__u3_type = (
 )
 
 q__u4_type = (
-    BuiltinType("@u4", DataTypesEnum.SINGLE)
+    SingleBuiltinType("@u4")
     .add_member(
         SingleBaseMember(
             member_type=FullName(BuiltinNamespace(), "@u4"),
@@ -187,3 +187,8 @@ datatypes_dict = {
     "@u4": q__u4_type,
 
 }
+
+
+uint_types = ("u16", "u32", "u64")
+sint_types = ("i16", "i32", "i64")
+q__uint_types = ("@u2", "@u3", "@u4")

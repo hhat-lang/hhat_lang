@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from hhat_lang.core.interpreter.base import BaseEvaluate
 from hhat_lang.core.memory.utils import Scope
 from hhat_lang.core.type_system import FullName, NameSpace
+from hhat_lang.core.type_system.base import Appendable, Mutable
 from hhat_lang.dialects.heather.syntax.ast import (
     Body,
     Declare,
@@ -22,19 +24,19 @@ def debug(*msg: Any, **options: Any) -> None:
     print("[DEBUG]", *msg, **options)
 
 
-class Evaluate:
+class Evaluate(BaseEvaluate):
     ir_code: IR
     main: IRMain
     ref: IRHeader
     mem: MemoryManager
-    cur_scope: str
+    cur_scope: Scope
 
     def __init__(self, ir_code: IR):
         self.ir_code = ir_code
         self.main = ir_code.data.main
         self.ref = ir_code.data.header
         self.mem = MemoryManager()
-        self.cur_scope = "main"
+        self.cur_scope = Scope("main")
 
     def run(self):
         self._walk(code=self.ir_code.data.main)
@@ -101,16 +103,33 @@ class Evaluate:
         raise NotImplementedError("Assign not implemented")
 
     def _code_declareassign(self, code: Node):
-        # get var type as str
-        _var_type = code.nodes[0].value
-        # get var name as str
-        _var_name = code.nodes[1].value
+        # get var type as FullName
+        _var_type = FullName(NameSpace(), code.nodes[0].value)
+        # get var name as FullName
+        _var_name = FullName(NameSpace(), code.nodes[1].value)
+
+        if _var_name in self.mem.heap[self.cur_scope]:
+            raise ValueError(f"variable {_var_name} already declared")
+
         # walk to evaluate code.nodes[2] and put it into the memory stack (self.mem.stack)
         self._walk(code.nodes[2])
         # retrieve the result from walking in the memory stack
         _var_assign = self.mem.stack.get(block=False)
+
+        # depending on the type and the value to be assigned, get a different base container
+        if _var_type.name.startswith("@"):
+            _var_container = Appendable(name=_var_name, var_type=_var_type, size=None)
+
+        else:
+            _len_var_data = len(_var_assign)
+            if _len_var_data == 1:
+                _var_container = Mutable(name=_var_name, var_type=_var_type, size=1)
+
+            else:
+                _var_container = Appendable(name=_var_name, var_type=_var_type, size=None)
+
         # allocated var data into heap
-        self.mem.heap.add(Scope(self.cur_scope), _var_name, _var_assign)
+        self.mem.heap.add(self.cur_scope, _var_name, _var_container)
         print(f"  ?-> what is in stack: {self.mem.stack.queue}")
         print(f"  ?-> what is in heap: {self.mem.heap}")
 
@@ -130,6 +149,7 @@ class Evaluate:
         _caller_name = self.mem.stack.get(block=False)
         # find the caller in function code reference
         _caller = self.ref.data.fn_ref.get(_caller_name)
+        _prev_scope = self.cur_scope
         # resolve args
         print(f"  --> args? {code.nodes[1]}")
         self._code_args(code.nodes[1])
@@ -137,8 +157,12 @@ class Evaluate:
         len_args = len(code.nodes[1].nodes)
         print(f" => mem stack: {len(self.mem.stack.queue)}")
         _args = [self.mem.stack.get(block=False) for k in range(len_args)]
-        # call _caller with _args arguments
-        _caller(mem=self.mem, args=_args)
+        # define a function scope
+        self.cur_scope = Scope(_caller_name.value)
+        # call _caller with _args arguments; it will place return data into the stack
+        _caller(mem=self.mem, args=_args, eval=self)
+        # get back the previous scope
+        self.cur_scope = _prev_scope
         print(f"  -> after call done, stack: {self.mem.stack.queue}")
 
     def _code_callwithbody(self, code: Node):

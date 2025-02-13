@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from typing import Any, Generic, Iterator, TypeVar, Union
+from enum import Enum, auto
+from typing import Any, Generic, Iterator, TypeVar, Union, Iterable
 
 from hhat_lang.core.type_system import DataTypesEnum, FullName, QSize, Size
 from hhat_lang.core.type_system.utils import BuiltinNamespace
@@ -16,17 +17,27 @@ class BaseDataType(ABC, Generic[T]):
     _data: DataTypeContainer[T]
     _type: DataTypesEnum
     _supported_members: tuple[DataTypesEnum, ...] = ()
-    _is_primitive: bool
     _size: Size
     _qsize: QSize
+    _is_primitive: bool
+    _is_composite: bool
+    _composite_size: int | None
+    _is_special_type: bool = False
 
-    def __init__(self, name: FullName, datatype: DataTypesEnum):
+    def __init__(
+        self,
+        name: FullName,
+        datatype: DataTypesEnum,
+        is_composite: bool = False,
+    ):
         self._name: FullName = name
         self._type: DataTypesEnum = datatype
         self._data = DataTypeContainer(self._supported_members)
         self._size: Size = Size()
         self._qsize: QSize = QSize()
         self._is_primitive = False
+        self._is_composite = is_composite
+        self._composite_size = None
 
     @property
     def size(self) -> Size:
@@ -51,6 +62,18 @@ class BaseDataType(ABC, Generic[T]):
     @property
     def supported_members(self) -> tuple[DataTypesEnum, ...]:
         return self._supported_members
+
+    @property
+    def is_composite(self) -> bool:
+        return self._is_composite
+
+    @property
+    def is_special_type(self) -> bool:
+        return self._is_special_type
+
+    def add_composite_size(self, size: int) -> Any:
+        if self._composite_size is None:
+            self._composite_size = size
 
     @abstractmethod
     def add_member(self, new_member: T) -> Any: ...
@@ -202,13 +225,111 @@ class DataTypeContainer(Generic[T]):
         return " ".join(f"{v}" for k, v in self._data.items())
 
 
-class BuiltinType(BaseDataType[SingleBaseMember]):
+class SingleBuiltinType(BaseDataType[SingleBaseMember]):
     _supported_members: tuple[DataTypesEnum, ...] = (DataTypesEnum.SINGLE,)
 
-    def __init__(self, name: str, datatype: DataTypesEnum):
-        super().__init__(FullName(BuiltinNamespace(), name), datatype)
+    def __init__(
+        self,
+        name: str,
+        is_composite: bool = False
+    ):
+        super().__init__(FullName(BuiltinNamespace(), name), DataTypesEnum.SINGLE, is_composite)
         self._is_primitive = True
 
-    def add_member(self, new_member: SingleBaseMember) -> BuiltinType:
+    def add_member(self, new_member: SingleBaseMember) -> SingleBuiltinType:
         self._data[self._name] = new_member
         return self
+
+
+class VariableContainerEnum(Enum):
+    IMMUTABLE = auto()
+    MUTABLE = auto()
+    REPLACEABLE = auto()
+    APPENDABLE = auto()
+
+
+class BaseVariableContainer(ABC):
+    """
+    Abstract class to define the behavior of variable data inside memory heap.
+    """
+
+    assign_type: tuple[VariableContainerEnum, ...]
+    _name: FullName
+    _type: FullName
+    _size: int | None
+    _data: Any
+
+    def __init__(self, name: FullName, var_type: FullName, size: int | None = None):
+        self._name = name
+        self._type = var_type
+        self._size = size
+        self._data = None
+
+    @property
+    def name(self) -> FullName:
+        return self._name
+
+    @property
+    def type(self) -> FullName:
+        return self._type
+
+    @property
+    def size(self) -> int | None:
+        return self._size
+
+    @abstractmethod
+    def add(self, value: Any) -> None:
+        pass
+
+    def get(self) -> Any:
+        return self._data
+
+    def __iter__(self) -> Iterable[Any]:
+        if isinstance(self._data, Iterable):
+            yield from self._data
+        else:
+            yield from [self._data]
+
+
+class Immutable(BaseVariableContainer):
+    assign_type: tuple[VariableContainerEnum, ...] = VariableContainerEnum.IMMUTABLE,
+
+    def add(self, value: Any) -> None:
+        if value.type == self.type:
+            if self._data is None:
+                self._data = value
+            else:
+                raise ValueError("cannot change an immutable variable")
+        else:
+            raise ValueError("type error")
+
+
+class Mutable(BaseVariableContainer):
+    assign_type: tuple[VariableContainerEnum, ...] = VariableContainerEnum.MUTABLE,
+
+    @abstractmethod
+    def add(self, value: Any) -> None:
+        ...
+
+
+class Replaceable(Mutable):
+    assign_type: VariableContainerEnum = (
+        VariableContainerEnum.MUTABLE,
+        VariableContainerEnum.REPLACEABLE
+    )
+
+    def add(self, value: Any) -> None:
+        self._data = value
+
+
+class Appendable(Mutable):
+    assign_type: tuple[VariableContainerEnum, ...] = (
+        VariableContainerEnum.MUTABLE,
+        VariableContainerEnum.APPENDABLE
+    )
+
+    def add(self, value: Any) -> None:
+        if self._data is None:
+            self._data = (value,)
+        else:
+            self._data += (value,)

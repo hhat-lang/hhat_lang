@@ -137,6 +137,37 @@ class MappedIndexes:
         return text
 
 
+class IndexSupport:
+    """
+    To hold indexes for target and control, to be used in quantum variable's quantum instructions.
+    """
+
+    _target: deque[int]
+    _control: deque[int]
+
+    def __init__(self, *, target: deque[int], control: deque[int] | None = None):
+        self._target = target
+        self._control = control or deque()
+
+    @property
+    def target(self) -> deque[int]:
+        return self._target
+
+    @property
+    def control(self) -> deque[int]:
+        return self._control or deque()
+
+    def __len__(self) -> int:
+        return len(self._target + self._control)
+
+    def __repr__(self) -> str:
+        return (
+            f"#IndexSupport("
+            f"target=({' '.join(str(k) for k in self._target)}) | "
+            f"control=({' '.join(str(k) for k in self._control)})"
+        )
+
+
 class IndexKeeping:
     """
     To keep track of the minimum and maximum number of indexes that types will use
@@ -157,6 +188,9 @@ class IndexManager:
     Indexes are qubits labelled differently to avoid unnecessary complexity and
     ambiguity for the user to build programs.
     """
+
+    _mapped: MappedIndexes
+    _keeping: IndexKeeping
 
     def __init__(self):
         self._mapped = MappedIndexes()

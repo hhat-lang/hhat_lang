@@ -17,3 +17,13 @@ class BaseIR(ABC, Generic[FetchedType, FetchedFn, FetchedMain]):
 
     @abstractmethod
     def fetch_main(self, *args: Any, **kwargs: Any) -> FetchedMain: ...
+
+
+class BaseEvaluate(ABC):
+    @abstractmethod
+    def run(self) -> Any:
+        ...
+
+    @abstractmethod
+    def _walk(self, code: Any) -> Any:
+        ...

@@ -3,24 +3,24 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from hhat_lang.core.memory.utils import Scope
+from hhat_lang.core.type_system import FullName
 
-from hhat_lang.dialects.heather.syntax.base import (
-    BaseVariableContainer,
-    Immutable,
-    Replaceable,
-    Appendable,
+from hhat_lang.core.type_system.base import (
+    VariableContainerEnum,
+    BaseVariableContainer, Immutable, Replaceable,
+    Appendable
 )
 
 
 class DataReference:
     # TODO: reimplement it
-    #  - needs to use `BaseVariableContainer` class as values
-    _data: dict[Scope, dict[str, Any]]
+    #  - [x] use `BaseVariableContainer` class as values
+    _data: dict[Scope, dict[FullName, BaseVariableContainer]]
 
     def __init__(self):
         self._data = dict()
 
-    def add(self, scope: Scope, name: str, value: Any) -> None:
+    def add(self, scope: Scope, name: FullName, value: BaseVariableContainer) -> None:
         if isinstance(scope, Scope):
             if scope in self._data:
                 self._data[scope][name] = value
@@ -33,22 +33,22 @@ class DataReference:
         if scope not in self._data:
             self._data[scope] = dict()
 
-    def get(self, scope: Scope, name: str) -> Any:
+    def get(self, scope: Scope, name: FullName) -> Any:
         return self._data[scope][name]
 
-    def get_scope(self, scope: Scope) -> dict[str, Any]:
+    def get_scope(self, scope: Scope) -> dict[FullName, Any]:
         return self._data[scope]
 
-    def free(self, scope: Scope, name: str) -> Any:
+    def free(self, scope: Scope, name: FullName) -> Any:
         return self._data[scope].pop(name)
 
-    def free_scope(self, scope: Scope) -> dict[str, Any]:
+    def free_scope(self, scope: Scope) -> dict[FullName, Any]:
         return self._data.pop(scope)
 
     def __getitem__(self, scope: Scope) -> Any:
         return self.get_scope(scope)
 
-    def __setitem__(self, scope: Scope, value: Any) -> None:
+    def __setitem__(self, scope: Scope, value: tuple[FullName, BaseVariableContainer]) -> None:
         self.add(scope, value[0], value[1])
 
     def __iter__(self) -> Iterator:

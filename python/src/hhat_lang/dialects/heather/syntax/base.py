@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from abc import abstractmethod, ABC
 from typing import Any, Iterable
-from enum import StrEnum, auto, Enum
+from enum import StrEnum
 
-from hhat_lang.core.type_system import FullName
 from hhat_lang.core.utils.dialect_descriptor import DialectDescriptor
 
 
@@ -12,96 +11,6 @@ class SymbolTypes(StrEnum):
     VARIABLE = "VARIABLE"
     FUNCTION = "FUNCTION"
     MACRO = "MACRO"
-
-
-class VariableAssignEnum(Enum):
-    IMMUTABLE = auto()
-    MUTABLE = auto()
-    REPLACEABLE = auto()
-    APPENDABLE = auto()
-
-
-class BaseVariableContainer(ABC):
-    assign_type: tuple[VariableAssignEnum, ...]
-    _name: FullName
-    _type: FullName
-    _size: int | None
-    _data: Any
-
-    def __init__(self, name: FullName, var_type: FullName, size: int | None = None):
-        self._name = name
-        self._type = var_type
-        self._size = size
-        self._data = None
-
-    @property
-    def name(self) -> FullName:
-        return self._name
-
-    @property
-    def type(self) -> FullName:
-        return self._type
-
-    @property
-    def size(self) -> int | None:
-        return self._size
-
-    @abstractmethod
-    def add(self, value: Any) -> None:
-        pass
-
-    def get(self) -> Any:
-        return self._data
-
-    def __iter__(self) -> Iterable[Any]:
-        if isinstance(self._data, Iterable):
-            yield from self._data
-        else:
-            yield from [self._data]
-
-
-class Immutable(BaseVariableContainer):
-    assign_type: tuple[VariableAssignEnum, ...] = VariableAssignEnum.IMMUTABLE,
-
-    def add(self, value: Any) -> None:
-        if value.type == self.type:
-            if self._data is None:
-                self._data = value
-            else:
-                raise ValueError("cannot change an immutable variable")
-        else:
-            raise ValueError("type error")
-
-
-class Mutable(BaseVariableContainer):
-    assign_type: tuple[VariableAssignEnum, ...] = VariableAssignEnum.MUTABLE,
-
-    @abstractmethod
-    def add(self, value: Any) -> None:
-        ...
-
-
-class Replaceable(Mutable):
-    assign_type: VariableAssignEnum = (
-        VariableAssignEnum.MUTABLE,
-        VariableAssignEnum.REPLACEABLE
-    )
-
-    def add(self, value: Any) -> None:
-        self._data = value
-
-
-class Appendable(Mutable):
-    assign_type: tuple[VariableAssignEnum, ...] = (
-        VariableAssignEnum.MUTABLE,
-        VariableAssignEnum.APPENDABLE
-    )
-
-    def add(self, value: Any) -> None:
-        if self._data is None:
-            self._data = (value,)
-        else:
-            self._data += (value,)
 
 
 class Assignable:
@@ -173,7 +82,7 @@ class Node(AST):
         yield from self.nodes
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}<{self.dialect}>({' '.join(str(k) for k in self)})"
+        return f"{self.__class__.__name__}|{self.dialect}|({' '.join(str(k) for k in self)})"
 
 
 class Terminal(AST):
@@ -199,7 +108,7 @@ class Terminal(AST):
         return False
 
     def __repr__(self) -> str:
-        return f"<{self.dialect}>({self.value})"
+        return f"{self.value}|{self.dialect}|"
 
 
 class Symbol(Terminal):
@@ -229,7 +138,7 @@ class Symbol(Terminal):
         return "?" if self.is_generic else ""
 
     def __repr__(self) -> str:
-        return f"{self._generic_mark()}{self.value}<{self.dialect}>"
+        return f"{self._generic_mark()}{self.value}|{self.dialect}|"
 
 
 class CSymbol(Symbol):
@@ -271,7 +180,7 @@ class Literal(Terminal, Assignable):
         return False
 
     def __repr__(self) -> str:
-        return f"{self.value}[{self.type}]<{self.dialect}>"
+        return f"{self.value}<{self.type}>|{self.dialect}|"
 
 
 class CompositeLiteral(Node, Assignable):
@@ -294,7 +203,7 @@ class CompositeLiteral(Node, Assignable):
         return False
 
     def __repr__(self) -> str:
-        return f"[{self.type}]<{self.dialect}>({' '.join(str(k) for k in self)})"
+        return f"({' '.join(str(k) for k in self)})<{self.type}>|{self.dialect}|"
 
 
 

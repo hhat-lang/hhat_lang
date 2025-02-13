@@ -17,7 +17,7 @@ class BaseFunctionData(ABC):
     """
 
     _name: FullName
-    _type: FullName
+    _type: FullName | None
     _args: BaseFunctionArgs
     _body: BaseFunctionBody
 
@@ -25,7 +25,7 @@ class BaseFunctionData(ABC):
         self._name = name
         return self
 
-    def add_type(self, fn_type: FullName) -> BaseFunctionData:
+    def add_type(self, fn_type: FullName | None) -> BaseFunctionData:
         self._type = fn_type
         return self
 
@@ -43,7 +43,7 @@ class BaseFunctionData(ABC):
         return self._name
 
     @property
-    def type(self) -> FullName:
+    def type(self) -> FullName | None:
         return self._type
 
     @property

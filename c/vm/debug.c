@@ -14,7 +14,7 @@ void disassemble_chunk(Chunk* chunk, const char* name) {
 }
 
 
-int vals_instr(const char* name, Chunk* chunk, int offset) {
+int literal_instrr(const char* name, Chunk* chunk, int offset) {
     uint8_t vals = chunk->code[offset + 1];
     printf("%-16s %4d '", name, vals);
     print_value(chunk->vals.values[vals]);
@@ -32,10 +32,16 @@ int simple_instr(const char* name, int offset) {
 int disassemble_instr(Chunk* chunk, int offset) {
     printf("%04d ", offset);
 
+    if (offset > 0 && chunk->lines[offset] == chunks->lines[offset - 1]) {
+        printf("   | ");
+    } else {
+        printf("%4d ", chunk->lines[offset]);
+    }
+
     uint8_t instr = chunk->code[offset];
     switch (instr) {
         case OP_LITERAL:
-            return vals_instr("OP_LITERAL", chunk, offset);
+            return literal_instr("OP_LITERAL", chunk, offset);
 
         case OP_LITERAL_LONG:
             // TODO: implement it

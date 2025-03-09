@@ -15,17 +15,20 @@ typedef enum {
     OP_RETURN,
 } OpCode;
 
+
 typedef struct {
     int count;
     int max; 
     uint8_t* code;
-    ValueArray vals; 
+    int* lines;
+    ValueArray literal; 
 } Chunk;
+
 
 void init_chunk(Chunk* chunk);
 void free_chunk(Chunk* chunk);
-void write_chunk(Chunk* chunk, uint8_t byte);
-int add_vals(Chunk* chunk, Value value);
+void write_chunk(Chunk* chunk, uint8_t byte, int line);
+int add_literal(Chunk* chunk, Value value);
 
 
 #endif

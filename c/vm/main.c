@@ -81,18 +81,18 @@ int main(int argc, const char* argv[]) {
     Chunk chunk;
     init_chunk(&chunk);
 
-    int vals = add_vals(&chunk, 3.14);
+    int literal = add_literal(&chunk, 3.14);
     write_chunk(&chunk, OP_LITERAL);
-    write_chunk(&chunk, vals);
+    write_chunk(&chunk, literal);
 
-    vals = add_vals(&chunk, 2.1);
+    literal = add_literal(&chunk, 2.1);
     write_chunk(&chunk, OP_LITERAL);
-    write_chunk(&chunk, vals);
+    write_chunk(&chunk, literal);
     write_chunk(&chunk, OP_ADD);
 
-    vals = add_vals(&chunk, 10.0);
+    literal = add_literal(&chunk, 10.0);
     write_chunk(&chunk, OP_LITERAL);
-    write_chunk(&chunk, vals);
+    write_chunk(&chunk, literal);
     write_chunk(&chunk, OP_MUL);
 
     write_chunk(&chunk, OP_NEGATE);

@@ -61,8 +61,8 @@ InterpretResult run() {
         uint8_t instr;
         switch (instr = READ_BYTE()) {
             case OP_LITERAL: {
-                                 Value vals = READ_LITERAL();
-                                 push(vals);
+                                 Value literal = READ_LITERAL();
+                                 push(literal);
                                  break;
                              }
 
@@ -100,7 +100,22 @@ InterpretResult interpret(Chunk* chunk) {
 */
 
 InterpretResult interpret(const char* source) {
-    compile(source);
-    return INTERPRET_OK;
+    Chunk chunk;
+    init_chunk(&chunk);
+
+    if (!compile(source, &chunk)) {
+        free_chunk(&chunk);
+        return INTERPRET_COMPILE_ERROR;
+    }
+
+    vm.chunk = &chunk;
+    vm.ip = vm.chunk->code;
+
+    InterpretResult result = run();
+
+    free_chunk(&chunk);
+    return result;
+
 }
+
 

@@ -5,14 +5,22 @@
 #include "value.h"
 
 typedef enum {
+    // classical
     OP_LITERAL,
     OP_LITERAL_LONG,
+    OP_NULL,
+    OP_TRUE,
+    OP_FALSE,
     OP_NEGATE,
     OP_ADD,
     OP_SUB,
     OP_MUL,
     OP_DIV,
     OP_RETURN,
+    //quantum
+    OP_QTRUE,
+    OP_QFALSE,
+ 
 } OpCode;
 
 

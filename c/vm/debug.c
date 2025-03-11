@@ -14,10 +14,10 @@ void disassemble_chunk(Chunk* chunk, const char* name) {
 }
 
 
-int literal_instrr(const char* name, Chunk* chunk, int offset) {
-    uint8_t vals = chunk->code[offset + 1];
-    printf("%-16s %4d '", name, vals);
-    print_value(chunk->vals.values[vals]);
+int literal_instr(const char* name, Chunk* chunk, int offset) {
+    uint8_t literal = chunk->code[offset + 1];
+    printf("%-16s %4d '", name, literal);
+    print_value(chunk->literal.values[literal]);
     printf("'\n");
     return offset + 2;
 }
@@ -32,7 +32,7 @@ int simple_instr(const char* name, int offset) {
 int disassemble_instr(Chunk* chunk, int offset) {
     printf("%04d ", offset);
 
-    if (offset > 0 && chunk->lines[offset] == chunks->lines[offset - 1]) {
+    if (offset > 0 && chunk->lines[offset] == chunk->lines[offset - 1]) {
         printf("   | ");
     } else {
         printf("%4d ", chunk->lines[offset]);
@@ -46,6 +46,15 @@ int disassemble_instr(Chunk* chunk, int offset) {
         case OP_LITERAL_LONG:
             // TODO: implement it
             return -1;
+
+        case OP_NULL:
+            return simple_instr("OP_NULL", offset);
+
+        case OP_FALSE:
+            return simple_instr("OP_FALSE", offset);
+
+        case OP_TRUE:
+            return simple_instr("OP_TRUE", offset);
 
         case OP_NEGATE:
             return simple_instr("OP_NEGATE", offset);

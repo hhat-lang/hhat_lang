@@ -18,6 +18,24 @@ typedef struct {
 } Parser;
 
 
+typedef void (*ParseFn)();
+
+
+typedef enum {
+    PREC_NONE,
+    PREC_ASSIGNMENT,
+    PREC_CALL,
+    PREC_PRIMARY,
+} Precedence;
+
+
+typedef struct {
+    ParseFn prefix;
+    ParseFn infix;
+    Precedence precedence;
+} ParseRule;
+
+
 Parser parser;
 Chunk* compiling_chunk;
 
@@ -51,7 +69,7 @@ static void error(const char* message) {
 
 
 static void error_at_current(const char* message) {
-    error_at(*parser.previous, message);
+    error_at(&parser.previous, message);
 }
 
 
@@ -93,6 +111,11 @@ static void emit_return() {
 }
 
 
+static void expression();
+static ParseRule* get_rule(TokenType type);
+static void parse_precedence(Precedence precedence);
+
+
 static uint8_t make_literal(Value value) {
     int literal = add_literal(current_chunk(), value);
     if (literal > UINT8_MAX) {
@@ -104,7 +127,7 @@ static uint8_t make_literal(Value value) {
 }
 
 
-static void emit_constant(Value value) {
+static void emit_literal(Value value) {
     emit_bytes(OP_LITERAL, make_literal(value));
 }
 
@@ -121,18 +144,96 @@ static void end_compiler() {
 
 static void grouping() {
     expression();
+    // TODO: refactor it below to accommodate for all the closures
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
 
 static void number() {
     double value = strtod(parser.previous.start, NULL);
-    emit_literal(value);
+    emit_literal(NUMBER_VAL(value));
+}
+
+
+static void string() {
+    emit_literal(ELEM_VAL(copy_string(parser.previous.start + 1,
+                                      parser.previous.length - 2)));
+}  
+
+
+static void literal_simple() {
+    switch (parser.previous.type) {
+        case TOKEN_NULL: emit_byte(OP_NULL); break;
+        case TOKEN_FALSE: emit_byte(OP_FALSE); break;
+        case TOKEN_TRUE: emit_byte(OP_TRUE); break;
+        default: return;  // should be unreachable
+    }
+}
+
+
+ParseRule rules[] = {
+    [TOKEN_LEFT_PAREN]      = {grouping, NULL, PREC_NONE},
+    [TOKEN_LEFT_SQUARE]     = {grouping, NULL, PREC_NONE},
+    [TOKEN_LEFT_ANGLE]      = {grouping, NULL, PREC_NONE},
+    [TOKEN_LEFT_CURLY]      = {grouping, NULL, PREC_NONE},
+    [TOKEN_RIGHT_PAREN]     = {NULL, NULL, PREC_NONE},
+    [TOKEN_RIGHT_SQUARE]    = {NULL, NULL, PREC_NONE},
+    [TOKEN_RIGHT_ANGLE]     = {NULL, NULL, PREC_NONE},
+    
+    [TOKEN_DOT]             = {NULL, NULL, PREC_CALL},
+    [TOKEN_COLON]           = {NULL, NULL, PREC_NONE},
+    [TOKEN_ASSIGN]          = {NULL, NULL, PREC_ASSIGNMENT},
+    [TOKEN_MAIN]            = {NULL, NULL, PREC_NONE},
+    [TOKEN_FN]              = {NULL, NULL, PREC_NONE},
+    [TOKEN_TYPE]            = {NULL, NULL, PREC_NONE},
+    
+    [TOKEN_NULL]            = {literal_simple, NULL, PREC_NONE},
+    [TOKEN_STRING]          = {string, NULL, PREC_NONE},
+    [TOKEN_NUMBER]          = {number, NULL, PREC_NONE},
+    [TOKEN_BOOL]            = {NULL, NULL, PREC_NONE},  // define a bool fn
+    [TOKEN_TRUE]            = {literal_simple, NULL, PREC_NONE},
+    [TOKEN_FALSE]           = {literal_simple, NULL, PREC_NONE},
+    [TOKEN_ID]              = {NULL, NULL, PREC_NONE},
+    
+    [TOKEN_QID]             = {NULL, NULL, PREC_NONE},
+    [TOKEN_QBOOL]           = {NULL, NULL, PREC_NONE},
+    [TOKEN_QNUMBER]         = {NULL, NULL, PREC_NONE},
+    [TOKEN_QTRUE]           = {NULL, NULL, PREC_NONE},
+    [TOKEN_QFALSE]          = {NULL, NULL, PREC_NONE},
+
+    [TOKEN_IF]              = {NULL, NULL, PREC_NONE},
+    [TOKEN_SELF]            = {NULL, NULL, PREC_NONE},
+    [TOKEN_ERROR]           = {NULL, NULL, PREC_NONE},
+    [TOKEN_EOF]             = {NULL, NULL, PREC_NONE},    
+};
+
+
+static void parse_precedence(Precedence precedence) {
+    advance();
+    ParseFn prefix_rule = get_rule(parser.previous.type)->prefix;
+    if (prefix_rule == NULL) {
+        error("expected expression.");
+        return;
+    }
+
+    prefix_rule();
+
+    while (precedence <= get_rule(parser.current.type)->precedence) {
+        advance();
+        ParseFn infix_rule = get_rule(parser.previous.type)->infix;
+        infix_rule();
+    }
+
+}
+
+
+static ParseRule* get_rule(TokenType type) {
+    return &rules[type];
 }
 
 
 static void expression() {
-    // a
+    parse_precedence(PREC_ASSIGNMENT);
 }
 
 

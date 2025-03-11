@@ -1,7 +1,9 @@
+#include <stdarg.h>
 #include <stdio.h>
 #include "common.h"
 #include "compiler.h"
 #include "debug.h"
+#include "value.h"
 #include "vm.h"
 
 
@@ -10,6 +12,20 @@ VM vm;
 
 void reset_stack() {
     vm.stack_top = vm.stack;
+}
+
+
+static void runtime_error(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fputs("\n", stderr);
+
+    size_t instr = vm.ip - vm.chunk->code - 1;
+    int line = vm.chunk->lines[instr];
+    fprintf(stderr, "[line %d] in script\n", line);
+    reset_stack();
 }
 
 
@@ -35,16 +51,24 @@ Value pop() {
 }
 
 
+static Value peek(int distance) {
+    return vm.stack[-1 - distance];
+}
+
+
 InterpretResult run() {
 #define READ_BYTE() (*vm.ip++)
-#define READ_LITERAL() (vm.chunk->vals.values[READ_BYTE()])
-#define BINARY_OP(op) \
+#define READ_LITERAL() (vm.chunk->literal.values[READ_BYTE()])
+#define BINARY_OP(valueType, op) \
     do { \
-        double b = pop(); \
-        double a = pop(); \
-        push(a op b); \
+      if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
+        runtime_error("Operands must be numbers."); \
+        return INTERPRET_RUNTIME_ERROR; \
+      } \
+      double b = AS_NUMBER(pop()); \
+      double a = AS_NUMBER(pop()); \
+      push(valueType(a op b)); \
     } while (false)
-
 
     for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
@@ -61,26 +85,30 @@ InterpretResult run() {
         uint8_t instr;
         switch (instr = READ_BYTE()) {
             case OP_LITERAL: {
-                                 Value literal = READ_LITERAL();
-                                 push(literal);
-                                 break;
-                             }
+                Value literal = READ_LITERAL();
+                push(literal);
+                break;
+            }
 
-            case OP_NEGATE: { push(-pop()); break; }
+            case OP_NULL: { push(NULL_VAL); break; }
 
-            case OP_ADD: { BINARY_OP(+); break;  }
+            case OP_FALSE: { push(BOOL_VAL(false)); break; }
+           
+            case OP_TRUE: { push(BOOL_VAL(true)); break; }
 
-            case OP_SUB: { BINARY_OP(-); break; }
+            case OP_ADD: { BINARY_OP(NUMBER_VAL, +); break;  }
 
-            case OP_MUL: { BINARY_OP(*); break; }
+            case OP_SUB: { BINARY_OP(NUMBER_VAL, -); break; }
 
-            case OP_DIV: { BINARY_OP(/); break; }                
+            case OP_MUL: { BINARY_OP(NUMBER_VAL, *); break; }
+
+            case OP_DIV: { BINARY_OP(NUMBER_VAL, /); break; }                
 
             case OP_RETURN: {
-                                print_value(pop());
-                                printf("\n");
-                                return INTERPRET_OK;
-                            }
+                print_value(pop());
+                printf("\n");
+                return INTERPRET_OK;
+            }
 
         }
     }

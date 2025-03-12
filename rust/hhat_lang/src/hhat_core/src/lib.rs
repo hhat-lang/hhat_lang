@@ -1,3 +1,11 @@
+#[allow(dead_code, unused_attributes)]
+
+mod ir;
+mod compiler;
+mod ast;
+mod memory;
+mod data;
+
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }

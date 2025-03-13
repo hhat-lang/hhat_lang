@@ -1,8 +1,8 @@
+#[allow(dead_code, unused_attributes, unused_attributes, unused_variables)]
 mod ast;
 mod compiler;
 mod data_impl;
 mod instr;
-#[allow(dead_code, unused_attributes, unused_attributes, unused_variables)]
 mod ir;
 mod memory;
 

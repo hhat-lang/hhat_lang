@@ -1,34 +1,29 @@
-
-use uuid::Uuid;
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
+use crate::data_impl::HeapData;
 use crate::ir::Identifier;
-use crate::data::HeapData;
 
-
-// ¯\_(ツ)_/¯ just testing for now
-const MAX_STACK_SIZE: usize = 128;
-
-
+//-----------------------
 // MEMORY MANAGER SCOPE
+//-----------------------
 
 /// Memory manager
 ///
 /// - holds stack, heap, index, processes ids (pid), quantum
 ///     instructions (q_instr) for a specific closure, namely
 ///     main body of the program, functions, quantum routines
-pub struct Memory<'a, V: HeapData> {
-    pub stack: Stack<'a, V>,
+pub struct Memory<'a, V: HeapData, const N: usize> {
+    pub stack: Stack<'a, V, N>,
     pub heap: Heap<'a, Identifier, V>,
     pub index: Index<'a>,
     pub q_instr: QInstr<'a>,
     pub pid: Pid<'a>,
 }
 
-
-impl<'a, V: HeapData> Memory<'a, V> {
-    pub fn new(id_counter: IdCounter) -> Memory<'a, V> {
+impl<'a, V: HeapData, const N: usize> Memory<'a, V, N> {
+    pub fn new(id_counter: IdCounter) -> Memory<'a, V, N> {
         Memory {
             stack: Stack::new(),
             heap: Heap::new(),
@@ -39,8 +34,9 @@ impl<'a, V: HeapData> Memory<'a, V> {
     }
 }
 
-
+//--------------
 // STACK SCOPE
+//--------------
 
 /// Stack manager
 ///
@@ -48,18 +44,28 @@ impl<'a, V: HeapData> Memory<'a, V> {
 ///     - handles stack data
 /// - impl:
 ///     - handles stack operations
-pub struct Stack<'a, V: HeapData> {
-    data: [V; MAX_STACK_SIZE],
+pub struct Stack<'a, V: HeapData, const N: usize> {
+    data: [V; N],
+    stack_pointer: usize,
 }
 
-impl<'a, V: HeapData> Stack<'a, V> {
-    pub fn new() -> Stack<'a, V> {
-        Stack { data: [0; MAX_STACK_SIZE] }
+impl<'a, T: HeapData, const N: usize> Stack<'a, T, N> {
+    pub fn new() -> Stack<'a, T, N> {
+        Stack {
+            data: [0; N],
+            stack_pointer: 0,
+        }
+    }
+
+    pub fn push(&mut self, value: T) {
+        self.stack_pointer += 1;
+        self.data[self.stack_pointer] = value;
     }
 }
 
-
+//-------------
 // HEAP SCOPE
+//-------------
 
 /// Heap manager
 ///
@@ -73,12 +79,15 @@ pub struct Heap<'a, Identifier, V: HeapData> {
 
 impl<'a, Identifier, V: HeapData> Heap<'a, Identifier, V> {
     pub fn new() -> Heap<'a, Identifier, V> {
-        Heap { data: HashMap::new() }
+        Heap {
+            data: HashMap::new(),
+        }
     }
 }
 
-
+//--------------
 // INDEX SCOPE
+//--------------
 
 /// Index manager
 ///
@@ -86,19 +95,17 @@ impl<'a, Identifier, V: HeapData> Heap<'a, Identifier, V> {
 ///     - handles index data
 /// - impl:
 ///     - handles index operations
-pub struct Index<'a> {
-
-}
-
+pub struct Index<'a> {}
 
 impl<'a> Index<'a> {
     pub fn new() -> Index<'a> {
-        Index {  }
+        Index {}
     }
 }
 
-
+//-----------------------------
 // QUANTUM INSTRUCTIONS SCOPE
+//-----------------------------
 
 /// Quantum Instructions manager
 ///
@@ -106,18 +113,17 @@ impl<'a> Index<'a> {
 ///     - handles quantum instructions data
 /// - impl:
 ///     - handles quantum instructions operations
-pub struct QInstr<'a> {
-
-}
+pub struct QInstr<'a> {}
 
 impl<'a> QInstr<'a> {
     pub fn new() -> QInstr<'a> {
-        QInstr {  }
+        QInstr {}
     }
 }
 
-
+//----------------------
 // PROCESSES IDS SCOPE
+//----------------------
 
 /// Processes Ids manager
 ///
@@ -131,22 +137,24 @@ pub struct Pid<'a> {
 
 impl<'a> Pid<'a> {
     pub fn new(mut id_counter: IdCounter) -> Pid<'a> {
-        Pid { id: id_counter.gen_id() }
+        Pid {
+            id: id_counter.gen_id(),
+        }
     }
 }
 
 struct PidState {
     id: Uuid,
-    status: PidStatus
+    status: PidStatus,
 }
 
 enum PidStatus {
-    Active,                 // being executed
-    Ready,                  // waiting in the queue for execution
-    Waiting,                // waiting external operation to reply
-    Done,                   // successfully executed; nothing else to do
-    Disabled,               // stopped by parent process
-    Error(PidErrorNumber),  // some error occurred
+    Active,                // being executed
+    Ready,                 // waiting in the queue for execution
+    Waiting,               // waiting external operation to reply
+    Done,                  // successfully executed; nothing else to do
+    Disabled,              // stopped by parent process
+    Error(PidErrorNumber), // some error occurred
 }
 
 /// Possible list of errors to use for [`PidStatus`] enum:
@@ -163,7 +171,6 @@ enum PidErrorNumber {
     AccessingDisabledPid,
 }
 
-
 pub struct IdCounter {
     last_id: Option<Uuid>,
     ids_list: HashMap<Uuid, PidState>,
@@ -173,7 +180,7 @@ impl IdCounter {
     pub fn init() -> IdCounter {
         IdCounter {
             last_id: None,
-            ids_list: HashMap::new()
+            ids_list: HashMap::new(),
         }
     }
 
@@ -182,7 +189,10 @@ impl IdCounter {
         let mut id: Uuid = Uuid::new_v4();
         self.ids_list.insert(
             id.clone(),
-            PidState{ id: id.clone(), status: PidStatus::Ready }
+            PidState {
+                id: id.clone(),
+                status: PidStatus::Ready,
+            },
         );
         self.last_id = Some(id.clone());
         id

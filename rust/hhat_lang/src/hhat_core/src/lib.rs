@@ -1,4 +1,4 @@
-#[allow(dead_code, unused_attributes, unused_attributes, unused_variables)]
+#![allow(dead_code, unused_attributes, unused_attributes, unused_variables)]
 mod ast;
 mod compiler;
 mod data_impl;

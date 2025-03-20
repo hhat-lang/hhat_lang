@@ -6,11 +6,11 @@ use std::ptr::NonNull;
 /// and return a result with either the pointer ([`NonNull`]) or an error ([`AllocError`]).
 pub fn alloc_memblock(block_size: BlockSize, align: usize) -> Result<NonNull<u8>, AllocError> {
     unsafe {
-        let layout = match Layout::from_size_align(block_size, align) {
+        let layout: Layout = match Layout::from_size_align(block_size, align) {
             Ok(layout) => layout,
             Err(_) => return Err(AllocError::ConstraintsNotSatisfied),
         };
-        let ptr = alloc(layout);
+        let ptr: *mut u8 = alloc(layout);
         if ptr.is_null() {
             Err(AllocError::NullPointer)
         } else {
@@ -25,7 +25,7 @@ pub fn free_memblock(
     ptr: NonNull<u8>,
 ) -> Result<AllocSuccess, AllocError> {
     unsafe {
-        let layout = match Layout::from_size_align(block_size, align) {
+        let layout: Layout = match Layout::from_size_align(block_size, align) {
             Ok(layout) => layout,
             Err(_) => return Err(AllocError::ConstraintsNotSatisfied),
         };

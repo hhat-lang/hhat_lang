@@ -12,6 +12,9 @@ pub struct MemBlock {
 }
 
 impl MemBlock {
+    /// Generates a new memory block with a given `size` size and alignment
+    /// [`ALIGNMENT`]. `size` must be power of two. An error is raised if
+    /// it is not a power of two, or if no pointer was generated.
     pub fn new(size: usize) -> Result<MemBlock, AllocError> {
         if size.is_power_of_two() {
             let ptr = alloc_memblock(size, ALIGNMENT);
@@ -25,7 +28,7 @@ impl MemBlock {
                 Err(err) => Err(err),
             }
         } else {
-            return Err(AllocError::NotPowerOfTwo);
+            Err(AllocError::NotPowerOfTwo)
         }
     }
 
@@ -47,6 +50,12 @@ impl MemBlock {
         } else {
             Err(AllocError::MemoryAlreadyFreed)
         }
+    }
+}
+
+impl Drop for MemBlock {
+    fn drop(&mut self) {
+        let _ = self.free();
     }
 }
 

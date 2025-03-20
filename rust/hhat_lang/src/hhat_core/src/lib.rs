@@ -1,7 +1,12 @@
 #![allow(dead_code, unused_attributes, unused_attributes, unused_variables)]
 
+mod instr;
 mod mem;
 mod utils;
+
+//----------------------
+// LET THE TESTS BEGIN
+//----------------------
 
 #[cfg(test)]
 mod tests {
@@ -10,6 +15,7 @@ mod tests {
     use crate::mem::defs::MAX_MEMBLOCK_SIZE;
     use std::ptr::NonNull;
 
+    /// Create small memory blocks with [`mem::alloc::alloc_memblock`] and [`mem::base::MemBlock`]
     #[test]
     fn create_memblock_small() {
         println!("Create memblock small:");
@@ -77,6 +83,7 @@ mod tests {
         }
     }
 
+    /// Create the largest memory blocks enabled with [`mem::base::MemBlock`]
     #[test]
     fn create_memblock_large() {
         println!("Create memblock large:");

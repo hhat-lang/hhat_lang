@@ -9,6 +9,7 @@ pub struct MemBlock {
     ptr: NonNull<u8>,
     size: BlockSize,
     align: usize,
+    is_freed: bool,
 }
 
 impl MemBlock {
@@ -32,18 +33,24 @@ impl MemBlock {
                 ptr: NonNull::new_unchecked(ptr),
                 size,
                 align,
+                is_freed: false,
             })
         }
     }
 
     pub unsafe fn free(&mut self) -> Result<MemAllocSuccess, MemAllocError> {
-        let layout: Layout = match Layout::from_size_align(self.size, ALIGNMENT) {
-            Ok(layout) => layout,
-            Err(_) => return Err(MemAllocError::LayoutError),
-        };
+        if !self.is_freed {
+            let layout: Layout = match Layout::from_size_align(self.size, ALIGNMENT) {
+                Ok(layout) => layout,
+                Err(_) => return Err(MemAllocError::LayoutError),
+            };
 
-        dealloc(self.ptr.as_ptr(), layout);
-        Ok(MemAllocSuccess::MemoryFreed)
+            dealloc(self.ptr.as_ptr(), layout);
+            self.is_freed = true;
+            Ok(MemAllocSuccess::MemoryFreed)
+        } else {
+            Ok(MemAllocSuccess::MemoryAlreadyFreed)
+        }
     }
 
     pub fn as_ptr(&self) -> *const u8 {
@@ -110,6 +117,7 @@ pub enum MemAllocError {
     InvalidBlockSize,
     InvalidAlignment,
     LayoutError,
+    MemoryAlreadyFreed,
     MemoryOverflow,
     NotEnoughMemory,
     NotPowerOfTwo,
@@ -119,6 +127,7 @@ pub enum MemAllocError {
 #[derive(Debug)]
 pub enum MemAllocSuccess {
     MemoryFreed,
+    MemoryAlreadyFreed,
     DataPushedToMemory,
 }
 
@@ -126,22 +135,29 @@ pub enum MemAllocSuccess {
 mod tests {
     use super::*;
 
+    /// test memory block allocation, writing, reading and de-allocation
     #[test]
-    fn test_simple_memblock_alloc() {
+    fn test_simple_memblock_operations() {
         unsafe {
             println!("== simple memblock alloc ==");
 
             let max_size = MAX_MEMBLOCK_SIZE;
-            assert!(max_size == MAX_MEMBLOCK_SIZE);
+            assert_eq!(max_size, MAX_MEMBLOCK_SIZE);
 
             let mut memblock = MemBlock::new(max_size, 8usize).unwrap();
+            println!(" - memblock");
+            println!("   - [x] ptr: {}", memblock.as_ptr() as usize);
+
             let data_ptr = memblock.push(1u64).unwrap();
+            println!("   - [x] input data: {}", 1u64);
             assert!(
                 memblock.as_ptr().add(size_of_val(&1u64)) <= memblock.as_ptr().add(memblock.size)
             );
+            println!("   - [x] push data, received ptr: {:}", data_ptr);
 
             let retrieved_data = memblock.peek::<u64>(data_ptr);
             assert_eq!(retrieved_data, 1u64);
+            println!("   - [x] peek data: {:}", retrieved_data);
 
             let (d, ds, p) = match memblock.pop::<u64>(data_ptr) {
                 Ok((x, y, z)) => (x, y, z),
@@ -150,17 +166,19 @@ mod tests {
             assert_eq!(d, 1u64);
             assert_eq!(ds, 8);
             assert_eq!(p, memblock.as_ptr() as usize);
+            println!("   - [x] pop data:");
+            println!("   -   - [x] retrieved data: {:}", d);
+            println!("   -   - [x] retrieved data size: {:}", ds);
+            println!("   -   - [x] retrieved new pointer: {:}", p);
 
-            println!(" - memblock");
-            println!("   - ptr: {}", memblock.as_ptr() as usize);
-            println!("   - input data: {}", 1u64);
-            println!("   - push ptr: {:}", data_ptr);
-            println!("   - peek data: {:}", retrieved_data);
-            println!("   - pop data:");
-            println!("   -   - retrieved data: {:}", d);
-            println!("   -   - retrieved data size: {:}", ds);
-            println!("   -   - retrieved new pointer: {:}", p);
+            memblock.free().unwrap();
+            println!("   - [x] memblock freed");
+
             println!("=====================");
         }
     }
+
+    /// test many memory blocks allocation, writing, reading and de-allocation
+    #[test]
+    fn test_many_memblocks_operations() {}
 }

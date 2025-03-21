@@ -24,9 +24,9 @@ impl StackMemory {
                     _ => {
                         let mut v: Vec<StackPage> = Vec::with_capacity(max_size);
                         // create a stack page with max memory size
-                        let page: StackPage = match self.new_page(MAX_MEMBLOCK_SIZE) {
+                        let page: StackPage = match StackPage::new(MAX_MEMBLOCK_SIZE) {
                             Ok(x) => x,
-                            Err(x) => panic!(Err(x)),
+                            Err(x) => panic!(""),
                         };
                         v.push(page);
                         v
@@ -39,7 +39,7 @@ impl StackMemory {
 
     /// When `StackMemory` needs to expand memory, a new page must be created.
     /// A page is a `StackPage`.
-    pub fn new_page(&mut self, size: usize) -> Result<Ok, StackError> {
+    pub fn new_page(&mut self, size: usize) -> Result<(), StackError> {
         match StackPage::new(size) {
             Ok(page) => {
                 self.pages.push(page);
@@ -52,7 +52,7 @@ impl StackMemory {
     }
 
     pub fn page_cursor(&mut self, page_num: isize) -> *const u16 {
-        self.pages[page_num].cursor()
+        self.pages[page_num as usize].cursor()
     }
 
     pub fn push<T>(&mut self, data: T) {
@@ -128,7 +128,7 @@ impl StackPage {
 
     /// To free the memory space given by the `ptr` pointer.
     pub unsafe fn free(&mut self, ptr: *const u16) {
-        self.memblock[-1].free();
+        let _ = self.memblock.free();
     }
 
     pub fn cursor(&self) -> *const u16 {
@@ -140,6 +140,7 @@ impl StackPage {
 pub enum StackError {
     InvalidBlockSize,
     InvalidAlignment,
+    InvalidStackPage,
     LayoutError,
     MemoryAlreadyFreed,
     NoNextPointer,

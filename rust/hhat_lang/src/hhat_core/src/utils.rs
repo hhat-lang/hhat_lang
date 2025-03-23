@@ -7,9 +7,10 @@ use std::collections::HashSet;
 // NAME & NAMESPACE SECTION
 //---------------------------
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct FullName {
-    namespace: Vec<&'static str>,
-    name: &'static str,
+    namespace: Vec<String>,
+    name: String,
 }
 
 //--------------------------------------------

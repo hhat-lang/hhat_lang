@@ -76,7 +76,7 @@ impl MemBlock {
     /// stack memory or a heap memory struct.
     ///
     /// It returns a tuple as the data, the data size, and the updated cursor pointer.
-    pub unsafe fn pop<T: Clone + Copy>(
+    pub unsafe fn pop<T: Clone>(
         &mut self,
         cursor_ptr: usize,
     ) -> Result<(T, usize, usize), MemAllocError> {
@@ -180,5 +180,5 @@ mod tests {
 
     /// test many memory blocks allocation, writing, reading and de-allocation
     #[test]
-    fn test_many_memblocks_operations() {}
+    fn test_many_memblock_operations() {}
 }

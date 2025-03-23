@@ -17,6 +17,8 @@ class ErrorCodes(Enum):
     CONTAINER_VAR_ASSIGN_ERROR = auto()
     CONTAINER_VAR_IS_IMMUTABLE_ERROR = auto()
 
+    VARIABLE_WRONG_MEMBER_ERROR = auto()
+
 
 class ErrorHandler(ABC):
     def __init__(self, error_code: ErrorCodes):
@@ -128,4 +130,15 @@ class ContainerVarIsImmutableError(ErrorHandler):
     def __call__(self) -> str:
         return (
             f"[[{self.__class__.__name__}]]: Variable '{self._var_name}' is immutable."
+        )
+
+
+class VariableWrongMemberError(ErrorHandler):
+    def __init__(self, var_name: str):
+        super().__init__(ErrorCodes.VARIABLE_WRONG_MEMBER_ERROR)
+        self._var_name = var_name
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: Variable '{self._var_name}' member is wrong."
         )

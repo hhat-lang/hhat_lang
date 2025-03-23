@@ -34,10 +34,10 @@ class SingleDS(BaseTypeDataStructure):
                 variable = Variable(
                     var_name=var_name,
                     type_name=self.name,
-                    type_ds=OrderedDict({"": self._type_container}),
+                    type_ds=OrderedDict({x.type: self._type_container}),
                     is_mutable=is_mutable,
                 )
-                variable(args)
+                variable(*args)
                 return variable
 
         return TypeSingleError(self._name)
@@ -48,8 +48,9 @@ class StructDS(BaseTypeDataStructure):
         super().__init__(name)
         self._type_container: OrderedDict = OrderedDict()
 
-    def add_member(self, member_type: str, member_name: str) -> None:
+    def add_member(self, member_type: str, member_name: str) -> StructDS:
         self._type_container[member_name] = member_type
+        return self
 
     def __call__(
         self,
@@ -61,10 +62,10 @@ class StructDS(BaseTypeDataStructure):
         container: OrderedDict = OrderedDict()
 
         if len(args) == len(self._type_container):
-            for n, k in enumerate(args):
+            for k, (g, c) in zip(args, self._type_container.items()):
 
-                if k.type == self._type_container[n]:
-                    container[k.type] = k
+                if k.type == c:
+                    container[g] = k
 
                 else:
                     return TypeStructError(self._name)
@@ -92,8 +93,8 @@ class UnionDS(BaseTypeDataStructure):
         super().__init__(name)
         self._container = dict()
 
-    def add_member(self, member_type: str, member_name: str) -> None:
-        pass
+    def add_member(self, member_type: str, member_name: str) -> UnionDS:
+        raise NotImplementedError()
 
     def __call__(
         self,
@@ -101,8 +102,8 @@ class UnionDS(BaseTypeDataStructure):
         var_name: str,
         is_mutable: bool = True,
         **kwargs: dict[WorkingData, WorkingData | Variable]
-    ) -> Any:
-        pass
+    ) -> Variable | ErrorHandler:
+        raise NotImplementedError()
 
 
 class EnumDS(BaseTypeDataStructure):
@@ -110,8 +111,8 @@ class EnumDS(BaseTypeDataStructure):
         super().__init__(name)
         self._container = dict()
 
-    def add_member(self, member_type: str, member_name: str) -> None:
-        pass
+    def add_member(self, member_type: str, member_name: str) -> EnumDS:
+        raise NotImplementedError()
 
     def __call__(
         self,
@@ -119,5 +120,5 @@ class EnumDS(BaseTypeDataStructure):
         var_name: str,
         is_mutable: bool = True,
         **kwargs: dict[WorkingData, WorkingData | Variable]
-    ) -> Any:
-        pass
+    ) -> Variable | ErrorHandler:
+        raise NotImplementedError()

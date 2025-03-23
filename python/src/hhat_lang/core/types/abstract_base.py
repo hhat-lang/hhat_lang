@@ -4,16 +4,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Iterable
 
 from hhat_lang.core.data.core import WorkingData
+from hhat_lang.core.data.variable import Variable, BaseVarContainer
 from hhat_lang.core.error_handlers.errors import ErrorHandler
-from hhat_lang.dialects.heather.core.variable import Variable
-
-
-class BaseVarContainer(ABC):
-    _container: Iterable
-
-    @abstractmethod
-    def assign(self, *args: Any, **kwargs: Any) -> None | ErrorHandler:
-        ...
 
 
 class BaseTypeDataStructure(ABC):

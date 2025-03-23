@@ -3,5 +3,5 @@ use crate::utils::FullName;
 
 pub struct DataContainer {
     fullname: FullName,
-    data_type: TypeTemplate,
+    data_type: dyn TypeTemplate,
 }

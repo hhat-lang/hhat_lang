@@ -1,2 +1,2 @@
 
-In progress. This section is a part of a TODO list.
+In progress. This section is part of a TODO list.

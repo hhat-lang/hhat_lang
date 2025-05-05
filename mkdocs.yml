@@ -9,11 +9,18 @@ nav:
   - Home: index.md
   - Getting Started:
       - Getting Started: getting_started.md
-      - Running it: running_hhat.md
+      - Tools:
+          - toolchain.md
+          - Dialect creation: dialects/creation.md
+          - CLI: cli.md
+          - Notebooks: notebooks.md
+      - Running it:
+          - running_hhat.md
   - Dialects:
+      - dialects/index.md
       - Heather:
         - dialects/heather/index.md
-        - Current Syntax: dialects/heather/current_syntax.md
+        - Syntax: dialects/heather/current_syntax.md
         - Examples:
             - First code: dialects/heather/examples/first_code.md
             - Calling a function: dialects/heather/examples/calling_fn.md

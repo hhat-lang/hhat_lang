@@ -88,13 +88,6 @@ folders as `[MDL]/dialects/heather/` (ex: `python/dialects/heather/`).
 
 New reference dialects may emerge in the future.
 
-## Documentation
-
-!!! note
-
-    Although this is the current documentation website, it is being worked out.
-    You can refer to the `README.md` files throughout this repository for more 
-    up-to-date information.
 
 ## License
 
@@ -104,3 +97,8 @@ MIT
 
 For now, reach us out at the [Discord](http://discord.unitary.foundation)'s `#h-hat` channel to
 learn more on how to contribute.
+
+
+## Code of Conduct
+
+Be nice with others :)

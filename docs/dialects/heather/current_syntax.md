@@ -1,7 +1,7 @@
 
 
 !!! note
-    The syntax development is in continuous development and will have more features added.
+    The syntax is in development and will have more features added continuously.
 
 
 The H-hat's Heather dialect syntax works as follows:

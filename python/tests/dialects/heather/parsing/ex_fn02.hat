@@ -1,0 +1,1 @@
+fn @sum (@a:@u3 @b:@u3) @u3 { @add(@a @b) }

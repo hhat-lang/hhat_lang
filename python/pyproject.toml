@@ -1,0 +1,99 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools_scm>=8", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hhat-lang"
+description = "H-hat quantum programming language core and rule system implemented in Python"
+dynamic = ["version"]
+authors = [
+    { name = "Eduardo Maschio", email = "eduardo.maschio@hhat-lang.org" }
+]
+readme = "README"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Interpreters",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+dependencies = [
+]
+
+[project.optional-dependencies]
+heather = [
+    "arpeggio",
+    "pygments",
+]
+
+qiskit = [
+    "qiskit",
+    "qiskit-ibm-runtime",
+]
+
+squidasm = [
+    "squidasm",
+    "netsquid",
+]
+
+netqasm = [
+    "netqasm",
+]
+
+openqasm2 = [
+    "hhat-lang[qiskit]",
+]
+
+all = [
+    "hhat-lang[heather,qiskit,squidasm,netqasm,openqasm2]"
+]
+
+dev = [
+    "mypy",
+    "pytest",
+    "pytest-xdist",
+    "pytest-mypy",
+    "ipython",
+    "black",
+    "isort",
+    "pre-commit",
+]
+
+[tool.setuptools_scm]
+root = ".."
+version_scheme = "no-guess-dev"
+local_scheme = "no-local-version"
+
+[project.urls]
+Home = "https://github.com/hhat-lang/hhat_lang"
+Issues = "https://github.com/hhat-lang/hhat_lang/issues"
+Documentation = "https://docs.hhat-lang.org"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
+[tool.ruff]
+lint.select = ["E", "F", "I", "Q"]
+lint.extend-ignore = ["F841", "F403", "F401"]
+line-length = 100
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "E402", "I002"]
+
+[tool.mypy]
+python_version = "3.12"
+disable_error_code = ["import-untyped"]
+pretty = true
+exclude = "build"

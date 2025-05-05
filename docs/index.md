@@ -1,16 +1,15 @@
+
 # H-hat quantum language
 
 [![Unitary Foundation](https://img.shields.io/badge/Supported%20By-Unitary%20Foundation-FFFF00.svg)](https://unitary.foundation)
 [![Discord Chat](https://img.shields.io/badge/dynamic/json?color=blue&label=Discord&query=approximate_presence_count&suffix=%20online.&url=https%3A%2F%2Fdiscord.com%2Fapi%2Finvites%2FJqVGmpkP96%3Fwith_counts%3Dtrue)](http://discord.unitary.foundation)
 
-H-hat is a high-level abstraction quantum programming language.
+!!! warning
 
+    This is a work in progress and may be seeing as such. Errors, inconsistencies,
+    tons of experimentation, modifications and trials are happening. Until there is
+    a stable version, it is prone to breaking changes.
 
-> [!WARNING]
->
->   This is a work in progress and may be seeing as such. Errors, inconsistencies, tons of
-> experimentation, modifications and trials are happening. Until there is a stable version, it is
-> prone to breaking changes.
 
 ## What `H-hat` is
 
@@ -22,7 +21,7 @@ H-hat is a high-level abstraction quantum programming language.
     - Need _no_ specialized knowledge on quantum mechanics or quantum information theory
     - Close the gap between developers/programmers/computer scientists and quantum physicists
     - Use quantum data and quantum data structures to reason about quantum information processing
-    - Solve problems using quantum logic, but not raw quantum mechanics approach
+    - Solve problems using quantum logic, rather than Quantum Mechanics approach
 
 ## What `H-hat` *is not*
 
@@ -30,6 +29,7 @@ H-hat is a high-level abstraction quantum programming language.
   instance), such as QASM-like languages
 - A full stack programming language with direct access to the hardware
 - A simulator
+- A replacement for Quantum Mechanics
 
 ## Language features
 
@@ -64,10 +64,11 @@ their folders should appear in the main branch.
 
 ### How to use H-hat
 
-> [!NOTE]
->
-> The development is still in alpha phase, but some features are being released in different MDLs to
-> test concepts, functionalities, feasibility and performance.
+!!! note
+
+    The development is still in alpha phase, but some features are
+    being released in different MDLs to test concepts, functionalities,
+    feasibility and performance.
 
 Each MDL folder (for example `python/`) will contain more information about their implementation as
 well as how to install and/or start coding with H-hat. You may want to look directly into the folder
@@ -89,10 +90,11 @@ New reference dialects may emerge in the future.
 
 ## Documentation
 
-> [!NOTE]
->
-> Although there is a documentation website, it is outdated, and it is being replaced. You can refer
-> to the `README.md` files throughout this repository for more up-to-date information.
+!!! note
+
+    Although this is the current documentation website, it is being worked out.
+    You can refer to the `README.md` files throughout this repository for more 
+    up-to-date information.
 
 ## License
 

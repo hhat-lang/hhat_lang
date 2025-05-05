@@ -99,22 +99,3 @@ theme:
       toggle:
         icon: material/brightness-1
         name: Switch to light mode
-
-
-plugins:
-  - mkdocstrings:
-      default_handler: python
-      handlers:
-        python:
-          selection:
-            filters:
-              - "!^_"  # exlude all members starting with _
-              - "^__init__$"  # but always include __init__ modules and methods
-              - "^__new__$"  # but always include __init__ modules and methods
-          options:
-            show_root_toc_entry: false
-            heading_level: 3
-            merge_init_into_class: true
-            docstring_section_style: spacy
-
-  - markdown-exec

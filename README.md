@@ -89,10 +89,7 @@ New reference dialects may emerge in the future.
 
 ## Documentation
 
-> [!NOTE]
->
-> Although there is a documentation website, it is outdated, and it is being replaced. You can refer
-> to the `README.md` files throughout this repository for more up-to-date information.
+Documentation can be found at https://docs.hhat-lang.org.
 
 ## License
 

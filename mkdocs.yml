@@ -6,19 +6,34 @@ repo_url: "https://github.com/hhat-lang/hhat_lang/"
 repo_name: hhat-lang/hhat_lang
 
 nav:
-  - index.md
+  - Home: index.md
+  - Getting Started:
+      - Getting Started: getting_started.md
+      - Running it: running_hhat.md
+  - Dialects:
+      - Heather:
+        - dialects/heather/index.md
+        - Current Syntax: dialects/heather/current_syntax.md
+        - Examples:
+            - First code: dialects/heather/examples/first_code.md
+            - Calling a function: dialects/heather/examples/calling_fn.md
+            - Defining a new type: dialects/heather/examples/new_type.md
+            - Casting quantum data: dialects/heather/examples/casting_quantum.md
+
 
 markdown_extensions:
   - abbr
-  - admonition
   - attr_list
   - def_list
+  - admonition
   - footnotes
   - md_in_html
+  - pymdownx.inlinehilite
   - pymdownx.betterem:
       smart_enable: all
   - pymdownx.caret
   - pymdownx.details
+  - pymdownx.snippets
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.highlight:
@@ -26,12 +41,25 @@ markdown_extensions:
       linenums_style: pymdownx.inline
       line_spans: __span
       pygments_lang_class: true
-  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - overrides/.icons
+  - pymdownx.superfences:
+      custom_fences:
+        - name: python
+          class: python
+          validator: "!!python/name:markdown_exec.validator"
+          format: "!!python/name:markdown_exec.formatter"
   - pymdownx.mark
   - pymdownx.smartsymbols
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde
+  - toc:
+      permalink: true
 
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
@@ -43,7 +71,15 @@ theme:
   name: material
   font:
     text: Lato
-    code: Roboto Mono
+    code: JetBrains Mono
+  features:
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - content.tooltips
+    - content.code.annotate
+    - content.code.copy
+    - toc.follow
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
@@ -64,3 +100,21 @@ theme:
         icon: material/brightness-1
         name: Switch to light mode
 
+
+plugins:
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          selection:
+            filters:
+              - "!^_"  # exlude all members starting with _
+              - "^__init__$"  # but always include __init__ modules and methods
+              - "^__new__$"  # but always include __init__ modules and methods
+          options:
+            show_root_toc_entry: false
+            heading_level: 3
+            merge_init_into_class: true
+            docstring_section_style: spacy
+
+  - markdown-exec

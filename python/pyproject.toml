@@ -64,6 +64,11 @@ dev = [
     "black",
     "isort",
     "pre-commit",
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocstrings",
+    "markdown",
+    "mike",
 ]
 
 [tool.setuptools_scm]

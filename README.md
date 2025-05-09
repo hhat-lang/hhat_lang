@@ -95,7 +95,11 @@ Documentation can be found at https://docs.hhat-lang.org.
 
 MIT
 
-## Contribute
+## How to Contribute
 
 For now, reach us out at the [Discord](http://discord.unitary.foundation)'s `#h-hat` channel to
 learn more on how to contribute.
+
+## Code of Conduct
+
+We coexist in the same world. So be nice to others as you expect others to be nice to you :)

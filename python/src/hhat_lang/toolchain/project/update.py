@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from hhat_lang.toolchain.cli.utils import str_to_path
+from hhat_lang.toolchain.project.utils import str_to_path
 
 
 def update_project(project_name: str | Path) -> Any:

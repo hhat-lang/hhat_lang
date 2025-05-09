@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from hhat_heather.code.ast import (
+from hhat_lang.dialects.heather.code.ast import (
     Id,
     CompositeId,
     Literal,

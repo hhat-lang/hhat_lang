@@ -160,7 +160,7 @@ class LowLeveQLang(BaseLowLevelQLang):
 
             if (x:= getattr(obj, "name", False)) and x == instr.name:
                 res_instr, res_status = obj()(
-                    idxs=self._idx.in_use_by[self._qvar],
+                    idxs=self._idx.in_use_by[self._qdata],
                     executor=self._executor,
                 )
 

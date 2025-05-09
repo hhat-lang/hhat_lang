@@ -3,14 +3,19 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
-from hhat_lang.core.data.core import Symbol
+from hhat_lang.core.data.core import WorkingData
 from hhat_lang.core.execution.abstract_base import BaseEvaluator
 from hhat_lang.core.memory.core import IndexManager
 from hhat_lang.dialects.heather.code.simple_ir_builder.ir import IRBlock
 
 
 class BaseLowLevelQLang(ABC):
-    _qvar: Symbol
+    """
+    Hold H-hat quantum data to transform into low-level
+    quantum-specific language.
+    """
+
+    _qdata: WorkingData
     _num_idxs: int
     _code: IRBlock
     _idx: IndexManager
@@ -18,18 +23,18 @@ class BaseLowLevelQLang(ABC):
 
     def __init__(
         self,
-        qvar: Symbol,
+        qvar: WorkingData,
         code: IRBlock,
         idx: IndexManager,
         executor: BaseEvaluator,
         *_args: Any,
         **_kwargs: Any
     ):
-        self._qvar = qvar
+        self._qdata = qvar
         self._code = code
         self._idx = idx
         self._executor = executor
-        self._num_idxs = len(self._idx.in_use_by.get(self._qvar, []))
+        self._num_idxs = len(self._idx.in_use_by.get(self._qdata, []))
 
     @abstractmethod
     def init_qlang(self) -> tuple[str, ...]:

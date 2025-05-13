@@ -97,10 +97,10 @@ Here sits an updated list of things to implement/write. Feel free to check them 
 ## Documentation
 - [ ] Describe:
   - [ ] rule system
+  - [ ] core code features
   - [ ] cli
   - [ ] notebooks
   - [ ] dialect creation tools/API
-- [ ] Finalize:
   - [ ] Language ecosystem
   - [ ] Heather syntax
-
+  - [ ] Heather language features

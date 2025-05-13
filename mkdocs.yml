@@ -12,6 +12,9 @@ nav:
       - Guides:
           - Python: python/python_guide.md
           - Rust: rust/rust_guide.md
+      - Understanding H-hat:
+          - Rule System: rule_system.md
+          - Core Features: core/index.md
       - Tools:
           - toolchain.md
           - Dialect creation: dialects/creation.md
@@ -71,20 +74,13 @@ markdown_extensions:
   - toc:
       permalink: true
 
-extra:
-  version:
-    provider: mike
+
 
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
 extra_css:
   - stylesheets/extra.css
-
-plugins:
-  - search
-  - section-index
-  - mike
 
 theme:
   name: material

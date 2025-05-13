@@ -1,0 +1,116 @@
+site_name: H-hat quantum programming language
+
+site_url: https://docs.hhat-lang.org/
+
+repo_url: "https://github.com/hhat-lang/hhat_lang/"
+repo_name: hhat-lang/hhat_lang
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Getting Started: getting_started.md
+      - Guides:
+          - Python: python/python_guide.md
+          - Rust: rust/rust_guide.md
+      - Understanding H-hat:
+          - Rule System: rule_system.md
+          - Core Features: core/index.md
+      - Tools:
+          - toolchain.md
+          - Dialect creation: dialects/creation.md
+          - CLI: cli.md
+          - Notebooks: notebooks.md
+      - Running it:
+          - running_hhat.md
+  - Dialects:
+      - dialects/index.md
+      - Heather:
+        - dialects/heather/index.md
+        - Syntax: dialects/heather/current_syntax.md
+        - Examples:
+            - First code: dialects/heather/examples/first_code.md
+            - Calling a function: dialects/heather/examples/calling_fn.md
+            - Defining a new type: dialects/heather/examples/new_type.md
+            - Casting quantum data: dialects/heather/examples/casting_quantum.md
+  - TODOs: TODOs.md
+
+markdown_extensions:
+  - abbr
+  - attr_list
+  - def_list
+  - admonition
+  - footnotes
+  - md_in_html
+  - pymdownx.inlinehilite
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.snippets
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      linenums: true
+      linenums_style: pymdownx.inline
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - overrides/.icons
+  - pymdownx.superfences:
+      custom_fences:
+        - name: python
+          class: python
+          validator: "!!python/name:markdown_exec.validator"
+          format: "!!python/name:markdown_exec.formatter"
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - toc:
+      permalink: true
+
+
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+extra_css:
+  - stylesheets/extra.css
+
+theme:
+  name: material
+  font:
+    text: Lato
+    code: JetBrains Mono
+  features:
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - content.tooltips
+    - content.code.annotate
+    - content.code.copy
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to preferred mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: amber
+      accent: teal
+      toggle:
+        icon: material/brightness-1
+        name: Switch to light mode

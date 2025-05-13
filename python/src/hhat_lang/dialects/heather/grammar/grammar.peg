@@ -1,0 +1,56 @@
+program                     = imports* (type_file*) / (fns* main?) EOF
+
+imports                     = ( 'use' '(' (typeimport / fnimport)+ ')' )*
+typeimport                  = 'type' ':' ( single_import / many_import )
+fnimport                    = 'fn' ':' ( single_import / many_import )
+single_import               = composite_id_with_closure / id
+many_import                 = '[' single_import+ ']'
+
+type_file                   = 'type' ( typesingle / typestruct / typeenum / typeunion )
+typesingle                  = simple_id ':' id_composite_value
+typestruct                  = simple_id '{' typesingle* '}'
+typeenum                    = simple_id '{' enummember* '}'
+typeunion                   = simple_id 'union' '{' unionmember* '}'
+enummember                  = simple_id / typestruct
+unionmember                 = typesingle / typestruct / typeenum
+
+fns                         = 'fn' simple_id fnargs id? body
+fnargs                      = '(' argtype* ')'
+argtype                     = simple_id ':' id_composite_value
+
+id_composite_value           = ( '[' id ']' ) / id
+
+main                        = 'main' body
+
+body                        = '{' (declare / assign / declareassign / expr)* '}'
+expr                        = cast / call / callwithbody / callwithbodyoptions / callwithargsbodyoptions / array
+declare                     = simple_id modifier? ':' id
+assign                      = id '=' expr
+declareassign               = simple_id modifier? ':' id '=' expr
+cast                        = id '*' ( call / literal / id )
+call                        = id '(' args* ')'
+args                        = callargs / call / valonly
+callargs                    = simple_id ':' valonly
+valonly                     = array / literal / id
+callwithbodyoptions         = id '(' args* ')' body
+callwithargsbodyoptions     = id '(' (expr body)+ ')'
+callwithbody                = id body
+
+array                       = '[' ( literal / composite_id_with_closure / id )* ']'
+
+simple_id                   = r'@?[a-zA-Z][a-zA-Z0-9\-_]*'
+composite_id                = simple_id ('.' simple_id)+
+composite_id_with_closure   = ( simple_id / composite_id ) '.' '{' ( simple_id / composite_id / composite_id_with_closure ) '}'
+modifier                    = '<' ( valonly+ / callargs+ ) '>'
+id                          = ( composite_id / simple_id ) modifier?
+
+literal                     = null / bool / str / int / float / q__bool / q__int
+null                        = 'null'
+bool                        = 'true' / 'false'
+str                         = r'"([^"]*)"'
+int                         = r'-?([1-9]\d*|0)'
+float                       = r'0(\.\d+)?|[1-9]\d*(\.\d+)?'
+q__bool                     = '@true' / '@false'
+q__int                      = r'-?\@([1-9]\d*|0)'
+
+comment                     = ( r'\/\/([^\n]*)\n' ) / ( r'\/\-.*?\-\/' )

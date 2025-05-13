@@ -1,0 +1,3 @@
+type natural:u64
+
+type point { x:u32 y:u32 }

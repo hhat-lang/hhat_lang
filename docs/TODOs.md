@@ -7,15 +7,15 @@ Here sits an updated list of things to implement/write. Feel free to check them 
 ### Memory
 - [ ] create scope data structure for stack and heap
 - [ ] define scopes:
-  - [ ] `0` scope for global scope
-  - [ ] `main` for main scope
-  - [ ] function name with an extra identifier for their respective scope
-  - [ ] make sure the current scope can only have access to `0` and its current memory scopes
+    - [ ] `0` scope for global scope
+    - [ ] `main` for main scope
+    - [ ] function name with an extra identifier for their respective scope
+    - [ ] make sure the current scope can only have access to `0` and its current memory scopes
 - [ ] implement writing to, reading from and removing from stack
-  - [ ] on the same scope
-  - [ ] from a function exit back to the previous scope
+    - [ ] on the same scope
+    - [ ] from a function exit back to the previous scope
 - [ ] implement writing to, reading from and removing from heap
-  - [ ] on the scope
+    - [ ] on the scope
 - [ ] implement freeing memory (when scope is... out of scope)
 
 ### Types
@@ -32,18 +32,18 @@ Here sits an updated list of things to implement/write. Feel free to check them 
 
 ### Configurations
 - [ ] Implement configuration handler
-  - [ ] read from file (json? yaml? toml?)
-  - [ ] write to file
-  - [ ] choose the settings to hold
-    - [ ] target backend
-      - [ ] name
-      - [ ] version
-      - [ ] device type: simulator, QPU
-      - [ ] execution type: local, remote
-      - [ ] maximum number of qubits
-      - [ ] low level language(s) supported
-      - [ ] execution type: static, dynamic (supports mid-circuit measurement)
-  - [ ] transform settings into respective functions/classes (dynamic import)
+    - [ ] read from file (json? yaml? toml?)
+    - [ ] write to file
+    - [ ] choose the settings to hold
+        - [ ] target backend
+            - [ ] name
+            - [ ] version
+            - [ ] device type: simulator, QPU
+            - [ ] execution type: local, remote
+            - [ ] maximum number of qubits
+            - [ ] low level language(s) supported
+            - [ ] execution type: static, dynamic (supports mid-circuit measurement)
+    - [ ] transform settings into respective functions/classes (dynamic import)
 
 ## Heather dialect
 ### code
@@ -66,23 +66,23 @@ Here sits an updated list of things to implement/write. Feel free to check them 
 ## Low level core
 ### Quantum languages
 - [ ] OpenQASM v2
-  - [ ] instructions
-    - [ ] if 
-    - [ ] @not
-    - [ ] @redim
-    - [ ] @sync
-    - [ ] @if
-  - [ ] `LowLevelQLang`
-    - [ ] includes mid-circuit measurements
-    - [ ] implement `CompositeSymbol`
-    - [ ] implement `CompositeLiteral`
-    - [ ] implement `CompositeMixData`
-    - [ ] implement fallback to H-hat dialect execution on classical code when openQASMv2 does not support the code
+    - [ ] implement instructions
+        - [ ] if
+        - [ ] @not
+        - [x] @redim
+        - [ ] @sync
+        - [ ] @if
+    - [ ] `LowLevelQLang`
+        - [ ] includes mid-circuit measurements
+        - [ ] implement `CompositeSymbol`
+        - [ ] implement `CompositeLiteral`
+        - [ ] implement `CompositeMixData`
+        - [ ] implement fallback to H-hat dialect execution on classical code when openQASMv2 does not support the code
 
 ### (Quantum) Target backends
 - [ ] `qiskit`
-  - [ ] change the backend name to `ibm`?
-  - [ ] include a generic way to fetch the correct backend (right now `AerSimulator` is hardcoded, but it can be any available local or remote simulator or QPU)
+    - [ ] change the backend name to `ibm`?
+    - [ ] include a generic way to fetch the correct backend (right now `AerSimulator` is hardcoded, but it can be any available local or remote simulator or QPU)
 
 ## Toolchain
 ### project
@@ -90,17 +90,17 @@ Here sits an updated list of things to implement/write. Feel free to check them 
 
 ### CLI
 - [ ] implement CLI functionalities using the `toolchain.project` module
-  - [ ] `new project`
-  - [ ] `update`
-  - [ ] `run`
+    - [ ] `new project`
+    - [ ] `update`
+    - [ ] `run`
 
 ## Documentation
 - [ ] Describe:
-  - [ ] rule system
-  - [ ] core code features
-  - [ ] cli
-  - [ ] notebooks
-  - [ ] dialect creation tools/API
-  - [ ] Language ecosystem
-  - [ ] Heather syntax
-  - [ ] Heather language features
+    - [ ] rule system
+    - [ ] core code features
+    - [ ] cli
+    - [ ] notebooks
+    - [ ] dialect creation tools/API
+    - [ ] Language ecosystem
+    - [ ] Heather syntax
+    - [ ] Heather language features

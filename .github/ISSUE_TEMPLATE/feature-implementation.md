@@ -1,5 +1,5 @@
 ---
-name: Implementation issue
+name: Feature Implementation
 about: Use this template for issues related to the documentation TODOs page.
 title: "[IMPL] "
 labels: implementation
@@ -12,6 +12,4 @@ assignees: ''
 ## Expected behavior
 
 
-## TODOs
-
-- [ ]
+## Tests

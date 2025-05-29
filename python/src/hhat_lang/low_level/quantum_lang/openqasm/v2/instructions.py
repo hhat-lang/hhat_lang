@@ -122,11 +122,85 @@ class QIf(QInstr):
         *,
         idxs: tuple[int, ...],
         executor: BaseEvaluator,
+        options: dict[Any, Any],  # Mapping of condition value (int/str) to body instruction(s)
+        cond_size: int = 1,      # Number of qubits/bits for the condition (default 1 for @bool)
         **kwargs: Any
     ) -> tuple[tuple[str, ...], InstrStatus]:
-        """Transforms `@if` instruction to openQASMv2.0 code."""
-
-        # TODO: implement this instruction; check documentation
-
+        """Transforms `@if` instruction to openQASM v2.0 code (call with options)."""
         self._instr_status = InstrStatus.RUNNING
-        raise NotImplementedError()
+        code = []
+        cond_idxs = idxs[:cond_size]  # The indices of the qubits for the condition
+        body_idxs = idxs[cond_size:]  # The rest are for the body
+        # 1. Measure all condition qubits into corresponding classical bits
+        for qidx in cond_idxs:
+            code.append(f"measure q[{qidx}] -> c[{qidx}];")
+        # 2. For each option, emit an if statement
+        handled_else = False
+        for cond_val, body in options.items():
+            if cond_val in ("else", "default"):
+                handled_else = True
+                continue  # Handle after all other options
+            # cond_val: expected classical value (int or str representing bits)
+            # Convert cond_val to bitstring if needed
+            if isinstance(cond_val, int):
+                bitstr = format(cond_val, f"0{cond_size}b")
+            elif isinstance(cond_val, str) and cond_val.isdigit():
+                bitstr = format(int(cond_val), f"0{cond_size}b")
+            else:
+                bitstr = cond_val  # Assume already a bitstring
+            # Build the OpenQASM if condition (e.g., c[0]==1 && c[1]==0)
+            cond_expr = " && ".join(
+                f"c[{cond_idxs[i]}]=={bitstr[i]}" for i in range(cond_size)
+            )
+            # Generate the body code
+            if isinstance(body, list):
+                body_code = []
+                for instr in body:
+                    instr_code, _ = instr(
+                        idxs=body_idxs, executor=executor, **kwargs
+                    )
+                    body_code.extend(instr_code)
+                body_code_str = " ".join(body_code)
+            else:
+                body_code, _ = body(
+                    idxs=body_idxs, executor=executor, **kwargs
+                )
+                body_code_str = " ".join(body_code)
+            code.append(f"if ({cond_expr}) {body_code_str}")
+        # Handle else/default option if present
+        if handled_else:
+            body = options.get("else") or options.get("default")
+            if isinstance(body, list):
+                body_code = []
+                for instr in body:
+                    instr_code, _ = instr(
+                        idxs=body_idxs, executor=executor, **kwargs
+                    )
+                    body_code.extend(instr_code)
+                body_code_str = " ".join(body_code)
+            else:
+                body_code, _ = body(
+                    idxs=body_idxs, executor=executor, **kwargs
+                )
+                body_code_str = " ".join(body_code)
+            # The else branch: if none of the above, so negate all previous conditions
+            prev_conds = []
+            for cond_val in options:
+                if cond_val in ("else", "default"): continue
+                if isinstance(cond_val, int):
+                    bitstr = format(cond_val, f"0{cond_size}b")
+                elif isinstance(cond_val, str) and cond_val.isdigit():
+                    bitstr = format(int(cond_val), f"0{cond_size}b")
+                else:
+                    bitstr = cond_val
+                cond_expr = " && ".join(
+                    f"c[{cond_idxs[i]}]=={bitstr[i]}" for i in range(cond_size)
+                )
+                prev_conds.append(f"({cond_expr})")
+            if prev_conds:
+                else_expr = "! (" + " || ".join(prev_conds) + ")"
+            else:
+                else_expr = "1"  # Always true if no previous conditions
+            code.append(f"if ({else_expr}) {body_code_str}")
+        self._instr_status = InstrStatus.DONE
+        return tuple(code), self._instr_status

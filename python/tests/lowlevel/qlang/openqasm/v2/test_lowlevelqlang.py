@@ -11,6 +11,7 @@ from hhat_lang.dialects.heather.code.simple_ir_builder.ir import (
     IRArgs,
 )
 from hhat_lang.low_level.quantum_lang.openqasm.v2.qlang import LowLeveQLang
+from hhat_lang.low_level.quantum_lang.openqasm.v2.instructions import QIf, QRedim
 
 
 def test_gen_program_single_empty_redim() -> None:
@@ -68,3 +69,98 @@ measure q -> c;
     res = qlang.gen_program()
     print(res)
     # assert res == code_snippet
+
+
+def test_qif_simple_bool():
+    # Simulate: @if(@true: @redim(@3))
+    # Should generate: measure q[0] -> c[0]; if (c[0]==1) h q[3];
+    class DummyExecutor:
+        pass
+    qif = QIf()
+    qredim = QRedim()
+    code, status = qif(
+        idxs=(0, 3),  # 0: condition qubit, 3: target qubit
+        executor=DummyExecutor(),
+        options={1: lambda idxs, executor, **kwargs: qredim(idxs=(idxs[0],), **kwargs)[0]}
+    )
+    assert "measure q[0] -> c[0];" in code[0]
+    assert any("if (c[0]==1)" in line and "h q[3];" in line for line in code)
+
+
+def test_qif_multibit_u2():
+    # Simulate: @if(2: @redim(@1), 3: @redim(@2)) for a 2-bit condition (@u2)
+    class DummyExecutor:
+        pass
+    qif = QIf()
+    qredim = QRedim()
+    code, status = qif(
+        idxs=(0, 1, 5),  # 0,1: condition qubits, 5: target qubit
+        executor=DummyExecutor(),
+        options={
+            2: lambda idxs, executor, **kwargs: qredim(idxs=(idxs[0],), **kwargs)[0],
+            3: lambda idxs, executor, **kwargs: qredim(idxs=(idxs[0],), **kwargs)[0],
+        },
+        cond_size=2
+    )
+    assert "measure q[0] -> c[0];" in code[0]
+    assert "measure q[1] -> c[1];" in code[1]
+    assert any("if (c[0]==1 && c[1]==0)" in line for line in code)  # 2 = 10b
+    assert any("if (c[0]==1 && c[1]==1)" in line for line in code)  # 3 = 11b
+
+
+def test_qif_with_else():
+    # Simulate: @if(1: @redim(@2), else: @redim(@3))
+    class DummyExecutor:
+        pass
+    qif = QIf()
+    qredim = QRedim()
+    code, status = qif(
+        idxs=(0, 2, 3),
+        executor=DummyExecutor(),
+        options={
+            1: lambda idxs, executor, **kwargs: qredim(idxs=(idxs[0],), **kwargs)[0],
+            "else": lambda idxs, executor, **kwargs: qredim(idxs=(idxs[0],), **kwargs)[0],
+        },
+        cond_size=1
+    )
+    assert any("if (c[0]==1)" in line and "h q[2];" in line for line in code)
+    assert any("if (! (" in line and "h q[3];" in line for line in code)
+
+
+def test_qif_multibody():
+    # Simulate: @if(1: [@redim(@2), @redim(@3)])
+    class DummyExecutor:
+        pass
+    qif = QIf()
+    qredim = QRedim()
+    code, status = qif(
+        idxs=(0, 2, 3),
+        executor=DummyExecutor(),
+        options={
+            1: [
+                lambda idxs, executor, **kwargs: qredim(idxs=(idxs[0],), **kwargs)[0],
+                lambda idxs, executor, **kwargs: qredim(idxs=(idxs[1],), **kwargs)[0],
+            ]
+        },
+        cond_size=1
+    )
+    assert any("if (c[0]==1)" in line and "h q[2]; h q[3];" in line.replace("  ", " ") for line in code)
+
+
+def test_qif_allzero_allone():
+    # Simulate: @if(0: @redim(@1), 3: @redim(@2)) for a 2-bit condition (@u2)
+    class DummyExecutor:
+        pass
+    qif = QIf()
+    qredim = QRedim()
+    code, status = qif(
+        idxs=(0, 1, 4),
+        executor=DummyExecutor(),
+        options={
+            0: lambda idxs, executor, **kwargs: qredim(idxs=(idxs[0],), **kwargs)[0],
+            3: lambda idxs, executor, **kwargs: qredim(idxs=(idxs[0],), **kwargs)[0],
+        },
+        cond_size=2
+    )
+    assert any("if (c[0]==0 && c[1]==0)" in line for line in code)  # 0 = 00b
+    assert any("if (c[0]==1 && c[1]==1)" in line for line in code)  # 3 = 11b

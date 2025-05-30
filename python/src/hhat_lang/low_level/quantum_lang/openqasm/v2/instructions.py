@@ -4,6 +4,13 @@ from typing import Any
 
 from hhat_lang.core.code.instructions import CInstr, QInstr
 from hhat_lang.core.code.utils import InstrStatus
+from hhat_lang.core.data.core import (
+    CompositeLiteral,
+    CompositeMixData,
+    CoreLiteral,
+    Symbol,
+)
+from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.execution.abstract_base import BaseEvaluator
 from hhat_lang.core.memory.core import MemoryDataTypes
 
@@ -30,10 +37,37 @@ class If(CInstr):
         match the number of instructions (`instrs`).
         """
 
-        return (
-            tuple(self._instr(c.value, i.value) for c, i in zip(cond_test, instrs)),
-            InstrStatus.DONE,
-        )
+        transformed_instrs: tuple[str, ...] = ()
+
+        for c, i in zip(cond_test, instrs):
+
+            c_value: str
+
+            match c:
+                case BaseDataContainer():
+                    c_value = c.name.value
+                case CoreLiteral() | Symbol():
+                    c_value = c.value
+                case CompositeLiteral() | CompositeMixData():
+                    raise NotImplementedError()
+                case _:
+                    raise NotImplementedError()
+
+            i_value: str
+
+            match i:
+                case BaseDataContainer():
+                    i_value = i.name.value
+                case CoreLiteral() | Symbol():
+                    i_value = i.value
+                case CompositeLiteral() | CompositeMixData():
+                    raise NotImplementedError()
+                case _:
+                    raise NotImplementedError()
+
+            transformed_instrs += (self._instr(c_value, i_value),)
+
+        return transformed_instrs, InstrStatus.DONE
 
     def __call__(
         self, *, executor: BaseEvaluator, **kwargs: Any
@@ -44,10 +78,15 @@ class If(CInstr):
 
         # conditional test must be in the first position of the stack
         cond_test = executor.mem.stack.pop()
+        cond_test_tuple = cond_test if isinstance(cond_test, tuple) else (cond_test,)
+
         # instructions must be in the following position of the stack
         if_instrs = executor.mem.stack.pop()
+        if_instrs_tuple = if_instrs if isinstance(if_instrs, tuple) else (if_instrs,)
 
-        instrs, status = self._translate_instrs(cond_test=cond_test, instrs=if_instrs)
+        instrs, status = self._translate_instrs(
+            cond_test=cond_test_tuple, instrs=if_instrs_tuple
+        )
         self._instr_status = status
         return instrs, status
 

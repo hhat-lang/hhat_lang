@@ -260,7 +260,7 @@ class Heap(BaseHeap):
         if not (var_data := self._data.get(key, False)):
             return HeapInvalidKeyError(key=key)
 
-        return var_data
+        return var_data  # type: ignore [return-value]
 
 
 class SymbolTable:
@@ -328,3 +328,10 @@ class MemoryManager(BaseMemoryManager):
 MemoryDataTypes = (
     BaseDataContainer | CoreLiteral | CompositeLiteral | Symbol | CompositeMixData
 )
+"""
+- BaseDataContainer
+- CoreLiteral
+- CompositeLiteral
+- Symbol
+- CompositeMixData
+"""

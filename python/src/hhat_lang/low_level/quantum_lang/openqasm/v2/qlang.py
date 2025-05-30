@@ -58,11 +58,11 @@ class LowLeveQLang(BaseLowLevelQLang):
         return tuple(f"x q[{n}];" for n, k in enumerate(literal.bin) if k == "1")
 
     def gen_var(
-        self, var: BaseDataContainer, executor: BaseEvaluator
+        self, var: BaseDataContainer | Symbol, executor: BaseEvaluator
     ) -> tuple[str, ...] | ErrorHandler:
         """Generate QASM code from variable data"""
 
-        var_data = executor.mem.heap[var.name]
+        var_data = executor.mem.heap[var if isinstance(var, Symbol) else var.name]
         code_tuple: tuple[str, ...] = ()
 
         for member, data in var_data:
@@ -219,7 +219,7 @@ class LowLeveQLang(BaseLowLevelQLang):
         """
 
         code = ""
-        code += "\n".join(self.init_qlang()) + "\n"
+        code += "\n".join(self.init_qlang()) + "\n\n"
 
         for instr in self._code:  # type: ignore [attr-defined]
 
@@ -228,7 +228,8 @@ class LowLeveQLang(BaseLowLevelQLang):
                 match gen_args := self.gen_args(instr.args):
 
                     case Ok():
-                        code += "\n".join(gen_args.result()) + "\n"
+                        if gen_args.result():
+                            code += "\n".join(gen_args.result()) + "\n"
 
                     # TODO: implement it better
                     case Error():

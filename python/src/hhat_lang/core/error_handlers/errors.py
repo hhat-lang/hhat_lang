@@ -4,8 +4,6 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Any
 
-from hhat_lang.core.data.core import Symbol
-
 
 class ErrorCodes(Enum):
     INDEX_UNKNOWN_ERROR = auto()
@@ -253,7 +251,7 @@ class CastNegToUnsignedError(ErrorHandler):
 
 
 class CastIntOverflowError(ErrorHandler):
-    def __init__(self, int_value: Any, limit: Symbol):
+    def __init__(self, int_value: Any, limit: Any):
         super().__init__(ErrorCodes.CAST_INT_OVERFLOW_ERROR)
         self._int_value = int_value
         self._limit = limit
@@ -266,7 +264,7 @@ class CastIntOverflowError(ErrorHandler):
 
 
 class CastError(ErrorHandler):
-    def __init__(self, type_cast: Symbol, data: Any):
+    def __init__(self, type_cast: Any, data: Any):
         super().__init__(ErrorCodes.CAST_ERROR)
         self._type_cast = type_cast
         self._data = data

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from collections import OrderedDict
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, cast
 
 from hhat_lang.core.data.core import CoreLiteral, Symbol, WorkingData
 from hhat_lang.core.data.utils import VariableKind
@@ -49,7 +48,7 @@ class BuiltinSingleDS(BaseTypeDataStructure):
         self, name: Symbol, bitsize: Size | None = None, qsize: QSize | None = None
     ):
         super().__init__(name, is_builtin=True)
-        self._type_container: list = [name]
+        self._type_container: SymbolOrdered = SymbolOrdered({0: name})
         self._bitsize = bitsize
         self._qsize = qsize if qsize is not None else QSize(0, 0)
 
@@ -117,7 +116,8 @@ def int_to_uN(
                 return CastNegToUnsignedError(data, ds.members[0][1])
 
             if data < max_value:
-                return CoreLiteral(data.value, ds.name.value)
+                lit_type = cast(str, ds.name.value)
+                return CoreLiteral(data.value, lit_type)
 
             return CastIntOverflowError(data, ds.name)
 
@@ -134,7 +134,8 @@ def int_to_uN(
                             return CastNegToUnsignedError(val, ds.members[0][1])
 
                         if val < max_value:
-                            return CoreLiteral(val.value, ds.name.value)
+                            lit_type = cast(str, ds.name.value)
+                            return CoreLiteral(val.value, lit_type)
 
                         return CastIntOverflowError(val, ds.name)
 

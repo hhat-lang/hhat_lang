@@ -1,0 +1,35 @@
+name: tests
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test_linux:
+    name: H-hat tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Virtualenv
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+      - name: Install H-hat
+        run: |
+          cd python/
+          pip install ".[all,dev]"
+          pip install pre-commit
+      - name: Run tests
+        run: |
+          pre-commit run --all-files

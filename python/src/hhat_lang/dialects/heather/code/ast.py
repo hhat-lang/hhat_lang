@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from hhat_lang.core.code.ast import AST, Node, Terminal
 
-
 ###############
 # AST CLASSES #
 ###############
@@ -170,9 +169,7 @@ class CallWithArgsBodyOptions(Node):
 
 
 class CallWithBody(Node):
-    def __init__(
-        self, caller: TypeType, args: CallArgs, body: Body
-    ):
+    def __init__(self, caller: TypeType, args: CallArgs, body: Body):
         self._value = (caller, args, body)
         self._name = self.__class__.__name__
 
@@ -247,7 +244,9 @@ class Imports(Node):
     Importing types and then functions to the program.
     """
 
-    def __init__(self, *, type_import: tuple[TypeImport, ...], fn_import: tuple[FnImport, ...]):
+    def __init__(
+        self, *, type_import: tuple[TypeImport, ...], fn_import: tuple[FnImport, ...]
+    ):
         self._value = (type_import, fn_import)
         self._name = self.__class__.__name__
 

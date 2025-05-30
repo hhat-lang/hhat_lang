@@ -23,7 +23,6 @@ pub trait WorkingData {
     fn push();
     fn pop();
     fn free();
-    
+
     fn is_quantum(&self) -> bool;
 }
-

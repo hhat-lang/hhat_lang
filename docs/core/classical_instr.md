@@ -15,7 +15,7 @@ Below you can find a list of existing (:white_check_mark:), under implementation
 
 ## 2. `bool` type
 
-### `not` 
+### `not`
 
 - Status: :memo:
 - Syntax: `not(data:bool)`
@@ -84,4 +84,3 @@ Below you can find a list of existing (:white_check_mark:), under implementation
 - Syntax: `add(a:u64 b:u64)`
 - Description: performs an addition operation on `a` (`u64`) and `b` (`u64`) arguments
 - Returns: a `u64` type from the operation
-

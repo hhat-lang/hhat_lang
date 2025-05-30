@@ -5,9 +5,9 @@ use std::ptr::{read, write, NonNull};
 
 /// A holder for memory block, its pointer in the [`std::alloc::GlobalAlloc`],
 /// the default alignment and its total size.
-/// 
+///
 /// The `MemBlock` implementation is basically all unsafe since we are dealing with
-/// the raw memory directly here. Although it is being checked internally to make 
+/// the raw memory directly here. Although it is being checked internally to make
 /// sure things don't go wild, unsafe reinforces the awareness the handler code must
 /// have when interacting with it.
 pub struct MemBlock {
@@ -40,7 +40,7 @@ impl MemBlock {
             }),
             Err(value) => Err(value),
         }
-        
+
     }
 
     unsafe fn alloc_memblock(size: BlockSize, align: usize) -> Result<NonNull<u8>, MemAllocError> {
@@ -199,7 +199,7 @@ mod tests {
     /// test many memory blocks allocation, writing, reading and de-allocation
     #[test]
     fn test_many_memblock_operations() {}
-    
+
     #[test]
     fn test_struct_memblock_operations() {
         unsafe {
@@ -210,7 +210,7 @@ mod tests {
             }
 
             println!("=== complex memblock alloc ===");
-            
+
             let mut memblock = match MemBlock::new(MAX_MEMBLOCK_SIZE, 8usize) {
                 Ok(block) => block,
                 Err(err) => panic!("{:?}", err)

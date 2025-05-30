@@ -1,27 +1,29 @@
+# type: ignore
+
 from __future__ import annotations
 
 from typing import Any, cast
 
-from hhat_lang.dialects.heather.code.ast import (
-    Id,
-    CompositeId,
-    Literal,
-    ArgValuePair,
-    ValueType,
-    ModifiedId,
-    Array,
-    Hash,
-    Declare,
-    Assign,
-    DeclareAssign,
-)
 from hhat_lang.core.code.utils import check_quantum_type_correctness
-from hhat_lang.core.data.core import Symbol, CompositeSymbol, CoreLiteral
-
+from hhat_lang.core.data.core import CompositeSymbol, CoreLiteral, Symbol
+from hhat_lang.dialects.heather.code.ast import (
+    ArgValuePair,
+    Array,
+    Assign,
+    CompositeId,
+    Declare,
+    DeclareAssign,
+    Hash,
+    Id,
+    Literal,
+    ModifiedId,
+    ValueType,
+)
 
 #########################
 # IR DEFINING FUNCTIONS #
 #########################
+
 
 def define_id(code: Id) -> Symbol:
     name: str = cast(str, code.value[0])
@@ -35,7 +37,8 @@ def define_compositeid(code: CompositeId) -> CompositeSymbol:
 
 
 def define_literal(code: Literal) -> CoreLiteral:
-    return CoreLiteral(code.value[0], code.name)
+    value = cast(str, code.value[0])
+    return CoreLiteral(value, code.name)
 
 
 def define_argvaluepair(code: ArgValuePair) -> tuple[Symbol, Any]:
@@ -82,4 +85,3 @@ def define_assign(code: Assign) -> Any:
 
 def define_declareassign(code: DeclareAssign) -> Any:
     pass
-

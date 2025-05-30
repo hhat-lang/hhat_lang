@@ -96,20 +96,20 @@ type lines:u32
 defined by u32. -/
 
 type point { x:u32 y:u32 }
-/- a struct type called 'point' with 
+/- a struct type called 'point' with
 members 'x ' of type u32 and 'y' of type u32. -/
 
 
-type result { 
+type result {
   ok{ msg:str }
-  err 
+  err
 }
-/- a enum type called 'result' with 
+/- a enum type called 'result' with
 members 'ok', a struct data with member 'msg',
 and 'err', a simple identifier. -/
 
- 
-type code union { 
+
+type code union {
    number:u64
    text:str
 }
@@ -122,21 +122,21 @@ Some key aspects of each type:
  - Single types can be thought as a "label" for a given type, but it has its own properties and checks
 
  - Structs are always defined by members with a name and type
- 
+
  - Enums can be either identifiers or structs
- 
+
  - Unions have the `union` keyword before the body and can hold members with name and type, structs or enums; they behave like usual unions in C, for instance
 
 ## 7. Functions
 
 
 ```
-fn sum (a:u32 b:u32) u32 { add(a b) }
+fn sum (a:u32 b:u32) u32 { =add(a b) }
 ```
 
-- The `fn` keyword followed by the function name, `sum`, followed by the arguments between parenthesis, `a` and `b` of type `u32`, followed by the function type, `u32`, followed by the function body between brackets, `add(a b)`. If the function has no return value, it can be empty.
+- The `fn` keyword followed by the function name, `sum`, followed by the arguments between parenthesis, `a` and `b` of type `u32`, followed by the function type, `u32`, followed by the function body between brackets, `=add(a b)`. If the function has no return value, the `null` type can be left empty.
 
-- The last operation, literal or identifier is considered the return value. If nothing should be returned, a `null` can be used at last.
+- The last expression to be return must contain a `=` syntax sugar to indicate it is the "return" expression.
 
 ## 8. Conditional statements (`if`)
 
@@ -145,7 +145,7 @@ fn sum (a:u32 b:u32) u32 { add(a b) }
 if(
    eq(a b): some-result
    lt(a b): { some-bracket-body-result }
-   true: else-result 
+   true: else-result
 )
 ```
 
@@ -196,4 +196,3 @@ Modifiers provide an extensive way to complement, define or modify the data it i
 
 
 #### 14.3 call with body options
-

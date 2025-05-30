@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Iterable
 
-from hhat_lang.core.data.core import WorkingData, Symbol, CompositeSymbol
+from hhat_lang.core.data.core import CompositeSymbol, Symbol, WorkingData
 from hhat_lang.core.data.utils import VariableKind
 from hhat_lang.core.data.variable import BaseDataContainer, VariableTemplate
 from hhat_lang.core.error_handlers.errors import ErrorHandler
@@ -65,7 +65,10 @@ class BaseTypeDataStructure(ABC):
     _array_type: bool
 
     def __init__(
-        self, name: Symbol | CompositeSymbol, is_builtin: bool = False, array_type: bool = False
+        self,
+        name: Symbol | CompositeSymbol,
+        is_builtin: bool = False,
+        array_type: bool = False,
     ):
         self._name = name
         self._is_quantum = name.is_quantum
@@ -73,7 +76,7 @@ class BaseTypeDataStructure(ABC):
         self._array_type = array_type
 
     @property
-    def name(self) -> Symbol:
+    def name(self) -> Symbol | CompositeSymbol:
         return self._name
 
     @property

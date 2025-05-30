@@ -13,7 +13,7 @@ After configuring it, activate it (_each package has their own way to do it, ple
 
 This is the easiest, most straightforward and simplest way to install `H-hat`. On the terminal, with the virtual environment enabled, type:[^1]
 
-[^1]: How to check [which shell I am using](https://askubuntu.com/questions/590899/how-do-i-check-which-shell-i-am-using#590902)? 
+[^1]: How to check [which shell I am using](https://askubuntu.com/questions/590899/how-do-i-check-which-shell-i-am-using#590902)?
 
 ### If you are using `bash` shell:
 
@@ -55,5 +55,3 @@ pip install -e ".[all]"
 
 !!! note
     This approach is meant to be used for those who want to modify the code.
-
-

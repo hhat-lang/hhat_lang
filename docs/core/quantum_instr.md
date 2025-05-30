@@ -11,7 +11,7 @@ Below you can find a list of existing (:white_check_mark:), under implementation
 
 ### `@not`
 
-- Status: :construction: 
+- Status: :construction:
 - Syntax: `@not(@data:@bool)`
 - Description: negates `@data` (`@bool`) argument quantum binary data
 - Returns: a `@bool` quantum data
@@ -29,7 +29,7 @@ Below you can find a list of existing (:white_check_mark:), under implementation
 
 ### `@not`
 
-- Status: :construction: 
+- Status: :construction:
 - Syntax: `@not(@data:@u2)`
 - Description: negates `@data` (`@u2`) argument quantum binary data
 - Returns: a `@u2` quantum data
@@ -47,7 +47,7 @@ Below you can find a list of existing (:white_check_mark:), under implementation
 
 ### `@not`
 
-- Status: :construction: 
+- Status: :construction:
 - Syntax: `@not(@data:@u3)`
 - Description: negates `@data` (`@u3`) argument quantum binary data
 - Returns: a `@u3` quantum data
@@ -65,7 +65,7 @@ Below you can find a list of existing (:white_check_mark:), under implementation
 
 ### `@not`
 
-- Status: :construction: 
+- Status: :construction:
 - Syntax: `@not(@data:@u4)`
 - Description: negates `@data` (`@u4`) argument quantum binary data
 - Returns: a `@u4` quantum data

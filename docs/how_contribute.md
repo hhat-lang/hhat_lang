@@ -15,7 +15,7 @@ You can check both [H-hat issues page](https://github.com/hhat-lang/hhat_lang/is
 Once the code is ready, you can make a pull request (PR) to the H-hat repository. Write a comprehensive description, referencing all the issues it addresses. You can assign [Doomsk](https://github.com/Doomsk) as reviewer, for instance.
 
 
-### Python code 
+### Python code
 
 The code must follow the [pre-commit](https://pre-commit.com/) settings from pre-commit yaml ([.pre-commit-config.yaml](https://github.com/hhat-lang/hhat_lang/blob/main/python/.pre-commit-config,yaml)) file at H-hat's python implementation. Check more on the pre-commit page on how to set up and run it.
 

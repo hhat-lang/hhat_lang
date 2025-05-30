@@ -6,7 +6,6 @@ from arpeggio import visit_parse_tree
 from arpeggio.cleanpeg import ParserPEG
 
 from hhat_lang.core.code.ast import AST
-
 from hhat_lang.dialects.heather.grammar import WHITESPACE
 from hhat_lang.dialects.heather.parsing.visitor import ParserVisitor
 
@@ -27,7 +26,7 @@ def parse_grammar() -> ParserPEG:
         root_rule_name="program",
         comment_rule_name="comment",
         reduce_tree=True,
-        ws=WHITESPACE
+        ws=WHITESPACE,
     )
 
 

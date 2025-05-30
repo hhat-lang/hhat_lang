@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, Callable
 from abc import ABC, abstractmethod
 from enum import Enum, auto
+from typing import Any, Callable, Iterable
 
-from hhat_lang.core.data.core import Symbol, CompositeSymbol
+from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
 
@@ -54,6 +54,7 @@ class BlockIR(ABC):
     To hold tuple of instructions (`InstrIR`) and blocks (`BlockIR`).
     """
 
+    name: str
     _instrs: tuple[InstrIR | BlockIR, ...]
 
     def __getitem__(self, item: int) -> InstrIR | BlockIR:
@@ -120,11 +121,13 @@ FnTable = dict[
     tuple[  # key: define the function header
         Symbol | CompositeSymbol,  # first element: function name
         Symbol | CompositeSymbol,  # second element: function type
-        tuple | tuple[Symbol | CompositeSymbol | tuple[
-            Symbol, Symbol | CompositeSymbol
-        ], ...]  # third element: args; empty args, only types args, name and type pairs
+        tuple
+        | tuple[
+            Symbol | CompositeSymbol | tuple[Symbol, Symbol | CompositeSymbol], ...
+        ],  # third element: args; empty args, only types args, name and type pairs
     ],
-    BodyIR]  # value: the function body
+    BodyIR,
+]  # value: the function body
 """
 Type annotation for `FnTable`, a function table that holds all the program functions.
 
@@ -132,17 +135,18 @@ It consists in a dictionary where the key is:
 
 - first element: function name (`Symbol`, `CompositeSymbol`)
 - second element: function type (`Symbol`, `CompositeSymbol`)
-- third element: args, which can be empty, only types or name-type pairs 
+- third element: args, which can be empty, only types or name-type pairs
   (tuple of `Symbol`, `CompositeSymbol` or tuple pairs with `Symbol` and
   `Symbol` or `CompositeSymbol`)
 
-and the dictionary value is body of the function. 
+and the dictionary value is body of the function.
 """
 
 
 #############
 # IR TABLES #
 #############
+
 
 class TypeIR:
     """To format, store and retrieve all types used in the program."""
@@ -162,8 +166,12 @@ class TypeIR:
     def get(self, name: Symbol | CompositeSymbol) -> BaseTypeDataStructure:
         return self[name]
 
-    def __setitem__(self, key: Symbol | CompositeSymbol, value: BaseTypeDataStructure) -> None:
-        if isinstance(key, (Symbol, CompositeSymbol)) and isinstance(value, BaseTypeDataStructure):
+    def __setitem__(
+        self, key: Symbol | CompositeSymbol, value: BaseTypeDataStructure
+    ) -> None:
+        if isinstance(key, (Symbol, CompositeSymbol)) and isinstance(
+            value, BaseTypeDataStructure
+        ):
             if key not in self._data:
                 self._data[key] = value
 
@@ -243,7 +251,9 @@ class BaseIR(ABC):
     def main(self) -> BodyIR:
         return self._data
 
-    def add_type(self, name: Symbol | CompositeSymbol, data: BaseTypeDataStructure) -> None:
+    def add_type(
+        self, name: Symbol | CompositeSymbol, data: BaseTypeDataStructure
+    ) -> None:
         self._type_table[name] = data
 
     @abstractmethod
@@ -254,8 +264,7 @@ class BaseIR(ABC):
         fn_type: Symbol | CompositeSymbol,
         fn_args: Any,
         body: Any,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def add_body(self, body: Any) -> None:
         for k in body:

@@ -11,18 +11,22 @@ def _size_resolver():
 
 
 def _qsize_resolver(ds: BaseTypeDataStructure, table: TypeTable) -> int | None:
-    if ds.qsize.max is None:
-        qsize_max = 0
+    if ds.qsize is not None:
 
-        for _, member_type in ds:
-            res = _qsize_resolver(table[member_type], table)
+        if ds.qsize.max is None:
+            qsize_max = 0
 
-            if res:
-                qsize_max += res
+            for _, member_type in ds:
+                res = _qsize_resolver(table[member_type], table)
 
-        ds.qsize.max = qsize_max or None
+                if res:
+                    qsize_max += res
 
-    return ds.qsize.max
+            ds.qsize.add_max(qsize_max)
+
+        return ds.qsize.max
+
+    raise ValueError("Quantum type must have QSize defined.")
 
 
 def ct_size() -> Any:

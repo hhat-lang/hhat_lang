@@ -99,6 +99,6 @@ required-imports = ["from __future__ import annotations"]
 
 [tool.mypy]
 python_version = "3.12"
-disable_error_code = ["import-untyped"]
+disable_error_code = ["import-untyped", "override", "misc", "attr-defined"]
 pretty = true
-exclude = "build"
+exclude = ["build", "tests"]

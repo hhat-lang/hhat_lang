@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
-from hhat_lang.core.data.core import Symbol, CompositeSymbol, CoreLiteral
-
+from hhat_lang.core.data.core import CompositeSymbol, CoreLiteral, Symbol
 
 # TODO: continue to implement this approach in the future
 
@@ -35,7 +34,9 @@ class IRModifier:
     _ssa: SSA
     _mods: dict[int | Symbol, Any] | dict
 
-    def __init__(self, ssa: SSA, *, amods: tuple | None = None, kmods: dict | None = None):
+    def __init__(
+        self, ssa: SSA, *, amods: tuple | None = None, kmods: dict | None = None
+    ):
         self._ssa = ssa
 
         # check whether amods (mod arguments) is not empty:
@@ -52,14 +53,15 @@ class IRModifier:
         elif kmods:
 
             for k, v in kmods.items():
-                if (
-                    isinstance(k, Symbol)
-                    and isinstance(v, (Symbol, CompositeSymbol, SSA, CoreLiteral))
+                if isinstance(k, Symbol) and isinstance(
+                    v, (Symbol, CompositeSymbol, SSA, CoreLiteral)
                 ):
                     self._mods[k] = v
 
                 else:
-                    raise ValueError(f"unsupported mod and param for {self._ssa}: {k} -> {v}")
+                    raise ValueError(
+                        f"unsupported mod and param for {self._ssa}: {k} -> {v}"
+                    )
 
         # if nothing is provided, the mod is empty:
         else:
@@ -79,7 +81,9 @@ class IRModifier:
         return self._mods
 
     def __repr__(self) -> str:
-        mod_repr = " ".join(f"{k}:{v}" for k, v in self._mods.items()) if self._mods else ""
+        mod_repr = (
+            " ".join(f"{k}:{v}" for k, v in self._mods.items()) if self._mods else ""
+        )
         return f"$mod({self.ssa})[{mod_repr}]"
 
 
@@ -115,7 +119,7 @@ class SSA:
         return self._symbol.value
 
     @property
-    def idx(self) -> int:
+    def idx(self) -> int | None:
         return self._idx
 
     @property
@@ -212,7 +216,7 @@ class IRVar:
     """
 
     _symbol: Symbol
-    _data: list[SSA, ...] | list
+    _data: list[SSA] | list
     _ssa_counter: SSACounter
 
     def __init__(self, symbol: Symbol):
@@ -225,7 +229,7 @@ class IRVar:
         return self._symbol
 
     @property
-    def data(self) -> list[SSA, ...]:
+    def data(self) -> list[SSA]:
         return self._data
 
     def ssa_inc(self) -> int:

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
 from abc import ABC, abstractmethod
+from typing import Any
 
-from hhat_lang.core.code.ir import TypeIR, BaseFnIR
+from hhat_lang.core.code.ir import BaseFnIR, TypeIR
 from hhat_lang.core.memory.core import MemoryManager
 
 

@@ -10,7 +10,7 @@ The name is twofold: a [plant](https://en.wikipedia.org/wiki/Calluna)[^1] and a 
 
 ## Introduction
 
-This dialect was developed to enable programmers to experience H-hat rule system and explore ideas for a new quantum computer science theory that intends to focus more on the computer science of the thing, namely manipulate quantum data rather than quantum states. 
+This dialect was developed to enable programmers to experience H-hat rule system and explore ideas for a new quantum computer science theory that intends to focus more on the computer science of the thing, namely manipulate quantum data rather than quantum states.
 
 ### Features
 

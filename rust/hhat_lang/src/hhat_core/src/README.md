@@ -22,7 +22,7 @@ For context during the code refactoring, what is actually being used and refacto
 - [mem/stack.rs](mem/stack.rs) contains the stack-related code; must replace old code for the working one, namely mem/core.rs's `MemBlock` code with its errors/success enum
 
 
-### Stale code used for reference only 
+### Stale code used for reference only
 
 Some codes can be used to build new and improved ones, such as:
 - [mem/type_container.rs](mem/type_container.rs) contains an attempt to build some data structures

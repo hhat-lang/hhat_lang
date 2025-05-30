@@ -167,3 +167,120 @@ def test_qif_allzero_allone():
     )
     assert any("if (c[0]==0 && c[1]==0)" in line for line in code)  # 0 = 00b
     assert any("if (c[0]==1 && c[1]==1)" in line for line in code)  # 3 = 11b
+
+
+def test_gen_program_qif_single_bool_redim() -> None:
+    code_snippet = """OPENQASM 2.0;
+include \"qelib1.inc\";
+qreg q[4];
+creg c[4];
+creg cond[1];
+
+measure q[0] -> cond[0];
+if (cond==1) h q[3];
+measure q -> c;
+"""
+    qv = Symbol("@v")
+    mem = MemoryManager(5)
+    mem.idx.add(qv, 4)
+    mem.idx.request(qv)
+    ex = Evaluator(mem, TypeIR(), FnIR())
+    block = IRBlock()
+    # Add @if(@true: @redim(@3))
+    # We'll simulate @true as q[0] == 1, and @redim(@3) as h q[3]
+    block.add_instr(
+        IRInstr(
+            name=Symbol("@if"),
+            args=IRArgs(),
+            flag=InstrIRFlag.CALL,
+            meta={
+                "cond_size": 1,
+                "options": {
+                    1: lambda idxs, executor, **kwargs: ("h q[3];", InstrStatus.DONE),
+                },
+                "idxs": (0, 3),
+            },
+        )
+    )
+    qlang = LowLeveQLang(Symbol("@v"), block, mem.idx, ex, Stack())
+    res = qlang.gen_program()
+    assert res == code_snippet
+
+
+def test_gen_program_qif_multibit_redim() -> None:
+    code_snippet = """OPENQASM 2.0;
+include \"qelib1.inc\";
+qreg q[6];
+creg c[6];
+creg cond[2];
+
+measure q[0] -> cond[0];
+measure q[1] -> cond[1];
+if (cond==2) h q[4];
+if (cond==3) h q[5];
+measure q -> c;
+"""
+    qv = Symbol("@v")
+    mem = MemoryManager(7)
+    mem.idx.add(qv, 6)
+    mem.idx.request(qv)
+    ex = Evaluator(mem, TypeIR(), FnIR())
+    block = IRBlock()
+    # Add @if(2: @redim(@4), 3: @redim(@5)) for a 2-bit condition (q[0], q[1])
+    block.add_instr(
+        IRInstr(
+            name=Symbol("@if"),
+            args=IRArgs(),
+            flag=InstrIRFlag.CALL,
+            meta={
+                "cond_size": 2,
+                "options": {
+                    2: lambda idxs, executor, **kwargs: ("h q[4];", InstrStatus.DONE),
+                    3: lambda idxs, executor, **kwargs: ("h q[5];", InstrStatus.DONE),
+                },
+                "idxs": (0, 1, 4, 5),
+            },
+        )
+    )
+    qlang = LowLeveQLang(Symbol("@v"), block, mem.idx, ex, Stack())
+    res = qlang.gen_program()
+    assert res == code_snippet
+
+
+def test_gen_program_qif_with_else() -> None:
+    code_snippet = """OPENQASM 2.0;
+include \"qelib1.inc\";
+qreg q[4];
+creg c[4];
+creg cond[1];
+
+measure q[0] -> cond[0];
+if (cond==1) h q[2];
+if (cond==0) h q[3];
+measure q -> c;
+"""
+    qv = Symbol("@v")
+    mem = MemoryManager(5)
+    mem.idx.add(qv, 4)
+    mem.idx.request(qv)
+    ex = Evaluator(mem, TypeIR(), FnIR())
+    block = IRBlock()
+    # Add @if(1: @redim(@2), else: @redim(@3))
+    block.add_instr(
+        IRInstr(
+            name=Symbol("@if"),
+            args=IRArgs(),
+            flag=InstrIRFlag.CALL,
+            meta={
+                "cond_size": 1,
+                "options": {
+                    1: lambda idxs, executor, **kwargs: ("h q[2];", InstrStatus.DONE),
+                    "else": lambda idxs, executor, **kwargs: ("h q[3];", InstrStatus.DONE),
+                },
+                "idxs": (0, 2, 3),
+            },
+        )
+    )
+    qlang = LowLeveQLang(Symbol("@v"), block, mem.idx, ex, Stack())
+    res = qlang.gen_program()
+    assert res == code_snippet

@@ -23,12 +23,4 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install pre-commit
-      run: |
-        cd python/
-        pip install pre-commit
-        pre-commit install
-
-    - name: Perform pre-commit
-      run: |
-        pre-commit run --all-files
+    - uses: pre-commit/action@v3.0.1

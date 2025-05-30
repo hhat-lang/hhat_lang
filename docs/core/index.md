@@ -8,14 +8,14 @@ Some core features provide wide range of possibilities for the dialect implement
 
 ### 1. Call with options
 
-It has the structure: 
+It has the structure:
 
 ```
 id (
     option1: body
     option2: body
     ...
-) 
+)
 ```
 
 It can be used to define an identifier `id` to hold some transformation through the options that are functions call (and not identifiers, as usually in function calls with arguments) with values being the body that is executed for that particular option.
@@ -28,7 +28,7 @@ Example: [`if` statement](../dialects/heather/current_syntax.md#8-conditional-st
 It has the structure:
 
 ```
-id { body }
+id (args) { body }
 ```
 
 

@@ -3,8 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Iterable
 
-from hhat_lang.core.data.core import WorkingData, Symbol
-from hhat_lang.core.data.utils import isquantum, VariableKind
+from hhat_lang.core.data.core import CompositeSymbol, Symbol, WorkingData
+from hhat_lang.core.data.utils import VariableKind, isquantum
 from hhat_lang.core.error_handlers.errors import (
     ContainerVarError,
     ContainerVarIsImmutableError,
@@ -20,7 +20,7 @@ class BaseDataContainer(ABC):
     """Data container for constant and variables definitions."""
 
     _name: Symbol
-    _type: Symbol
+    _type: Symbol | CompositeSymbol
     _ds: SymbolOrdered
     """_ds: data from data structure, e.g. member types and names"""
 
@@ -35,8 +35,8 @@ class BaseDataContainer(ABC):
 
     _instr_counter: int
     """the counter for instructions so quantum instructions can be
-    processed in ordered fashion; especially useful for quantum or 
-    appendable variables types. For instance, can be used on remote 
+    processed in ordered fashion; especially useful for quantum or
+    appendable variables types. For instance, can be used on remote
     instructions for teleportation"""
 
     _transferred: bool
@@ -54,7 +54,7 @@ class BaseDataContainer(ABC):
         return self._name
 
     @property
-    def type(self) -> Symbol:
+    def type(self) -> Symbol | CompositeSymbol:
         """type of the variable"""
         return self._type
 
@@ -190,17 +190,15 @@ class BaseDataContainer(ABC):
         return False
 
     @abstractmethod
-    def assign(self, *args: Any, **kwargs: Any) -> None | ErrorHandler:
-        ...
+    def assign(self, *args: Any, **kwargs: Any) -> None | ErrorHandler: ...
 
     @abstractmethod
-    def get(self, *args: Any, **kwargs: Any) -> Any | ErrorHandler:
-        ...
+    def get(self, *args: Any, **kwargs: Any) -> Any | ErrorHandler: ...
 
     def __call__(
         self,
         *args: Any,
-        **kwargs: SymbolOrdered[WorkingData, WorkingData | BaseDataContainer],
+        **kwargs: SymbolOrdered,
     ) -> None | ErrorHandler:
         return self.assign(*args, **kwargs)
 
@@ -208,12 +206,10 @@ class BaseDataContainer(ABC):
         yield from self._data.items()
 
     @abstractmethod
-    def borrow(self, *args: Any, **kwargs: Any) -> None | ErrorHandler:
-        ...
+    def borrow(self, *args: Any, **kwargs: Any) -> None | ErrorHandler: ...
 
     @abstractmethod
-    def transfer(self, *args: Any, **kwargs: Any) -> None | ErrorHandler:
-        ...
+    def transfer(self, *args: Any, **kwargs: Any) -> None | ErrorHandler: ...
 
     def free(self) -> None | ErrorHandler:
         """Freeing the container (program going out of container's scope)."""
@@ -235,7 +231,7 @@ class VariableTemplate:
     def __new__(
         cls,
         var_name: Symbol,
-        type_name: Symbol,
+        type_name: Symbol | CompositeSymbol,
         type_ds: SymbolOrdered,
         flag: VariableKind = VariableKind.IMMUTABLE,
     ) -> BaseDataContainer | ErrorHandler:
@@ -269,7 +265,12 @@ class VariableTemplate:
 
 
 class ConstantData(BaseDataContainer):
-    def __init__(self, var_name: Symbol, type_name: Symbol, type_ds: SymbolOrdered):
+    def __init__(
+        self,
+        var_name: Symbol,
+        type_name: Symbol | CompositeSymbol,
+        type_ds: SymbolOrdered,
+    ):
         self._name = var_name
         self._type = type_name
         self._ds = type_ds
@@ -304,7 +305,12 @@ class ConstantData(BaseDataContainer):
 
 
 class ImmutableVariable(BaseDataContainer):
-    def __init__(self, var_name: Symbol, type_name: Symbol, type_ds: SymbolOrdered):
+    def __init__(
+        self,
+        var_name: Symbol,
+        type_name: Symbol | CompositeSymbol,
+        type_ds: SymbolOrdered,
+    ):
         self._name = var_name
         self._type = type_name
         self._ds = type_ds
@@ -322,7 +328,7 @@ class ImmutableVariable(BaseDataContainer):
     def assign(
         self,
         *args: Any,
-        **kwargs: SymbolOrdered[WorkingData, WorkingData | BaseDataContainer],
+        **kwargs: SymbolOrdered,
     ) -> None | ErrorHandler:
 
         if not self._assigned:
@@ -365,7 +371,7 @@ class MutableVariable(BaseDataContainer):
     def __init__(
         self,
         var_name: Symbol,
-        type_name: Symbol,
+        type_name: Symbol | CompositeSymbol,
         type_ds: SymbolOrdered,
     ):
         self._name = var_name
@@ -422,7 +428,7 @@ class AppendableVariable(BaseDataContainer):
     def __init__(
         self,
         var_name: Symbol,
-        type_name: Symbol,
+        type_name: Symbol | CompositeSymbol,
         type_ds: SymbolOrdered,
         is_quantum: bool,
     ):
@@ -443,7 +449,7 @@ class AppendableVariable(BaseDataContainer):
     def assign(
         self,
         *args: Any,
-        **kwargs: SymbolOrdered[WorkingData, WorkingData | BaseDataContainer],
+        **kwargs: SymbolOrdered,
     ) -> None | ErrorHandler:
 
         if len(args) == len(self._ds):

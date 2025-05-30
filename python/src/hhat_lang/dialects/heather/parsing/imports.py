@@ -9,11 +9,10 @@ from pathlib import Path
 from typing import Any
 
 from hhat_lang.core.code.ast import AST
-
 from hhat_lang.dialects.heather.code.ast import (
-    Imports,
     CompositeId,
-    CompositeIdWithClosure
+    CompositeIdWithClosure,
+    Imports,
 )
 
 
@@ -44,4 +43,3 @@ def parse_fns(code: Any) -> Any:
 
 def parse_imports(code: Imports) -> Any:
     pass
-

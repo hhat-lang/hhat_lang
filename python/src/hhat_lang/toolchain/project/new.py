@@ -8,10 +8,10 @@ from typing import Any
 
 from hhat_lang.toolchain.project.utils import str_to_path
 
-
 ######################
 # CREATE NEW PROJECT #
 ######################
+
 
 def create_new_project(project_name: str | Path) -> Any:
     project_name = str_to_path(project_name)
@@ -41,6 +41,7 @@ def _create_template_files(project_name: Path) -> Any:
 ###################
 # CREATE NEW FILE #
 ###################
+
 
 def create_new_file(project_name: str | Path, file_name: str | Path) -> Any:
     project_name = str_to_path(project_name)

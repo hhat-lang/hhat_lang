@@ -19,13 +19,14 @@ typespace                   = 'typespace' ( trait_id / id ) '{' fns* '}'
 fns                         = 'fn' simple_id fnargs id? body
 fnargs                      = '(' argtype* ')'
 argtype                     = simple_id ':' id_composite_value
-
-id_composite_value           = ( '[' id ']' ) / id
+fn_body                     = '{' (declare / assign / declareassign / return / expr)* '}'
+return                      = "=" expr
+id_composite_value          = ( '[' id ']' ) / id
 
 main                        = 'main' body
 
 body                        = '{' (declare / assign / declareassign / expr)* '}'
-expr                        = cast / call / callwithbody / callwithbodyoptions / callwithargsbodyoptions / array
+expr                        = cast / call / callwithbody / callwithbodyoptions / callwithargsbodyoptions / array / id / literal
 declare                     = simple_id modifier? ':' id
 assign                      = id '=' expr
 declareassign               = simple_id modifier? ':' id '=' expr

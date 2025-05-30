@@ -1,3 +1,4 @@
+# type: ignore
 """
 In this file there are three distinct sections:
 
@@ -12,67 +13,70 @@ from typing import Any
 
 from hhat_lang.core.code.ast import AST
 from hhat_lang.core.data.core import (
-    Symbol,
     CompositeSymbol,
     CoreLiteral,
-)
-from hhat_lang.dialects.heather.parsing.imports import (
-    parse_imports, parse_types, parse_types_compositeid,
-    parse_types_compositeidwithclosure
+    Symbol,
 )
 from hhat_lang.dialects.heather.code.ast import (
-    Id,
+    ArgTypePair,
+    ArgValuePair,
+    Array,
+    Assign,
+    Body,
+    BodyType,
+    Call,
+    CallArgs,
+    CallWithBody,
+    CallWithBodyOptions,
+    Cast,
     CompositeId,
     CompositeIdWithClosure,
-    Cast,
-    ArgValuePair,
-    OnlyValue,
-    Modifier,
-    ModifiedId,
-    Literal,
-    Array,
-    Hash,
-    Expr,
     Declare,
-    Assign,
     DeclareAssign,
-    CallArgs,
-    Call,
-    MethodCallArgs,
-    MethodCall,
-    InsideOption,
-    CallWithBodyOptions,
-    CallWithBody,
-    ArgTypePair,
+    EnumTypeMember,
+    Expr,
     FnArgs,
     FnDef,
-    TypeMember,
-    SingleTypeMember,
-    EnumTypeMember,
-    TypeDef,
     FnImport,
-    TypeImport,
+    Hash,
+    Id,
     Imports,
-    Body,
+    InsideOption,
+    Literal,
     Main,
+    MethodCall,
+    MethodCallArgs,
+    ModifiedId,
+    Modifier,
+    OnlyValue,
     Program,
-    ValueType,
+    SingleTypeMember,
+    TypeDef,
+    TypeImport,
+    TypeMember,
     TypeType,
-    BodyType,
+    ValueType,
 )
+from hhat_lang.dialects.heather.code.simple_ir_builder.builder import (
+    define_argvaluepair,
+    define_compositeid,
+    define_id,
+    define_literal,
+)
+
 # for now just a simple IR for the interpreter suffices
 from hhat_lang.dialects.heather.code.simple_ir_builder.ir import IR
-from hhat_lang.dialects.heather.code.simple_ir_builder.builder import (
-    define_id,
-    define_compositeid,
-    define_literal,
-    define_argvaluepair,
+from hhat_lang.dialects.heather.parsing.imports import (
+    parse_imports,
+    parse_types,
+    parse_types_compositeid,
+    parse_types_compositeidwithclosure,
 )
 
 # TODO: include other implementation modules for the IR, as below.
 #  - each one of them should contain all the named functions
 #  - the correct IR module should be read from some configuration file
-""" 
+"""
 from hhat_heather.code.mlir_ir import define_id
 ...
 """
@@ -81,6 +85,7 @@ from hhat_heather.code.mlir_ir import define_id
 ########################################################
 # FUNCTION BUILDERS FROM AST TO ACTUAL CODE FOR THE IR #
 ########################################################
+
 
 def _build_id(code: Id) -> Symbol:
     return define_id(code)
@@ -318,6 +323,7 @@ def _build_bodytype(code: BodyType) -> Any:
 # TABLE BUILDERS #
 ##################
 
+
 def build_typetable(code: AST) -> Any:
     for k in code:
 
@@ -421,6 +427,7 @@ def build_fntable(code: AST) -> Any:
 #############
 # MAIN CODE #
 #############
+
 
 def build_main(code: AST) -> Any:
     ir = IR()

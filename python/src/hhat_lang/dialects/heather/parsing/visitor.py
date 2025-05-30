@@ -1,25 +1,24 @@
 from __future__ import annotations
 
-from arpeggio import PTNodeVisitor, NonTerminal, SemanticActionResults
+from arpeggio import NonTerminal, PTNodeVisitor, SemanticActionResults
 
 from hhat_lang.core.code.ast import AST
-
 from hhat_lang.dialects.heather.code.ast import (
-    Program,
-    Main,
-    Imports,
-    TypeImport,
-    TypeDef,
-    TypeMember,
-    Id,
-    CompositeId,
-    ArgValuePair,
     ArgTypePair,
-    SingleTypeMember,
+    ArgValuePair,
+    CompositeId,
     EnumTypeMember,
+    Id,
+    Imports,
+    Main,
+    Program,
+    SingleTypeMember,
+    TypeDef,
+    TypeImport,
+    TypeMember,
 )
 
 
 class ParserVisitor(PTNodeVisitor):
     def visit_program(self, node: NonTerminal, child: SemanticActionResults) -> AST:
-        pass
+        raise NotImplementedError()

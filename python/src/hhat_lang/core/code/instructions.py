@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
 from abc import ABC, abstractmethod
+from typing import Any
 
 from hhat_lang.core import DataParadigm
 from hhat_lang.core.code.utils import InstrStatus
@@ -9,6 +9,7 @@ from hhat_lang.core.code.utils import InstrStatus
 
 class BaseInstr(ABC):
     """Base instruction class"""
+
     name: str
     _instr_status: InstrStatus
 
@@ -18,17 +19,14 @@ class BaseInstr(ABC):
 
     @property
     @abstractmethod
-    def is_quantum(self) -> bool:
-        ...
+    def is_quantum(self) -> bool: ...
 
     @property
     @abstractmethod
-    def paradigm(self) -> DataParadigm:
-        ...
+    def paradigm(self) -> DataParadigm: ...
 
     @abstractmethod
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        ...
+    def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
 
 
 class QInstr(BaseInstr, ABC):

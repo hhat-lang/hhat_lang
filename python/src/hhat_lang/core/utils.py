@@ -5,7 +5,7 @@ from collections import OrderedDict
 from collections.abc import Mapping
 from typing import Any, Iterator
 
-from hhat_lang.core.data.core import Symbol, CompositeSymbol
+from hhat_lang.core.data.core import CompositeSymbol, Symbol, WorkingData
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 
 
@@ -16,26 +16,44 @@ class SymbolOrdered(Mapping):
     as `SingleDS`, `StructDS`, etc.
     """
 
-    _data: OrderedDict[Symbol, Any]
+    _data: OrderedDict[WorkingData | Symbol | CompositeSymbol | int, Any]
 
     def __init__(self, data: dict | OrderedDict | None = None):
         self._data = OrderedDict() if data is None else OrderedDict(data)
 
-    def __setitem__(self, key: str | Symbol | CompositeSymbol, value: Any) -> None:
+    def __setitem__(
+        self, key: int | str | WorkingData | Symbol | CompositeSymbol, value: Any
+    ) -> None:
         if isinstance(key, str):
             self._data[Symbol(key)] = value
 
         elif isinstance(key, (Symbol, CompositeSymbol)):
             self._data[key] = value
 
-        else:
-            raise ValueError(f"{key} ({type(key)}) is not valid key for data structures.")
+        elif isinstance(key, WorkingData):
+            self._data[key] = value
 
-    def __getitem__(self, key: str | Symbol | CompositeSymbol) -> Any:
+        elif isinstance(key, int):
+            self._data[key] = value
+
+        else:
+            raise ValueError(
+                f"{key} ({type(key)}) is not valid key for data structures."
+            )
+
+    def __getitem__(
+        self, key: int | str | WorkingData | Symbol | CompositeSymbol
+    ) -> Any:
         if isinstance(key, str):
             return self._data[Symbol(key)]
 
         if isinstance(key, (Symbol, CompositeSymbol)):
+            return self._data[key]
+
+        if isinstance(key, WorkingData):
+            return self._data[key]
+
+        if isinstance(key, int):
             return self._data[key]
 
         raise ValueError(key)
@@ -48,7 +66,7 @@ class SymbolOrdered(Mapping):
 
     def keys(self) -> Iterator:
         for k in self._data.keys():
-            yield k.value
+            yield k.value if not isinstance(k, int) else k
 
     def values(self) -> Iterator:
         yield from self._data.values()
@@ -68,8 +86,7 @@ class Result(ABC):
         self.value = value
 
     @abstractmethod
-    def result(self) -> Any:
-        ...
+    def result(self) -> Any: ...
 
 
 class Ok(Result):
@@ -84,4 +101,3 @@ class Error(Result):
 
     def result(self) -> ErrorHandler:
         return self.value
-

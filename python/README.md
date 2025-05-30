@@ -49,6 +49,10 @@ After installing it, you should be able to use
 H-hat [cli](https://en.wikipedia.org/wiki/Command-line_interface) to prepare the environment for a
 new H-hat project.
 
+## Documentation
+
+Check more on [the documentation](https://docs.hhat-lang.org).
+
 > [!NOTE]
 >
 > Work in progress.

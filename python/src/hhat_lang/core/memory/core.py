@@ -6,16 +6,20 @@ from queue import LifoQueue
 from uuid import UUID
 
 from hhat_lang.core.data.core import (
-    Symbol, CoreLiteral, CompositeLiteral, CompositeMixData,
-    WorkingData
+    CompositeLiteral,
+    CompositeMixData,
+    CoreLiteral,
+    Symbol,
+    WorkingData,
 )
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
+    HeapInvalidKeyError,
     IndexAllocationError,
+    IndexInvalidVarError,
     IndexUnknownError,
     IndexVarHasIndexesError,
-    HeapInvalidKeyError, IndexInvalidVarError,
 )
 
 
@@ -25,10 +29,10 @@ class PIDManager:
     """
 
     def new(self) -> UUID:
-        pass
+        raise NotImplementedError()
 
     def list(self) -> list[UUID]:
-        pass
+        raise NotImplementedError()
 
 
 class IndexManager:
@@ -39,10 +43,12 @@ class IndexManager:
         - `max_number`: maximum number of allowed indexes
         - `available`: deque with all the available indexes
         - `allocated`: deque with all the allocated indexes
-        - `in_use_by`: dictionary containing the allocator variable as key and deque with allocated indexes as value
+        - `in_use_by`: dictionary containing the allocator variable as key and
+        deque with allocated indexes as value
 
     Methods
-        - `request`: given a variable (`Symbol`) and the number of indexes (`int`), allocate the number if it has enough space
+        - `request`: given a variable (`Symbol`) and the number of indexes (`int`),
+        allocate the number if it has enough space
         - `free`: given a variable (`Symbol`), free all the allocated indexes
     """
 
@@ -95,13 +101,13 @@ class IndexManager:
         return self._in_use_by
 
     def _alloc_idxs(self, num_idxs: int) -> deque | IndexAllocationError:
-        available = (self._max_num_index - self._num_allocated)
+        available = self._max_num_index - self._num_allocated
 
         if available >= num_idxs:
-            _data = tuple()
+            _data: tuple = tuple()
 
             for _ in range(0, num_idxs):
-                _data += self._available.popleft(),
+                _data += (self._available.popleft(),)
                 self._num_allocated += 1
 
             return deque(
@@ -144,7 +150,9 @@ class IndexManager:
 
             return IndexVarHasIndexesError(var_name)
 
-        return IndexAllocationError(requested_idxs=num_idxs, max_idxs=self._num_allocated)
+        return IndexAllocationError(
+            requested_idxs=num_idxs, max_idxs=self._num_allocated
+        )
 
     def request(self, var_name: WorkingData) -> deque | ErrorHandler:
         """
@@ -248,15 +256,16 @@ class Heap(BaseHeap):
         self._data[key] = value
         return None
 
-    def get(self, key: Symbol) -> BaseDataContainer | HeapInvalidKeyError:
-        if not (var_data:= self._data.get(key, False)):
+    def get(self, key: Symbol) -> BaseDataContainer | WorkingData | HeapInvalidKeyError:
+        if not (var_data := self._data.get(key, False)):
             return HeapInvalidKeyError(key=key)
 
-        return var_data
+        return var_data  # type: ignore [return-value]
 
 
 class SymbolTable:
     """To store types and functions"""
+
     pass
 
 
@@ -316,4 +325,13 @@ class MemoryManager(BaseMemoryManager):
         return self._idx
 
 
-MemoryDataTypes = BaseDataContainer | CoreLiteral | CompositeLiteral | Symbol | CompositeMixData
+MemoryDataTypes = (
+    BaseDataContainer | CoreLiteral | CompositeLiteral | Symbol | CompositeMixData
+)
+"""
+- BaseDataContainer
+- CoreLiteral
+- CompositeLiteral
+- Symbol
+- CompositeMixData
+"""

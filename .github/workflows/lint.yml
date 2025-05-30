@@ -25,6 +25,7 @@ jobs:
 
     - name: Install pre-commit
       run: |
+        cd python/
         pip install pre-commit
         pre-commit install
 

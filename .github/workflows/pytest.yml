@@ -21,8 +21,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
+        working-directory: python
         run: |
           pip install ".[all,dev]"
       - name: Run tests
+        working-directory: python
         run: |
           pytest .

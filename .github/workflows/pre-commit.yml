@@ -12,4 +12,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v3
-    - uses: pre-commit/action@v3.0.1
+    - name: Run pre-commit
+      working-directory: python
+      run: |
+        pip install pre-commit
+        pre-commit run --all-files

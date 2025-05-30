@@ -35,6 +35,7 @@ heather = [
 
 qiskit = [
     "qiskit",
+    "qiskit-aer",
     "qiskit-ibm-runtime",
 ]
 

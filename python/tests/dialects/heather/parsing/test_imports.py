@@ -8,18 +8,22 @@ from hhat_lang.dialects.heather.code.ast import (
     CompositeId,
     CompositeIdWithClosure,
     FnDef,
-    Imports
+    Imports,
+    FnImport
 )
 from hhat_lang.dialects.heather.parsing.imports import parse_fns, parse_fn_import
 
 @pytest.fixture
 def mock_imports():
     """Create mock imports AST node."""
-    return Imports([
-        Id("main_function"),
-        CompositeId("math.sum"),
-        CompositeIdWithClosure("math.linalg.dot")
-    ])
+    return Imports(
+        type_import=(),
+        fn_import=(FnImport((
+            Id("main_function"),
+            CompositeId("math.sum"),
+            CompositeIdWithClosure(name="math.linalg.dot")
+        )),)
+    )
 
 @pytest.fixture
 def mock_function_definition():
@@ -140,7 +144,7 @@ def test_parse_fn_import_with_relabeling(tmp_path):
         
         # Test with relabeling
         fn_defs, errors = parse_fn_import(
-            CompositeIdWithClosure("stats.{rv-continuous:rvc}"),
+            CompositeIdWithClosure(name="stats.{rv-continuous:rvc}"),
             tmp_path
         )
         
@@ -152,11 +156,14 @@ def test_parse_fn_import_with_relabeling(tmp_path):
 def test_parse_fns_multiple_files(tmp_path):
     with patch("hhat_lang.dialects.heather.parsing.imports.parse_fn_import") as mock_parse:
         # Create imports with functions from different files
-        imports = Imports([
-            Id("main_function"),  # from main.hat
-            CompositeId("math.sum"),  # from math/sum.hat
-            CompositeId("utils.helper")  # from utils/helper.hat
-        ])
+        imports = Imports(
+            type_import=(),
+            fn_import=(FnImport((
+                Id("main_function"),  # from main.hat
+                CompositeId("math.sum"),  # from math/sum.hat
+                CompositeId("utils.helper")  # from utils/helper.hat
+            )),)
+        )
         
         # Setup mock to return different functions
         mock_parse.side_effect = [
@@ -174,9 +181,12 @@ def test_parse_fns_multiple_files(tmp_path):
 
 def test_parse_fns_with_overloaded_functions(tmp_path):
     with patch("hhat_lang.dialects.heather.parsing.imports.parse_fn_import") as mock_parse:
-        imports = Imports([
-            CompositeId("math.sum")  # Overloaded function
-        ])
+        imports = Imports(
+            type_import=(),
+            fn_import=(FnImport((
+                CompositeId("math.sum")  # Overloaded function
+            )),)
+        )
         
         # Setup mock to return multiple definitions for the same function
         mock_parse.return_value = (
@@ -196,10 +206,13 @@ def test_parse_fns_with_overloaded_functions(tmp_path):
 def test_parse_fns_nested_imports(tmp_path):
     with patch("hhat_lang.dialects.heather.parsing.imports.parse_fn_import") as mock_parse:
         # Create imports with nested paths
-        imports = Imports([
-            CompositeId("math.linalg.matrix.{multiply transpose}"),
-            CompositeId("utils.io.file.{read write}")
-        ])
+        imports = Imports(
+            type_import=(),
+            fn_import=(FnImport((
+                CompositeId("math.linalg.matrix.{multiply transpose}"),
+                CompositeId("utils.io.file.{read write}")
+            )),)
+        )
         
         # Setup mock to return functions
         mock_parse.return_value = ([MagicMock(spec=FnDef)], [])
@@ -213,11 +226,14 @@ def test_parse_fns_nested_imports(tmp_path):
 
 def test_parse_fns_stops_on_first_error(tmp_path):
     with patch("hhat_lang.dialects.heather.parsing.imports.parse_fn_import") as mock_parse:
-        imports = Imports([
-            Id("valid_function"),
-            Id("invalid_function"),  # This will cause an error
-            Id("never_reached")      # This should not be processed
-        ])
+        imports = Imports(
+            type_import=(),
+            fn_import=(FnImport((
+                Id("valid_function"),
+                Id("invalid_function"),  # This will cause an error
+                Id("never_reached")      # This should not be processed
+            )),)
+        )
         
         # Setup mock to return success then error
         mock_parse.side_effect = [

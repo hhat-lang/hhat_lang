@@ -56,33 +56,49 @@ def parse_fn_import(
     Returns:
         Tuple of (function definitions, errors)
     """
-    function_name = str(fn_import.value[0]) if isinstance(fn_import, Id) else str(fn_import)
+    # Extract function name based on node type
+    if isinstance(fn_import, Id):
+        function_name = fn_import._value[0]
+    elif isinstance(fn_import, CompositeId):
+        function_name = ".".join(name._value[0] for name in fn_import._value)
+    else:  # CompositeIdWithClosure
+        name = fn_import._value[0]  # Get the root name
+        if isinstance(name, Id):
+            function_name = name._value[0]
+        else:  # CompositeId
+            function_name = ".".join(n._value[0] for n in name._value)
+        # Add the closure values
+        for value in fn_import._value[1]:
+            if isinstance(value, Id):
+                function_name += f".{value._value[0]}"
+            else:  # CompositeId
+                function_name += "." + ".".join(n._value[0] for n in value._value)
     
     # Find the source file
     source_location = locate_function_source(function_name, project_root)
     if isinstance(source_location, ErrorHandler):
         return [], [source_location]
+    elif isinstance(source_location, tuple):
+        source_location = source_location[0]  # Extract path from (path, warning) tuple
         
     # Get function definitions
     definitions = get_function_definitions(source_location, function_name)
-    if isinstance(definitions, ErrorHandler):
-        return [], [definitions]
-        
+    
     # Convert definitions to FnDef AST nodes
     fn_defs = []
     errors = []
     
-    for definition in definitions:
-        try:
+    try:
+        for definition in definitions:
             fn_def = FnDef(
                 fn_name=Id(definition["name"]),
                 fn_type=definition["type"],
-                args=definition["args"],
-                body=definition["body"]
+                args=FnArgs(),  # Empty args for now
+                body=Body()  # Empty body for now
             )
             fn_defs.append(fn_def)
-        except Exception as e:
-            errors.append(ErrorHandler(f"Failed to create FnDef: {str(e)}"))
+    except Exception as e:
+        errors.append(ErrorHandler(f"Failed to create FnDef: {str(e)}"))
             
     return fn_defs, errors
 
@@ -104,10 +120,17 @@ def parse_fns(code: Imports, project_root: Optional[Path] = None) -> tuple[List[
     all_fn_defs = []
     all_errors = []
     
-    for fn_import in code.value:
-        fn_defs, errors = parse_fn_import(fn_import, project_root)
-        all_fn_defs.extend(fn_defs)
-        all_errors.extend(errors)
+    # Handle each function import
+    type_imports, fn_imports = code._value
+    for fn_import in fn_imports:
+        for fn in fn_import._value:
+            fn_defs, errors = parse_fn_import(fn, project_root)
+            all_fn_defs.extend(fn_defs)
+            all_errors.extend(errors)
+            
+            # Stop on first error
+            if errors:
+                break
         
     return all_fn_defs, all_errors
 

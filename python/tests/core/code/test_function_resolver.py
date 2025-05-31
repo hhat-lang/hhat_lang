@@ -68,7 +68,9 @@ def test_locate_function_source_nested(mock_project_structure):
     result = locate_function_source("math.linalg.dot", mock_project_structure)
     assert isinstance(result, Path)
     assert result.name == "dot.hat"
-    assert "math/linalg" in str(result)
+    # Convert Windows path to forward slashes for comparison
+    result_str = str(result).replace("\\", "/")
+    assert "math/linalg" in result_str
 
 def test_locate_function_source_not_found(mock_project_structure):
     result = locate_function_source("nonexistent.function", mock_project_structure)

@@ -41,6 +41,10 @@ class ErrorCodes(Enum):
     INSTR_NOTFOUND_ERROR = auto()
     INSTR_STATUS_ERROR = auto()
 
+    FUNCTION_NOT_FOUND = auto()
+    INVALID_PATH = auto()
+    TYPES_FUNCTION_WARNING = auto()
+
 
 class ErrorHandler(BaseException, ABC):
     def __init__(self, error_code: ErrorCodes):
@@ -331,3 +335,31 @@ class InstrStatusError(ErrorHandler):
 
     def __call__(self) -> str:
         return f"[[{self.__class__.__name__}]]: instr {self._name} has status error"
+
+
+class FunctionNotFoundError(ErrorHandler):
+    def __init__(self, function_name: str):
+        super().__init__(ErrorCodes.FUNCTION_NOT_FOUND)
+        self._function_name = function_name
+
+    def __call__(self) -> str:
+        return f"Function '{self._function_name}' not found"
+
+
+class InvalidPathError(ErrorHandler):
+    def __init__(self, path: str, reason: str):
+        super().__init__(ErrorCodes.INVALID_PATH)
+        self._path = path
+        self._reason = reason
+
+    def __call__(self) -> str:
+        return f"Invalid path '{self._path}': {self._reason}"
+
+
+class TypesFunctionWarning(ErrorHandler):
+    def __init__(self, function_name: str):
+        super().__init__(ErrorCodes.TYPES_FUNCTION_WARNING)
+        self._function_name = function_name
+
+    def __call__(self) -> str:
+        return f"Warning: Function '{self._function_name}' is in hat_types directory. It should only be used by types."

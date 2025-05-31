@@ -3,35 +3,16 @@ from __future__ import annotations
 import os
 import re
 from pathlib import Path
-from typing import Iterator, Optional, List
+from typing import Iterator, Optional, List, Callable
 
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
-from hhat_lang.core.error_handlers.errors import ErrorHandler
-
-class FunctionNotFoundError(ErrorHandler):
-    def __init__(self, function_name: str):
-        super().__init__("FUNCTION_NOT_FOUND")
-        self._function_name = function_name
-
-    def __call__(self) -> str:
-        return f"Function '{self._function_name}' not found"
-
-class InvalidPathError(ErrorHandler):
-    def __init__(self, path: str, reason: str):
-        super().__init__("INVALID_PATH")
-        self._path = path
-        self._reason = reason
-
-    def __call__(self) -> str:
-        return f"Invalid path '{self._path}': {self._reason}"
-
-class TypesFunctionWarning(ErrorHandler):
-    def __init__(self, function_name: str):
-        super().__init__("TYPES_FUNCTION_WARNING")
-        self._function_name = function_name
-
-    def __call__(self) -> str:
-        return f"Warning: Function '{self._function_name}' is in hat_types directory. It should only be used by types."
+from hhat_lang.core.error_handlers.errors import (
+    ErrorHandler,
+    FunctionNotFoundError,
+    InvalidPathError,
+    TypesFunctionWarning
+)
+from hhat_lang.core.code.ast import AST
 
 def is_valid_path_component(component: str, allow_hat_types: bool = False) -> bool:
     """
@@ -59,7 +40,7 @@ def is_valid_path_component(component: str, allow_hat_types: bool = False) -> bo
 def locate_function_source(
     function_name: str | Symbol | CompositeSymbol,
     project_root: Path,
-) -> tuple[Path, ErrorHandler] | Path:
+) -> tuple[Path, ErrorHandler] | Path | ErrorHandler:
     """
     Locate the source file containing the function definition.
     
@@ -74,137 +55,106 @@ def locate_function_source(
     if isinstance(function_name, (Symbol, CompositeSymbol)):
         function_name = str(function_name)
     
-    # First check main.hat in project root
-    main_hat = project_root / "main.hat"
-    if main_hat.exists():
-        return main_hat
-        
     # Split function name into components for nested lookup
     components = function_name.split(".")
     
-    # Build potential file paths
-    paths_to_check = []
+    # Validate path components
+    for component in components:
+        if re.match(r"^\d", component):
+            return InvalidPathError(component, "Path component cannot start with a number")
+            
+    # Special handling for hat_types
+    if components[0] == "hat_types":
+        if len(components) < 2:
+            return InvalidPathError(function_name, "Invalid hat_types path")
+            
+        # Build path in src/hat_types
+        file_path = project_root / "src" / "hat_types"
+        for component in components[1:-1]:
+            file_path = file_path / component
+        file_path = file_path / f"{components[-1]}.hat"
+        
+        if file_path.exists():
+            return file_path, TypesFunctionWarning(function_name)
+        
+    # Check for invalid hat_ prefix
+    if any(c.startswith("hat_") and c != "hat_types" for c in components):
+        return InvalidPathError(function_name, "Invalid hat_ prefix")
     
-    # Check direct file in src/
+    # First check main.hat in project root if it's a simple function name
+    if len(components) == 1:
+        main_hat = project_root / "main.hat"
+        if main_hat.exists():
+            return main_hat
+    
+    # Build path in src directory
     src_dir = project_root / "src"
     if not src_dir.exists():
         return InvalidPathError(str(src_dir), "src directory does not exist")
         
-    # Track if we're in hat_types directory
-    in_hat_types = False
-    
-    # Validate all path components
-    for i, component in enumerate(components[:-1]):
-        # Special handling for hat_types directory
-        if i == 0 and component == "hat_types":
-            in_hat_types = True
-            if not is_valid_path_component(component, allow_hat_types=True):
-                return InvalidPathError(
-                    component,
-                    "Invalid directory name - must start with letter and contain only alphanumeric, underscore or hyphen"
-                )
-        else:
-            if not is_valid_path_component(component):
-                return InvalidPathError(
-                    component,
-                    "Invalid directory name - must start with letter and contain only alphanumeric, underscore or hyphen"
-                )
+    # Try nested directory structure
+    file_path = src_dir
+    for component in components[:-1]:
+        file_path = file_path / component
+        if not file_path.exists():
+            return FunctionNotFoundError(function_name)
             
-    # Build file path variations
-    base_path = src_dir
-    for i in range(len(components)):
-        # Get module path up to this component
-        module_path = components[:i+1]
-        
-        # Try as direct .hat file
-        file_path = base_path / f"{'.'.join(module_path)}.hat"
-        paths_to_check.append((file_path, in_hat_types))
-        
-        # Try as directory with .hat file
-        dir_path = base_path.joinpath(*module_path[:-1])
-        if dir_path.exists() and dir_path.is_dir():
-            file_path = dir_path / f"{module_path[-1]}.hat"
-            paths_to_check.append((file_path, in_hat_types))
+    file_path = file_path / f"{components[-1]}.hat"
     
-    # Check all potential paths
-    for path, is_types_path in paths_to_check:
-        if path.exists():
-            if is_types_path:
-                # Return both the path and a warning
-                return path, TypesFunctionWarning(function_name)
-            return path
-            
+    if file_path.exists():
+        return file_path
+        
     return FunctionNotFoundError(function_name)
 
-def parse_function_definition(content: str) -> List[dict]:
-    """Parse function definitions from .hat file content."""
-    # This is a simplified parser - in reality, you'd want to use a proper lexer/parser
-    definitions = []
-    lines = content.split('\n')
-    current_fn = None
+def parse_function_definition(content: AST, parser_fn: Callable[[AST], List[dict]]) -> List[dict]:
+    """
+    Parse function definitions using the provided dialect-specific parser.
     
-    for line in lines:
-        line = line.strip()
+    Args:
+        content: AST representation of the code
+        parser_fn: Dialect-specific parser function that converts AST to function definitions
         
-        # Skip empty lines and comments
-        if not line or line.startswith('//'):
-            continue
-            
-        # Check for function start
-        if line.startswith('fn '):
-            # Basic function parsing - in reality would need proper parsing
-            fn_match = re.match(r'fn\s+(\w+)\s*\((.*?)\)\s*->\s*(\w+)\s*{', line)
-            if fn_match:
-                current_fn = {
-                    'name': fn_match.group(1),
-                    'type': fn_match.group(3),
-                    'args': [arg.strip() for arg in fn_match.group(2).split(',') if arg.strip()],
-                    'body': []
-                }
-        
-        # Check for function end
-        elif line == '}' and current_fn is not None:
-            definitions.append(current_fn)
-            current_fn = None
-            
-        # Add line to current function body
-        elif current_fn is not None:
-            current_fn['body'].append(line)
-            
-    return definitions
+    Returns:
+        List of function definitions
+    """
+    return parser_fn(content)
 
 def get_function_definitions(
     source_file: Path,
-    function_name: str | Symbol | CompositeSymbol
-) -> Iterator[dict] | ErrorHandler:
+    function_name: str | Symbol | CompositeSymbol,
+    parser_fn: Callable[[AST], List[dict]]
+) -> Iterator[dict]:
     """
     Extract all function definitions matching the given name from a source file.
     
     Args:
         source_file: Path to the source file
         function_name: Name of the function to find
+        parser_fn: Dialect-specific parser function that converts AST to function definitions
         
     Returns:
-        Iterator of function definitions or an error
+        Iterator of function definitions
     """
     # Convert function name to string if needed
-    if isinstance(function_name, (Symbol, CompositeSymbol)):
-        function_name = str(function_name)
+    if isinstance(function_name, Symbol):
+        function_name = function_name.value
+    elif isinstance(function_name, CompositeSymbol):
+        function_name = ".".join(function_name.value)
     
     # Get just the final component of the function name
     function_name = function_name.split(".")[-1]
     
     try:
         with open(source_file, "r") as f:
-            content = f.read()
+            content = AST(f.read())  # This should be replaced with proper AST parsing
             
-        # Parse all function definitions
-        definitions = parse_function_definition(content)
+        definitions = parse_function_definition(content, parser_fn)
+        matching_defs = [d for d in definitions if d["name"] == function_name]
         
-        # Yield matching functions (supports overloading)
-        for definition in definitions:
-            if definition['name'] == function_name:
-                yield definition
+        if not matching_defs:
+            return iter([])  # Return empty iterator instead of error
             
-    except Exception as e:
-        return InvalidPathError(str(source_file), f"Failed to read file: {str(e)}") 
+        return iter(matching_defs)
+            
+    except IOError as e:
+        return iter([])  # Return empty iterator on file error 

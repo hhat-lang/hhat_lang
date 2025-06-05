@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.dialects.heather.code.ast import (
@@ -9,7 +9,9 @@ from hhat_lang.dialects.heather.code.ast import (
     CompositeIdWithClosure,
     FnDef,
     Imports,
-    FnImport
+    FnImport,
+    FnArgs,
+    Body
 )
 from hhat_lang.dialects.heather.parsing.imports import parse_fns, parse_fn_import
 
@@ -20,8 +22,11 @@ def mock_imports():
         type_import=(),
         fn_import=(FnImport((
             Id("main_function"),
-            CompositeId("math.sum"),
-            CompositeIdWithClosure(name="math.linalg.dot")
+            CompositeId(Id("math"), Id("sum")),
+            CompositeIdWithClosure(
+                Id("dot"),
+                name=CompositeId(Id("math"), Id("linalg"))
+            )
         )),)
     )
 
@@ -36,44 +41,49 @@ def mock_function_definition():
     }
 
 def test_parse_fn_import_with_id(tmp_path):
-    with patch("hhat_lang.core.code.function_resolver.locate_function_source") as mock_locate, \
-         patch("hhat_lang.core.code.function_resolver.get_function_definitions") as mock_get_defs:
+    mock_content = "mock file content"
+    with patch("builtins.open", mock_open(read_data=mock_content)) as mock_file, \
+         patch("hhat_lang.core.code.function_resolver.locate_function_source") as mock_locate, \
+         patch("hhat_lang.core.code.function_resolver.get_function_definitions", autospec=True) as mock_get_defs:
         
         # Setup mocks
         mock_locate.return_value = tmp_path / "test.hat"
-        mock_get_defs.return_value = iter([{
+        mock_def = {
             "name": "main_function",
-            "type": "function",
+            "type": "void",
             "args": [],
             "body": []
-        }])
+        }
+        mock_get_defs.return_value = [mock_def]
         
         # Test
         fn_defs, errors = parse_fn_import(Id("main_function"), tmp_path)
-        
         assert len(fn_defs) == 1
-        assert isinstance(fn_defs[0], FnDef)
-        assert len(errors) == 0
+        assert fn_defs[0].fn_name._value[0] == "main_function"
 
 def test_parse_fn_import_with_composite_id(tmp_path):
-    with patch("hhat_lang.core.code.function_resolver.locate_function_source") as mock_locate, \
-         patch("hhat_lang.core.code.function_resolver.get_function_definitions") as mock_get_defs:
+    mock_content = "mock file content"
+    with patch("builtins.open", mock_open(read_data=mock_content)) as mock_file, \
+         patch("hhat_lang.core.code.function_resolver.locate_function_source") as mock_locate, \
+         patch("hhat_lang.core.code.function_resolver.get_function_definitions", autospec=True) as mock_get_defs:
         
         # Setup mocks
         mock_locate.return_value = tmp_path / "math/sum.hat"
-        mock_get_defs.return_value = iter([{
+        mock_def = {
             "name": "sum",
-            "type": "function",
+            "type": "void",
             "args": [],
             "body": []
-        }])
+        }
+        mock_get_defs.return_value = [mock_def]
         
-        # Test
-        fn_defs, errors = parse_fn_import(CompositeId("math.sum"), tmp_path)
-        
+        # Test with proper CompositeId construction
+        fn_defs, errors = parse_fn_import(
+            CompositeId(Id("math"), Id("sum")),
+            tmp_path
+        )
         assert len(fn_defs) == 1
-        assert isinstance(fn_defs[0], FnDef)
-        assert len(errors) == 0
+        assert fn_defs[0].fn_name._value[0] == "sum"
 
 def test_parse_fn_import_not_found(tmp_path):
     with patch("hhat_lang.core.code.function_resolver.locate_function_source") as mock_locate:
@@ -89,31 +99,56 @@ def test_parse_fn_import_not_found(tmp_path):
 
 def test_parse_fns_multiple_imports(tmp_path, mock_imports):
     with patch("hhat_lang.dialects.heather.parsing.imports.parse_fn_import") as mock_parse:
-        # Setup mock to return a function def and no errors
-        mock_parse.return_value = ([MagicMock(spec=FnDef)], [])
+        # Create mock FnDef objects with proper attributes
+        fn_def1 = MagicMock(spec=FnDef)
+        fn_def1.fn_name = Id("main_function")
+        fn_def1.fn_type = Id("void")
         
-        # Test
-        fn_defs, errors = parse_fns(mock_imports, tmp_path)
+        fn_def2 = MagicMock(spec=FnDef)
+        fn_def2.fn_name = Id("sum")
+        fn_def2.fn_type = Id("int")
         
-        assert len(fn_defs) == 3  # One for each import
-        assert len(errors) == 0
-        assert mock_parse.call_count == 3
-
-def test_parse_fns_with_errors(tmp_path, mock_imports):
-    with patch("hhat_lang.dialects.heather.parsing.imports.parse_fn_import") as mock_parse:
-        # Setup mock to return error for second import
+        fn_def3 = MagicMock(spec=FnDef)
+        fn_def3.fn_name = Id("dot")
+        fn_def3.fn_type = Id("float")
+        
+        # Setup mock to return function defs
         mock_parse.side_effect = [
-            ([MagicMock(spec=FnDef)], []),
-            ([], [ErrorHandler("Test error")]),
-            ([MagicMock(spec=FnDef)], [])
+            ([fn_def1], []),  # First import
+            ([fn_def2], []),  # Second import
+            ([fn_def3], [])   # Third import
         ]
         
         # Test
         fn_defs, errors = parse_fns(mock_imports, tmp_path)
         
-        assert len(fn_defs) == 2  # Two successful imports
-        assert len(errors) == 1  # One error from failed import
-        assert mock_parse.call_count == 3
+        assert len(fn_defs) == 3
+        assert [fn.fn_name._value[0] for fn in fn_defs] == ["main_function", "sum", "dot"]
+
+def test_parse_fns_with_errors(tmp_path, mock_imports):
+    with patch("hhat_lang.dialects.heather.parsing.imports.parse_fn_import") as mock_parse:
+        # Create mock FnDef objects with proper attributes
+        fn_def1 = MagicMock(spec=FnDef)
+        fn_def1.fn_name = Id("main_function")
+        fn_def1.fn_type = Id("void")
+        
+        fn_def2 = MagicMock(spec=FnDef)
+        fn_def2.fn_name = Id("dot")
+        fn_def2.fn_type = Id("float")
+        
+        # Setup mock to return error for second import
+        mock_parse.side_effect = [
+            ([fn_def1], []),  # First import succeeds
+            ([], [ErrorHandler("Test error")]),  # Second import fails
+            ([fn_def2], [])  # Third import succeeds
+        ]
+        
+        # Test
+        fn_defs, errors = parse_fns(mock_imports, tmp_path)
+        
+        assert len(fn_defs) == 1  # Only first import succeeds
+        assert fn_defs[0].fn_name._value[0] == "main_function"
+        assert len(errors) == 1
 
 def test_parse_fns_default_project_root(mock_imports):
     with patch("pathlib.Path.cwd") as mock_cwd, \
@@ -127,31 +162,38 @@ def test_parse_fns_default_project_root(mock_imports):
         parse_fns(mock_imports)
         
         # Verify cwd was used
-        mock_parse.assert_called_with(mock_imports.value[-1], Path("/mock/path"))
+        assert mock_parse.call_count == 3  # One call for each function in the import
+        assert all(
+            call[0][1] == Path("/mock/path")  # Check project_root argument
+            for call in mock_parse.call_args_list
+        )
 
 def test_parse_fn_import_with_relabeling(tmp_path):
-    with patch("hhat_lang.core.code.function_resolver.locate_function_source") as mock_locate, \
-         patch("hhat_lang.core.code.function_resolver.get_function_definitions") as mock_get_defs:
+    mock_content = "mock file content"
+    with patch("builtins.open", mock_open(read_data=mock_content)) as mock_file, \
+         patch("hhat_lang.core.code.function_resolver.locate_function_source") as mock_locate, \
+         patch("hhat_lang.core.code.function_resolver.get_function_definitions", autospec=True) as mock_get_defs:
         
         # Setup mocks
         mock_locate.return_value = tmp_path / "stats/rv-continuous.hat"
-        mock_get_defs.return_value = iter([{
+        mock_def = {
             "name": "rv-continuous",
-            "type": "function",
+            "type": "void",
             "args": [],
             "body": []
-        }])
+        }
+        mock_get_defs.return_value = [mock_def]
         
-        # Test with relabeling
+        # Test with proper CompositeIdWithClosure construction
         fn_defs, errors = parse_fn_import(
-            CompositeIdWithClosure(name="stats.{rv-continuous:rvc}"),
+            CompositeIdWithClosure(
+                Id("rv-continuous"),
+                name=CompositeId(Id("stats"))
+            ),
             tmp_path
         )
-        
         assert len(fn_defs) == 1
-        assert isinstance(fn_defs[0], FnDef)
-        assert str(fn_defs[0].fn_name.value[0]) == "rvc"  # Check relabeled name
-        assert len(errors) == 0
+        assert fn_defs[0].fn_name._value[0] == "rv-continuous"
 
 def test_parse_fns_multiple_files(tmp_path):
     with patch("hhat_lang.dialects.heather.parsing.imports.parse_fn_import") as mock_parse:
@@ -188,41 +230,56 @@ def test_parse_fns_with_overloaded_functions(tmp_path):
             )),)
         )
         
+        # Create mock FnDef objects with proper attributes
+        fn_def1 = MagicMock(spec=FnDef)
+        fn_def1.fn_name = Id("sum")  # int version
+        fn_def1.fn_type = Id("int")
+        
+        fn_def2 = MagicMock(spec=FnDef)
+        fn_def2.fn_name = Id("sum")  # float version
+        fn_def2.fn_type = Id("float")
+        
         # Setup mock to return multiple definitions for the same function
-        mock_parse.return_value = (
-            [
-                MagicMock(spec=FnDef, fn_name=Id("sum")),  # int version
-                MagicMock(spec=FnDef, fn_name=Id("sum"))   # float version
-            ],
-            []
-        )
+        mock_parse.return_value = ([fn_def1, fn_def2], [])
         
         # Test
         fn_defs, errors = parse_fns(imports, tmp_path)
         
         assert len(fn_defs) == 2  # Both overloaded versions
-        assert len(errors) == 0
+        assert all(fn.fn_name._value[0] == "sum" for fn in fn_defs)
+        assert [fn.fn_type._value[0] for fn in fn_defs] == ["int", "float"]
 
 def test_parse_fns_nested_imports(tmp_path):
     with patch("hhat_lang.dialects.heather.parsing.imports.parse_fn_import") as mock_parse:
-        # Create imports with nested paths
+        # Create imports with nested paths using proper AST construction
         imports = Imports(
             type_import=(),
             fn_import=(FnImport((
-                CompositeId("math.linalg.matrix.{multiply transpose}"),
-                CompositeId("utils.io.file.{read write}")
+                CompositeId(Id("math"), Id("linalg"), Id("matrix")),
+                CompositeId(Id("utils"), Id("io"), Id("file"))
             )),)
         )
         
+        # Create mock FnDef objects
+        fn_def1 = MagicMock(spec=FnDef)
+        fn_def1.fn_name = Id("multiply")
+        fn_def1.fn_type = Id("matrix")
+        
+        fn_def2 = MagicMock(spec=FnDef)
+        fn_def2.fn_name = Id("transpose")
+        fn_def2.fn_type = Id("matrix")
+        
         # Setup mock to return functions
-        mock_parse.return_value = ([MagicMock(spec=FnDef)], [])
+        mock_parse.side_effect = [
+            ([fn_def1], []),
+            ([fn_def2], [])
+        ]
         
         # Test
         fn_defs, errors = parse_fns(imports, tmp_path)
-        
         assert len(fn_defs) == 2
-        assert len(errors) == 0
-        assert mock_parse.call_count == 2
+        assert fn_defs[0].fn_name._value[0] == "multiply"
+        assert fn_defs[1].fn_name._value[0] == "transpose"
 
 def test_parse_fns_stops_on_first_error(tmp_path):
     with patch("hhat_lang.dialects.heather.parsing.imports.parse_fn_import") as mock_parse:

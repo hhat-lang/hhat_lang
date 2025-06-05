@@ -14,12 +14,8 @@ class Id(Terminal):
 
 
 class CompositeId(Node):
-    def __init__(self, *names: Id | str):
-        if all(isinstance(name, str) for name in names):
-            # Convert string names to Id nodes
-            self._value = tuple(Id(name) for name in names[0].split("."))
-        else:
-            self._value = names
+    def __init__(self, *names: Id):
+        self._value = names
         self._name = self.__class__.__name__
 
     def __str__(self):

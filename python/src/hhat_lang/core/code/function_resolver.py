@@ -13,6 +13,7 @@ from hhat_lang.core.error_handlers.errors import (
     TypesFunctionWarning
 )
 from hhat_lang.core.code.ast import AST
+from hhat_lang.dialects.heather.code.ast import Id, CompositeId, Body, FnDef, FnArgs
 
 def is_valid_path_component(component: str, allow_hat_types: bool = False) -> bool:
     """
@@ -52,8 +53,10 @@ def locate_function_source(
         Either the Path to the file containing the function, or an error
     """
     # Convert function name to string if needed
-    if isinstance(function_name, (Symbol, CompositeSymbol)):
-        function_name = str(function_name)
+    if isinstance(function_name, Symbol):
+        function_name = function_name.value
+    elif isinstance(function_name, CompositeSymbol):
+        function_name = ".".join(str(sym.value) for sym in function_name.value)
     
     # Split function name into components for nested lookup
     components = function_name.split(".")
@@ -106,24 +109,11 @@ def locate_function_source(
         
     return FunctionNotFoundError(function_name)
 
-def parse_function_definition(content: AST, parser_fn: Callable[[AST], List[dict]]) -> List[dict]:
-    """
-    Parse function definitions using the provided dialect-specific parser.
-    
-    Args:
-        content: AST representation of the code
-        parser_fn: Dialect-specific parser function that converts AST to function definitions
-        
-    Returns:
-        List of function definitions
-    """
-    return parser_fn(content)
-
 def get_function_definitions(
     source_file: Path,
     function_name: str | Symbol | CompositeSymbol,
     parser_fn: Callable[[AST], List[dict]]
-) -> Iterator[dict]:
+) -> List[dict]:
     """
     Extract all function definitions matching the given name from a source file.
     
@@ -133,28 +123,25 @@ def get_function_definitions(
         parser_fn: Dialect-specific parser function that converts AST to function definitions
         
     Returns:
-        Iterator of function definitions
+        List of function definitions
     """
-    # Convert function name to string if needed
-    if isinstance(function_name, Symbol):
-        function_name = function_name.value
-    elif isinstance(function_name, CompositeSymbol):
-        function_name = ".".join(function_name.value)
-    
-    # Get just the final component of the function name
-    function_name = function_name.split(".")[-1]
-    
     try:
         with open(source_file, "r") as f:
-            content = AST(f.read())  # This should be replaced with proper AST parsing
-            
-        definitions = parse_function_definition(content, parser_fn)
-        matching_defs = [d for d in definitions if d["name"] == function_name]
+            content = f.read()
+            # Let the dialect-specific parser handle the content
+            return parser_fn(content)
+    except IOError:
+        return []
+
+def parse_function_definition(content: str, parser_fn: Callable[[str], List[dict]]) -> List[dict]:
+    """
+    Parse function definitions from source code content.
+    
+    Args:
+        content: The source code content
+        parser_fn: Dialect-specific parser function that converts source code to function definitions
         
-        if not matching_defs:
-            return iter([])  # Return empty iterator instead of error
-            
-        return iter(matching_defs)
-            
-    except IOError as e:
-        return iter([])  # Return empty iterator on file error 
+    Returns:
+        List of function definitions
+    """
+    return parser_fn(content) 

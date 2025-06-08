@@ -8,6 +8,16 @@ from typing import Any
 
 from hhat_lang.toolchain.project.utils import str_to_path
 
+
+def _is_project_scope(project_name: str | Path, some_path: Path) -> bool:
+    project_name = str_to_path(project_name)
+
+    if some_path.is_relative_to(project_name):
+        return True
+
+    return False
+
+
 ######################
 # CREATE NEW PROJECT #
 ######################
@@ -46,7 +56,7 @@ def _create_template_files(project_name: Path) -> Any:
 def create_new_file(project_name: str | Path, file_name: str | Path) -> Any:
     project_name = str_to_path(project_name)
     file_name = str_to_path(file_name)
-    doc_file = file_name.parent / (file_name.name + ".md")
+    doc_file = file_name.parent / "hat_docs" / (file_name.name + ".md")
 
     open(project_name / file_name, "w").close()
     open(project_name / doc_file, "w").close()

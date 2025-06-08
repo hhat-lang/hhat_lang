@@ -72,8 +72,16 @@ class Literal(Terminal):
         self._name = value_type
 
 
+class CompositeLiteral(Node):
+    def __init__(self, *value: tuple[Literal | CompositeLiteral], value_type: str):
+        self._value = value
+        self._name = value_type
+
+
 class Array(Node):
-    pass
+    def __init__(self, *value: tuple[Id, Literal]):
+        self._value = value
+        self._name = self.__class__.__name__
 
 
 class Hash(Node):
@@ -223,18 +231,29 @@ class TypeDef(Node):
         type_name: TypeType,
         type_ds: Id,
     ):
+        # TODO: maybe changing type_ds argument for Enum instead of Id
         self._value = (type_name, type_ds, members)
         self._name = self.__class__.__name__
 
 
 class TypeImport(Node):
-    def __init__(self, type_list: tuple[Id | CompositeId | CompositeIdWithClosure]):
+    def __init__(
+        self, type_list: tuple[Id | CompositeId | CompositeIdWithClosure] | tuple
+    ):
         self._value = type_list
         self._name = self.__class__.__name__
 
 
+class ManyTypeImport(Node):
+    def __init__(self, *type_imports: tuple[TypeImport]):
+        self._value = type_imports
+        self._name = self.__class__.__name__
+
+
 class FnImport(Node):
-    def __init__(self, fn_list: tuple[Id | CompositeId | CompositeIdWithClosure]):
+    def __init__(
+        self, fn_list: tuple[Id | CompositeId | CompositeIdWithClosure] | tuple
+    ):
         self._value = fn_list
         self._name = self.__class__.__name__
 
@@ -245,7 +264,10 @@ class Imports(Node):
     """
 
     def __init__(
-        self, *, type_import: tuple[TypeImport, ...], fn_import: tuple[FnImport, ...]
+        self,
+        *,
+        type_import: tuple[TypeImport, ...] | tuple,
+        fn_import: tuple[FnImport, ...] | tuple,
     ):
         self._value = (type_import, fn_import)
         self._name = self.__class__.__name__
@@ -272,8 +294,24 @@ class Main(Node):
 
 
 class Program(Node):
-    def __init__(self, *, main: Main, imports: Imports):
-        self._value = (imports, main)
+    def __init__(
+        self,
+        *,
+        main: Main | None = None,
+        imports: Imports | None = None,
+        types: tuple[TypeDef, ...] | None = None,
+        fns: tuple[FnDef, ...] | None = None,
+    ):
+        body = types or fns or main
+
+        self._value = ()
+
+        if imports and body:
+            self._value += (imports,)
+
+        if body:
+            self._value += (body,)
+
         self._name = self.__class__.__name__
 
 

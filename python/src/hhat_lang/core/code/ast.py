@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import Iterable
+from typing import Any, Iterable
 
 
 class AST(ABC):
@@ -28,6 +28,15 @@ class AST(ABC):
     def __iter__(self) -> Iterable:
         yield from self._value
 
+    def __hash__(self) -> int:
+        return hash((self.name, self.value))
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return self.name == other.name and self.value == other.value
+
+        return False
+
 
 class Node(AST):
     def __repr__(self) -> str:
@@ -38,4 +47,4 @@ class Node(AST):
 class Terminal(AST):
     def __repr__(self) -> str:
         res = f"[{self.name}]" if self.name != self.value[0] else ""
-        return f"{self.__class__.__name__}{res}{self.value[0]}"
+        return f"{res}{self.value[0]}"

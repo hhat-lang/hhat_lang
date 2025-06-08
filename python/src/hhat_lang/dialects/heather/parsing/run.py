@@ -25,7 +25,7 @@ def parse_grammar() -> ParserPEG:
         language_def=grammar,
         root_rule_name="program",
         comment_rule_name="comment",
-        reduce_tree=True,
+        reduce_tree=False,
         ws=WHITESPACE,
     )
 

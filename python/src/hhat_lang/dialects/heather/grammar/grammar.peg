@@ -8,11 +8,12 @@ many_import                 = '[' single_import+ ']'
 
 type_file                   = 'type' ( typesingle / typestruct / typeenum / typeunion )
 typesingle                  = simple_id ':' id_composite_value
-typestruct                  = simple_id '{' typesingle* '}'
+typemember                  = simple_id ':' id_composite_value
+typestruct                  = simple_id '{' typemember* '}'
 typeenum                    = simple_id '{' enummember* '}'
 typeunion                   = simple_id 'union' '{' unionmember* '}'
 enummember                  = simple_id / typestruct
-unionmember                 = typesingle / typestruct / typeenum
+unionmember                 = typemember / typestruct / typeenum
 type_trait                  = 'trait' id '{' fns* '}'
 typespace                   = 'typespace' ( trait_id / id ) '{' fns* '}'
 

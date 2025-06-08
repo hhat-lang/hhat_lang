@@ -3,10 +3,6 @@ from __future__ import annotations
 from hhat_lang.core.code.ir import InstrIRFlag, TypeIR
 from hhat_lang.core.data.core import CoreLiteral, Symbol
 from hhat_lang.core.memory.core import MemoryManager, Stack
-from hhat_lang.core.code.ir import InstrIRFlag, TypeIR
-from hhat_lang.core.code.utils import InstrStatus
-from hhat_lang.core.data.core import CoreLiteral, Symbol
-from hhat_lang.core.memory.core import MemoryManager, Stack
 from hhat_lang.dialects.heather.code.simple_ir_builder.ir import (
     FnIR,
     IRArgs,

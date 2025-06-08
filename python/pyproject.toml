@@ -25,6 +25,8 @@ classifiers = [
 ]
 
 dependencies = [
+    "rich>=14.0.0",
+    "typer>=0.16.0",
 ]
 
 [project.optional-dependencies]
@@ -75,6 +77,9 @@ dev = [
     "markdown",
     "mike",
 ]
+
+[project.scripts]
+hat = "hhat_lang.toolchain.cli.cli:main"
 
 [tool.setuptools_scm]
 root = ".."

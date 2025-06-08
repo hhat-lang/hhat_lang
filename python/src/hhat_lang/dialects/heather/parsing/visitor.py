@@ -35,7 +35,6 @@ class ParserVisitor(PTNodeVisitor):
         main: Main | None = None
 
         for k in child:
-
             match k:
                 case Imports():
                     imports = k
@@ -112,7 +111,6 @@ class ParserVisitor(PTNodeVisitor):
         fn_import: tuple | tuple[FnImport] = ()
 
         for k in child:
-
             match k:
                 case TypeImport():
                     type_import += (k,)
@@ -126,7 +124,6 @@ class ParserVisitor(PTNodeVisitor):
         types: tuple | tuple[Id | CompositeId | CompositeIdWithClosure] = ()
 
         for k in child:
-
             match k:
                 case Id() | CompositeId() | CompositeIdWithClosure():
                     types += (k,)
@@ -142,7 +139,6 @@ class ParserVisitor(PTNodeVisitor):
         fns: tuple | tuple[Id | CompositeId | CompositeIdWithClosure] = ()
 
         for k in child:
-
             match k:
                 case Id() | CompositeId() | CompositeIdWithClosure():
                     fns += (k,)

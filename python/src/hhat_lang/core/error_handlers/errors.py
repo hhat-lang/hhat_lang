@@ -186,10 +186,8 @@ class ContainerVarError(ErrorHandler):
         self._var_name = var_name
 
     def __call__(self) -> str:
-        return (
-            f"[[{self.__class__.__name__}]]: Error assigning value "
-            f"to variable '{self._var_name}'"
-        )
+        name = self.__class__.__name__
+        return f"[[{name}]]: Error assigning value to variable '{self._var_name}'"
 
 
 class ContainerVarIsImmutableError(ErrorHandler):

@@ -142,32 +142,58 @@ def new(
                 )
                 raise typer.Exit(1)
             else:
-                file_path = Path(file_name)
-                if (proj_dir / f"{file_path}.hat").is_file():
-                    raise FileExistsError(f"File {file_path}.hat already exists")
-                if file_path.parent != Path("."):
-                    file_path.parent.mkdir(parents=True, exist_ok=False)
-                create_new_file(proj_dir, f"{file_path}.hat")
-                console.print(
-                    Panel(
-                        f"File [bold]{file_name}.hat[/bold] created successfully!",
-                        title="✓ Success",
-                        border_style="green",
-                    )
+                # keep the user's path but normalize for extension when
+                # reporting success. Do a light pre-check for existing files
+                # using the default src/ location.
+                orig_path = Path(file_name)
+                display_path = (
+                    orig_path
+                    if orig_path.suffix == ".hat"
+                    else orig_path.with_suffix(orig_path.suffix + ".hat")
                 )
+
+                check_path = orig_path
+                if check_path.parts[:1] != ("src",):
+                    check_path = Path("src") / check_path
+                if check_path.suffix != ".hat":
+                    check_path = check_path.with_suffix(check_path.suffix + ".hat")
+
+                if (proj_dir / check_path).is_file():
+                    raise FileExistsError(f"File {check_path} already exists")
+                try:
+                    # pass the original path so create_new_file can handle
+                    # src/ defaults and validation
+                    create_new_file(proj_dir, orig_path)
+                except (FileNotFoundError, ValueError) as e:
+                    console.print(
+                        Panel(
+                            str(e)
+                            + "\n\nPlease make sure you're inside a H-hat project directory.",
+                            title="⚠ Error",
+                            border_style="red",
+                        )
+                    )
+                    raise typer.Exit(1)
+                else:
+                    console.print(
+                        Panel(
+                            f"File [bold]{display_path}[/bold] created successfully!",
+                            title="✓ Success",
+                            border_style="green",
+                        )
+                    )
 
         elif type_file:
             proj_dir = get_proj_dir()
+            type_path = Path(type_file)
+            display_type = (
+                type_path
+                if type_path.suffix == ".hat"
+                else type_path.with_suffix(type_path.suffix + ".hat")
+            )
             try:
-                create_new_type_file(proj_dir, Path(type_file))
-                console.print(
-                    Panel(
-                        f"Type file [bold]{type_file}.hat[/bold] created successfully!",
-                        title="✓ Success",
-                        border_style="green",
-                    )
-                )
-            except ValueError as e:
+                create_new_type_file(proj_dir, type_path)
+            except (FileNotFoundError, ValueError) as e:
                 console.print(
                     Panel(
                         str(e)
@@ -177,6 +203,14 @@ def new(
                     )
                 )
                 raise typer.Exit(1)
+            else:
+                console.print(
+                    Panel(
+                        f"Type file [bold]{display_type}[/bold] created successfully!",
+                        title="✓ Success",
+                        border_style="green",
+                    )
+                )
 
         else:
             console.print(

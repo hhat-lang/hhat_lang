@@ -51,13 +51,13 @@ class TypesDict(Mapping):
         yield from self._data.keys()
 
     def values(self) -> Iterator:
-        yield from self._data.values()
+        return iter(self._data.values())
 
     def update(self, data: Mapping) -> None:
         self._data.update({k: v for k, v in data.items()})
 
     def __iter__(self) -> Iterable:
-        yield from self._data.keys()
+        return iter(self._data.keys())
 
     def __repr__(self) -> str:
         return str(self._data)
@@ -95,25 +95,23 @@ class FnsDict(Mapping):
         return len(self._data)
 
     def _items(self) -> Iterable:
-        for v in self._data.values():
-            for p, q in v.items():
-                yield p, q
+        return iter((p,q) for v in self._data.values() for p, q in v.items())
 
     def items(self) -> Iterable:
-        yield from self._data.items()
+        return iter(self._data.items())
 
     def keys(self) -> Iterator:
-        yield from self._data.keys()
+        return iter(self._data.keys())
 
     def values(self) -> Iterator:
-        yield from self._data.values()
+        return iter(self._data.values())
 
     def update(self, data: Mapping) -> None:
         self._data.update({k: v for k, v in data.items()})
 
     def __iter__(self) -> Iterable:
         """Iterates over the (BaseFnKey, FnDef) pairs"""
-        yield from self._items()
+        return iter(self._items())
 
     def __contains__(self, item: Any) -> bool:
         return item in self._data.keys()

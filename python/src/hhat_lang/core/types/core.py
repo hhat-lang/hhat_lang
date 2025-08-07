@@ -51,8 +51,14 @@ class SingleDS(BaseTypeDataStructure):
         if not is_valid_member(self, member_type.name):
             return TypeQuantumOnClassicalError(member_type.name, self.name)
 
+        if member_type.type != self.type:
+            return TypeAndMemberNoMatchError(member_type, self.name)
+
         self._type_container[self.name] = member_type.name
         return self
+
+    def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
+        raise NotImplementedError()
 
     def __call__(
         self,
@@ -87,6 +93,9 @@ class ArrayDS(BaseTypeDataStructure):
         self._type_container: SymbolOrdered = SymbolOrdered()
 
     def add_member(self, member_type: Any, member_name: Any) -> Any | ErrorHandler:
+        raise NotImplementedError()
+
+    def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
         raise NotImplementedError()
 
     def __call__(
@@ -127,6 +136,14 @@ class StructDS(BaseTypeDataStructure):
 
         return TypeAndMemberNoMatchError(member_type.name, self.name)
 
+    def add_tmp_member(
+        self,
+        member_type: Symbol | CompositeSymbol,
+        member_name: Symbol | CompositeSymbol
+    ) -> StructDS:
+        self._tmp_container += (member_type, member_name),
+        return self
+
     def __call__(
         self,
         *,
@@ -147,40 +164,6 @@ class StructDS(BaseTypeDataStructure):
         return f"{self.name}<struct>{members}"
 
 
-class UnionDS(BaseTypeDataStructure):
-    """Class to define data structure for union types."""
-
-    def __init__(
-        self,
-        name: Symbol | CompositeSymbol,
-        size: Size | None = None,
-        qsize: QSize | None = None,
-    ):
-        super().__init__(name)
-        self._size = size
-        self._qsize = qsize
-        self._type_container = SymbolOrdered()
-        self._ds_type = BaseTypeEnum.UNION
-
-    def add_member(self, member_type: str, member_name: str) -> UnionDS:
-        raise NotImplementedError()
-
-    def __call__(
-        self,
-        *,
-        var_name: Symbol,
-        flag: VariableKind = VariableKind.IMMUTABLE,
-        **_: Any
-    ) -> BaseDataContainer | ErrorHandler:
-        return VariableTemplate(
-            var_name=var_name,
-            type_name=self._name,
-            ds_data=self._type_container,
-            ds_type=self._ds_type,
-            flag=flag
-        )
-
-
 class EnumDS(BaseTypeDataStructure):
     """Class to define data structure for enum types."""
 
@@ -196,10 +179,10 @@ class EnumDS(BaseTypeDataStructure):
         self._type_container = SymbolOrdered()
         self._ds_type = BaseTypeEnum.ENUM
 
-    def _check_member(self, member: BaseTypeDataStructure | Symbol) -> Symbol | str:
+    def _get_member_name(self, member: BaseTypeDataStructure | Symbol) -> Symbol:
         match member:
             case Symbol():
-                return member.value
+                return member
 
             case BaseTypeDataStructure():
                 return member.name
@@ -208,7 +191,7 @@ class EnumDS(BaseTypeDataStructure):
                 raise NotImplementedError()
 
     def add_member(self, member: BaseTypeDataStructure | Symbol) -> EnumDS | ErrorHandler:
-        member_name = self._check_member(member)
+        member_name = self._get_member_name(member)
 
         if is_valid_member(self, member_name):
             self._type_container[member_name] = member
@@ -216,6 +199,8 @@ class EnumDS(BaseTypeDataStructure):
 
         return TypeQuantumOnClassicalError(member_name, self.name)
 
+    def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
+        raise NotImplementedError()
 
     def __call__(
         self,
@@ -239,6 +224,9 @@ class RemoteUnionDS(BaseTypeDataStructure):
     def add_member(self, *args: Any, **kwargs: Any) -> Any | ErrorHandler:
         raise NotImplementedError()
 
+    def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
+        raise NotImplementedError()
+
     def __call__(
         self,
         *,
@@ -247,3 +235,40 @@ class RemoteUnionDS(BaseTypeDataStructure):
         **kwargs: Any
     ) -> BaseDataContainer | ErrorHandler:
         raise NotImplementedError()
+
+
+class UnionDS(BaseTypeDataStructure):
+    """Class to define data structure for union types."""
+
+    def __init__(
+        self,
+        name: Symbol | CompositeSymbol,
+        size: Size | None = None,
+        qsize: QSize | None = None,
+    ):
+        super().__init__(name)
+        self._size = size
+        self._qsize = qsize
+        self._type_container = SymbolOrdered()
+        self._ds_type = BaseTypeEnum.UNION
+
+    def add_member(self, member_type: str, member_name: str) -> UnionDS:
+        raise NotImplementedError()
+
+    def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
+        raise NotImplementedError()
+
+    def __call__(
+        self,
+        *,
+        var_name: Symbol,
+        flag: VariableKind = VariableKind.IMMUTABLE,
+        **_: Any
+    ) -> BaseDataContainer | ErrorHandler:
+        return VariableTemplate(
+            var_name=var_name,
+            type_name=self._name,
+            ds_data=self._type_container,
+            ds_type=self._ds_type,
+            flag=flag
+        )

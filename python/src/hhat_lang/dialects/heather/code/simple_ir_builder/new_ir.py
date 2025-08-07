@@ -5,10 +5,9 @@ from enum import auto
 from typing import Any, cast
 
 from hhat_lang.core.code.new_ir import (
-    BaseIRBlock,
-    BaseIRBlockFlag,
+    BaseIR, BaseIRFlag, BaseIRInstr, RefTable,
 )
-from hhat_lang.core.code.core import BaseIR, BaseIRFlag, BaseIRInstr
+from hhat_lang.core.code.abstract_new_ir import BaseIRBlock, BaseIRBlockFlag
 from hhat_lang.core.data.core import (
     Symbol,
     CompositeSymbol,
@@ -24,7 +23,7 @@ from hhat_lang.core.error_handlers.errors import HeapInvalidKeyError
 from hhat_lang.core.memory.core import (
     MemoryManager,
 )
-from hhat_lang.core.code.symbol_table import SymbolTable, RefTable
+from hhat_lang.core.code.symbol_table import SymbolTable
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 from hhat_lang.core.types.builtin_types import builtins_types
 from hhat_lang.core.types.builtin_conversion import compatible_types

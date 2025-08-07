@@ -78,8 +78,7 @@ class SymbolOrdered(Mapping):
         yield from self._data.values()
 
     def __iter__(self) -> Iterator:
-        for k in self._data:
-            yield k  # .name
+        return iter(k for k in self._data)
 
     def __repr__(self) -> str:
         return str(self._data)

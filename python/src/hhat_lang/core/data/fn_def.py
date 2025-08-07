@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any, Iterable
 
-from hhat_lang.core.code.new_ir import BaseIRBlock
+from hhat_lang.core.code.abstract_new_ir import BaseIRBlock
 from hhat_lang.core.data.core import Symbol, CompositeSymbol
 
 
@@ -34,6 +34,7 @@ class BaseFnKey:
     _type: Symbol | CompositeSymbol
     _args_types: tuple | tuple[Symbol | CompositeSymbol, ...]
     _args_names: tuple | tuple[Symbol, ...]
+    _hash_value: int
 
     # TODO: implement code for comparison of out of order args_names
 
@@ -60,6 +61,7 @@ class BaseFnKey:
         self._type = fn_type
         self._args_names = args_names
         self._args_types = args_types
+        self._hash_value = hash((hash(self._name), hash(self._args_types)))
 
     @property
     def name(self) -> Symbol:
@@ -78,15 +80,11 @@ class BaseFnKey:
         return self._args_names
 
     def __hash__(self) -> int:
-        return hash((self._name, self._args_types))
+        return self._hash_value
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, BaseFnKey | BaseFnCheck):
-            return (
-                self._name == other._name
-                and self._type == other._type
-                and self._args_types == other._args_types
-            )
+            return hash(self) == hash(other)
 
         return False
 
@@ -94,7 +92,7 @@ class BaseFnKey:
         return set(self._args_names) == set(args)
 
     def __iter__(self) -> Iterable:
-        yield from zip(self.args_names, self.args_types)
+        return iter(zip(self.args_names, self.args_types))
 
     def __repr__(self) -> str:
         return (
@@ -110,7 +108,8 @@ class BaseFnCheck:
 
     _name: Symbol
     _args_types: tuple | tuple[Symbol | CompositeSymbol, ...]
-    _args_names: tuple | tuple[Symbol, ...]
+    _hash_value: int
+    __slots__ = ("_name", "_args_types", "_hash_value")
 
     def __init__(
         self,
@@ -128,12 +127,17 @@ class BaseFnCheck:
 
         self._name = fn_name
         self._args_types = args_types
+        self._hash_value = hash((hash(self._name), hash(self._args_types)))
 
     @property
     def name(self) -> Symbol:
         return self._name
 
-    def transform(self, fn_type: Symbol | CompositeSymbol, args_names: tuple[Symbol, ...]):
+    def transform(
+        self,
+        fn_type: Symbol | CompositeSymbol,
+        args_names: tuple[Symbol, ...]
+    ) -> BaseFnKey:
         if (
             all(isinstance(p, Symbol) for p in args_names)
             and isinstance(fn_type, Symbol | CompositeSymbol)
@@ -144,16 +148,14 @@ class BaseFnCheck:
                 args_types=self._args_types,
                 args_names=args_names,
             )
+        raise ValueError(f"cannot transform FnKey with fn type {fn_type} and args {args_names}")
 
     def __hash__(self) -> int:
-        return hash((self._name, self._args_types))
+        return self._hash_value
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, BaseFnKey | BaseFnCheck):
-            return (
-                self._name == other._name
-                and self._args_types == other._args_types
-            )
+            return hash(self) == hash(other)
 
         return False
 
@@ -169,8 +171,13 @@ class FnDef:
 
     _name: Symbol | BaseIRBlock
     _type: Symbol | CompositeSymbol | None
-    _args: BaseIRBlock
     _body: BaseIRBlock
+    _args: BaseIRBlock
+    """
+    function definition arguments must be a special kind of IRBlock
+    that has ``arg`` and ``value`` attributes and is iterable through
+    them.
+    """
 
     def __init__(
         self,

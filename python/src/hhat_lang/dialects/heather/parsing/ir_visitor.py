@@ -1,4 +1,4 @@
-"""Attempt to parse direct to IR"""
+"""Attempt to parse directly to IR"""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from hhat_lang.core.data.fn_def import FnDef, BaseFnCheck
 from hhat_lang.core.imports.importer import FnImporter
 from hhat_lang.core.types.abstract_base import Size, BaseTypeDataStructure, QSize
 from hhat_lang.core.types.builtin_types import builtins_types
-from hhat_lang.core.types.core import SingleDS, StructDS
+from hhat_lang.core.types.core import SingleDS, StructDS, EnumDS
 from hhat_lang.dialects.heather.grammar import WHITESPACE
 
 from hhat_lang.core.data.core import (
@@ -85,7 +85,6 @@ class ParserIRVisitor(PTNodeVisitor):
     def __init__(self, project_root: Path):
         super().__init__()
         self._root = project_root
-        # self._mem = MemoryManager(self.MAX_NUM_INDEXES)
 
     def visit_program(
         self, node: NonTerminal, child: SemanticActionResults
@@ -145,55 +144,50 @@ class ParserIRVisitor(PTNodeVisitor):
 
     def visit_typemember(
         self, _: NonTerminal, child: SemanticActionResults
-    ) -> tuple:
-        # TODO: for now, consider members as built-in only
-        member_type = builtins_types[child[1]]
+    ) -> tuple[Symbol | CompositeSymbol | BaseTypeDataStructure, Symbol | CompositeSymbol]:
+        # Fow now, it will try to fetch built-in types, otherwise it will
+        # save the check for later
+        member_type = builtins_types.get(child[1], child[1])
         member_name = child[0]
         return member_type, member_name
 
     def visit_typestruct(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> BaseTypeDataStructure:
-        # TODO: implement a better resolver to account for custom and circular imports;
-        #  for now, just check if it's built-in.
-
-        count_size = 0
-        count_qsize_min = 0
-        count_qsize_max = 0
-
-        # first, count the size and qsizes
-        for member_type, member_name in child[1:]:
-            count_size += member_type.size.size
-            count_qsize_min += member_type.qsize.min
-            count_qsize_max += member_type.qsize.max or 0
-
-        size = Size(count_size)
-
-        if count_qsize_min == 0 and count_qsize_max == 0:
-            qsize = None
-
-        else:
-            qsize = QSize(count_qsize_min, count_qsize_max or None)
-
+        size, qsize = _fetch_struct_size_qsize(child[1:])
         struct = StructDS(name=child[0], size=size, qsize=qsize)
 
         # second, populate struct
         for t, m in child[1:]:
-            struct.add_member(t, m)
+            if isinstance(t, BaseTypeDataStructure):
+                struct.add_member(t, m)
+
+            else:
+                struct.add_tmp_member(t, m)
 
         return struct
 
+    def visit_enummember(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> Symbol | CompositeSymbol | BaseTypeDataStructure:
+        # should have just one
+        if len(child) != 1:
+            raise ValueError("enum member must be a single attribute")
+
+        return child[0]
+
     def visit_typeenum(
         self, _: NonTerminal, child: SemanticActionResults
-    ) -> Any:
-        raise NotImplementedError()
+    ) -> BaseTypeDataStructure:
+        size, qsize = _fetch_enum_size_qsize(child[1:])
+        enum_ds = EnumDS(name=child[0], size=size, qsize=qsize)
+
+        for member in child[1:]:
+            enum_ds.add_member(member)
+
+        return enum_ds
 
     def visit_typeunion(
-        self, _: NonTerminal, child: SemanticActionResults
-    ) -> Any:
-        raise NotImplementedError()
-
-    def visit_enumnumber(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> Any:
         raise NotImplementedError()
@@ -557,15 +551,29 @@ class ParserIRVisitor(PTNodeVisitor):
     ) -> CompositeSymbol:
         return CompositeSymbol(value=_resolve_data_to_str(child))
 
-    def visit_simple_id(
-        self, node: Terminal, _: None
-    ) -> Symbol:
+    def visit_simple_id(self, node: Terminal, _: None) -> Symbol:
         return Symbol(value=node.value)
+
+    def visit_ref(self, node: Terminal, _: None) -> Symbol:
+        return Symbol(value=node.value, symbol_type="`ref")
+
+    def visit_pointer(self, node: Terminal, _: None) -> Symbol:
+        return Symbol(value=node.value, symbol_type="`pointer")
 
     def visit_literal(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> CoreLiteral | CompositeLiteral:
-        return child[0]
+        if len(child) == 1:
+            return child[0]
+
+        if len(child) == 2:
+            if (
+                isinstance(child[0], CoreLiteral)
+                and isinstance(child[1], Symbol | CompositeSymbol)
+            ):
+                return CoreLiteral(value=child[0].value, lit_type=child[1].value)
+
+        raise ValueError(f"unknown literal {child}")
 
     def visit_complex(
         self, _: NonTerminal, child: SemanticActionResults
@@ -676,3 +684,77 @@ def _flatten_recursive_closure(
         composite_members += CompositeSymbol(_resolve_data_to_str(parent) + k),
 
     return composite_members
+
+
+def _fetch_struct_size_qsize(
+    obj: SemanticActionResults | tuple[Symbol | CompositeSymbol | BaseTypeDataStructure]
+) -> tuple[Size | None, QSize | None]:
+    """
+    Fetch size and qsize attributes for struct data type. If members are not built-in types,
+    it will be skipped and be resolved later on, when all the types are defined.
+
+    Args:
+        obj: the parser holder of type members
+
+    Returns:
+        A tuple of ``size`` and ``qsize``. They can be ``Size`` or ``None``, and
+        ``QSize`` or ``None``, respectively.
+    """
+
+    count_size = 0
+    count_qsize_min = 0
+    count_qsize_max = 0
+
+    # first, count the size and qsize
+    for member_type, member_name in obj:
+        if isinstance(member_type, BaseTypeDataStructure):
+            count_size += member_type.size.size
+            count_qsize_min += member_type.qsize.min
+            count_qsize_max += member_type.qsize.max or 0
+
+    size = Size(count_size) if count_size > 0 else None
+    qsize = (
+        None
+        if count_qsize_min == 0 and count_qsize_max == 0 else
+        QSize(count_qsize_min, count_qsize_max or None)
+    )
+    return size, qsize
+
+
+def _fetch_enum_size_qsize(
+    obj: SemanticActionResults | tuple[Symbol | CompositeSymbol | BaseTypeDataStructure]
+) -> tuple[Size | None, QSize | None]:
+    """
+    Fetch size and qsize attributes for enum data type. If members are not built-in types,
+    it will be skipped and be resolved later on, when all the types are defined.
+
+    Args:
+        obj: the parser holder of type members
+
+    Returns:
+        A tuple of ``size`` and ``qsize``. They can be ``Size`` or ``None``, and
+        ``QSize`` or ``None``, respectively.
+    """
+
+    count_size = 0
+    count_qsize_min = 0
+    count_qsize_max = 0
+
+    for member in obj:
+        if isinstance(member, BaseTypeDataStructure):
+            if member.size.size > count_size:
+                count_size = member.size.size
+
+            if member.qsize.min > count_qsize_min:
+                count_qsize_min = member.qsize.min
+
+            if member.qsize.max is not None and member.qsize.max > count_qsize_max:
+                count_qsize_max = member.qsize.max
+
+    size = Size(count_size) if count_size > 0 else None
+    qsize = (
+        None
+        if count_qsize_min == 0 else
+        QSize(count_qsize_min, count_qsize_max or None)
+    )
+    return size, qsize

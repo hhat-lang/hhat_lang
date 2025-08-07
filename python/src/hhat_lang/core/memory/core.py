@@ -6,7 +6,7 @@ from queue import LifoQueue
 from typing import Any, Hashable
 from uuid import UUID
 
-from hhat_lang.core.code.new_ir import BaseIRBlock
+from hhat_lang.core.code.abstract_new_ir import BaseIRBlock
 from hhat_lang.core.code.symbol_table import SymbolTable
 from hhat_lang.core.utils import gen_uuid
 from hhat_lang.core.data.core import (
@@ -45,16 +45,26 @@ class IndexManager:
     Holds and manages information about the indexes (qubits) availability and allocation.
 
     Properties
-        - `max_number`: maximum number of allowed indexes
-        - `available`: deque with all the available indexes
-        - `allocated`: deque with all the allocated indexes
-        - `in_use_by`: dictionary containing the allocator variable as key and
+        ``max_number``: maximum number of allowed indexes
+
+        ``available``: deque with all the available indexes
+
+        ``allocated``: deque with all the allocated indexes
+
+        ``resources``: variable members and literals with respective number of indexes
+        requested
+
+        ``in_use_by``: dictionary containing the allocator variable member as key and
         deque with allocated indexes as value
 
     Methods
-        - `request`: given a variable (`Symbol`) and the number of indexes (`int`),
-        allocate the number if it has enough space
-        - `free`: given a variable (`Symbol`), free all the allocated indexes
+        ``add``: add a variable member or literal with a requested number of indexes to
+        the resources dictionary
+
+        ``request``: given a variable member (``Symbol``) and the number of indexes
+        (``int``), allocate the number if it has enough space
+
+        ``free``: given a variable member (``Symbol``), free all the allocated indexes
     """
 
     _max_num_index: int
@@ -90,7 +100,7 @@ class IndexManager:
     @property
     def resources(self) -> dict[WorkingData | CompositeWorkingData, int]:
         """
-        Dictionary containing the variable(s)/literal(s) and
+        Dictionary containing the variable members/literal(s) and
         the index amount requested.
         """
 
@@ -99,7 +109,7 @@ class IndexManager:
     @property
     def in_use_by(self) -> dict[WorkingData | CompositeWorkingData, deque]:
         """
-        Dictionary containing the variable(s)/literal(s) with
+        Dictionary containing the variable members/literal(s) with
         the deque of indexes provided.
         """
 
@@ -140,21 +150,21 @@ class IndexManager:
 
     def _alloc_var(
         self,
-        var_name: WorkingData | CompositeWorkingData,
+        member_name: WorkingData | CompositeWorkingData,
         idxs_deque: deque
     ) -> None:
-        self._in_use_by[var_name] = idxs_deque
+        self._in_use_by[member_name] = idxs_deque
         self._allocated.extend(idxs_deque)
 
-    def _has_var(self, var_name: WorkingData | CompositeWorkingData) -> bool:
-        return var_name in self._resources
+    def _has_var(self, member_name: WorkingData | CompositeWorkingData) -> bool:
+        return member_name in self._resources
 
-    def _free_var(self, var_name: WorkingData | CompositeWorkingData) -> deque:
+    def _free_var(self, member_name: WorkingData | CompositeWorkingData) -> deque:
         """
-        Free variable's indexes and allocated deque with those indexes.
+        Free variable member's indexes and allocated deque with those indexes.
         """
 
-        idxs = self._in_use_by.pop(var_name)
+        idxs = self._in_use_by.pop(member_name)
 
         for k in idxs:
             self._allocated.remove(k)
@@ -163,20 +173,20 @@ class IndexManager:
 
     def add(
         self,
-        var_name: WorkingData | CompositeWorkingData,
+        member_name: WorkingData | CompositeWorkingData,
         num_idxs: int
     ) -> None | ErrorHandler:
         """
-        Add a variable/literal with a given number of indexes required for it.
+        Add a variable member/literal with a given number of indexes required for it.
         The amount will be used upon request through the `request` method.
         """
 
         if (self._num_allocated + num_idxs) <= self._max_num_index:
-            if var_name not in self._resources:
-                self._resources[var_name] = num_idxs
+            if member_name not in self._resources:
+                self._resources[member_name] = num_idxs
                 return None
 
-            return IndexVarHasIndexesError(var_name)
+            return IndexVarHasIndexesError(member_name)
 
         return IndexAllocationError(
             requested_idxs=num_idxs, max_idxs=self._num_allocated
@@ -184,22 +194,22 @@ class IndexManager:
 
     def request(
         self,
-        var_name: WorkingData | CompositeWorkingData
+        member_name: WorkingData | CompositeWorkingData
     ) -> deque | ErrorHandler:
         """
         Request a number of indexes given by the `resources` property for
-        a variable `var_name`.
+        a variable member `var_name`.
         """
 
-        if not (num_idxs := self._resources.get(var_name, False)):
-            return IndexInvalidVarError(var_name)
+        if not (num_idxs := self._resources.get(member_name, False)):
+            return IndexInvalidVarError(member_name)
 
         match x := self._alloc_idxs(num_idxs):
             case deque():
-                if not self._has_var(var_name):
-                    return IndexInvalidVarError(var_name=var_name)
+                if not self._has_var(member_name):
+                    return IndexInvalidVarError(var_name=member_name)
 
-                self._alloc_var(var_name, x)
+                self._alloc_var(member_name, x)
                 return x
 
             case IndexAllocationError():
@@ -207,12 +217,12 @@ class IndexManager:
 
         return IndexUnknownError()
 
-    def free(self, var_name: WorkingData | CompositeWorkingData) -> None:
+    def free(self, member_name: WorkingData | CompositeWorkingData) -> None:
         """
-        Free indexes from a given variable `var_name`.
+        Free indexes from a given variable member `var_name`.
         """
 
-        idxs = self._free_var(var_name)
+        idxs = self._free_var(member_name)
         self._available.extend(idxs)
         self._num_allocated -= len(idxs)
 
@@ -289,13 +299,13 @@ class Heap(BaseHeap):
     def get(
         self,
         key: Symbol
-    ) -> BaseDataContainer | WorkingData | CompositeWorkingData | HeapInvalidKeyError:
+    ) -> BaseDataContainer | HeapInvalidKeyError:
         """
         Given a key, returns its data which can be a variable container (variable content),
         a working data (symbol, literal) or composite working data.
         """
 
-        if not (var_data := self._data.get(key, None)):
+        if (var_data := self._data.get(key, None)) is None:
             return HeapInvalidKeyError(key=key)
 
         return var_data  # type: ignore [return-value]
@@ -359,26 +369,19 @@ class ScopeValue:
 class Scope:
     """Defines a scope for stack and heap memory allocation"""
 
-    _stack: OrderedDict[ScopeValue, Stack]
-    _heap: dict[ScopeValue, Heap]
+    _table: OrderedDict[ScopeValue, Heap]
 
     def __init__(self):
-        self._stack = OrderedDict()
         self._heap = dict()
 
     @property
-    def stack(self) -> OrderedDict[ScopeValue, Stack]:
-        return self._stack
-
-    @property
-    def heap(self) -> dict[ScopeValue, Heap]:
-        return self._heap
+    def table(self) -> OrderedDict[ScopeValue, Heap]:
+        return self._table
 
     def new(self, scope: ScopeValue) -> Any:
         """Define a new scope"""
         if isinstance(scope, ScopeValue):
-            self._stack[scope] = Stack()
-            self._heap[scope] = Heap()
+            self._table[scope] = Heap()
 
         else:
             # TODO: maybe create a error handler for it?
@@ -386,17 +389,15 @@ class Scope:
 
     def last(self) -> ScopeValue:
         """
-        Get the last ``ScopeValue``, relying upon that ``Stack`` object,
-        having an ``OrderedDict`` object, will always return the key-value
-        pairs in insertion order.
+        Get the last ``ScopeValue``, having an ``OrderedDict`` object, will always
+        return the key-value pairs in insertion order.
         """
 
-        return tuple(self._stack.keys())[-1]
+        return next(reversed(self._table))
 
-    def free(self, scope: ScopeValue, to_return: bool = False) -> ScopeValue | None:
+    def free(self, scope: ScopeValue) -> ScopeValue | None:
         """
-        Free scope data, i.e. stack and heap memory. Must be called every time
-        the scope is finished.
+        Free scope heap memory. Must be called every time the scope is finished.
 
         Returns:
             The ``ScopeValue`` object where the return data was placed,
@@ -404,17 +405,14 @@ class Scope:
             ``None`` is returned
         """
 
-        # if the scope is a function that is returning some value, the last value from stack
-        # will be popped out to be consumed by another scope
-        if to_return:
-            cur_stack_item = self._stack[scope].pop()
-            last_scope, last_stack = self._stack.popitem()
-            last_stack.push(cur_stack_item)
-            self._stack[last_scope] = last_stack
-            return last_scope
-
-        self._stack[scope].pop()
+        self._table.pop(scope)
         return None
+
+    def __len__(self) -> int:
+        return len(self._table)
+
+    def __contains__(self, item: ScopeValue) -> bool:
+        return item in self._table
 
 
 ########################
@@ -422,22 +420,17 @@ class Scope:
 ########################
 
 class BaseMemoryManager(ABC):
-    _idx: IndexManager
-    _symbol: SymbolTable
-    _scope: Scope
+    _heap: Scope
+    _stack: Stack
     _cur_scope: ScopeValue
 
     @property
-    def idx(self) -> IndexManager:
-        return self._idx
+    def heap(self) -> Scope:
+        return self._heap
 
     @property
-    def scope(self) -> Scope:
-        return self._scope
-
-    @property
-    def symbol(self) -> SymbolTable:
-        return self._symbol
+    def stack(self) -> Stack:
+        return self._stack
 
     @property
     def cur_scope(self) -> ScopeValue:
@@ -445,38 +438,35 @@ class BaseMemoryManager(ABC):
 
 
 class MemoryManager(BaseMemoryManager):
-    """Manages the stack, heap, symbol table, pid, and index."""
+    """Manages the stack and heap per scope, pid, and indexes."""
 
-    def __init__(self, *, ir_block: BaseIRBlock, max_num_index: int, depth_counter: int):
+    def __init__(self, *, ir_block: BaseIRBlock, depth_counter: int):
         if (
             isinstance(ir_block, BaseIRBlock)
-            and isinstance(max_num_index, int)
             and isinstance(depth_counter, int)
         ):
-            self._scope = Scope()
+            self._stack = Stack()
+            self._heap = Scope()
             self._cur_scope = ScopeValue(obj=ir_block, counter=depth_counter)
-            self._scope.new(self._cur_scope)
-            self._symbol = SymbolTable()
-            self._idx = IndexManager(max_num_index)
+            self._heap.new(self._cur_scope)
 
         else:
             raise ValueError(
-                "memory manager needs IR block object, max number of indexes and"
-                " execution code depth counter"
+                "memory manager needs IR block object, and execution code depth counter"
             )
 
     def new_scope(self, ir_block: BaseIRBlock, depth_counter: int) -> ScopeValue:
         scope_value = ScopeValue(ir_block, counter=depth_counter)
-        self._scope.new(scope_value)
+        self._heap.new(scope_value)
         self._cur_scope = scope_value
         return scope_value
 
     def free_scope(self, scope: ScopeValue, to_return: bool = False) -> None:
-        self._scope.free(scope=scope, to_return=to_return)
+        self._heap.free(scope=scope)
 
         if scope == self._cur_scope:
-            if len(self._scope.stack) > 0:
-                self._cur_scope = self._scope.last()
+            if len(self._heap) > 0:
+                self._cur_scope = self._heap.last()
 
             else:
                 # no more scope, the execution should have reached the end of the code
@@ -484,12 +474,12 @@ class MemoryManager(BaseMemoryManager):
                 pass
 
     def free_last_scope(self, to_return: bool = False) -> None:
-        if len(self._scope.stack) > 0:
-            last_scope = self._scope.last()
-            self._scope.free(scope=last_scope, to_return=to_return)
+        if len(self._heap) > 0:
+            last_scope = self._heap.last()
+            self._heap.free(scope=last_scope)
 
-            if len(self._scope.stack) > 0:
-                self._cur_scope = self._scope.last()
+            if len(self._heap) > 0:
+                self._cur_scope = self._heap.last()
 
             else:
                 # TODO: what to do next
@@ -497,6 +487,32 @@ class MemoryManager(BaseMemoryManager):
 
         else:
             raise ValueError("trying to free last scope, but no more scope is left; mind is empty")
+
+
+class QuantumMemoryManager(MemoryManager):
+    """
+    A quantum version of memory manager to execute quantum programs containing both classical
+    and quantum instructions. It is a superset of ``MemoryManager`` because it includes
+    ``IndexManager``.
+    """
+
+    _idx: IndexManager
+
+    def __init__(self, *, ir_block: BaseIRBlock, max_num_index: int, depth_counter: int = 0):
+        if isinstance(max_num_index, int):
+            self._idx = IndexManager(max_num_index)
+            super().__init__(
+                ir_block=ir_block,
+                depth_counter=depth_counter
+            )
+
+        else:
+            raise ValueError(f"max num index must be integer, got {type(max_num_index)}")
+
+    @property
+    def idx(self) -> IndexManager:
+        return self._idx
+
 
 
 MemoryDataTypes = (

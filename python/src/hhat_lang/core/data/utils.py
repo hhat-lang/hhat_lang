@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC
 from enum import Enum, auto
 from typing import Any
 
@@ -29,3 +30,7 @@ def has_same_paradigm(data1: Any, data2: Any) -> bool:
         return True
 
     return False
+
+
+class AbstractDataContainer(ABC):
+    """Abstract data container. To prevent circular imports"""

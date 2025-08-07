@@ -9,6 +9,7 @@ from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
 )
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure, QSize, Size
+from hhat_lang.core.types.utils import BaseTypeEnum
 from hhat_lang.core.utils import SymbolOrdered
 
 ###############
@@ -47,6 +48,7 @@ class BuiltinSingleDS(BaseTypeDataStructure):
         self._type_container: SymbolOrdered = SymbolOrdered({0: name})
         self._size = bitsize
         self._qsize = qsize if qsize is not None else QSize(0, 0)
+        self._ds_type = BaseTypeEnum.SINGLE
 
     @property
     def bitsize(self) -> Size | None:
@@ -61,6 +63,9 @@ class BuiltinSingleDS(BaseTypeDataStructure):
 
     def add_member(self, *args: Any) -> BuiltinSingleDS | ErrorHandler:
         return self
+
+    def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
+        raise ValueError("built-in type cannot have unknown type at during IR-parsing time")
 
     def __call__(
         self,

@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Any, Iterable
 
-from hhat_lang.core.code.ir_graph import IRKey
 from hhat_lang.core.data.core import Symbol, CompositeSymbol
 from hhat_lang.core.data.fn_def import BaseFnKey, BaseFnCheck, FnDef
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
@@ -56,7 +55,7 @@ class TypeTable:
         return len(self.table)
 
     def __iter__(self) -> Iterable:
-        yield from self.table.items()
+        return iter(self.table.items())
 
     def __repr__(self) -> str:
         content = "\n      ".join(f"{v}" for v in self.table.values())
@@ -129,9 +128,7 @@ class FnTable:
         return sum(len(k) for k in self.table.values())
 
     def __iter__(self) -> Iterable:
-        for v in self.table.values():
-            for p, q in v.items():
-                yield p, q
+        return iter((p, q) for v in self.table.values() for p, q in v.items())
 
     def __repr__(self) -> str:
         content = "\n      ".join(
@@ -168,99 +165,67 @@ class SymbolTable:
         return False
 
 
-#####################
-# REFERENCE CLASSES #
-#####################
 
-class RefTypeTable:
-    """Reference to types from another IR"""
-
-    _table: dict[Symbol | CompositeSymbol, IRKey]
-
-    def __init__(self):
-        self._table = dict()
-
-    def add_ref(
-        self,
-        type_name: Symbol | CompositeSymbol,
-        ir_ref: IRKey
-    ) -> None:
-        if (
-            isinstance(type_name, Symbol | CompositeSymbol)
-            and isinstance(ir_ref, IRKey)
-        ):
-            self._table[type_name] = ir_ref
-
-        else:
-            raise ValueError(f"wrong reference type table input ({type_name})")
-
-    def get_irkey(self, type_name: Symbol | CompositeSymbol) -> IRKey:
-        return self._table[type_name]
-
-    def __hash__(self) -> int:
-        return hash(self._table)
-
-    def __eq__(self, other: Any) -> bool:
-        if isinstance(other, RefTypeTable):
-            return hash(self) == hash(other)
-
-        return False
+"""
+IR #1 (IRKey=1)
+qsample (StructDS) -[stored]-> TypeTable 
+    (key=Symbol("@sample"), value=qsample) 
 
 
-class RefFnTable:
-    """Reference to functions from another IR"""
-
-    _table: dict[BaseFnKey, IRKey]
-
-    def __init__(self):
-        self._table = dict()
-
-    def add_ref(self, fn_name: BaseFnKey, ir_ref: IRKey) -> None:
-        if (
-            isinstance(fn_name, BaseFnKey)
-            and isinstance(ir_ref, IRKey)
-        ):
-            self._table[fn_name] = ir_ref
-
-        else:
-            raise ValueError(f"wrong reference type table input ({fn_name})")
-
-    def get_irkey(self, fn_name: BaseFnKey) -> IRKey:
-        return self._table[fn_name]
-
-    def __hash__(self) -> int:
-        return hash(self._table)
-
-    def __eq__(self, other: Any) -> bool:
-        if isinstance(other, RefFnTable):
-            return hash(self) == hash(other)
-
-        return False
+IR #2 (IRKey=2)
+RefTable:
+    RefTypeTable:
+        {
+            Symbol("@sample"):IRKey(1),
+            Symbol("@type1"):IRKey(13),
+            ...
+        }
 
 
-class RefTable:
-    """To store reference for types and functions from another IR"""
+irgraph = IRGraph:
+    IRNode:
+        {
+            IRKey(1):IR(
+                RefTable(),
+                SymbolTable()
+            ),
+            IRKey(2):IR(
+                ...
+            ),
+            IRKey(N):IR(
+                RefTable(),
+                main()
+            )
+        
+        }
+    IREdge:
+        {
+            IRKey(2): {
+                Symbol("@sample"):IRKey(1),
+                Symbol("@type1"):IRKey(1),
+            }
+        }
 
-    _types: RefTypeTable
-    _fns: RefFnTable
 
-    def __init__(self):
-        self._types = RefTypeTable()
-        self._fns = RefFnTable()
+qvar = qsample(var_name=Symbol("@var")
+qvar.assign(CoreLiteral("8", "u32"), CoreLiteral("@2", "@u3"))
+qfn(qvar)
 
-    @property
-    def types(self) -> RefTypeTable:
-        return self._types
+mem.scope[scope_value].heap.set(key=qvar.name, value=qvar)
 
-    @property
-    def fns(self) -> RefFnTable:
-        return self._fns
 
-    def __hash__(self) -> int:
-        return hash(hash(self._types) + hash(self._fns))
+QProgram (
+    var=mem.scope[scope_value].heap[qvar.name],
+    ir_key=IRKey(2), 
+    ir_graph=irgraph
+)
 
-    def __eq__(self, other: Any) -> bool:
-        if isinstance(other, RefTable):
-            return hash(self) == hash(other)
+'''
+qreg q[3];
+creg c[3];
+x q[1];
+qfn here...
+measure q -> c;
+'''
 
-        return False
+"""

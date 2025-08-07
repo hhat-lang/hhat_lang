@@ -26,11 +26,11 @@ id_composite_value          = ( '[' id ']' ) / id
 
 main                        = 'main' body
 
-body                        = '{' ( declareassign / declareassign_ds / declare / assignargs / assign_ds / assign / expr)* '}'
-expr                        = cast / callwithargsoptions / callwithbodyoptions / callwithbody / call / array / id / literal
+body                        = '{' ( declareassign / declareassign_ds / declare / assign / expr)* '}'
+expr                        = cast / assign_ds / callwithargsoptions / callwithbodyoptions / callwithbody / call / array / id / literal
 declare                     = simple_id modifier? ':' id
 assign                      = id '=' expr
-assign_ds                   = id '.' '{' assignargs+ '}'
+assign_ds                   = id '.' '{' ( assignargs+ / expr+ ) '}'
 declareassign               = simple_id modifier? ':' id '=' expr
 declareassign_ds            = simple_id modifier? ':' id '=.' '{' assignargs+ '}'
 cast                        = ( call / literal / id ) '*' id
@@ -49,11 +49,14 @@ array                       = '[' ( literal / composite_id_with_closure / id )* 
 simple_id                   = r'@?[a-zA-Z][a-zA-Z0-9\-_]*'
 composite_id                = simple_id ('.' simple_id)+
 composite_id_with_closure   = ( composite_id / simple_id ) '.' '{' ( composite_id_with_closure / composite_id / simple_id )+ '}'
-modifier                    = '<' ( valonly+ / callargs+ ) '>'
+modifier                    = '<' (( valonly / callargs )+ / ref / pointer )) '>'
 trait_id                    = simple_id '#' id
 id                          = ( composite_id / simple_id ) modifier?
 
-literal                     = float / null / bool / str / int / q__bool / q__int
+ref                         = '&'
+pointer                     = '*'
+
+literal                     = ( float / null / bool / str / int / q__bool / q__int ) (':' composite_id)?
 null                        = 'null'
 bool                        = 'true' / 'false'
 str                         = r'"([^"]*)"'

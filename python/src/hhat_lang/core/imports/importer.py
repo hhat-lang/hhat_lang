@@ -5,7 +5,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Iterable, cast, Callable
 
-from hhat_lang.core.code.new_ir import BaseIRBlock
+from hhat_lang.core.code.new_ir import BaseIR
+from hhat_lang.core.code.abstract_new_ir import BaseIRBlock
 from hhat_lang.core.data.core import Symbol, CompositeSymbol
 # from hhat_lang.dialects.heather.code.ast import (
 #     CompositeId,
@@ -15,7 +16,6 @@ from hhat_lang.core.data.core import Symbol, CompositeSymbol
 #     TypeDef,
 #     TypeImport,
 # )
-from hhat_lang.core.code.core import BaseIR
 from hhat_lang.core.data.fn_def import BaseFnKey, BaseFnCheck, FnDef
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 

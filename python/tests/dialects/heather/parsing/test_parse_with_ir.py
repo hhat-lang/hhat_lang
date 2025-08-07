@@ -73,8 +73,8 @@ def fns_ex_main05(files: tuple[Path, ...]) -> None:
             "fn abs (x:f64) f64 {\n"
             "  bit63:u64 = 9223372036854775807 // sub(pow(2 63) 1), clear sign bit\n"
             "  b:u64\n"
-            "  memcpy(b<ref> x<ref> sizeof(b))\n"
-            "  memcpy(x<ref> b-and(b bit63)<ref> sizeof(x))\n"
+            "  memcpy(b<&> x<&> sizeof(b))\n"
+            "  memcpy(x<&> b-and(b bit63)<&> sizeof(x))\n"
             "  ::x\n"
             "}\n"
             # sin()

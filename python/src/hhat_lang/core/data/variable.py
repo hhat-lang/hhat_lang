@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Iterable
 
 from hhat_lang.core.data.core import CompositeSymbol, Symbol, WorkingData, CoreLiteral
-from hhat_lang.core.data.utils import VariableKind, isquantum
+from hhat_lang.core.data.utils import VariableKind, isquantum, AbstractDataContainer
 from hhat_lang.core.error_handlers.errors import (
     ContainerVarError,
     ContainerVarIsImmutableError,
@@ -13,11 +13,11 @@ from hhat_lang.core.error_handlers.errors import (
     VariableFreeingBorrowedError,
     VariableWrongMemberError,
 )
-from hhat_lang.core.types.utils import BaseTypeEnum
+from hhat_lang.core.types.utils import BaseTypeEnum, AbstractDataTypeStructure
 from hhat_lang.core.utils import SymbolOrdered
 
 
-class BaseDataContainer(ABC):
+class BaseDataContainer(AbstractDataContainer):
     """Data container for constant and variables definitions."""
 
     _name: Symbol
@@ -163,12 +163,15 @@ class BaseDataContainer(ABC):
                     self._data[0] = Symbol(data.value[-1])
                     return True
 
-            case BaseDataContainer():
-                if data.type in self._ds:
-                    # TODO: implement it for a struct
-                    raise NotImplementedError()
+            case AbstractDataTypeStructure() | BaseDataContainer():
+                if data.name in self._ds:
+                    self._data[0] = data
+                    return True
+
+                raise NotImplementedError()
 
             case _:
+                print(f"{type(data)}")
                 raise NotImplementedError()
 
         return False
@@ -250,7 +253,7 @@ class BaseDataContainer(ABC):
         return False
 
     @abstractmethod
-    def assign(self, *args: Any, **kwargs: Any) -> None | ErrorHandler:
+    def assign(self, *args: Any, **kwargs: Any) -> BaseDataContainer | ErrorHandler:
         """Assign a data to the variable container"""
 
         raise NotImplementedError()
@@ -269,7 +272,7 @@ class BaseDataContainer(ABC):
         return self.assign(*args, **kwargs)
 
     def __iter__(self) -> Iterable:
-        yield from self._data.items()
+        return iter(self._data.items())
 
     def __repr__(self) -> str:
         return f"{self.name}"
@@ -402,11 +405,11 @@ class ImmutableVariable(BaseDataContainer):
         self,
         *args: Any,
         **kwargs: SymbolOrdered,
-    ) -> None | ErrorHandler:
+    ) -> ImmutableVariable | ErrorHandler:
         if not self._assigned:
             if self._ds_type is BaseTypeEnum.ENUM:
                 self._check_and_assign_enum_val(args[0])
-                return None
+                return self
 
             if len(args) == len(self._ds):
                 for k, d in zip(args, self._ds):
@@ -419,7 +422,7 @@ class ImmutableVariable(BaseDataContainer):
                         return ContainerVarError(self.name)
 
             self._assigned = True
-            return None
+            return self
 
         return ContainerVarIsImmutableError(self.name)
 
@@ -467,10 +470,10 @@ class MutableVariable(BaseDataContainer):
 
     def assign(
         self, *args: Any, **kwargs: dict[WorkingData, WorkingData | BaseDataContainer]
-    ) -> None | ErrorHandler:
+    ) -> MutableVariable | ErrorHandler:
         if self._ds_type == BaseTypeEnum.ENUM:
             self._check_and_assign_enum_val(args[0])
-            return None
+            return self
 
         if len(args) == len(self._ds):
             for k, d in zip(args, self._ds):
@@ -489,7 +492,7 @@ class MutableVariable(BaseDataContainer):
                     return ContainerVarError(self.name)
 
         self._assigned = True
-        return None
+        return self
 
     def get(self, member: Symbol | None = None) -> Any | ErrorHandler:
         if self._ds_type == BaseTypeEnum.ENUM:
@@ -537,10 +540,10 @@ class AppendableVariable(BaseDataContainer):
         self,
         *args: Any,
         **kwargs: SymbolOrdered,
-    ) -> None | ErrorHandler:
+    ) -> AppendableVariable | ErrorHandler:
         if self._ds_type == BaseTypeEnum.ENUM:
             self._check_and_assign_enum_val(args[0])
-            return None
+            return self
 
         if len(args) == len(self._ds):
             for k, d in zip(args, self._ds):
@@ -555,7 +558,7 @@ class AppendableVariable(BaseDataContainer):
                     return ContainerVarError(self.name)
 
         self._assigned = True
-        return None
+        return self
 
     def get(self, member: Symbol | None = None) -> Any | ErrorHandler:
         if self._ds_type == BaseTypeEnum.ENUM:

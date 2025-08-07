@@ -40,6 +40,11 @@ class WorkingData:
     _type: str
     _is_quantum: bool
     _suppress_type: bool
+    _hash_value: int
+    __slots__ = ("_value", "_type", "_is_quantum", "_suppress_type", "_hash_value")
+
+    def __init__(self):
+        self._hash_value = hash((self.value, self.type))
 
     @property
     def value(self) -> str:
@@ -54,7 +59,7 @@ class WorkingData:
         return self._is_quantum
 
     def __hash__(self) -> int:
-        return hash((self.value, self.type))
+        return self._hash_value
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, self.__class__):
@@ -79,6 +84,18 @@ class CompositeWorkingData:
     _group_type: CompositeGroup
     _is_quantum: bool
     _suppress_type: bool
+    _hash_value: int
+    __slots__ = ("_group", "_type", "_group_type", "_is_quantum", "_suppress_type", "_hash_value")
+
+    def __init__(self):
+        self._hash_value = hash(
+            (
+                hash(self._group),
+                hash(self._type),
+                hash(self._group_type),
+                hash(self._is_quantum)
+            )
+        )
 
     @property
     def value(self) -> tuple[str, ...]:
@@ -107,10 +124,10 @@ class CompositeWorkingData:
         return False
 
     def __hash__(self) -> int:
-        return hash((self._group, self._type, self._group_type, self._is_quantum))
+        return self._hash_value
 
     def __iter__(self) -> Iterable:
-        yield from self._group
+        return iter(self._group)
 
     def __repr__(self) -> str:
         txt = "" if self.type is None or self._suppress_type else f":{self.type}"
@@ -124,9 +141,10 @@ class Symbol(WorkingData):
 
     def __init__(self, value: str, symbol_type: str | None = None):
         self._value = value
-        self._type = symbol_type or "str"
+        self._type = symbol_type or "`symbol"
         self._is_quantum = True if value.startswith("@") else False
         self._suppress_type = True
+        super().__init__()
 
 
 class CompositeSymbol(CompositeWorkingData):
@@ -140,6 +158,7 @@ class CompositeSymbol(CompositeWorkingData):
         self._group_type = CompositeGroup.SymbolAttrs
         self._is_quantum = True if value[-1].startswith("@") else False
         self._suppress_type = True
+        super().__init__()
 
 
 class Atomic(Symbol):
@@ -167,6 +186,7 @@ class CoreLiteral(WorkingData):
         self._type = lit_type
         self._is_quantum = True if lit_type.startswith("@") else False
         self._suppress_type = False
+        super().__init__()
 
     @lru_cache
     def transform_bin(self) -> str:

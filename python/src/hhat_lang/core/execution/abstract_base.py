@@ -3,9 +3,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
-from hhat_lang.core.code.ir_graph import IRGraph
+from hhat_lang.core.data.core import Symbol, CompositeSymbol
 from hhat_lang.core.memory.core import MemoryManager
-from hhat_lang.core.code.core import BaseIR
+from hhat_lang.core.code.new_ir import BaseIR, IRGraph
 
 
 class BaseIRManager(ABC):
@@ -15,11 +15,9 @@ class BaseIRManager(ABC):
     """
 
     _graph: IRGraph
-    _types_graph: dict[Any, Any]
-    _fns_graph: dict[Any, Any]
 
     @property
-    def ir(self) -> IRGraph:
+    def ir_graph(self) -> IRGraph:
         return self._graph
 
     @abstractmethod
@@ -29,7 +27,13 @@ class BaseIRManager(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def link_ir(self, ir_importing: BaseIR, ir_imported: BaseIR, **kwargs: Any) -> Any:
+    def link_ir(
+        self,
+        *refs: Symbol | CompositeSymbol,
+        ir_importing: BaseIR,
+        ir_imported: BaseIR,
+        **kwargs: Any
+    ) -> Any:
         """
         To link IR objects. When a file (``A``, importing) imports types or functions from
         another file (``B``, imported), a directed edge is created from ``A`` to ``B``, that
@@ -39,25 +43,9 @@ class BaseIRManager(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def link_many_ir(self, *irs_imported: BaseIR, ir_importing: BaseIR) -> Any:
-        """
-        Link many IR objects (imported ones) to an IR object (importing).
-        """
-
-        raise NotImplementedError()
-
-    @abstractmethod
     def update_ir(self, prev_ir: BaseIR, new_ir: BaseIR) -> Any:
         """
         Update IR object to a new one.
-        """
-
-        raise NotImplementedError()
-
-    @abstractmethod
-    def add_to_group(self, ir: BaseIR) -> Any:
-        """
-        Add data to group (type or function graph).
         """
 
         raise NotImplementedError()

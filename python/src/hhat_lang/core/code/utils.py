@@ -79,7 +79,9 @@ class ResultPHF:
 
     _a: int
     _r: int
-    __slots__ = ("_a", "_r")
+    _n: int
+    _prime: int
+    __slots__ = ("_a", "_r", "_n", "_prime")
 
     def __init__(self, *, a: int, r: int):
         self._a = a
@@ -92,3 +94,16 @@ class ResultPHF:
     @property
     def r(self) -> int:
         return self._r
+
+    @property
+    def n(self) -> int:
+        return self._n
+
+    @property
+    def prime(self) -> int:
+        return self._prime
+
+
+def get_hash(value: int, a: int, r: int, n: int, prime: int) -> int:
+    p = value * a
+    return ((p ^ (p >> r)) % prime) % n

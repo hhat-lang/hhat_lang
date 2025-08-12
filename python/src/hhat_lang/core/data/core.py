@@ -85,7 +85,14 @@ class CompositeWorkingData:
     _is_quantum: bool
     _suppress_type: bool
     _hash_value: int
-    __slots__ = ("_group", "_type", "_group_type", "_is_quantum", "_suppress_type", "_hash_value")
+    __slots__ = (
+        "_group",
+        "_type",
+        "_group_type",
+        "_is_quantum",
+        "_suppress_type",
+        "_hash_value",
+    )
 
     def __init__(self):
         self._hash_value = hash(
@@ -93,7 +100,7 @@ class CompositeWorkingData:
                 hash(self._group),
                 hash(self._type),
                 hash(self._group_type),
-                hash(self._is_quantum)
+                hash(self._is_quantum),
             )
         )
 

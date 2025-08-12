@@ -254,7 +254,9 @@ class LowLeveQLang(BaseLowLevelQLang):
             # back to H-hat dialect to execute it
             else:
                 # TODO: falls back to dialect execution
-                raise NotImplementedError(f"low-level qlang instr error: {x} ({type(x)})")
+                raise NotImplementedError(
+                    f"low-level qlang instr error: {x} ({type(x)})"
+                )
 
         return InstrNotFoundError(instr.name)
 

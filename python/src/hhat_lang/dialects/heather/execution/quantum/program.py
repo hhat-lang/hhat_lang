@@ -63,7 +63,12 @@ class Program(BaseProgram):
         symboltable: SymbolTable,
         qlang: Type[  # type: ignore [type-arg]
             BaseLowLevelQLang[
-                WorkingData, IRBlock | BlockIR, IndexManager, BaseEvaluator, Stack, SymbolTable
+                WorkingData,
+                IRBlock | BlockIR,
+                IndexManager,
+                BaseEvaluator,
+                Stack,
+                SymbolTable,
             ]
         ],
     ):
@@ -79,7 +84,12 @@ class Program(BaseProgram):
             self._qstack = Stack()
             self._symbol = symboltable
             self._qlang = qlang(
-                self._qdata, self._block, self._idx, self._executor, self._qstack, self._symbol
+                self._qdata,
+                self._block,
+                self._idx,
+                self._executor,
+                self._qstack,
+                self._symbol,
             )
 
         else:

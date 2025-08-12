@@ -116,8 +116,7 @@ class IndexManager:
         return self._in_use_by
 
     def __getitem__(
-        self,
-        item: WorkingData | CompositeWorkingData
+        self, item: WorkingData | CompositeWorkingData
     ) -> deque | IndexInvalidVarError:
         """Return the deque of indexes from a quantum data."""
 
@@ -149,9 +148,7 @@ class IndexManager:
         return IndexAllocationError(requested_idxs=num_idxs, max_idxs=available)
 
     def _alloc_var(
-        self,
-        member_name: WorkingData | CompositeWorkingData,
-        idxs_deque: deque
+        self, member_name: WorkingData | CompositeWorkingData, idxs_deque: deque
     ) -> None:
         self._in_use_by[member_name] = idxs_deque
         self._allocated.extend(idxs_deque)
@@ -172,9 +169,7 @@ class IndexManager:
         return idxs
 
     def add(
-        self,
-        member_name: WorkingData | CompositeWorkingData,
-        num_idxs: int
+        self, member_name: WorkingData | CompositeWorkingData, num_idxs: int
     ) -> None | ErrorHandler:
         """
         Add a variable member/literal with a given number of indexes required for it.
@@ -193,8 +188,7 @@ class IndexManager:
         )
 
     def request(
-        self,
-        member_name: WorkingData | CompositeWorkingData
+        self, member_name: WorkingData | CompositeWorkingData
     ) -> deque | ErrorHandler:
         """
         Request a number of indexes given by the `resources` property for
@@ -296,10 +290,7 @@ class Heap(BaseHeap):
         self._data[key] = value
         return None
 
-    def get(
-        self,
-        key: Symbol
-    ) -> BaseDataContainer | HeapInvalidKeyError:
+    def get(self, key: Symbol) -> BaseDataContainer | HeapInvalidKeyError:
         """
         Given a key, returns its data which can be a variable container (variable content),
         a working data (symbol, literal) or composite working data.
@@ -332,11 +323,11 @@ class ScopeValue:
 
     def __init__(self, obj: Hashable, *, counter: int):
         """
-       Hold a value for scope.
+        Hold a value for scope.
 
-        Args:
-            obj: object must be hashable
-            counter: from the execution counter, to keep track of scope nesting
+         Args:
+             obj: object must be hashable
+             counter: from the execution counter, to keep track of scope nesting
         """
 
         self._value = gen_uuid(gen_uuid(obj) + counter)
@@ -419,6 +410,7 @@ class Scope:
 # MEMORY MANAGER CLASS #
 ########################
 
+
 class BaseMemoryManager(ABC):
     _heap: Scope
     _stack: Stack
@@ -441,10 +433,7 @@ class MemoryManager(BaseMemoryManager):
     """Manages the stack and heap per scope, pid, and indexes."""
 
     def __init__(self, *, ir_block: BaseIRBlock, depth_counter: int):
-        if (
-            isinstance(ir_block, BaseIRBlock)
-            and isinstance(depth_counter, int)
-        ):
+        if isinstance(ir_block, BaseIRBlock) and isinstance(depth_counter, int):
             self._stack = Stack()
             self._heap = Scope()
             self._cur_scope = ScopeValue(obj=ir_block, counter=depth_counter)
@@ -486,7 +475,9 @@ class MemoryManager(BaseMemoryManager):
                 pass
 
         else:
-            raise ValueError("trying to free last scope, but no more scope is left; mind is empty")
+            raise ValueError(
+                "trying to free last scope, but no more scope is left; mind is empty"
+            )
 
 
 class QuantumMemoryManager(MemoryManager):
@@ -498,21 +489,21 @@ class QuantumMemoryManager(MemoryManager):
 
     _idx: IndexManager
 
-    def __init__(self, *, ir_block: BaseIRBlock, max_num_index: int, depth_counter: int = 0):
+    def __init__(
+        self, *, ir_block: BaseIRBlock, max_num_index: int, depth_counter: int = 0
+    ):
         if isinstance(max_num_index, int):
             self._idx = IndexManager(max_num_index)
-            super().__init__(
-                ir_block=ir_block,
-                depth_counter=depth_counter
-            )
+            super().__init__(ir_block=ir_block, depth_counter=depth_counter)
 
         else:
-            raise ValueError(f"max num index must be integer, got {type(max_num_index)}")
+            raise ValueError(
+                f"max num index must be integer, got {type(max_num_index)}"
+            )
 
     @property
     def idx(self) -> IndexManager:
         return self._idx
-
 
 
 MemoryDataTypes = (

@@ -29,7 +29,9 @@ class TypesDict(Mapping):
         self._data = data if isinstance(data, dict) else dict()
 
     def __setitem__(self, key: CompositeSymbol, value: BaseTypeDataStructure) -> None:
-        if isinstance(key, CompositeSymbol) and isinstance(value, BaseTypeDataStructure):
+        if isinstance(key, CompositeSymbol) and isinstance(
+            value, BaseTypeDataStructure
+        ):
             self._data[key] = value
 
         else:
@@ -95,7 +97,7 @@ class FnsDict(Mapping):
         return len(self._data)
 
     def _items(self) -> Iterable:
-        return iter((p,q) for v in self._data.values() for p, q in v.items())
+        return iter((p, q) for v in self._data.values() for p, q in v.items())
 
     def items(self) -> Iterable:
         return iter(self._data.items())

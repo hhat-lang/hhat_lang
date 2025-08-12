@@ -134,13 +134,10 @@ class BaseFnCheck:
         return self._name
 
     def transform(
-        self,
-        fn_type: Symbol | CompositeSymbol,
-        args_names: tuple[Symbol, ...]
+        self, fn_type: Symbol | CompositeSymbol, args_names: tuple[Symbol, ...]
     ) -> BaseFnKey:
-        if (
-            all(isinstance(p, Symbol) for p in args_names)
-            and isinstance(fn_type, Symbol | CompositeSymbol)
+        if all(isinstance(p, Symbol) for p in args_names) and isinstance(
+            fn_type, Symbol | CompositeSymbol
         ):
             return BaseFnKey(
                 fn_name=self.name,
@@ -148,7 +145,9 @@ class BaseFnCheck:
                 args_types=self._args_types,
                 args_names=args_names,
             )
-        raise ValueError(f"cannot transform FnKey with fn type {fn_type} and args {args_names}")
+        raise ValueError(
+            f"cannot transform FnKey with fn type {fn_type} and args {args_names}"
+        )
 
     def __hash__(self) -> int:
         return self._hash_value
@@ -172,6 +171,7 @@ class FnDef:
     _name: Symbol | BaseIRBlock
     _type: Symbol | CompositeSymbol | None
     _body: BaseIRBlock
+    _fn_check: BaseFnCheck
     _args: BaseIRBlock
     """
     function definition arguments must be a special kind of IRBlock
@@ -190,18 +190,21 @@ class FnDef:
             isinstance(fn_name, Symbol | BaseIRBlock)
             and isinstance(fn_args, BaseIRBlock)
             and isinstance(fn_body, BaseIRBlock)
-            and isinstance(fn_type, Symbol | CompositeSymbol) or fn_type is None
+            and isinstance(fn_type, Symbol | CompositeSymbol)
+            or fn_type is None
         ):
             self._name = fn_name
             self._args = fn_args
             self._body = fn_body
             self._type = fn_type or Symbol("null")
+            self._fn_check = BaseFnCheck(fn_name=self.name, args_types=self.arg_values)
 
         else:
             raise ValueError(
                 f"some fn definition type is wrong: "
                 f"{type(fn_name)} {type(fn_args)} {type(fn_body)} {type(fn_body)}"
             )
+
     @property
     def name(self) -> Symbol | BaseIRBlock:
         return self._name
@@ -228,6 +231,10 @@ class FnDef:
     def arg_values(self) -> tuple[Symbol | CompositeSymbol, ...]:
         return tuple(k.value for k in self.args)
 
+    @property
+    def fn_check(self) -> BaseFnCheck:
+        return self._fn_check
+
     def get_fn_entry(self) -> BaseFnKey:
         return BaseFnKey(
             fn_name=self.name,
@@ -237,13 +244,12 @@ class FnDef:
         )
 
     def get_fn_check(self) -> BaseFnCheck:
-        return BaseFnCheck(
-            fn_name=self.name,
-            args_types=self.arg_values
-        )
+        return self._fn_check
 
     def __repr__(self) -> str:
         args = " ".join(str(k) for k in self.args)
-        fn_header = f"FN-DEF#:NAME#[{self.name}] ARGS#[{args}] TYPE#[{self.type or 'null'}]"
+        fn_header = (
+            f"FN-DEF#:NAME#[{self.name}] ARGS#[{args}] TYPE#[{self.type or 'null'}]"
+        )
         body = "\n            ".join(str(k) for k in self.body)
         return f"{fn_header}" + "\n            " + f"{body}" + "\n"

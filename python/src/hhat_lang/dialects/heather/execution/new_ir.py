@@ -29,7 +29,7 @@ class IRManager(BaseIRManager):
         *refs: Symbol | CompositeSymbol,
         ir_importing: BaseIR,
         ir_imported: BaseIR,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """
         Link two IRs, where one is the importer (importing IR) and the other is the imported IR.

@@ -32,7 +32,7 @@ class BaseIRManager(ABC):
         *refs: Symbol | CompositeSymbol,
         ir_importing: BaseIR,
         ir_imported: BaseIR,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> Any:
         """
         To link IR objects. When a file (``A``, importing) imports types or functions from

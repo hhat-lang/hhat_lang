@@ -7,7 +7,8 @@ from hhat_lang.dialects.heather.code.simple_ir_builder.ir import (
     IRDeclare,
     IRAssign,
     IRArgs,
-    IRCall, IRFlag,
+    IRCall,
+    IRFlag,
 )
 
 

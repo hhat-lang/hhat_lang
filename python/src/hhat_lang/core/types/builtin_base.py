@@ -47,7 +47,7 @@ class BuiltinSingleDS(BaseTypeDataStructure):
         super().__init__(name, is_builtin=True)
         self._type_container: SymbolOrdered = SymbolOrdered({0: name})
         self._size = bitsize
-        self._qsize = qsize if qsize is not None else QSize(0, 0)
+        self._qsize = qsize or QSize(0, 0)
         self._ds_type = BaseTypeEnum.SINGLE
 
     @property
@@ -65,21 +65,19 @@ class BuiltinSingleDS(BaseTypeDataStructure):
         return self
 
     def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
-        raise ValueError("built-in type cannot have unknown type at during IR-parsing time")
+        raise ValueError(
+            "built-in type cannot have unknown type at during IR-parsing time"
+        )
 
     def __call__(
-        self,
-        *,
-        var_name: Symbol,
-        flag: VariableKind = VariableKind.MUTABLE,
-        **_: Any
+        self, *, var_name: Symbol, flag: VariableKind = VariableKind.MUTABLE, **_: Any
     ) -> BaseDataContainer | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,
             type_name=self.name,
-            ds_data=SymbolOrdered({
-                next(iter(self._type_container.values())): self._type_container
-            }),
+            ds_data=SymbolOrdered(
+                {next(iter(self._type_container.values())): self._type_container}
+            ),
             ds_type=self._ds_type,
             flag=flag,
         )

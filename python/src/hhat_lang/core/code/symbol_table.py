@@ -10,6 +10,7 @@ from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
 class TypeTable:
     _table: OrderedDict[Symbol | CompositeSymbol, BaseTypeDataStructure]
+    __slots__ = ("_table",)
 
     def __init__(self):
         self._table = OrderedDict()
@@ -19,9 +20,8 @@ class TypeTable:
         return self._table
 
     def add(self, name: Symbol | CompositeSymbol, data: BaseTypeDataStructure) -> None:
-        if (
-            isinstance(name, Symbol | CompositeSymbol)
-            and isinstance(data, BaseTypeDataStructure)
+        if isinstance(name, Symbol | CompositeSymbol) and isinstance(
+            data, BaseTypeDataStructure
         ):
             if name not in self.table:
                 self.table[name] = data
@@ -33,9 +33,7 @@ class TypeTable:
             )
 
     def get(
-        self,
-        name: Symbol | CompositeSymbol,
-        default: Any | None = None
+        self, name: Symbol | CompositeSymbol, default: Any | None = None
     ) -> BaseTypeDataStructure | Any | None:
         return self.table.get(name, default)
 
@@ -64,20 +62,23 @@ class TypeTable:
 
 class FnTable:
     """
-        This class holds functions definitions as ``BaseFnKey`` for function
-        entry (function name, type and arguments) and its body (content).
+    This class holds functions definitions as ``BaseFnCheck`` for function
+    entry (function name, type and argument types) and its body (content).
 
-        Together with ``IRTypes`` and ``IR`` it provides the base for an IR object
-        picturing the full code.
-        """
+    Together with ``TypeTable``, ``SymbolTable`` and ``IRModule`` it provides
+    the base for an IR object picturing the full code.
+    """
 
-    _table: OrderedDict[Symbol | CompositeSymbol, dict[BaseFnKey | BaseFnCheck, FnDef]]
+    _table: OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef]]
+    __slots__ = ("_table",)
 
     def __init__(self):
         self._table = OrderedDict()
 
     @property
-    def table(self) -> OrderedDict[Symbol | CompositeSymbol, dict[BaseFnKey | BaseFnCheck, FnDef]]:
+    def table(
+        self,
+    ) -> OrderedDict[Symbol | CompositeSymbol, dict[BaseFnKey | BaseFnCheck, FnDef]]:
         return self._table
 
     def add(self, fn_entry: BaseFnCheck, data: FnDef) -> None:
@@ -90,7 +91,9 @@ class FnTable:
                     self.table[fn_entry.name] = {fn_entry: data}
 
             elif isinstance(fn_entry, BaseFnKey):
-                new_fn_entry = BaseFnCheck(fn_name=fn_entry.name, args_types=fn_entry.args_types)
+                new_fn_entry = BaseFnCheck(
+                    fn_name=fn_entry.name, args_types=fn_entry.args_types
+                )
                 if fn_entry.name in self.table:
                     self.table[fn_entry.name].update({new_fn_entry: data})
 
@@ -103,7 +106,7 @@ class FnTable:
     def get(
         self,
         fn_entry: Symbol | CompositeSymbol | BaseFnCheck,
-        default: Any | None = None
+        default: Any | None = None,
     ) -> FnDef | dict[BaseFnCheck, FnDef] | None:
         match fn_entry:
             case Symbol() | CompositeSymbol():
@@ -124,6 +127,17 @@ class FnTable:
 
         return False
 
+    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck) -> bool:
+        match item:
+            case Symbol() | CompositeSymbol():
+                return item in self._table
+
+            case BaseFnCheck():
+                return item in self._table[item.name]
+
+            case _:
+                return False
+
     def __len__(self) -> int:
         return sum(len(k) for k in self.table.values())
 
@@ -142,6 +156,7 @@ class SymbolTable:
 
     _types: TypeTable
     _fns: FnTable
+    __slots__ = ("_types", "_fns")
 
     def __init__(self):
         self._types = TypeTable()
@@ -163,69 +178,3 @@ class SymbolTable:
             return hash(self) == hash(other)
 
         return False
-
-
-
-"""
-IR #1 (IRKey=1)
-qsample (StructDS) -[stored]-> TypeTable 
-    (key=Symbol("@sample"), value=qsample) 
-
-
-IR #2 (IRKey=2)
-RefTable:
-    RefTypeTable:
-        {
-            Symbol("@sample"):IRKey(1),
-            Symbol("@type1"):IRKey(13),
-            ...
-        }
-
-
-irgraph = IRGraph:
-    IRNode:
-        {
-            IRKey(1):IR(
-                RefTable(),
-                SymbolTable()
-            ),
-            IRKey(2):IR(
-                ...
-            ),
-            IRKey(N):IR(
-                RefTable(),
-                main()
-            )
-        
-        }
-    IREdge:
-        {
-            IRKey(2): {
-                Symbol("@sample"):IRKey(1),
-                Symbol("@type1"):IRKey(1),
-            }
-        }
-
-
-qvar = qsample(var_name=Symbol("@var")
-qvar.assign(CoreLiteral("8", "u32"), CoreLiteral("@2", "@u3"))
-qfn(qvar)
-
-mem.scope[scope_value].heap.set(key=qvar.name, value=qvar)
-
-
-QProgram (
-    var=mem.scope[scope_value].heap[qvar.name],
-    ir_key=IRKey(2), 
-    ir_graph=irgraph
-)
-
-'''
-qreg q[3];
-creg c[3];
-x q[1];
-qfn here...
-measure q -> c;
-'''
-
-"""

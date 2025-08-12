@@ -8,11 +8,12 @@ from pathlib import Path
 from typing import Callable
 
 from hhat_lang.dialects.heather.parsing.ir_visitor import parse
+
 # from hhat_lang.dialects.heather.parsing.run import parse_grammar
 from hhat_lang.toolchain.project.new import (
     create_new_project,
     create_new_type_file,
-    create_new_file
+    create_new_file,
 )
 
 THIS = Path(__file__).parent
@@ -21,9 +22,7 @@ THIS = Path(__file__).parent
 def types_ex_main04(files: tuple[Path, ...]) -> None:
     with open(files[0], "a") as f:
         f.write(
-            "type space {x:i64 y:u64 z:i64}\n"
-            "type surface:u64\n"
-            "type volume:u64\n"
+            "type space {x:i64 y:u64 z:i64}\n" "type surface:u64\n" "type volume:u64\n"
         )
 
     with open(files[1], "a") as f:
@@ -97,16 +96,21 @@ def fns_ex_main05(files: tuple[Path, ...]) -> None:
             fns_ex_main04,
             "ex_main04.hat",
             ("geometry/euclidian", "geometry/differential"),
-            ()
+            (),
         ),
         (
             types_ex_main05,
             fns_ex_main05,
             "ex_main05.hat",
-            ("geometry/euclidian2", "geometry/euclidian2", "geometry/differential2", "std/io"),
-            ("math",)
+            (
+                "geometry/euclidian2",
+                "geometry/euclidian2",
+                "geometry/differential2",
+                "std/io",
+            ),
+            ("math",),
         ),
-    ]
+    ],
 )
 def test_parse_type_ir(
     type_fn: Callable,
@@ -128,21 +132,18 @@ def test_parse_type_ir(
         types_path = ()
 
         for k in type_files:
-            types_path += create_new_type_file(project_name, k),
+            types_path += (create_new_type_file(project_name, k),)
 
         type_fn(types_path)
 
         fns_path = ()
 
         for f in fn_files:
-            fns_path += create_new_file(project_name, f),
+            fns_path += (create_new_file(project_name, f),)
 
         fn_fn(fns_path)
 
-        shutil.copy(
-            src=(THIS / file_name),
-            dst=project_main_file_cp
-        )
+        shutil.copy(src=(THIS / file_name), dst=project_main_file_cp)
         os.remove(project_root / "src" / "main.hat")
         shutil.move(project_main_file_cp, project_root / "src" / "main.hat")
 

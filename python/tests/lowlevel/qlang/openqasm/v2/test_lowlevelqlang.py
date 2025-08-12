@@ -23,7 +23,7 @@ from hhat_lang.low_level.quantum_lang.openqasm.v2.qlang import LowLeveQLang
 # FIXME: skipping whole file until LowLevelQLang is fixed with the new IR
 pytest.skip(
     "skipping whole file until LowLeveLQLang is fixed with the new IR",
-    allow_module_level=True
+    allow_module_level=True,
 )
 
 
@@ -73,7 +73,8 @@ measure q -> c;
 
     ex = Evaluator(mem, TypeIR(), FnIR())
 
-    block = IRBlock(IRCall(
+    block = IRBlock(
+        IRCall(
             caller=Symbol("@redim"),
             args=IRArgs(CoreLiteral(Symbol("@5").value, "@u3")),
         )
@@ -213,7 +214,8 @@ measure q -> c;
 
     ex = Evaluator(mem, TypeIR(), FnIR())
 
-    block = IRBlock(IRCall(
+    block = IRBlock(
+        IRCall(
             Symbol("@nez"),
             IRArgs(CoreLiteral("@5", "@u3"), Symbol("@not")),
         )
@@ -235,7 +237,8 @@ def test_gen_program_nez_zero_mask() -> None:
 
     ex = Evaluator(mem, TypeIR(), FnIR())
 
-    block = IRBlock(IRCall(
+    block = IRBlock(
+        IRCall(
             Symbol("@nez"),
             IRArgs(CoreLiteral("@0", "@u3"), Symbol("@not")),
         )
@@ -264,7 +267,8 @@ measure q -> c;
 
     ex = Evaluator(mem, TypeIR(), FnIR())
 
-    block = IRBlock(IRCall(
+    block = IRBlock(
+        IRCall(
             Symbol("@nez"),
             IRArgs(Symbol("@true"), Symbol("@redim")),
         )
@@ -293,7 +297,8 @@ measure q -> c;
 
     ex = Evaluator(mem, TypeIR(), FnIR())
 
-    block = IRBlock(IRCall(
+    block = IRBlock(
+        IRCall(
             Symbol("@nez"),
             IRArgs(Symbol("@true"), Symbol("@not")),
         )

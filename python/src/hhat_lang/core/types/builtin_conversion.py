@@ -8,7 +8,7 @@ from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
     CastNegToUnsignedError,
     CastIntOverflowError,
-    CastError
+    CastError,
 )
 from hhat_lang.core.types.builtin_base import BuiltinSingleDS, int_types
 
@@ -19,10 +19,15 @@ from hhat_lang.core.types.builtin_base import BuiltinSingleDS, int_types
 
 compatible_types = {
     Symbol("int"): (
-        Symbol("u16"), Symbol("u32"), Symbol("u64"), Symbol("i16"), Symbol("i32"), Symbol("i64")
+        Symbol("u16"),
+        Symbol("u32"),
+        Symbol("u64"),
+        Symbol("i16"),
+        Symbol("i32"),
+        Symbol("i64"),
     ),
     Symbol("float"): (Symbol("f32"), Symbol("f64")),
-    Symbol("@int"): (Symbol("@u2"), Symbol("@u3"), Symbol("@u4"))
+    Symbol("@int"): (Symbol("@u2"), Symbol("@u3"), Symbol("@u4")),
 }
 """dictionary to establish the relation between generic types (``int``, ``float``, ``@int``)
 as their possible convertible types"""
@@ -31,6 +36,7 @@ as their possible convertible types"""
 ##################
 # CAST FUNCTIONS #
 ##################
+
 
 def int_to_uN(
     ds: BuiltinSingleDS, data: CoreLiteral | BaseDataContainer

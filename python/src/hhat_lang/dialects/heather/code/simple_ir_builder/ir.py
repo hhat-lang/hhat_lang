@@ -10,14 +10,23 @@ from copy import deepcopy
 from enum import Enum, auto
 from typing import Any, Iterable
 
-from hhat_lang.core.data.core import Symbol, WorkingData, CompositeSymbol, CompositeWorkingData
+from hhat_lang.core.data.core import (
+    Symbol,
+    WorkingData,
+    CompositeSymbol,
+    CompositeWorkingData,
+)
 from hhat_lang.core.data.fn_def import BaseFnKey
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
 
 # FIXME: quick fix for now, before the new IR is ready
-class FnIR(): pass
-class IRInstr(): pass
+class FnIR:
+    pass
+
+
+class IRInstr:
+    pass
 
 
 class IRFlag(Enum):
@@ -113,7 +122,9 @@ class IRBlock:
         total_instrs = len(str(len(self)))
 
         for n, k in enumerate(self.instrs):
-            content += f"\n      {'0' * (total_instrs - len(str(n)) + 1) + str(n+1)} {k}"
+            content += (
+                f"\n      {'0' * (total_instrs - len(str(n)) + 1) + str(n+1)} {k}"
+            )
 
         return f"\n      block:{content}\n"
 
@@ -121,6 +132,7 @@ class IRBlock:
 ##############################
 # IR INSTRUCTION DEFINITIONS #
 ##############################
+
 
 class IRBaseInstr(ABC):
     """
@@ -136,9 +148,7 @@ class IRBaseInstr(ABC):
     block_refs: dict | dict[BlockRef, IRBlock]
 
     def __init__(
-        self,
-        *args: WorkingData | IRBlock | BlockRef | IRBaseInstr,
-        name: str | IRFlag
+        self, *args: WorkingData | IRBlock | BlockRef | IRBaseInstr, name: str | IRFlag
     ):
         self.name = name.name if isinstance(name, IRFlag) else name
         self.args = ()
@@ -158,15 +168,15 @@ class IRBaseInstr(ABC):
     def add(self, data: WorkingData | IRBlock | BlockRef | IRBaseInstr) -> None:
         match data:
             case WorkingData() | BlockRef():
-                self.args += data,
+                self.args += (data,)
 
             case IRBaseInstr():
                 ref, block = IRBlock.gen_block(data)
                 self.block_refs[ref] = block
-                self.args += ref,
+                self.args += (ref,)
 
             case IRBlock():
-                self.args += data.name,
+                self.args += (data.name,)
 
                 if data.name not in self.block_refs:
                     self.block_refs[data.name] = data
@@ -213,7 +223,7 @@ class IRArgValue(IRBaseInstr):
     def __init__(
         self,
         arg_name: Symbol,
-        value: WorkingData | CompositeWorkingData | IRBlock | BlockRef
+        value: WorkingData | CompositeWorkingData | IRBlock | BlockRef,
     ):
         super().__init__(arg_name, value, name=IRFlag.ARG_VALUE)
 
@@ -241,7 +251,7 @@ class IRCast(IRBaseInstr):
     def __init__(
         self,
         cast_data: WorkingData | IRBlock | BlockRef,
-        to_type: Symbol | CompositeSymbol
+        to_type: Symbol | CompositeSymbol,
     ):
         super().__init__(cast_data, to_type, name=IRFlag.CAST)
 
@@ -273,10 +283,7 @@ class IRDeclareAssign(IRBaseInstr):
     INSTR = IRFlag.DECLARE_ASSIGN
 
     def __init__(
-        self,
-        var: Symbol,
-        var_type: Symbol | CompositeSymbol,
-        value: WorkingData
+        self, var: Symbol, var_type: Symbol | CompositeSymbol, value: WorkingData
     ):
         super().__init__(var, var_type, value, name=IRFlag.DECLARE_ASSIGN)
 
@@ -288,10 +295,7 @@ class IRCallWithBody(IRBaseInstr):
     INSTR = IRFlag.CALL_WITH_BODY
 
     def __init__(
-        self,
-        caller: Symbol | CompositeSymbol,
-        args: IRArgs,
-        body: IRBlock | BlockRef
+        self, caller: Symbol | CompositeSymbol, args: IRArgs, body: IRBlock | BlockRef
     ):
         super().__init__(caller, args, body, name=IRFlag.CALL_WITH_BODY)
 
@@ -320,7 +324,7 @@ class IRCallWithOption(IRBaseInstr):
         self,
         caller: Symbol | CompositeSymbol,
         args: IRArgs,
-        *options: tuple[IROption, ...]
+        *options: tuple[IROption, ...],
     ):
         super().__init__(caller, args, *options, name=IRFlag.CALL_WITH_BODY)
 
@@ -473,7 +477,7 @@ class IRProgram:
         *,
         main: IR | None = None,
         types: IRTypes | None = None,
-        fns: IRFns | None = None
+        fns: IRFns | None = None,
     ):
         if (
             isinstance(main, IR)

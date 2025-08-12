@@ -85,11 +85,7 @@ def test_struct_ds_quantum() -> None:
 
     # type @sample {counts:u32 @d:@u3}
     qsample = StructDS(name=Symbol("@sample"))
-    (
-        qsample
-        .add_member(U32, Symbol("counts"))
-        .add_member(QU3, Symbol("@d"))
-    )
+    (qsample.add_member(U32, Symbol("counts")).add_member(QU3, Symbol("@d")))
 
     # @var:@sample
     qvar = qsample(var_name=Symbol("@var"))

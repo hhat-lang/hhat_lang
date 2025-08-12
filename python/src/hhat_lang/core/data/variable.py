@@ -113,13 +113,19 @@ class BaseDataContainer(AbstractDataContainer):
         return False
 
     @staticmethod
-    def _get_single_ds_member(attr: Symbol | CompositeSymbol) -> Symbol | CompositeSymbol:
+    def _get_single_ds_member(
+        attr: Symbol | CompositeSymbol,
+    ) -> Symbol | CompositeSymbol:
         return attr
 
-    def _get_struct_ds_member(self, attr: Symbol | CompositeSymbol) -> Symbol | CompositeSymbol:
+    def _get_struct_ds_member(
+        self, attr: Symbol | CompositeSymbol
+    ) -> Symbol | CompositeSymbol:
         return self._ds[attr]
 
-    def _get_correct_ds_member(self, attr: Symbol | CompositeSymbol) -> Symbol | CompositeSymbol:
+    def _get_correct_ds_member(
+        self, attr: Symbol | CompositeSymbol
+    ) -> Symbol | CompositeSymbol:
         if self._ds_type is BaseTypeEnum.SINGLE:
             return self._get_single_ds_member(attr)
 
@@ -321,7 +327,9 @@ class VariableTemplate:
                     return ConstantData(var_name, type_name, ds_data, ds_type)
 
                 case VariableKind.APPENDABLE:
-                    return AppendableVariable(var_name, type_name, ds_data, ds_type, False)
+                    return AppendableVariable(
+                        var_name, type_name, ds_data, ds_type, False
+                    )
 
                 case VariableKind.MUTABLE:
                     return MutableVariable(var_name, type_name, ds_data, ds_type)
@@ -342,7 +350,7 @@ class ConstantData(BaseDataContainer):
         var_name: Symbol,
         type_name: Symbol | CompositeSymbol,
         ds_data: SymbolOrdered,
-        ds_type: BaseTypeEnum
+        ds_type: BaseTypeEnum,
     ):
         self._name = var_name
         self._type = type_name
@@ -364,7 +372,7 @@ class ConstantData(BaseDataContainer):
         raise NotImplementedError()
 
     def get(self, member: Symbol | None = None) -> Any | ErrorHandler:
-        member = next(iter(self._ds.keys())) if member is None else member
+        member = member or next(iter(self._ds.keys()))
 
         if member in self._data:
             return self._data[member]
@@ -384,7 +392,7 @@ class ImmutableVariable(BaseDataContainer):
         var_name: Symbol,
         type_name: Symbol | CompositeSymbol,
         ds_data: SymbolOrdered,
-        ds_type: BaseTypeEnum
+        ds_type: BaseTypeEnum,
     ):
         self._name = var_name
         self._type = type_name
@@ -431,7 +439,7 @@ class ImmutableVariable(BaseDataContainer):
             # enum type only have a single data stored from its members
             return self._data[0]
 
-        member = next(iter(self._ds.keys())) if member is None else member
+        member = member or next(iter(self._ds.keys()))
 
         if member in self._data:
             return self._data[member]
@@ -451,7 +459,7 @@ class MutableVariable(BaseDataContainer):
         var_name: Symbol,
         type_name: Symbol | CompositeSymbol,
         ds_data: SymbolOrdered,
-        ds_type: BaseTypeEnum
+        ds_type: BaseTypeEnum,
     ):
         self._name = var_name
         self._type = type_name
@@ -498,7 +506,7 @@ class MutableVariable(BaseDataContainer):
         if self._ds_type == BaseTypeEnum.ENUM:
             return self._data[0]
 
-        member = next(iter(self._ds.keys())) if member is None else member
+        member = member or next(iter(self._ds.keys()))
 
         if member in self._data:
             return self._data[member]
@@ -564,7 +572,7 @@ class AppendableVariable(BaseDataContainer):
         if self._ds_type == BaseTypeEnum.ENUM:
             return self._data[0]
 
-        member = next(iter(self._ds.keys())) if member is None else member
+        member = member or next(iter(self._ds.keys()))
 
         if member in self._data:
             return self._data[member]

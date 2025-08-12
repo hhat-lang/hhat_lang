@@ -65,7 +65,9 @@ def _create_template_files(project_name: Path) -> Any:
 def create_new_file(project_name: str | Path, file_name: str | Path) -> Any:
     project_name = str_to_path(project_name)
     file_name = file_name + ".hat"
-    doc_file =  file_name + ".md"  # file_name.parent.parent / DOCS_FOLDER_NAME / (file_name.name + ".md")
+    doc_file = (
+        file_name + ".md"
+    )  # file_name.parent.parent / DOCS_FOLDER_NAME / (file_name.name + ".md")
 
     file_path = project_name / SOURCE_FOLDER_NAME / file_name
     if file_path.parent != Path("."):

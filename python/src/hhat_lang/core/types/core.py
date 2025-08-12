@@ -70,9 +70,9 @@ class SingleDS(BaseTypeDataStructure):
         return VariableTemplate(
             var_name=var_name,
             type_name=self.name,
-            ds_data=SymbolOrdered({
-                next(iter(self._type_container.values())): self._type_container
-            }),
+            ds_data=SymbolOrdered(
+                {next(iter(self._type_container.values())): self._type_container}
+            ),
             ds_type=self._ds_type,
             flag=flag,
         )
@@ -139,17 +139,13 @@ class StructDS(BaseTypeDataStructure):
     def add_tmp_member(
         self,
         member_type: Symbol | CompositeSymbol,
-        member_name: Symbol | CompositeSymbol
+        member_name: Symbol | CompositeSymbol,
     ) -> StructDS:
-        self._tmp_container += (member_type, member_name),
+        self._tmp_container += ((member_type, member_name),)
         return self
 
     def __call__(
-        self,
-        *,
-        var_name: Symbol,
-        flag: VariableKind = VariableKind.IMMUTABLE,
-        **_: Any
+        self, *, var_name: Symbol, flag: VariableKind = VariableKind.IMMUTABLE, **_: Any
     ) -> BaseDataContainer | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,
@@ -160,7 +156,9 @@ class StructDS(BaseTypeDataStructure):
         )
 
     def __repr__(self) -> str:
-        members = "{" + " ".join(f"{k}:{v}" for k, v in self._type_container.items()) + "}"
+        members = (
+            "{" + " ".join(f"{k}:{v}" for k, v in self._type_container.items()) + "}"
+        )
         return f"{self.name}<struct>{members}"
 
 
@@ -190,7 +188,9 @@ class EnumDS(BaseTypeDataStructure):
             case _:
                 raise NotImplementedError()
 
-    def add_member(self, member: BaseTypeDataStructure | Symbol) -> EnumDS | ErrorHandler:
+    def add_member(
+        self, member: BaseTypeDataStructure | Symbol
+    ) -> EnumDS | ErrorHandler:
         member_name = self._get_member_name(member)
 
         if is_valid_member(self, member_name):
@@ -203,18 +203,14 @@ class EnumDS(BaseTypeDataStructure):
         raise NotImplementedError()
 
     def __call__(
-        self,
-        *,
-        var_name: Symbol,
-        flag: VariableKind = VariableKind.IMMUTABLE,
-        **_: Any
+        self, *, var_name: Symbol, flag: VariableKind = VariableKind.IMMUTABLE, **_: Any
     ) -> BaseDataContainer | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,
             type_name=self._name,
             ds_data=self._type_container,
             ds_type=self._ds_type,
-            flag=flag
+            flag=flag,
         )
 
 
@@ -228,11 +224,7 @@ class RemoteUnionDS(BaseTypeDataStructure):
         raise NotImplementedError()
 
     def __call__(
-        self,
-        *,
-        var_name: Symbol,
-        flag: VariableKind,
-        **kwargs: Any
+        self, *, var_name: Symbol, flag: VariableKind, **kwargs: Any
     ) -> BaseDataContainer | ErrorHandler:
         raise NotImplementedError()
 
@@ -259,16 +251,12 @@ class UnionDS(BaseTypeDataStructure):
         raise NotImplementedError()
 
     def __call__(
-        self,
-        *,
-        var_name: Symbol,
-        flag: VariableKind = VariableKind.IMMUTABLE,
-        **_: Any
+        self, *, var_name: Symbol, flag: VariableKind = VariableKind.IMMUTABLE, **_: Any
     ) -> BaseDataContainer | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,
             type_name=self._name,
             ds_data=self._type_container,
             ds_type=self._ds_type,
-            flag=flag
+            flag=flag,
         )

@@ -34,14 +34,11 @@ F64 = BuiltinSingleDS(Symbol("f64"), Size(64))
 QBool = BuiltinSingleDS(Symbol("@bool"), Size(POINTER_SIZE), qsize=QSize(1, 1))
 QU2 = BuiltinSingleDS(Symbol("@u2"), Size(POINTER_SIZE), qsize=QSize(2, 2))
 QU3 = BuiltinSingleDS(Symbol("@u3"), Size(POINTER_SIZE), qsize=QSize(3, 3))
-QU4 = BuiltinSingleDS(Symbol("@u4"), Size(POINTER_SIZE), qsize=QSize(4,4))
+QU4 = BuiltinSingleDS(Symbol("@u4"), Size(POINTER_SIZE), qsize=QSize(4, 4))
 QInt = BuiltinSingleDS(
     Symbol("@int"),
     Size(POINTER_SIZE),
-    qsize=QSize(
-        min_num=QU2.qsize.min,
-        max_num=QU4.qsize.max
-    )
+    qsize=QSize(min_num=QU2.qsize.min, max_num=QU4.qsize.max),
 )
 """
 ``QInt`` (``@int``) represents a generic quantum integer, where the minimum qsize is the 
@@ -67,7 +64,6 @@ builtins_types = {
     Symbol("i64"): I64,
     Symbol("f32"): F32,
     Symbol("f64"): F64,
-
     # quantum
     Symbol("@bool"): QBool,
     Symbol("@int"): QInt,

@@ -21,7 +21,7 @@ from hhat_lang.low_level.quantum_lang.openqasm.v2.qlang import LowLeveQLang
 # FIXME: skipping whole file until LowLeveLQLang is fixed with the new IR
 pytest.skip(
     "skipping whole file until LowLeveLQLang is fixed with the new IR",
-    allow_module_level=True
+    allow_module_level=True,
 )
 
 
@@ -37,7 +37,12 @@ def test_simple_empty_redim_program(MAX_ATOL_STATES_GATE: float) -> None:
     block = IRBlock(IRCall(Symbol("@redim"), IRArgs()))
 
     program = Program(
-        qdata=qv, idx=mem.idx, block=block, qlang=LowLeveQLang, executor=ex, symboltable=SymbolTable()
+        qdata=qv,
+        idx=mem.idx,
+        block=block,
+        qlang=LowLeveQLang,
+        executor=ex,
+        symboltable=SymbolTable(),
     )
 
     res = program.run(debug=False)
@@ -59,7 +64,12 @@ def test_simple_literal_redim_program(
     table = SymbolTable()
 
     program = Program(
-        qdata=ql, idx=mem.idx, block=block, qlang=LowLeveQLang, executor=ex, symboltable=table
+        qdata=ql,
+        idx=mem.idx,
+        block=block,
+        qlang=LowLeveQLang,
+        executor=ex,
+        symboltable=table,
     )
 
     res = program.run(debug=False)

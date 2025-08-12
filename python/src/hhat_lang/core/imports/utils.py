@@ -7,5 +7,6 @@ from typing import Any, Iterable
 
 class BaseImports(ABC):
     """Base class for importing types and functions"""
+
     types: Mapping
     fns: Mapping

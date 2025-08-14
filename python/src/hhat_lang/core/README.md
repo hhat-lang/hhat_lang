@@ -2,7 +2,9 @@
 
 Language-agnostic substrate for H-hat. Provides: intermediate representations (IR), type system, memory & scope model, execution interfaces, symbol/import resolution, error model, and low-level backend abstraction.
 
-Focus: deterministic lowering + portable execution semantics for both classical and quantum operations.
+Focus: deterministic IR construction + portable execution semantics for both classical and quantum operations.
+
+> Deprecation Notice: Any legacy AST-based build path is deprecated and will be removed. Only direct construction of Core IR objects is supported going forward.
 
 ## 1. Scope & Responsibilities
 Included:
@@ -16,12 +18,10 @@ Included:
 
 
 ## 2. High-Level Data / Control Flow
-Dialect Frontend (AST or Direct IR Builder) → Compiler (lower) → Core IR Module(s) → (Optional: Link/Import) → Interpreter / Program (Evaluator + Memory) → Backend Adapter → Target Runtime
-
-AST Note: The term “AST” here denotes any intermediate parsed representation a dialect chooses to expose. A dialect may bypass a concrete AST type and construct Core IR directly; both paths are valid.
+Dialect Frontend (Direct IR Builder) → Core IR Module(s) → (Optional: Link/Import) → Interpreter / Program (Evaluator + Memory) → Backend Adapter → Target Runtime
 
 Key transitions:
-1. Lowering: Parsed representation (AST or direct constructs) becomes canonical IR instructions referencing stable symbol & type tables.
+1. Build: Frontend constructs canonical IR instructions directly (modules, blocks, symbol & type tables) – no intermediate AST layer.
 2. Linking: Inter-module references resolved via namespace + symbol tables (no partial binding at runtime) using reference tables (`RefTable` for types & functions).
 3. Execution: `BaseInterpreter` / `BaseProgram` coordinate an Evaluator walking IR blocks; memory manager mediates value & qubit allocation; backend adapter receives finalized low-level operations.
 4. Backend emission is intentionally side-effect isolated (pure-ish translation functions with explicit state objects).
@@ -33,7 +33,7 @@ Determinism goals: identical source + dependency graph → identical IR graph ID
 Only conceptual roles; per-file detail intentionally omitted here.
 
 * `code/`: IR structures (modules, blocks, instructions), symbol & reference tables, helper utilities for graph-like traversals.
-* `compiler/`: Interfaces / base logic for transforming parsed representations into IR (dialects provide concrete implementations externally).
+* `compiler/`: (Legacy abstraction – slated for removal) Previously housed transformations from parsed structures into IR. Direct IR builders in dialect frontends should be used instead.
 * `data/`: Canonical symbolic entities (variables, literals, function signatures) used across IR stages.
 * `error_handlers/`: Central error enumerations + lightweight Result-like helpers; unify reporting format.
 * `execution/`: Abstract program & evaluator contracts; scheduling / stepping semantics over IR.
@@ -104,9 +104,8 @@ Import Mechanism Extension:
 
 
 ## 7. Program Lifecycle
-1. Build: Dialect parser outputs AST.
-2. Lower: Compiler maps AST → IR (modules + blocks + instructions + symbol table).
-3. Link: Imports resolved; cross-module references validated; type compatibility checks executed.
-4. Prepare Execution: Memory manager initializes global frame; backend adapter declares capabilities.
-5. Evaluate: Instruction iteration + dispatch; memory & backend operations emitted.
-6. Finalize: Backend flush / serialization; collected results returned.
+1. Build IR: Dialect frontend directly creates IR modules (blocks, instructions, symbol & type tables).
+2. Link: Imports resolved; cross-module references validated; type compatibility checks executed.
+3. Prepare Execution: Memory manager initializes global frame; backend adapter declares capabilities.
+4. Evaluate: Instruction iteration + dispatch; memory & backend operations emitted.
+5. Finalize: Backend flush / serialization; collected results returned.

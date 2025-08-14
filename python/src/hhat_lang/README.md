@@ -1,28 +1,31 @@
-# H-hat Language Python Package
-This directory contains the **Python implementation** of the H-hat language and its toolchain. The package is structured into several subpackages so that the compiler, dialects, low-level language support and user tooling are all kept separate.
+# H-Hat Python Package
+High-level container for the Python implementation of the H-hat language stack. Provides:
+* Core language substrate (IR, type system, memory / scope, import + linking, execution contracts, error model, backend abstraction).
+* Dialect hosting surface (example dialect(s), parsing + lowering entry points, dialect-specific assets).
+* Low-level target integration (quantum assembly language representations, backend adapters / emitters).
+* User tooling (CLI, project scaffolding, notebook integration, auxiliary developer utilities).
 
-## Directory overview
+## Architectural Overview
+End-to-end flow (conceptual pipeline):
+Dialect Frontend (parse / build) -> Core IR (modules, blocks, instructions) -> Linking / Imports -> Execution (interpreter / evaluator) -> Low-Level Backend Adapter -> Target Runtime (simulator / hardware / serialization)
+
+Isolation goals:
+* Dialect evolution must not require changes in backend adapters if IR contract unchanged.
+* Backend innovations (new quantum gates / capabilities) introduced behind capability flags; dialects adapt through lowering choices.
+* Deterministic IR construction to enable reproducible tests and potential caching.
+
+## Directory Topology
 ```
 hhat_lang/
-├── __init__.py
-├── core/
-├── dialects/
-├── low_level/
-└── toolchain/
+├── __init__.py        # Package marker / version surface (keep lightweight)
+├── core/              # Stable substrate: IR, types, memory, execution, imports, error model, low-level abstraction
+├── dialects/          # Dialect implementations + their parsers / lowerers / dialect-specific artifacts
+├── low_level/         # Target-facing quantum language abstractions + backend adapter layering
+└── toolchain/         # User & developer tooling (CLI, project scaffolds, notebook helpers)
 ```
-### `__init__.py`
-This file marks `hhat_lang` as a Python package.
 
-### `core/`
-The `core` package defines the foundational of the **H-hat language**. It exposes the data types, execution model, error handling, import mechanisms, memory management, type system and other low-level abstractions that dialects and tooling build upon. New dialects and backends should rely on the stable APIs in `core` for representing programs and manipulaing state. Everything outside of this package is considered dialect or backend specific and may change over time. The package also includes small utilities such as classes to represent hierarchical namespaces and result types.
-
-### `dialects/`
-This package contains implementations of H-hat dialects. A dialect is a domain specific language built on top of the H-hat core that defines its own syntax, semantics and tooling. The primary dialect provided here is **Hearther**, a simple dialect designed to demonstrate H-hat concepts and encourage developers to create their own dialects.
-
-The Heather dialect includes grammer definitions, a parser and visitor, abstract syntax tree (AST) definitions, simple and SSA IR builders, an interpreter, code generators and dialect-specific toolchain. It provides a complete example of how to build a dialect on top of the H-hat core.
-
-### `low_level/`
-The `low_level` package abstracts away the details of *quantum assembly languages and hardware backends*. It includes code generators that translate the H-hat intermediate representation into concrete low-level languages such as OpenQasm V2, and integrations that allow programs to be run on simulators or hardware. By isolating these components, the core IR and dialects remain decoupled from any particular assembly language or target platform.
-
-### `toolchian/`
-The `toolchain` package implements the **user-facing tooling** used to create, manage and run H-hat projects. It defines a command-line interface (CLI) built on the Typer framework for tasks such as scaffording a new project or file, executinga project and displaying help. Supporting modules handle creating project structures and integrating optional features like Jupyter notebook support and syntax highlighting.
+Subdirectory scope (conceptual — refer to local READMEs for expansion):
+* `core/`: Owns fundamental invariants. Defines data & control abstractions consumed by all other layers. Treated as the most stable boundary.
+* `dialects/`: Houses one or more domain-specific syntactic/semantic layers built atop `core`. Each dialect lowers into the same IR to ensure uniform backend interoperability.
+* `low_level/`: Encapsulates translation to concrete quantum (or hybrid) target languages and hardware/software backends. Keeps vendor / platform specifics out of `core` & dialect logic.
+* `toolchain/`: Provides operational entry points: command-line interface, project creation, optional notebook integration, and any workflow utilities.

@@ -85,9 +85,11 @@ class ResultPHF:
     _prime: int
     __slots__ = ("_a", "_r", "_n", "_prime")
 
-    def __init__(self, *, a: int, r: int):
+    def __init__(self, *, a: int, r: int, prime: int, n: int):
         self._a = a
         self._r = r
+        self._prime = prime
+        self._n = n
 
     @property
     def a(self) -> int:
@@ -104,6 +106,9 @@ class ResultPHF:
     @property
     def prime(self) -> int:
         return self._prime
+
+    def __repr__(self) -> str:
+        return f"PHF(a={self.a}, r={self.r}, prime={self.prime}, n={self.n})"
 
 
 def get_hash_with_args(value: int, a: int, r: int, n: int, prime: int) -> int:
@@ -181,7 +186,7 @@ def gen_phf(group_tuple: tuple[Hashable, ...]) -> tuple[tuple[Hashable, ...], Re
             res_list = _gen_res_a_r_phf(group_tuple, tuple_len, a, r, prime)
 
             if res_list:
-                return tuple(res_list), ResultPHF(a=a, r=r)
+                return tuple(res_list), ResultPHF(a=a, r=r, prime=prime, n=tuple_len)
 
     raise ValueError("could not find satisfactory parameter values to generate the PHF")
 

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import cProfile
+from copy import deepcopy
+from pstats import Stats, StatsProfile, SortKey
 import os
 import pytest
 import shutil
@@ -7,9 +10,9 @@ import shutil
 from pathlib import Path
 from typing import Callable
 
-from hhat_lang.dialects.heather.parsing.ir_visitor import parse
+from hhat_lang.core.code.new_ir import IRGraph, IRHash
+from hhat_lang.dialects.heather.parsing.ir_visitor import parse, parser_grammar_code
 
-# from hhat_lang.dialects.heather.parsing.run import parse_grammar
 from hhat_lang.toolchain.project.new import (
     create_new_project,
     create_new_type_file,
@@ -45,6 +48,9 @@ def types_ex_main05(files: tuple[Path, ...]) -> None:
 
     with open(files[3], "a") as f:
         f.write("type socket {raw:u32}")
+
+    with open(files[4], "a") as f:
+        f.write("type @sync_bool {@source:@bool @target:@bool}")
 
 
 def fns_ex_main05(files: tuple[Path, ...]) -> None:
@@ -107,6 +113,7 @@ def fns_ex_main05(files: tuple[Path, ...]) -> None:
                 "geometry/euclidian2",
                 "geometry/differential2",
                 "std/io",
+                "std/base",
             ),
             ("math",),
         ),
@@ -119,6 +126,11 @@ def test_parse_type_ir(
     type_files: tuple[str, ...],
     fn_files: tuple[str, ...],
 ) -> None:
+    # # uncomment below to enable cProfile-ing the code, to
+    # # check for time execution bottlenecks
+    # pr = cProfile.Profile()
+    # pr.enable()
+
     project_name = "parse-test"
     project_root = THIS / project_name
 
@@ -145,22 +157,50 @@ def test_parse_type_ir(
 
         shutil.copy(src=(THIS / file_name), dst=project_main_file_cp)
         os.remove(project_root / "src" / "main.hat")
-        shutil.move(project_main_file_cp, project_root / "src" / "main.hat")
+        shutil.move(project_main_file_cp, project_main_file)
 
         code = open(project_main_file.resolve(), "r").read()
-        # parser = parse_grammar()
 
         try:
-            print(f"[!] code:\n{code}\n")
-            # parse_tree = parser.parse(code)
-            # parsed_code = visit_parse_tree(parse_tree, ParserIRVisitor(project_root))
-            parsed_code = parse(code, project_root)
+            ir_graph = IRGraph()
+            parse(
+                parser_grammar_code,
+                code,
+                project_root,
+                project_main_file,
+                ir_graph
+            )
 
-            print(f"[!!] ir parsed: {parsed_code}")
+            ir_graph.build()
+            main_node = ir_graph.nodes[IRHash(project_main_file)]
+            assert ir_graph.nodes[ir_graph.main_node] == main_node
+
+            # # uncomment below for prints of the raw code and the IR graph
+            # print(f"\nnum nodes in the graph: {len(ir_graph.nodes)}")
+            # print(
+            #     f"main node has hash {ir_graph.main_node} and is on position"
+            #     f"{get_hash(hash(ir_graph.main_node), ir_graph.nodes.phf)}"
+            # )
+            # print(f"[!] code:\n{code}\n")
+            # print(f"ir graph:\n{ir_graph}")
 
         finally:
             pass
 
     finally:
+        # # comment the line below to avoid deleting the folder with the project;
+        # # useful for debugging possible project toolchain-related errors
         shutil.rmtree(project_root)
         pass
+
+        # # uncomment below to enable cProfile-ing the code, to
+        # # check for time execution bottlenecks
+        # pr.disable()
+        # pr.print_stats(sort=SortKey.CUMULATIVE)
+        # ps = Stats(pr).sort_stats(SortKey.CUMULATIVE)
+        #
+        # print(f"print callers:\n")
+        # ps.print_callers()
+        #
+        # print("print callees:\n")
+        # ps.print_callees()

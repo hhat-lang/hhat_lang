@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Mapping
 
 from hhat_lang.core.code.new_ir import build_reftable
 from hhat_lang.core.code.symbol_table import SymbolTable
@@ -12,6 +13,7 @@ from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
     BodyBlock,
     IR,
 )
+from hhat_lang.dialects.heather.parsing.utils import TypesDict, FnsDict
 
 
 def build_ir_module(
@@ -51,8 +53,8 @@ def build_ir_module(
 def build_ir(
     *,
     path: Path | str,
-    ref_types: dict[Symbol | CompositeSymbol, Path] | None = None,
-    ref_fns: dict[BaseFnCheck, Path] | None = None,
+    ref_types: Mapping[Symbol | CompositeSymbol, Path] | None = None,
+    ref_fns: Mapping[BaseFnCheck, Path] | None = None,
     types: tuple[BaseTypeDataStructure, ...] | None = None,
     fns: tuple[FnDef, ...] | None = None,
     main: BodyBlock | None = None,

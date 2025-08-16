@@ -3,7 +3,7 @@ program                     = imports* ((fns* main?) / (type_file*)) EOF
 imports                     = 'use' '(' (typeimport / fnimport)+ ')'
 typeimport                  = 'type' ':' ( single_import / many_import )
 fnimport                    = 'fn' ':' ( single_import / many_import )
-single_import               = composite_id_with_closure / id
+single_import               = composite_id_with_closure / full_id
 many_import                 = '[' single_import+ ']'
 
 type_file                   = 'type' ( typesingle / typestruct / typeenum / typeunion )
@@ -14,55 +14,55 @@ typeenum                    = simple_id '{' enummember* '}'
 typeunion                   = simple_id 'union' '{' unionmember* '}'
 enummember                  = simple_id / typestruct
 unionmember                 = typemember / typestruct / typeenum
-type_trait                  = 'trait' id '{' fns* '}'
-typespace                   = 'typespace' ( trait_id / id ) '{' fns* '}'
+type_trait                  = 'trait' full_id '{' fns* '}'
+typespace                   = 'typespace' ( trait_id / full_id ) '{' fns* '}'
 
-fns                         = 'fn' simple_id fnargs id? fn_body
+fns                         = 'fn' simple_id fnargs full_id? fn_body
 fnargs                      = '(' argtype* ')'
 argtype                     = simple_id ':' id_composite_value
-fn_body                     = '{' ( return / declareassign / declareassign_ds / declare / assignargs / assign_ds / assign / expr )* '}'
-return                      = "::" expr
-id_composite_value          = ( '[' id ']' ) / id
+fn_body                     = '{' ( fn_return / declareassign / declareassign_ds / declare / assignargs / assign_ds / assign / expr )* '}'
+fn_return                      = "::" expr
+id_composite_value          = ( '[' full_id ']' ) / full_id
 
 main                        = 'main' body
 
 body                        = '{' ( declareassign / declareassign_ds / declare / assign / expr)* '}'
-expr                        = cast / assign_ds / callwithargsoptions / callwithbodyoptions / callwithbody / call / array / id / literal
-declare                     = simple_id modifier? ':' id
-assign                      = id '=' expr
-assign_ds                   = id '.' '{' ( assignargs+ / expr+ ) '}'
-declareassign               = simple_id modifier? ':' id '=' expr
-declareassign_ds            = simple_id modifier? ':' id '=.' '{' assignargs+ '}'
-cast                        = ( call / literal / id ) '*' id
-call                        = (trait_id '.')? id '(' args ')' modifier?
+expr                        = cast / assign_ds / callwithargsoptions / callwithbodyoptions / callwithbody / call / array / full_id / literal
+declare                     = simple_id modifier? ':' full_id
+assign                      = full_id '=' expr
+assign_ds                   = full_id '.{' ( assignargs+ / expr+ ) '}'
+declareassign               = simple_id modifier? ':' full_id '=' expr
+declareassign_ds            = simple_id modifier? ':' full_id '=' '.{' assignargs+ '}'
+cast                        = ( call / literal / full_id ) '*' full_id
+call                        = (trait_id '.')? full_id '(' args ')' modifier?
 args                        = ( callargs / cast / call / valonly )*
 assignargs                  = ( composite_id / simple_id ) '=' expr
 callargs                    = simple_id '=' valonly
-valonly                     = array / id / literal
-option                      = (( call / array / id ) ':' ( body / expr ))
-callwithbodyoptions         = id '(' args ')' '{' option+ '}'
-callwithargsoptions         = id '(' option+ ')'
-callwithbody                = id '(' args ')' body
+valonly                     = array / full_id / literal
+option                      = (( call / array / full_id ) ':' ( body / expr ))
+callwithbodyoptions         = full_id '(' args ')' '{' option+ '}'
+callwithargsoptions         = full_id '(' option+ ')'
+callwithbody                = full_id '(' args ')' body
 
-array                       = '[' ( literal / composite_id_with_closure / id )* ']'
+array                       = '[' ( literal / composite_id_with_closure / full_id )* ']'
 
 simple_id                   = r'@?[a-zA-Z][a-zA-Z0-9\-_]*'
 composite_id                = simple_id ('.' simple_id)+
 composite_id_with_closure   = ( composite_id / simple_id ) '.' '{' ( composite_id_with_closure / composite_id / simple_id )+ '}'
-modifier                    = '<' (( valonly / callargs )+ / ref / pointer )) '>'
-trait_id                    = simple_id '#' id
-id                          = ( composite_id / simple_id ) modifier?
+modifier                    = '<' ( ref / pointer / ( callargs / valonly )+ ) '>'
+trait_id                    = simple_id '#' full_id
+full_id                     = ( composite_id / simple_id ) modifier?
 
 ref                         = '&'
 pointer                     = '*'
 
 literal                     = ( float / null / bool / str / int / q__bool / q__int ) (':' composite_id)?
-null                        = 'null'
-bool                        = 'true' / 'false'
-str                         = r'"([^"]*)"'
-int                         = r'-?([1-9]\d*|0)'
-float                       = r'-?\d+\.\d+'
-q__bool                     = '@true' / '@false'
-q__int                      = r'-?\@([1-9]\d*|0)'
+t_null                      = 'null'
+t_bool                      = 'true' / 'false'
+t_str                       = r'"([^"]*)"'
+t_int                       = r'-?([1-9]\d*|0)'
+t_float                     = r'-?\d+\.\d+'
+qt_bool                     = '@true' / '@false'
+qt_int                      = r'-?\@([1-9]\d*|0)'
 
 comment                     = ( r'\/\/([^\n]*)\n' ) / ( r'\/\-.*?\-\/' )

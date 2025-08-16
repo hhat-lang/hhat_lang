@@ -1,14 +1,15 @@
 use (
   type:[
     geometry.{euclidian2.{line plane} differential2.normal}
-    std.io.socket
+    std.{io.socket base.@sync_bool}
   ]
   fn:math.{sin floor}
 )
 
 main {
-  l:line =.{x=41}
+  l:line=.{x=41}
   p:plane
   p.{x=250 y=600}
   print(sin(0.0))
+  @d:@sync_bool=.{@source=@true @target=@false}
 }

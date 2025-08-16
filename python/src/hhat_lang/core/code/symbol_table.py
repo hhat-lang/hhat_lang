@@ -56,8 +56,8 @@ class TypeTable:
         return iter(self.table.items())
 
     def __repr__(self) -> str:
-        content = "\n      ".join(f"{v}" for v in self.table.values())
-        return f"\n  types:\n      {content}\n"
+        content = "\n        ".join(f"{v}" for v in self.table.values())
+        return f"\n    types:\n        {content}\n"
 
 
 class FnTable:
@@ -145,10 +145,10 @@ class FnTable:
         return iter((p, q) for v in self.table.values() for p, q in v.items())
 
     def __repr__(self) -> str:
-        content = "\n      ".join(
+        content = "\n        ".join(
             f"{k}:\n         {v}" for h in self.table.values() for k, v in h.items()
         )
-        return f"\n  fns:\n      {content}\n"
+        return f"\n    fns:\n        {content}\n"
 
 
 class SymbolTable:

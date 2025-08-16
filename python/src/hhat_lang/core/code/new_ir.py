@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import Any, Iterable, Iterator, Hashable
+from typing import Any, Iterable, Iterator, Hashable, Mapping
 
 from hhat_lang.core.code.abstract_new_ir import BaseIRBlock
 from hhat_lang.core.code.symbol_table import SymbolTable
@@ -87,7 +87,7 @@ class BaseIR(ABC):
         raise NotImplementedError()
 
 
-class BaseIRFlag(ABC, Enum):
+class BaseIRFlag(Enum):
     """
     Base for IR flag classes. It should be used to create enums for instructions,
     such as ``CALL``, ``DECLARE``, ``ASSIGN``, ``RETURN``, etc.
@@ -311,7 +311,15 @@ class IRHash:
         return False
 
     def __repr__(self) -> str:
-        return f"#{self._key[:-8]}/{self._uid}"
+        txt = Path()
+
+        for p in reversed(self._key.parts):
+            if p == "src":
+                break
+
+            txt = Path(p) / txt
+
+        return f"[{txt}#{str(self._uid)[-8:]}]"
 
 
 class IRNode:
@@ -360,8 +368,8 @@ class IRNode:
 
         return False
 
-    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck) -> bool:
-        return item in self._ir.module
+    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck | Path) -> bool:
+        return item in self._ir.module or item == self._path
 
     def __repr__(self) -> str:
         return f"Node({self.irhash})"
@@ -419,9 +427,6 @@ class NodeSet:
                     if _path == node.path and _symbol in node.ir.module:
                         return True
 
-            case _:
-                return False
-
         return False
 
     def __getitem__(self, item: IRHash | int) -> IRNode:
@@ -453,6 +458,7 @@ class IRGraph:
     _is_built: bool
     _nodes: NodeSet
     _tmp_nodes: tuple[IRNode, ...] | tuple
+    _main_node: IRHash
 
     def __init__(self):
         self._is_built = False
@@ -465,6 +471,10 @@ class IRGraph:
         return self._nodes
 
     @property
+    def main_node(self) -> IRHash:
+        return self._main_node
+
+    @property
     def is_built(self) -> bool:
         return self._is_built
 
@@ -474,6 +484,11 @@ class IRGraph:
         node = IRNode(ir)
         self._tmp_nodes += (node,)
         return node.irhash
+
+    def add_main_node(self, ir: BaseIR) -> IRHash:
+        """Add main IR to the graph node."""
+        self._main_node = self.add_node(ir)
+        return self._main_node
 
     def _check_refs(self) -> bool:
         """
@@ -510,6 +525,8 @@ class IRGraph:
 
     def update(self, cur_node_key: IRHash, new_node: BaseIR) -> None:
         """
+        TODO: implement it
+
         Update to a new node (IR module) from a given current node key (``IRHash``)
 
         Args:
@@ -517,8 +534,36 @@ class IRGraph:
             new_node:
         """
 
-        # TODO: implement it
         raise NotImplementedError()
+
+    def get_fns(self, module_path: Path, item: Symbol) -> tuple[BaseFnCheck, ...]:
+        for tmp_node in self._tmp_nodes:
+            if module_path == tmp_node.path and item in tmp_node.ir.module:
+                fns = tmp_node.ir.module.symbol_table.fn.get(item)
+
+                if isinstance(fns, dict):
+                    return tuple(fn for fn in fns)
+
+        raise ValueError(f"item {item} not found in ir node at {module_path}")
+
+    def __contains__(self, item: Any) -> bool:
+        if isinstance(item, Symbol | BaseFnCheck):
+
+            for tmp_node in self._tmp_nodes:
+                if item in tmp_node:
+                    return True
+
+        if isinstance(item, Path):
+            for tmp_node in self._tmp_nodes:
+                if item in tmp_node:
+                    return True
+
+        return False
+
+    def __repr__(self) -> str:
+        max_n = str(len(self.nodes))
+        txt = "".join(f"\nN#{'0'*(len(max_n) - len(str(n)))}{n}{k.ir}" for n, k in enumerate(self.nodes))
+        return f"==============\n=*=IR GRAPH=*=\n==============\n{txt}\n"
 
 
 ####################################
@@ -526,8 +571,8 @@ class IRGraph:
 ####################################
 
 def build_reftable(
-    types: dict[Symbol | CompositeSymbol, Path] | None = None,
-    fns: dict[BaseFnCheck, Path] | None = None,
+    types: Mapping[Symbol | CompositeSymbol, Path] | None = None,
+    fns: Mapping[BaseFnCheck, Path] | None = None,
 ) -> RefTable:
     types = types or dict()
     fns = fns or dict()

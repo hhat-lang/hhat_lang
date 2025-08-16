@@ -10,7 +10,7 @@ from hhat_lang.core.code.new_ir import (
     BaseIRFlag,
     BaseIRInstr,
     RefTable,
-    BaseIRModule,
+    BaseIRModule, IRHash,
 )
 from hhat_lang.core.code.abstract_new_ir import BaseIRBlock, BaseIRBlockFlag
 from hhat_lang.core.data.core import (
@@ -32,7 +32,6 @@ from hhat_lang.core.code.symbol_table import SymbolTable
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 from hhat_lang.core.types.builtin_types import builtins_types
 from hhat_lang.core.types.builtin_conversion import compatible_types
-from sandbox.new_ir_logic import symbol_table
 
 
 ###########################
@@ -496,10 +495,11 @@ class IRModule(BaseIRModule):
         self._main = main or BodyBlock()
 
     def __str__(self) -> str:
-        st_t = "\n      ".join(str(k) for k in self.symbol_table.type)
-        st_f = "\n      ".join(str(k) for k in self.symbol_table.fn)
-        main = "      ".join(str(k) for k in self.main)
-        return f"   - symbol table:\n      {st_t}\n      {st_f}\n   - main:\n      {main}\n"
+        st_t = f"{self.symbol_table.type}"
+        st_f = f"{self.symbol_table.fn}"
+        main = "\n      ".join(str(k) for k in self.main)
+
+        return f"  {IRHash(self._path)}\n    - symbol table:\n{st_t}{st_f}\n    - main:\n      {main}\n"
 
 
 class IR(BaseIR):
@@ -521,9 +521,9 @@ class IR(BaseIR):
             )
 
     def __repr__(self) -> str:
-        rt = "\n".join(f"    {t}:{t_def}" for t, t_def in self.ref_table.types)
-        rt += "\n".join(f"    {f}:{f_def}" for f, f_def in self.ref_table.fns)
-        return f"\n[ir/start]\nref table:\n{rt}module:\n{self.module}\n[ir/end]\n"
+        rtt = "\n".join(f"    {t}:{t_def}" for t, t_def in self.ref_table.types)
+        rft = "\n".join(f"    {f}:{f_def}" for f, f_def in self.ref_table.fns)
+        return f"\n=IR:start=\n  ref table:\n{rtt}\n{rft}\n  module:\n{self.module}=IR:end=\n"
 
 
 ##################

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from itertools import chain
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from arpeggio import (
     visit_parse_tree,
@@ -12,15 +12,17 @@ from arpeggio import (
     PTNodeVisitor,
     SemanticActionResults,
     Terminal,
+    ParserPython,
 )
 from arpeggio.cleanpeg import ParserPEG
 
 from hhat_lang.core.code.new_ir import IRGraph
-from hhat_lang.core.data.fn_def import FnDef, BaseFnCheck
+from hhat_lang.core.data.fn_def import FnDef
 from hhat_lang.core.imports.importer import FnImporter
 from hhat_lang.core.types.abstract_base import Size, BaseTypeDataStructure, QSize
 from hhat_lang.core.types.builtin_types import builtins_types
 from hhat_lang.core.types.core import SingleDS, StructDS, EnumDS
+from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir_builder import build_ir
 from hhat_lang.dialects.heather.grammar import WHITESPACE
 
 from hhat_lang.core.data.core import (
@@ -32,7 +34,6 @@ from hhat_lang.core.data.core import (
     CompositeWorkingData,
 )
 from hhat_lang.core.imports import TypeImporter
-from hhat_lang.core.code.symbol_table import TypeTable, FnTable
 from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
     IR,
     IRBlock,
@@ -50,8 +51,13 @@ from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
     ReturnBlock,
     DeclareAssignInstr,
 )
+from hhat_lang.dialects.heather.grammar.grammar import program, comment
 from hhat_lang.dialects.heather.parsing.utils import TypesDict, FnsDict, ImportDicts
 
+
+#########################
+# PARSING WITH PEG FILE #
+#########################
 
 def read_grammar() -> str:
     grammar_path = Path(__file__).parent.parent / "grammar" / "grammar.peg"
@@ -70,79 +76,117 @@ def parse_grammar() -> ParserPEG:
         comment_rule_name="comment",
         reduce_tree=False,
         ws=WHITESPACE,
+        memoization=True,
     )
 
 
-def parse(raw_code: str, project_root: Path | str, ir_graph: IRGraph) -> IR:
-    parser = parse_grammar()
-    parse_tree = parser.parse(raw_code)
-    return visit_parse_tree(parse_tree, ParserIRVisitor(project_root, ir_graph))
+############################
+# PARSING WITH PYTHON CODE #
+############################
+
+def parser_grammar_code() -> ParserPython:
+    return ParserPython(program, comment_def=comment, ws=WHITESPACE, memoization=True)
 
 
-def parse_file(file: str | Path, project_root: Path | str, ir_graph: IRGraph) -> IR:
-    with open(file, "r") as f:
-        data = f.read()
+###################
+# PARSER FUNCTION #
+###################
 
-    return parse(data, project_root, ir_graph)
+def parse(
+    grammar_parser: Callable[[], ParserPEG | ParserPython],
+    raw_code: str,
+    project_root: Path | str,
+    module_path: Path,
+    ir_graph: IRGraph
+) -> IR:
+    # parser = parse_grammar()
+    parse_tree = grammar_parser().parse(raw_code)
+    return visit_parse_tree(parse_tree, ParserIRVisitor(grammar_parser, project_root, module_path, ir_graph))
 
+
+###########################
+# PARSER IR VISITOR CLASS #
+###########################
 
 class ParserIRVisitor(PTNodeVisitor):
     """Visitor for parsing using IR code logic instead of AST's"""
 
     _root: Path
+    _module_path: Path
     _ir_graph: IRGraph
+    _grammar: Callable[[], ParserPEG | ParserPython]
 
-    def __init__(self, project_root: Path, ir_graph: IRGraph):
+    def __init__(
+        self,
+        grammar_parser: Callable[[], ParserPEG | ParserPython],
+        project_root: Path,
+        module_path: Path,
+        ir_graph: IRGraph
+    ):
         super().__init__()
+        self._grammar = grammar_parser
         self._root = project_root
+        self._module_path = module_path
         self._ir_graph = ir_graph
+
+    @property
+    def grammar(self) -> Callable[[], ParserPEG | ParserPython]:
+        return self._grammar
 
     @property
     def project_root(self) -> Path:
         return self._root
 
     @property
+    def module_path(self) -> Path:
+        return self._module_path
+
+    @property
     def ir_graph(self) -> IRGraph:
         return self._ir_graph
 
-    def visit_program(self, node: NonTerminal, child: SemanticActionResults) -> IR:
+    def visit_program(self, _: NonTerminal, child: SemanticActionResults) -> IR:
 
-        main = BodyBlock()
-        types = TypeTable()
-        fns = FnTable()
+        main = None
+        refs = [dict(), dict()]
+        types = ()
+        fns = ()
 
         for k in child:
             match k:
                 case IRBlock():
-                    # only main should be an IRBlock by now
                     if isinstance(k, BodyBlock):
                         main = k
 
-                    else:
-                        main.add(k)
-
                 case ImportDicts():
-                    # work on the types handler
-                    for p, v in k.types.items():
-                        types.add(name=p, data=v)
-
-                    # work on the functions handler
-                    for p, v in k.fns.items():
-                        for q, r in v.items():
-                            fns.add(fn_entry=q, data=r)
+                    refs[0].update(k.types)
+                    refs[1].update(k.fns)
 
                 case BaseTypeDataStructure():
-                    # types definitions from type files
-                    types.add(name=k.name, data=k)
+                    types += k,
 
                 case FnDef():
-                    fns.add(fn_entry=k.get_fn_check(), data=k)
+                    fns += k,
 
                 case _:
-                    print(f"[?] {k} ({type(k)})")
+                    print(f"[?] unknown child of type {type(k)}")
 
-        program = IR(main=main, types=types, fns=fns)
-        return program
+        visited_ir = build_ir(
+            path=self._module_path,
+            ref_types=refs[0],
+            ref_fns=refs[1],
+            types=types,
+            fns=fns,
+            main=main
+        )
+
+        if isinstance(main, BodyBlock):
+            self._ir_graph.add_main_node(visited_ir)
+
+        else:
+            self._ir_graph.add_node(visited_ir)
+
+        return visited_ir
 
     def visit_type_file(
         self, _: NonTerminal, child: SemanticActionResults
@@ -282,21 +326,18 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_declareassign_ds(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> Any:
-        if len(child) == 3:
-            return DeclareAssignInstr(
-                var=child[0], var_type=child[1], value=ArgsBlock(*child[2:])
-            )
-
-        if len(child) == 4:
+        if isinstance(child[1], ModifierArgsBlock):
             return DeclareAssignInstr(
                 var=ModifierBlock(obj=child[0], args=child[1]),
                 var_type=child[2],
-                value=child[3],
+                value=ArgsBlock(*child[3:]) if len(child) > 4 else child[3]
             )
 
-        raise ValueError("declaring and assigning cannot contain more than 4 elements")
+        return DeclareAssignInstr(
+            var=child[0], var_type=child[1], value=ArgsBlock(*child[2:])
+        )
 
-    def visit_return(self, _: NonTerminal, child: SemanticActionResults) -> ReturnBlock:
+    def visit_fn_return(self, _: NonTerminal, child: SemanticActionResults) -> ReturnBlock:
         return ReturnBlock(*child)
 
     def visit_expr(
@@ -453,10 +494,10 @@ class ParserIRVisitor(PTNodeVisitor):
         for k in child:
             match k:
                 case TypesDict():
-                    types.update({p: q for p, q in k.items()})
+                    types.update(k)
 
                 case FnsDict():
-                    fns.update({p: q for p, q in k.items()})
+                    fns.update(k)
 
         parsed_imports = ImportDicts(types=types, fns=fns)
         return parsed_imports
@@ -466,10 +507,10 @@ class ParserIRVisitor(PTNodeVisitor):
     ) -> TypesDict:
         if isinstance(child[0], tuple):
             types = TypesDict()
-            importer = TypeImporter(self._root, parse, self.ir_graph)
-            res = importer.import_types(child[0])
+            importer = TypeImporter(self._root, self._grammar, parse)
+            res = importer.import_types(child[0], self._ir_graph)
 
-            for k, v in zip(child[0], res.values()):
+            for k, v in res.items():
                 types[k] = v
 
             return types
@@ -479,14 +520,11 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_fnimport(self, _: NonTerminal, child: SemanticActionResults) -> FnsDict:
         if isinstance(child[0], tuple):
             fns = FnsDict()
-            importer = FnImporter(self._root, parse)
-            res = importer.import_fns(child[0])
+            importer = FnImporter(self._root, self._grammar, parse)
+            res = importer.import_fns(child[0], self._ir_graph)
 
-            for vals in res.values():
-                for p, q in vals.items():
-                    if isinstance(p, BaseFnCheck):
-                        names = tuple(k.arg for k in q.args)
-                        fns[p.transform(fn_type=q.type, args_names=names)] = q
+            for k, v in res.items():
+                fns[k] = v
 
             return fns
 
@@ -516,7 +554,7 @@ class ParserIRVisitor(PTNodeVisitor):
     ) -> tuple[CompositeSymbol, ...] | tuple:
         return _flatten_recursive_closure(child)
 
-    def visit_id(
+    def visit_full_id(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> Symbol | CompositeSymbol | ModifierBlock:
         if len(child) == 1:
@@ -570,28 +608,28 @@ class ParserIRVisitor(PTNodeVisitor):
     ) -> CompositeLiteral:
         raise NotImplementedError("complex type not implemented yet")
 
-    def visit_null(self, node: Terminal, _: None) -> CoreLiteral:
+    def visit_t_null(self, node: Terminal, _: None) -> CoreLiteral:
         return CoreLiteral(value=node.value, lit_type="null")
 
-    def visit_bool(self, node: Terminal, _: None) -> CoreLiteral:
+    def visit_t_bool(self, node: Terminal, _: None) -> CoreLiteral:
         return CoreLiteral(value=node.value, lit_type="bool")
 
-    def visit_str(self, node: NonTerminal, _: None) -> CoreLiteral:
+    def visit_t_str(self, node: NonTerminal, _: None) -> CoreLiteral:
         return CoreLiteral(value=node.value, lit_type="str")
 
-    def visit_int(self, node: Terminal, _: None) -> CoreLiteral:
+    def visit_t_int(self, node: Terminal, _: None) -> CoreLiteral:
         return CoreLiteral(value=node.value, lit_type="int")
 
-    def visit_float(self, node: Terminal, _: None) -> CoreLiteral:
+    def visit_t_float(self, node: Terminal, _: None) -> CoreLiteral:
         return CoreLiteral(value=node.value, lit_type="float")
 
-    def visit_imag(self, node: Terminal, _: None) -> CoreLiteral:
+    def visit_t_imag(self, node: Terminal, _: None) -> CoreLiteral:
         return CoreLiteral(value=node.value, lit_type="imag")
 
-    def visit_q__bool(self, node: Terminal, _: None) -> CoreLiteral:
+    def visit_qt_bool(self, node: Terminal, _: None) -> CoreLiteral:
         return CoreLiteral(value=node.value, lit_type="@bool")
 
-    def visit_q__int(self, node: Terminal, _: None) -> CoreLiteral:
+    def visit_qt_int(self, node: Terminal, _: None) -> CoreLiteral:
         return CoreLiteral(value=node.value, lit_type="@int")
 
 

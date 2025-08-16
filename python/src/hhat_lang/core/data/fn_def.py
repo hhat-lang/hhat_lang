@@ -153,7 +153,7 @@ class BaseFnCheck:
         return self._hash_value
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, BaseFnKey | BaseFnCheck):
+        if isinstance(other, BaseFnCheck):
             return hash(self) == hash(other)
 
         return False
@@ -235,21 +235,10 @@ class FnDef:
     def fn_check(self) -> BaseFnCheck:
         return self._fn_check
 
-    def get_fn_entry(self) -> BaseFnKey:
-        return BaseFnKey(
-            fn_name=self.name,
-            fn_type=self.type,
-            args_types=self.arg_values,
-            args_names=self.arg_names,
-        )
-
-    def get_fn_check(self) -> BaseFnCheck:
-        return self._fn_check
-
     def __repr__(self) -> str:
         args = " ".join(str(k) for k in self.args)
         fn_header = (
-            f"FN-DEF#:NAME#[{self.name}] ARGS#[{args}] TYPE#[{self.type or 'null'}]"
+            f"FN-DEF NAME[{self.name}] ARGS[{args}] TYPE[{self.type or 'null'}]"
         )
         body = "\n            ".join(str(k) for k in self.body)
         return f"{fn_header}" + "\n            " + f"{body}" + "\n"

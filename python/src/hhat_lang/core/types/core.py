@@ -77,6 +77,10 @@ class SingleDS(BaseTypeDataStructure):
             flag=flag,
         )
 
+    def __repr__(self) -> str:
+        member = "".join(str(k) for k in self._type_container.values())
+        return f"{self.name}<single>:{member}"
+
 
 class ArrayDS(BaseTypeDataStructure):
     """This is an array data structure, to be thought as [u64] to represent an array of u64."""

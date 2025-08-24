@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Any, Iterable, Sized, cast
+from typing import Any, Iterable, Iterator, Sized, cast
 
-from hhat_lang.core.code.abstract_new_ir import BaseIRBlock
+from hhat_lang.core.code.new_ir import BaseIRBlock
 from hhat_lang.core.data.core import (
     CompositeSymbol,
     CompositeWorkingData,
@@ -35,7 +35,7 @@ class BaseFnKey:
 
     """
 
-    _name: Symbol
+    _name: Symbol | CompositeSymbol
     _type: Symbol | CompositeSymbol
     _args_types: tuple | tuple[Symbol | CompositeSymbol, ...]
     _args_names: tuple | tuple[Symbol, ...]
@@ -45,7 +45,7 @@ class BaseFnKey:
 
     def __init__(
         self,
-        fn_name: Symbol,
+        fn_name: Symbol | CompositeSymbol,
         fn_type: Symbol | CompositeSymbol,
         args_names: tuple | tuple[Symbol, ...],
         args_types: tuple | tuple[Symbol | CompositeSymbol, ...],
@@ -53,7 +53,7 @@ class BaseFnKey:
 
         # check correct types for each argument before proceeding
         assert (
-            isinstance(fn_name, Symbol)
+            isinstance(fn_name, Symbol | CompositeSymbol)
             and isinstance(fn_type, Symbol | CompositeSymbol)
             and all(isinstance(k, Symbol) for k in args_names)
             and all(isinstance(p, Symbol | CompositeSymbol) for p in args_types)
@@ -70,7 +70,7 @@ class BaseFnKey:
         self._hash_value = hash((hash(self._name), hash(self._args_types)))
 
     @property
-    def name(self) -> Symbol:
+    def name(self) -> Symbol | CompositeSymbol:
         return self._name
 
     @property
@@ -97,7 +97,7 @@ class BaseFnKey:
     def has_args(self, args: tuple[Symbol, ...]) -> bool:
         return set(self._args_names) == set(args)
 
-    def __iter__(self) -> Iterable:
+    def __iter__(self) -> Iterator[tuple[Symbol, Symbol | CompositeSymbol]]:
         return iter(zip(self.args_names, self.args_types))
 
     def __repr__(self) -> str:
@@ -155,7 +155,7 @@ class BaseFnCheck:
             f"cannot transform FnKey with fn type {fn_type} and args {args_names}"
         )
 
-    def check_args_types(self, *values: Iterable) -> bool:
+    def check_args_types(self, *values: Symbol | CompositeSymbol) -> bool:
         """Check whether ``*values`` have the same values as in function args types"""
 
         return len(values) == len(self._args_types) and all(
@@ -238,9 +238,9 @@ class FnDef:
     @lru_cache
     def arg_names(self) -> tuple[WorkingData | CompositeWorkingData, ...]:
         if hasattr(self._args, "args"):
-            return self._args.args
+            return self._args.args  # type: ignore [return-value]
 
-        return tuple(k.arg for k in self.args)
+        raise ValueError(f"wrong arg names from function definition {self._name}")
 
     @property
     @lru_cache
@@ -248,7 +248,7 @@ class FnDef:
         if hasattr(self._args, "values"):
             return self._args.values
 
-        return tuple(k.value for k in self._args)
+        raise ValueError(f"wrong arg values from function definition {self._name}")
 
     @property
     def fn_check(self) -> BaseFnCheck:

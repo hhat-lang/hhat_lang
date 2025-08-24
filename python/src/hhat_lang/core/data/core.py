@@ -149,7 +149,7 @@ class Symbol(WorkingData):
     def __init__(self, value: str, symbol_type: str | None = None):
         self._value = value
         self._type = symbol_type or "`symbol"
-        self._is_quantum = True if value.startswith("@") else False
+        self._is_quantum = value.startswith("@")
         self._suppress_type = True
         super().__init__()
 
@@ -163,7 +163,7 @@ class CompositeSymbol(CompositeWorkingData):
         self._group = value
         self._type = "str"
         self._group_type = CompositeGroup.SymbolAttrs
-        self._is_quantum = True if value[-1].startswith("@") else False
+        self._is_quantum = value[-1].startswith("@")
         self._suppress_type = True
         super().__init__()
 
@@ -190,6 +190,7 @@ class CoreLiteral(WorkingData):
                     raise ValueError(
                         f"Literal got incompatible {value} value and type {lit_type}."
                     )
+                self._is_quantum = lit_type.startswith("@")
 
             case tuple():
                 if (value.startswith("@") and not lit_type[-1].startswith("@")) or (
@@ -198,10 +199,10 @@ class CoreLiteral(WorkingData):
                     raise ValueError(
                         f"Literal got incompatible {value} value and type {lit_type}."
                     )
+                self._is_quantum = lit_type[-1].startswith("@")
 
         self._value = value
         self._type = lit_type
-        self._is_quantum = True if lit_type.startswith("@") else False
         self._suppress_type = False
         super().__init__()
 

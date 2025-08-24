@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from hhat_lang.core.code.ir import BaseIR
+from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import IRBlock
 
 
 class Evaluator:
-    def __init__(self, code: BaseIR):
-        if isinstance(code, BaseIR):
+    def __init__(self, code: IRBlock):
+        if isinstance(code, IRBlock):
             self._code = code
 
         else:

@@ -36,7 +36,6 @@ from __future__ import annotations
 
 from typing import Any, Type
 
-from hhat_lang.core.code.ir import BlockIR
 from hhat_lang.core.code.symbol_table import SymbolTable
 from hhat_lang.core.data.core import WorkingData
 from hhat_lang.core.error_handlers.errors import ErrorHandler
@@ -64,7 +63,7 @@ class Program(BaseProgram):
         qlang: Type[  # type: ignore [type-arg]
             BaseLowLevelQLang[
                 WorkingData,
-                IRBlock | BlockIR,
+                IRBlock,
                 IndexManager,
                 BaseEvaluator,
                 Stack,

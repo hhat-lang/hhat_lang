@@ -28,7 +28,7 @@ class If(CInstr):
     name = "if"
 
     @staticmethod
-    def _instr(cond_test: str, instr: str) -> str:
+    def _instr(cond_test: str | tuple[str, ...], instr: str | tuple[str, ...]) -> str:
         return f"if({cond_test}) {instr};"
 
     def _translate_instrs(
@@ -45,27 +45,33 @@ class If(CInstr):
         transformed_instrs: tuple[str, ...] = ()
 
         for c, i in zip(cond_test, instrs):
-            c_value: str
+            c_value: str | tuple[str, ...]
 
             match c:
                 case BaseDataContainer():
                     c_value = c.name.value
+
                 case CoreLiteral() | Symbol():
                     c_value = c.value
+
                 case CompositeLiteral() | CompositeMixData():
                     raise NotImplementedError()
+
                 case _:
                     raise NotImplementedError()
 
-            i_value: str
+            i_value: str | tuple[str, ...]
 
             match i:
                 case BaseDataContainer():
                     i_value = i.name.value
+
                 case CoreLiteral() | Symbol():
                     i_value = i.value
+
                 case CompositeLiteral() | CompositeMixData():
                     raise NotImplementedError()
+
                 case _:
                     raise NotImplementedError()
 
@@ -212,9 +218,11 @@ class QNez(QInstr):
         match mask:
             case CoreLiteral():
                 lit = mask
+
             case Symbol() if mask.value in ("@true", "@false"):
                 bool_val = "@1" if mask.value == "@true" else "@0"
                 lit = CoreLiteral(bool_val, "@bool")
+
             case BaseDataContainer() | Symbol():
                 if executor is None:
                     return Error(IndexUnknownError())
@@ -233,6 +241,7 @@ class QNez(QInstr):
                     return Error(IndexUnknownError())
 
                 lit = val
+
             case _:
                 return Error(IndexUnknownError())
 
@@ -264,11 +273,13 @@ class QNez(QInstr):
         match mask_res:
             case Ok():
                 mask_idxs = mask_res.result()
+
             case Error():
                 # error while obtaining mask indexes
                 return (
                     mask_res.result(),
                 ), InstrStatus.ERROR  # type: ignore[return-value]
+
             case _:
                 return tuple(), InstrStatus.ERROR
 

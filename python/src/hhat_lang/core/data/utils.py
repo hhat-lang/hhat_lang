@@ -14,7 +14,7 @@ class VariableKind(Enum):
 
 def isquantum(data: Any) -> bool:
     if isinstance(data, str):
-        return True if data.startswith("@") else False
+        return data.startswith("@")
 
     if hasattr(data, "is_quantum"):
         return data.is_quantum

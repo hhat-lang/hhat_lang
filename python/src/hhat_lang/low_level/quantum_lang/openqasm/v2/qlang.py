@@ -5,7 +5,6 @@ import inspect
 from typing import Any, Callable, Iterable, cast
 
 from hhat_lang.core.code.instructions import QInstrFlag
-from hhat_lang.core.code.ir import BlockIR, InstrIR
 from hhat_lang.core.code.utils import InstrStatus
 from hhat_lang.core.data.core import (
     CompositeLiteral,
@@ -17,22 +16,13 @@ from hhat_lang.core.data.core import (
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
-    # HeapInvalidKeyError,
     InstrNotFoundError,
     InstrStatusError,
 )
 from hhat_lang.core.execution.abstract_base import BaseEvaluator
 from hhat_lang.core.lowlevel.abstract_qlang import BaseLowLevelQLang
-
-# from hhat_lang.core.memory.core import IndexManager, MemoryManager
 from hhat_lang.core.utils import Error, Ok, Result
-
-# from hhat_lang.dialects.heather.code.ast import Literal
-# from hhat_lang.dialects.heather.code.simple_ir_builder.ir import (
-#     IRArgs,
-#     IRBlock,
-#     IRInstr,
-# )
+from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import IRBlock, IRInstr
 
 
 class LowLeveQLang(BaseLowLevelQLang):
@@ -124,7 +114,7 @@ class LowLeveQLang(BaseLowLevelQLang):
                     # TODO: implement it
                     raise NotImplementedError()
 
-                case InstrIR():
+                case IRInstr():
                     match res := self.gen_instrs(instr=data, executor=self._executor):
                         case Ok():
                             code_tuple += res.result()
@@ -172,7 +162,7 @@ class LowLeveQLang(BaseLowLevelQLang):
                     # TODO: implement it
                     raise NotImplementedError()
 
-                case InstrIR():
+                case IRInstr():
 
                     match instr_res := self.gen_instrs(instr=k, **kwargs):
                         case Ok():
@@ -191,7 +181,7 @@ class LowLeveQLang(BaseLowLevelQLang):
         return Ok(code_tuple)
 
     def gen_instrs(
-        self, *, instr: InstrIR | BlockIR, **kwargs: Any
+        self, *, instr: IRInstr | IRBlock, **kwargs: Any
     ) -> Result | ErrorHandler:
         """
         Transforms each of the instructions into an OpenQASM v2 code or
@@ -206,7 +196,7 @@ class LowLeveQLang(BaseLowLevelQLang):
             A tuple with OpenQASM v2 code strings
         """
 
-        if not isinstance(instr, InstrIR):
+        if not isinstance(instr, IRInstr):
             return InstrNotFoundError(getattr(instr, "name", None))
 
         instr_module = importlib.import_module(

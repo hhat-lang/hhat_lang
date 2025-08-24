@@ -127,8 +127,8 @@ def test_parse_type_ir(
 ) -> None:
     # # uncomment below to enable cProfile-ing the code, to
     # # check for time execution bottlenecks
-    # pr = cProfile.Profile()
-    # pr.enable()
+    pr = cProfile.Profile()
+    pr.enable()
 
     project_name = "parse-test"
     project_root = THIS / project_name
@@ -195,8 +195,8 @@ def test_parse_type_ir(
 
         # # uncomment below to enable cProfile-ing the code, to
         # # check for time execution bottlenecks
-        # pr.disable()
-        # pr.print_stats(sort=SortKey.CUMULATIVE)
+        pr.disable()
+        pr.print_stats(sort=SortKey.CUMULATIVE)
         # ps = Stats(pr).sort_stats(SortKey.CUMULATIVE)
         #
         # print(f"print callers:\n")

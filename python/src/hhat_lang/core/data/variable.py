@@ -20,7 +20,7 @@ from hhat_lang.core.utils import SymbolOrdered
 class BaseDataContainer(AbstractDataContainer):
     """Data container for constant and variables definitions."""
 
-    _name: Symbol
+    _name: Symbol | CompositeSymbol
     _type: Symbol | CompositeSymbol
     _ds: SymbolOrdered
     """_ds: data from data structure, e.g. member types and names"""
@@ -53,7 +53,7 @@ class BaseDataContainer(AbstractDataContainer):
     """if the data is borrowed somewhere else"""
 
     @property
-    def name(self) -> Symbol:
+    def name(self) -> Symbol | CompositeSymbol:
         """name of the variable"""
         return self._name
 
@@ -134,13 +134,17 @@ class BaseDataContainer(AbstractDataContainer):
 
         raise NotImplementedError()
 
-    def _get_data_type(self, data: WorkingData) -> Symbol:
+    def _get_data_type(self, data: WorkingData) -> Symbol | CompositeSymbol:
         match data:
             case Symbol():
                 return data
 
             case CoreLiteral():
-                return Symbol(data.type)
+                return (
+                    Symbol(data.type)
+                    if isinstance(data.type, str)
+                    else CompositeSymbol(data.type)
+                )
 
             case _:
                 raise NotImplementedError()
@@ -310,7 +314,7 @@ class VariableTemplate:
 
     def __new__(
         cls,
-        var_name: Symbol,
+        var_name: Symbol | CompositeSymbol,
         type_name: Symbol | CompositeSymbol,
         ds_data: SymbolOrdered,
         ds_type: BaseTypeEnum,
@@ -347,7 +351,7 @@ class VariableTemplate:
 class ConstantData(BaseDataContainer):
     def __init__(
         self,
-        var_name: Symbol,
+        var_name: Symbol | CompositeSymbol,
         type_name: Symbol | CompositeSymbol,
         ds_data: SymbolOrdered,
         ds_type: BaseTypeEnum,
@@ -389,7 +393,7 @@ class ConstantData(BaseDataContainer):
 class ImmutableVariable(BaseDataContainer):
     def __init__(
         self,
-        var_name: Symbol,
+        var_name: Symbol | CompositeSymbol,
         type_name: Symbol | CompositeSymbol,
         ds_data: SymbolOrdered,
         ds_type: BaseTypeEnum,
@@ -456,7 +460,7 @@ class ImmutableVariable(BaseDataContainer):
 class MutableVariable(BaseDataContainer):
     def __init__(
         self,
-        var_name: Symbol,
+        var_name: Symbol | CompositeSymbol,
         type_name: Symbol | CompositeSymbol,
         ds_data: SymbolOrdered,
         ds_type: BaseTypeEnum,
@@ -523,7 +527,7 @@ class MutableVariable(BaseDataContainer):
 class AppendableVariable(BaseDataContainer):
     def __init__(
         self,
-        var_name: Symbol,
+        var_name: Symbol | CompositeSymbol,
         type_name: Symbol | CompositeSymbol,
         ds_data: SymbolOrdered,
         ds_type: BaseTypeEnum,

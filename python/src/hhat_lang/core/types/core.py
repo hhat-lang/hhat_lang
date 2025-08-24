@@ -62,7 +62,7 @@ class SingleDS(BaseTypeDataStructure):
     def __call__(
         self,
         *,
-        var_name: Symbol,
+        var_name: Symbol | CompositeSymbol,
         flag: VariableKind = VariableKind.IMMUTABLE,
         **_: Any,
     ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
@@ -148,7 +148,11 @@ class StructDS(BaseTypeDataStructure):
         return self
 
     def __call__(
-        self, *, var_name: Symbol, flag: VariableKind = VariableKind.IMMUTABLE, **_: Any
+        self,
+        *,
+        var_name: Symbol | CompositeSymbol,
+        flag: VariableKind = VariableKind.IMMUTABLE,
+        **_: Any,
     ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,
@@ -206,7 +210,11 @@ class EnumDS(BaseTypeDataStructure):
         raise NotImplementedError()
 
     def __call__(
-        self, *, var_name: Symbol, flag: VariableKind = VariableKind.IMMUTABLE, **_: Any
+        self,
+        *,
+        var_name: Symbol | CompositeSymbol,
+        flag: VariableKind = VariableKind.IMMUTABLE,
+        **_: Any,
     ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,
@@ -227,7 +235,7 @@ class RemoteUnionDS(BaseTypeDataStructure):
         raise NotImplementedError()
 
     def __call__(
-        self, *, var_name: Symbol, flag: VariableKind, **kwargs: Any
+        self, *, var_name: Symbol | CompositeSymbol, flag: VariableKind, **kwargs: Any
     ) -> BaseDataContainer | ErrorHandler:
         raise NotImplementedError()
 
@@ -254,7 +262,11 @@ class UnionDS(BaseTypeDataStructure):
         raise NotImplementedError()
 
     def __call__(
-        self, *, var_name: Symbol, flag: VariableKind = VariableKind.IMMUTABLE, **_: Any
+        self,
+        *,
+        var_name: Symbol | CompositeSymbol,
+        flag: VariableKind = VariableKind.IMMUTABLE,
+        **_: Any,
     ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,

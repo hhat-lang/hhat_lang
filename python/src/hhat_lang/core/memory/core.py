@@ -5,10 +5,11 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict, deque
 from copy import deepcopy
 from enum import Enum, auto
+from idlelib.configdialog import is_int
 from typing import Any, Hashable, Iterator, cast
 from uuid import UUID
 
-from hhat_lang.core.code.abstract_new_ir import BaseIRBlock
+from hhat_lang.core.code.new_ir import BaseIRBlock
 from hhat_lang.core.data.core import (
     CompositeLiteral,
     CompositeMixData,
@@ -236,7 +237,8 @@ class StackFrame:
     """Stack memory frame. To be used inside ``Stack`` instance whenever a new scope is needed"""
 
     _data: OrderedDict[
-        WorkingData | BaseFnCheck, BaseDataContainer | CoreLiteral | None
+        WorkingData | CompositeSymbol | BaseFnCheck,
+        BaseDataContainer | CoreLiteral | None,
     ]
     _fn_header: BaseFnCheck | None
     _for_fn_use: bool
@@ -246,21 +248,27 @@ class StackFrame:
         self._for_fn_use = for_fn_use
 
     @property
-    def keys(self) -> tuple[WorkingData, ...] | tuple:
+    def keys(
+        self,
+    ) -> tuple[WorkingData | CompositeWorkingData | BaseFnCheck, ...] | tuple:
         return tuple(self._data.keys())
 
     @property
     def for_fn_use(self) -> bool:
         return self._for_fn_use
 
-    def add_no_assign(self, key: WorkingData) -> None:
+    def add_no_assign(self, key: Symbol | CompositeSymbol) -> None:
         if key not in self._data and isinstance(key, WorkingData):
             self._data[key] = None
 
-    def add(self, key: WorkingData, value: BaseDataContainer | CoreLiteral) -> None:
+    def add(
+        self,
+        key: Symbol | CompositeSymbol | CoreLiteral,
+        value: BaseDataContainer | CoreLiteral,
+    ) -> None:
         if (
-            isinstance(key, WorkingData)
-            and (key not in self._data or self._data[key] is None)
+            isinstance(key, Symbol | CompositeSymbol | CoreLiteral)
+            and (key not in self._data or self._data[key] is None)  # type: ignore [index]
             and isinstance(value, BaseDataContainer | CoreLiteral)
         ):
             self._data[key] = value
@@ -271,9 +279,22 @@ class StackFrame:
         if isinstance(header, BaseFnCheck):
             self._fn_header = header
 
-    def _check_fn_args_types(self, *values_types: Symbol | CompositeSymbol) -> bool:
+    def _check_fn_args_types(
+        self, *values_types: BaseDataContainer | CoreLiteral
+    ) -> bool:
         if self._for_fn_use:
-            return cast(BaseFnCheck, self._fn_header).check_args_types(*values_types)
+            return all(
+                cast(BaseFnCheck, self._fn_header).check_args_types(
+                    k.type
+                    if isinstance(k, BaseDataContainer)
+                    else (
+                        Symbol(k.type)
+                        if isinstance(k.type, str)
+                        else CompositeSymbol(k.type)
+                    )
+                )
+                for k in values_types
+            )
 
         sys.exit(StackFrameNotFnError()())
 
@@ -302,7 +323,9 @@ class StackFrame:
         # if no function-use stack frame defined, error is raised
         sys.exit(StackFrameNotFnError()())
 
-    def get(self, item: WorkingData) -> BaseDataContainer | CoreLiteral | ErrorHandler:
+    def get(
+        self, item: WorkingData | CompositeSymbol | BaseFnCheck
+    ) -> BaseDataContainer | CoreLiteral | ErrorHandler:
         return self._data.get(item) or StackFrameGetError(item)
 
     def __contains__(self, item: Any) -> bool:
@@ -344,12 +367,14 @@ class Stack:
         """Push ``data`` into current stack's frame as its new last item"""
 
         if isinstance(data, BaseDataContainer):
-            self._data[-1].add(data.name, data)
+            self._data[-1].add(data.name, data)  # type: ignore [arg-type]
 
         else:
             self._data[-1].add(data, data)
 
-    def get(self, item: WorkingData) -> BaseDataContainer | CoreLiteral:
+    def get(
+        self, item: WorkingData | CompositeWorkingData
+    ) -> BaseDataContainer | CoreLiteral:
         """Retrieves data from the current stack frame"""
 
         match res := self._data[-1].get(item):

@@ -16,7 +16,7 @@ from hhat_lang.core.types.builtin_base import BuiltinSingleDS, int_types
 # COMPATIBLE CONVERTABLE TYPES #
 ###################################
 
-compatible_types = {
+compatible_types: dict[Symbol, tuple[Symbol, ...]] = {
     Symbol("int"): (
         Symbol("u16"),
         Symbol("u32"),

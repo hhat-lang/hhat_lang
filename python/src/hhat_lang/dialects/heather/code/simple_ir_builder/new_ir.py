@@ -6,9 +6,10 @@ from enum import auto
 from pathlib import Path
 from typing import Any, cast
 
-from hhat_lang.core.code.abstract_new_ir import BaseIRBlock, BaseIRBlockFlag
 from hhat_lang.core.code.new_ir import (
     BaseIR,
+    BaseIRBlock,
+    BaseIRBlockFlag,
     BaseIRFlag,
     BaseIRInstr,
     BaseIRModule,
@@ -170,14 +171,20 @@ class CallInstr(IRInstr):
     def resolve(
         self, mem: MemoryManager, node: IRNode, ir_graph: IRGraph, **_: Any
     ) -> None:
-        caller: Symbol | CompositeSymbol | ModifierBlock = cast(
-            Symbol | CompositeSymbol | ModifierBlock, self.args[0]
+        caller: Symbol | CompositeSymbol = (
+            self.args[0]  # type: ignore [assignment]
+            if isinstance(self.args[0], Symbol | CompositeSymbol)
+            else (
+                self.args[0].name
+                if isinstance(self.args[0], ModifierBlock)
+                else sys.exit("call instr error")
+            )
         )
         args: tuple = self.args[1:]
         num_args: int = len(args)
         resolved_args = _handle_call_args(*args, mem=mem, node=node, ir_graph=ir_graph)
 
-        fn_header = BaseFnCheck(fn_name=caller, args_types=())
+        fn_header = BaseFnCheck(fn_name=caller, args_types=resolved_args)
         mem.stack.new(for_fn_use=True)
         mem.stack.set_fn_entry(*args, fn_header=fn_header)
         _handle_call_instr(
@@ -211,7 +218,10 @@ class DeclareInstr(IRInstr):
         self, mem: MemoryManager, node: IRNode, ir_graph: IRGraph, **_: Any
     ) -> None:
         var: Symbol | ModifierBlock = cast(Symbol | ModifierBlock, self.args[0])
-        _declare_variable(var=var, mem=mem, node_hash=node.irhash, ir_graph=ir_graph)
+        var_type_symbol: Symbol | CompositeSymbol = cast(
+            Symbol | CompositeSymbol, self.args[1]
+        )
+        _declare_variable(var, var_type_symbol, mem, node.irhash, ir_graph)
 
 
 class AssignInstr(IRInstr):
@@ -231,7 +241,9 @@ class AssignInstr(IRInstr):
                 f"value must be working data or composite working data, got {type(value)}"
             )
 
-    def resolve(self, mem: MemoryManager, **_: Any) -> None:
+    def resolve(
+        self, mem: MemoryManager, node: IRNode, ir_graph: IRGraph, **_: Any
+    ) -> None:
         var: Symbol = cast(Symbol, self.args[0])
         variable = mem.scope.heap[mem.cur_scope].get(var)
         mem.scope.stack[mem.cur_scope].push(self.args[1])
@@ -246,7 +258,7 @@ class AssignInstr(IRInstr):
         # # set new arguments
         # self.args = (self.args[0], *new_args)
 
-        _assign_variable(variable=variable, mem=mem)
+        _assign_variable(variable=variable, mem=mem, node=node, ir_graph=ir_graph)
 
 
 class DeclareAssignInstr(IRInstr):
@@ -276,10 +288,13 @@ class DeclareAssignInstr(IRInstr):
         self, mem: MemoryManager, node: IRNode, ir_graph: IRGraph, **_: Any
     ) -> None:
         var: Symbol = cast(Symbol, self.args[0])
-        _declare_variable(var=var, mem=mem, node_hash=node.irhash, ir_graph=ir_graph)
-        variable: BaseDataContainer = mem.stack.get(var)
-        mem.stack.push(self.args[2])
-        _assign_variable(variable=variable, mem=mem)
+        var_type_symbol: Symbol | CompositeSymbol = cast(
+            Symbol | CompositeSymbol, self.args[1]
+        )
+        _declare_variable(var, var_type_symbol, mem, node.irhash, ir_graph)
+        variable: BaseDataContainer = cast(BaseDataContainer, mem.stack.get(var))
+        mem.stack.push(variable)
+        _assign_variable(variable=variable, mem=mem, node=node, ir_graph=ir_graph)
 
 
 ####################
@@ -398,7 +413,7 @@ class ArgsValuesBlock(IRBlock):
 class OptionBlock(IRBlock):
     _name = IRBlockFlag.OPTION
 
-    args: (
+    args: (  # type: ignore [assignment]
         tuple[
             tuple[WorkingData | CompositeWorkingData | IRBlock | IRInstr, ...],
             IRBlock | IRInstr,
@@ -485,7 +500,7 @@ class ModifierBlock(IRBlock):
 class ModifierArgsBlock(IRBlock):
     _name = IRBlockFlag.MODIFIER_ARGS
 
-    args: tuple[Symbol | CompositeSymbol, ...] | ArgsValuesBlock | ArgsBlock
+    args: tuple[Symbol | CompositeSymbol, ...] | ArgsValuesBlock | ArgsBlock  # type: ignore [assignment]
 
     def __init__(
         self, args: tuple[Symbol | CompositeSymbol, ...] | ArgsValuesBlock | ArgsBlock
@@ -582,7 +597,8 @@ class IR(BaseIR):
 
 
 def _declare_variable(
-    var: Symbol | ModifierBlock,
+    var: Symbol | CompositeSymbol | ModifierBlock,
+    var_type_symbol: Symbol | CompositeSymbol,
     mem: MemoryManager,
     node_hash: IRHash,
     ir_graph: IRGraph,
@@ -593,17 +609,23 @@ def _declare_variable(
 
     Args:
         var: the actual variable; must be a ``Symbol`` or ``ModifierBlock`` object
+        var_type_symbol:
         mem: ``MemoryManager`` object
+        node_hash:
+        ir_graph:
     """
 
     # we just need the variable for now
-    var = var.args[0] if isinstance(var, ModifierBlock) else var
+    var_symbol = cast(
+        Symbol | CompositeSymbol, var.args[0] if isinstance(var, ModifierBlock) else var
+    )
     # TODO: make use of the modifier property through a new code logic later
 
-    if var in mem.stack:
-        raise ValueError(f"{var} already in scope memory; cannot re-declare variable")
+    if var_symbol in mem.stack:
+        raise ValueError(
+            f"{var_symbol} already in scope memory; cannot re-declare variable"
+        )
 
-    var_type_symbol = mem.stack.get(var).type
     var_type = get_type(
         node_key=node_hash, importing=var_type_symbol, ir_graph=ir_graph
     )
@@ -616,7 +638,7 @@ def _declare_variable(
 
         case BaseTypeDataStructure():
             var_container = var_type(
-                var_name=var,
+                var_name=var_symbol,
                 # TODO: use the modifier to define variable flag and define a default as well
                 flag=VariableKind.MUTABLE,
             )
@@ -690,11 +712,15 @@ def _get_assign_datatype(
             )
 
         case CoreLiteral():
-            data_type = Symbol(value.type)
-            data_type = compatible_types.get(data_type, None) or (data_type,)
+            data_type = (
+                Symbol(value.type)
+                if isinstance(value.type, str)
+                else CompositeSymbol(value.type)
+            )
+            data_type_tuple = compatible_types.get(data_type, None) or (data_type,)  # type: ignore [arg-type]
 
-            if var_type in data_type:
-                dt_ds = builtins_types.get(data_type)
+            if var_type in data_type_tuple:
+                dt_ds = builtins_types.get(data_type)  # type: ignore [arg-type]
 
                 if dt_ds:
                     mem.symbol.type.add(data_type, dt_ds)
@@ -710,7 +736,9 @@ def _get_assign_datatype(
             )
 
         case IRInstr():
-            new_args = ()
+            new_args: (
+                tuple[WorkingData | CompositeWorkingData | BaseDataContainer] | tuple
+            ) = ()
 
             for k in value:
                 new_args += (
@@ -744,7 +772,7 @@ def _get_assign_datatype(
                     ),
                 )
 
-            new_instr = value.__class__(*new_blocks)
+            new_instr = cast(IRInstr, value.__class__(*new_blocks))
             new_instr.resolve(mem=mem, node=node, ir_graph=ir_graph)
 
             return mem.scope.stack[mem.cur_scope].pop()
@@ -753,9 +781,7 @@ def _get_assign_datatype(
 
             # FIXME: properly address option block
 
-            new_blocks: (
-                tuple[WorkingData | CompositeWorkingData | BaseDataContainer] | tuple
-            ) = ()
+            new_blocks = ()
 
             for k in value:
                 new_blocks += (
@@ -768,7 +794,7 @@ def _get_assign_datatype(
                     ),
                 )
 
-            new_instr = value.__class__(*new_blocks)
+            new_instr = cast(IRInstr, value.__class__(*new_blocks))
             new_instr.resolve(mem=mem, node=node, ir_graph=ir_graph)
 
         case _:

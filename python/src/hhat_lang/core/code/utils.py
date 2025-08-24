@@ -30,8 +30,8 @@ def check_quantum_type_correctness(names: tuple[str, ...]) -> None:
                 f"Cannot have a quantum attribute from a classical symbol."
             )
 
-        prev_quantum = True if cur_quantum else False
-        cur_quantum = True if name.startswith("@") else False
+        prev_quantum = cur_quantum
+        cur_quantum = name.startswith("@")
 
 
 #######################################

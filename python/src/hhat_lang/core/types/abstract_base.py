@@ -159,7 +159,7 @@ class BaseTypeDataStructure(AbstractDataTypeStructure):
     def __call__(
         self,
         *,
-        var_name: Symbol,
+        var_name: Symbol | CompositeSymbol,
         flag: VariableKind,
         **kwargs: Any,
     ) -> AbstractDataContainer | ErrorHandler:

@@ -1,22 +1,21 @@
 from __future__ import annotations
 
 import cProfile
-from copy import deepcopy
-from pstats import Stats, StatsProfile, SortKey
 import os
-import pytest
 import shutil
-
+from copy import deepcopy
 from pathlib import Path
+from pstats import SortKey, Stats, StatsProfile
 from typing import Callable
 
+import pytest
 from hhat_lang.core.code.new_ir import IRGraph, IRHash
+from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
 from hhat_lang.dialects.heather.parsing.ir_visitor import parse, parser_grammar_code
-
 from hhat_lang.toolchain.project.new import (
+    create_new_file,
     create_new_project,
     create_new_type_file,
-    create_new_file,
 )
 
 THIS = Path(__file__).parent
@@ -165,10 +164,11 @@ def test_parse_type_ir(
             ir_graph = IRGraph()
             parse(
                 parser_grammar_code,
+                fn_program,
                 code,
                 project_root,
                 project_main_file,
-                ir_graph
+                ir_graph,
             )
 
             ir_graph.build()
@@ -182,7 +182,7 @@ def test_parse_type_ir(
             #     f"{get_hash(hash(ir_graph.main_node), ir_graph.nodes.phf)}"
             # )
             # print(f"[!] code:\n{code}\n")
-            # print(f"ir graph:\n{ir_graph}")
+            # print(f"\nir graph:\n{ir_graph}")
 
         finally:
             pass

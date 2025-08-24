@@ -3,8 +3,8 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Any, Iterable
 
-from hhat_lang.core.data.core import Symbol, CompositeSymbol
-from hhat_lang.core.data.fn_def import BaseFnKey, BaseFnCheck, FnDef
+from hhat_lang.core.data.core import CompositeSymbol, Symbol
+from hhat_lang.core.data.fn_def import BaseFnCheck, BaseFnKey, FnDef
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
 
@@ -34,7 +34,7 @@ class TypeTable:
 
     def get(
         self, name: Symbol | CompositeSymbol, default: Any | None = None
-    ) -> BaseTypeDataStructure | Any | None:
+    ) -> BaseTypeDataStructure | None:
         return self.table.get(name, default)
 
     def __hash__(self) -> int:
@@ -46,7 +46,12 @@ class TypeTable:
 
         return False
 
-    def __contains__(self, item: Symbol | CompositeSymbol) -> bool:
+    def __getitem__(
+        self, item: Symbol | CompositeSymbol
+    ) -> BaseTypeDataStructure | None:
+        return self.get(item)
+
+    def __contains__(self, item: Any) -> bool:
         return item in self.table
 
     def __len__(self) -> int:
@@ -57,7 +62,7 @@ class TypeTable:
 
     def __repr__(self) -> str:
         content = "\n        ".join(f"{v}" for v in self.table.values())
-        return f"\n    types:\n        {content}\n"
+        return f"\n    - types:\n        {content}\n"
 
 
 class FnTable:
@@ -78,7 +83,7 @@ class FnTable:
     @property
     def table(
         self,
-    ) -> OrderedDict[Symbol | CompositeSymbol, dict[BaseFnKey | BaseFnCheck, FnDef]]:
+    ) -> OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef]]:
         return self._table
 
     def add(self, fn_entry: BaseFnCheck, data: FnDef) -> None:
@@ -127,7 +132,7 @@ class FnTable:
 
         return False
 
-    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck) -> bool:
+    def __contains__(self, item: Any) -> bool:
         match item:
             case Symbol() | CompositeSymbol():
                 return item in self._table
@@ -146,9 +151,9 @@ class FnTable:
 
     def __repr__(self) -> str:
         content = "\n        ".join(
-            f"{k}:\n         {v}" for h in self.table.values() for k, v in h.items()
+            f"{k}:\n          {v}" for h in self.table.values() for k, v in h.items()
         )
-        return f"\n    fns:\n        {content}\n"
+        return f"\n    - fns:\n        {content}"
 
 
 class SymbolTable:

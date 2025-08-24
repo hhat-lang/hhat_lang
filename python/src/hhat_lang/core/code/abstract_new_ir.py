@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Iterable
 
+from hhat_lang.core.data.core import CompositeWorkingData, WorkingData
+
 
 class BaseIRBlock(ABC):
     """
@@ -11,7 +13,7 @@ class BaseIRBlock(ABC):
     """
 
     _name: BaseIRBlockFlag
-    args: tuple
+    args: tuple[WorkingData | CompositeWorkingData, ...] | BaseIRBlock
 
     @property
     def name(self) -> BaseIRBlockFlag:

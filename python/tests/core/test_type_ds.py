@@ -2,16 +2,15 @@ from __future__ import annotations
 
 from collections import OrderedDict
 
-from hhat_lang.core.data.core import CoreLiteral, Symbol, CompositeSymbol
+from hhat_lang.core.data.core import CompositeSymbol, CoreLiteral, Symbol
 from hhat_lang.core.error_handlers.errors import (
     TypeAndMemberNoMatchError,
     TypeQuantumOnClassicalError,
     VariableWrongMemberError,
 )
 from hhat_lang.core.types.builtin_types import QU3, U32, U64
-from hhat_lang.core.types.core import SingleDS, StructDS, EnumDS
+from hhat_lang.core.types.core import EnumDS, SingleDS, StructDS
 from hhat_lang.core.types.utils import BaseTypeEnum
-
 
 # TODO: refactor the types to use `BuiltinSingleDS` or respective data
 #  types so properties can be compared and addressed properly.

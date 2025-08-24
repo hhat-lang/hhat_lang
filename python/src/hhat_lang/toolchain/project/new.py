@@ -7,13 +7,13 @@ from pathlib import Path
 from typing import Any
 
 from hhat_lang.toolchain.project import (
+    DOCS_FOLDER_NAME,
+    DOCS_TYPES_PATH,
+    MAIN_DOC_FILE_NAME,
+    MAIN_FILE_NAME,
     SOURCE_FOLDER_NAME,
     SOURCE_TYPES_PATH,
-    DOCS_TYPES_PATH,
-    DOCS_FOLDER_NAME,
     TESTS_FOLDER_NAME,
-    MAIN_FILE_NAME,
-    MAIN_DOC_FILE_NAME,
 )
 from hhat_lang.toolchain.project.utils import str_to_path
 
@@ -64,7 +64,7 @@ def _create_template_files(project_name: Path) -> Any:
 
 def create_new_file(project_name: str | Path, file_name: str | Path) -> Any:
     project_name = str_to_path(project_name)
-    file_name = file_name + ".hat"
+    file_name = str(file_name) + ".hat"
     doc_file = (
         file_name + ".md"
     )  # file_name.parent.parent / DOCS_FOLDER_NAME / (file_name.name + ".md")
@@ -85,7 +85,7 @@ def create_new_file(project_name: str | Path, file_name: str | Path) -> Any:
 
 def create_new_type_file(project_name: str | Path, file_name: str | Path) -> Any:
     project_name = str_to_path(project_name)
-    file_name = file_name + ".hat"
+    file_name = str(file_name) + ".hat"
     doc_file = file_name + ".md"
 
     file_path = project_name / SOURCE_TYPES_PATH / file_name

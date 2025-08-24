@@ -2,16 +2,15 @@ from __future__ import annotations
 
 from typing import cast
 
-from hhat_lang.core.data.core import Symbol, CoreLiteral, WorkingData
+from hhat_lang.core.data.core import CoreLiteral, Symbol, WorkingData
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import (
-    ErrorHandler,
-    CastNegToUnsignedError,
-    CastIntOverflowError,
     CastError,
+    CastIntOverflowError,
+    CastNegToUnsignedError,
+    ErrorHandler,
 )
 from hhat_lang.core.types.builtin_base import BuiltinSingleDS, int_types
-
 
 ###################################
 # COMPATIBLE CONVERTABLE TYPES #
@@ -61,7 +60,7 @@ def int_to_uN(
                     case ErrorHandler():
                         return val
 
-                    case WorkingData():
+                    case CoreLiteral():
                         if val < 0:
                             return CastNegToUnsignedError(val, ds.members[0][1])
 

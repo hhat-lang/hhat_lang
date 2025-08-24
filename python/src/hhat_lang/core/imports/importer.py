@@ -2,43 +2,82 @@ from __future__ import annotations
 
 from abc import ABC
 from pathlib import Path
-from typing import Iterable, cast, Callable
+from typing import Callable, Iterable, cast
 
 from arpeggio import ParserPython
 from arpeggio.cleanpeg import ParserPEG
 
 from hhat_lang.core.code.new_ir import BaseIR, IRGraph
-from hhat_lang.core.data.core import Symbol, CompositeSymbol
+from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.data.fn_def import BaseFnCheck
-from hhat_lang.toolchain.project import SOURCE_TYPES_PATH, SOURCE_FOLDER_NAME
+from hhat_lang.toolchain.project import SOURCE_FOLDER_NAME, SOURCE_TYPES_PATH
 
 
 class BaseImporter(ABC):
     _base: Path
     _project_root: Path
-    _parser_fn: Callable[[Callable[[], ParserPEG | ParserPython], str, Path, Path, IRGraph], BaseIR]
-    _grammar_parser: Callable[[], ParserPEG | ParserPython]
+    _parser_fn: Callable[
+        [
+            Callable[[Callable], ParserPEG | ParserPython],
+            Callable,
+            str,
+            Path,
+            Path,
+            IRGraph,
+        ],
+        BaseIR,
+    ]
+    _grammar_parser: Callable[[Callable], ParserPEG | ParserPython]
+    _program_rule: Callable
 
     def __init__(
         self,
         project_root: Path,
-        grammar_parser: Callable[[], ParserPEG | ParserPython],
-        parser_fn: Callable[[Callable[[], ParserPEG | ParserPython], str, Path, Path, IRGraph], BaseIR],
+        grammar_parser: Callable[[Callable], ParserPEG | ParserPython],
+        program_rule: Callable,
+        parser_fn: Callable[
+            [
+                Callable[[Callable], ParserPEG | ParserPython],
+                Callable,
+                str,
+                Path,
+                Path,
+                IRGraph,
+            ],
+            BaseIR,
+        ],
     ) -> None:
         self._project_root = project_root
         self._grammar_parser = grammar_parser
         self._parser_fn = parser_fn
+        self._program_rule = program_rule
 
     @property
     def project_root(self) -> Path:
         return self._project_root
 
     @property
-    def grammar_parser(self) -> Callable[[], ParserPEG | ParserPython]:
+    def grammar_parser(self) -> Callable[[Callable], ParserPEG | ParserPython]:
         return self._grammar_parser
 
     @property
-    def parser_fn(self) -> Callable[[Callable[[], ParserPEG | ParserPython], str, Path, Path, IRGraph], BaseIR]:
+    def program_rule(self) -> Callable:
+        return self._program_rule
+
+    @property
+    def parser_fn(
+        self,
+    ) -> Callable[
+        [
+            Callable[[Callable], ParserPEG | ParserPython],
+            Callable,
+            str,
+            Path,
+            Path,
+            IRGraph,
+        ],
+        BaseIR,
+    ]:
         return self._parser_fn
 
     @classmethod
@@ -58,15 +97,19 @@ class BaseImporter(ABC):
         return dirs, file_name, Symbol(importer_name)
 
     def _get_module_path(self, *path: Path | str) -> Path:
-        return Path().joinpath(self._base, *path[:-1], path[-1] + ".hat")
+        return Path().joinpath(self._base, *path[:-1], str(path[-1]) + ".hat")
 
     def _add_module(self, module_path: Path, ir_graph: IRGraph) -> None:
         """To add a new IR module to the graph based on the ``module_path``"""
         raw_code: str = module_path.read_text()
         self._parser_fn(
-            self._grammar_parser, raw_code, self._project_root, module_path, ir_graph
+            self._grammar_parser,
+            self._program_rule,
+            raw_code,
+            self._project_root,
+            module_path,
+            ir_graph,
         )
-        # ir_graph.add_node(new_ir)
 
 
 class TypeImporter(BaseImporter):
@@ -81,11 +124,12 @@ class TypeImporter(BaseImporter):
     def __init__(
         self,
         project_root: Path,
-        grammar_parser: Callable[[], ParserPEG | ParserPython],
-        parser_fn: Callable
+        grammar_parser: Callable[[Callable], ParserPEG | ParserPython],
+        program_rule: Callable,
+        parser_fn: Callable,
     ):
         self._base = Path(project_root).resolve() / SOURCE_TYPES_PATH
-        super().__init__(project_root, grammar_parser, parser_fn)
+        super().__init__(project_root, grammar_parser, program_rule, parser_fn)
 
     def _retrieve_type_reference(
         self,
@@ -123,11 +167,12 @@ class FnImporter(BaseImporter):
     def __init__(
         self,
         project_root: Path,
-        grammar_parser: Callable[[], ParserPEG | ParserPython],
-        parser_fn: Callable
+        grammar_parser: Callable[[Callable], ParserPEG | ParserPython],
+        program_rule: Callable,
+        parser_fn: Callable,
     ):
         self._base = Path(project_root).resolve() / SOURCE_FOLDER_NAME
-        super().__init__(project_root, grammar_parser, parser_fn)
+        super().__init__(project_root, grammar_parser, program_rule, parser_fn)
 
     def _retrieve_fn_reference(
         self,
@@ -158,7 +203,7 @@ class FnImporter(BaseImporter):
         self,
         names: Iterable[CompositeSymbol],
         ir_graph: IRGraph,
-    ) ->  dict[BaseFnCheck, Path]:
+    ) -> dict[BaseFnCheck, Path]:
         res: tuple | tuple[tuple[BaseFnCheck, Path]] = ()
 
         for name in names:

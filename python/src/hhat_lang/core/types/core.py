@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from hhat_lang.core.data.core import CompositeSymbol, Symbol, WorkingData
 from hhat_lang.core.data.utils import VariableKind, has_same_paradigm, isquantum
@@ -9,9 +9,8 @@ from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
     TypeAndMemberNoMatchError,
     TypeQuantumOnClassicalError,
-    TypeSingleError,
-    TypeStructError,
 )
+from hhat_lang.core.types import POINTER_SIZE
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure, QSize, Size
 from hhat_lang.core.types.utils import BaseTypeEnum
 from hhat_lang.core.utils import SymbolOrdered
@@ -42,8 +41,8 @@ class SingleDS(BaseTypeDataStructure):
         qsize: QSize | None = None,
     ):
         super().__init__(name)
-        self._size = size
-        self._qsize = qsize
+        self._size = size or Size(POINTER_SIZE)
+        self._qsize = qsize or QSize(0)
         self._type_container: SymbolOrdered = SymbolOrdered()
         self._ds_type = BaseTypeEnum.SINGLE
 
@@ -66,7 +65,7 @@ class SingleDS(BaseTypeDataStructure):
         var_name: Symbol,
         flag: VariableKind = VariableKind.IMMUTABLE,
         **_: Any,
-    ) -> BaseDataContainer | ErrorHandler:
+    ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,
             type_name=self.name,
@@ -92,8 +91,8 @@ class ArrayDS(BaseTypeDataStructure):
         qsize: QSize | None = None,
     ):
         super().__init__(name, array_type=True)
-        self._size = size
-        self._qsize = qsize
+        self._size = size or Size(POINTER_SIZE)
+        self._qsize = qsize or QSize(0)
         self._type_container: SymbolOrdered = SymbolOrdered()
 
     def add_member(self, member_type: Any, member_name: Any) -> Any | ErrorHandler:
@@ -122,8 +121,8 @@ class StructDS(BaseTypeDataStructure):
         qsize: QSize | None = None,
     ):
         super().__init__(name)
-        self._size = size
-        self._qsize = qsize
+        self._size = size or Size(POINTER_SIZE)
+        self._qsize = qsize or QSize(0)
         self._type_container: SymbolOrdered = SymbolOrdered()
         self._ds_type = BaseTypeEnum.STRUCT
 
@@ -150,7 +149,7 @@ class StructDS(BaseTypeDataStructure):
 
     def __call__(
         self, *, var_name: Symbol, flag: VariableKind = VariableKind.IMMUTABLE, **_: Any
-    ) -> BaseDataContainer | ErrorHandler:
+    ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,
             type_name=self._name,
@@ -176,8 +175,8 @@ class EnumDS(BaseTypeDataStructure):
         qsize: QSize | None = None,
     ):
         super().__init__(name)
-        self._size = size
-        self._qsize = qsize
+        self._size = size or Size(POINTER_SIZE)
+        self._qsize = qsize or QSize(0)
         self._type_container = SymbolOrdered()
         self._ds_type = BaseTypeEnum.ENUM
 
@@ -187,7 +186,7 @@ class EnumDS(BaseTypeDataStructure):
                 return member
 
             case BaseTypeDataStructure():
-                return member.name
+                return cast(Symbol, member.name)
 
             case _:
                 raise NotImplementedError()
@@ -208,7 +207,7 @@ class EnumDS(BaseTypeDataStructure):
 
     def __call__(
         self, *, var_name: Symbol, flag: VariableKind = VariableKind.IMMUTABLE, **_: Any
-    ) -> BaseDataContainer | ErrorHandler:
+    ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,
             type_name=self._name,
@@ -243,8 +242,8 @@ class UnionDS(BaseTypeDataStructure):
         qsize: QSize | None = None,
     ):
         super().__init__(name)
-        self._size = size
-        self._qsize = qsize
+        self._size = size or Size(POINTER_SIZE)
+        self._qsize = qsize or QSize(0)
         self._type_container = SymbolOrdered()
         self._ds_type = BaseTypeEnum.UNION
 
@@ -256,7 +255,7 @@ class UnionDS(BaseTypeDataStructure):
 
     def __call__(
         self, *, var_name: Symbol, flag: VariableKind = VariableKind.IMMUTABLE, **_: Any
-    ) -> BaseDataContainer | ErrorHandler:
+    ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,
             type_name=self._name,

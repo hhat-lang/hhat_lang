@@ -37,7 +37,7 @@ class WorkingData:
     """
 
     _value: str
-    _type: str
+    _type: str | tuple[str, ...]
     _is_quantum: bool
     _suppress_type: bool
     _hash_value: int
@@ -51,7 +51,7 @@ class WorkingData:
         return self._value
 
     @property
-    def type(self) -> str:
+    def type(self) -> str | tuple[str, ...]:
         return self._type
 
     @property
@@ -181,13 +181,23 @@ class CoreLiteral(WorkingData):
     Any defined literal by the dialect.
     """
 
-    def __init__(self, value: str, lit_type: str):
-        if (value.startswith("@") and not lit_type.startswith("@")) or (
-            not value.startswith("@") and lit_type.startswith("@")
-        ):
-            raise ValueError(
-                f"Literal got incompatible {value} value and type {lit_type}."
-            )
+    def __init__(self, value: str, lit_type: str | tuple[str, ...]):
+        match lit_type:
+            case str():
+                if (value.startswith("@") and not lit_type.startswith("@")) or (
+                    not value.startswith("@") and lit_type.startswith("@")
+                ):
+                    raise ValueError(
+                        f"Literal got incompatible {value} value and type {lit_type}."
+                    )
+
+            case tuple():
+                if (value.startswith("@") and not lit_type[-1].startswith("@")) or (
+                    not value.startswith("@") and lit_type[-1].startswith("@")
+                ):
+                    raise ValueError(
+                        f"Literal got incompatible {value} value and type {lit_type}."
+                    )
 
         self._value = value
         self._type = lit_type
@@ -225,8 +235,8 @@ class CoreLiteral(WorkingData):
 
         return False
 
-    def __eq__(self, other: Any) -> bool:
-        return self._op_bitwise("__eq__", other)
+    # def __eq__(self, other: Any) -> bool:
+    #     return self._op_bitwise("__eq__", other)
 
     def __le__(self, other) -> bool:
         return self._op_bitwise("__le__", other)

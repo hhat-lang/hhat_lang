@@ -4,60 +4,61 @@ from __future__ import annotations
 
 from itertools import chain
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 
 from arpeggio import (
-    visit_parse_tree,
     NonTerminal,
+    ParserPython,
     PTNodeVisitor,
     SemanticActionResults,
     Terminal,
-    ParserPython,
+    visit_parse_tree,
 )
-from arpeggio.cleanpeg import ParserPEG
 
 from hhat_lang.core.code.new_ir import IRGraph
-from hhat_lang.core.data.fn_def import FnDef
-from hhat_lang.core.imports.importer import FnImporter
-from hhat_lang.core.types.abstract_base import Size, BaseTypeDataStructure, QSize
-from hhat_lang.core.types.builtin_types import builtins_types
-from hhat_lang.core.types.core import SingleDS, StructDS, EnumDS
-from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir_builder import build_ir
-from hhat_lang.dialects.heather.grammar import WHITESPACE
-
 from hhat_lang.core.data.core import (
-    CoreLiteral,
-    WorkingData,
     CompositeLiteral,
-    Symbol,
     CompositeSymbol,
     CompositeWorkingData,
+    CoreLiteral,
+    Symbol,
+    WorkingData,
 )
+from hhat_lang.core.data.fn_def import BaseFnCheck, FnDef
+from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.core.imports import TypeImporter
+from hhat_lang.core.imports.importer import FnImporter
+from hhat_lang.core.types.abstract_base import BaseTypeDataStructure, QSize, Size
+from hhat_lang.core.types.builtin_types import builtins_types
+from hhat_lang.core.types.core import EnumDS, SingleDS, StructDS
 from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
     IR,
-    IRBlock,
-    IRInstr,
-    CallInstr,
-    CastInstr,
-    AssignInstr,
-    DeclareInstr,
     ArgsBlock,
     ArgsValuesBlock,
-    ModifierBlock,
-    ModifierArgsBlock,
+    AssignInstr,
     BodyBlock,
+    CallInstr,
+    CastInstr,
+    DeclareAssignInstr,
+    DeclareInstr,
+    IRBlock,
+    IRInstr,
+    ModifierArgsBlock,
+    ModifierBlock,
     OptionBlock,
     ReturnBlock,
-    DeclareAssignInstr,
 )
-from hhat_lang.dialects.heather.grammar.grammar import program, comment
-from hhat_lang.dialects.heather.parsing.utils import TypesDict, FnsDict, ImportDicts
-
+from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir_builder import build_ir
+from hhat_lang.dialects.heather.grammar import WHITESPACE
+from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
+from hhat_lang.dialects.heather.grammar.generic_grammar import comment
+from hhat_lang.dialects.heather.grammar.type_grammar import type_program
+from hhat_lang.dialects.heather.parsing.utils import FnsDict, ImportDicts, TypesDict
 
 #########################
 # PARSING WITH PEG FILE #
 #########################
+
 
 def read_grammar() -> str:
     grammar_path = Path(__file__).parent.parent / "grammar" / "grammar.peg"
@@ -68,45 +69,46 @@ def read_grammar() -> str:
     raise ValueError("No grammar found on the grammar directory.")
 
 
-def parse_grammar() -> ParserPEG:
-    grammar = read_grammar()
-    return ParserPEG(
-        language_def=grammar,
-        root_rule_name="program",
-        comment_rule_name="comment",
-        reduce_tree=False,
-        ws=WHITESPACE,
-        memoization=True,
-    )
-
-
 ############################
 # PARSING WITH PYTHON CODE #
 ############################
 
-def parser_grammar_code() -> ParserPython:
-    return ParserPython(program, comment_def=comment, ws=WHITESPACE, memoization=True)
+
+def parser_grammar_code(program_fn: Callable) -> ParserPython:
+    return ParserPython(
+        program_fn, comment_def=comment, ws=WHITESPACE, memoization=True
+    )
 
 
 ###################
 # PARSER FUNCTION #
 ###################
 
+
 def parse(
-    grammar_parser: Callable[[], ParserPEG | ParserPython],
+    grammar_parser: Callable[[Callable], ParserPython],
+    program_rule: Callable,
     raw_code: str,
-    project_root: Path | str,
+    project_root: Path,
     module_path: Path,
-    ir_graph: IRGraph
+    ir_graph: IRGraph,
 ) -> IR:
-    # parser = parse_grammar()
-    parse_tree = grammar_parser().parse(raw_code)
-    return visit_parse_tree(parse_tree, ParserIRVisitor(grammar_parser, project_root, module_path, ir_graph))
+    parse_tree = grammar_parser(program_rule).parse(raw_code)
+    return visit_parse_tree(
+        parse_tree,
+        ParserIRVisitor(
+            grammar_parser,
+            project_root,
+            module_path,
+            ir_graph,
+        ),
+    )
 
 
 ###########################
 # PARSER IR VISITOR CLASS #
 ###########################
+
 
 class ParserIRVisitor(PTNodeVisitor):
     """Visitor for parsing using IR code logic instead of AST's"""
@@ -114,14 +116,14 @@ class ParserIRVisitor(PTNodeVisitor):
     _root: Path
     _module_path: Path
     _ir_graph: IRGraph
-    _grammar: Callable[[], ParserPEG | ParserPython]
+    _grammar: Callable[[Callable], ParserPython]
 
     def __init__(
         self,
-        grammar_parser: Callable[[], ParserPEG | ParserPython],
+        grammar_parser: Callable[[Callable], ParserPython],
         project_root: Path,
         module_path: Path,
-        ir_graph: IRGraph
+        ir_graph: IRGraph,
     ):
         super().__init__()
         self._grammar = grammar_parser
@@ -130,7 +132,7 @@ class ParserIRVisitor(PTNodeVisitor):
         self._ir_graph = ir_graph
 
     @property
-    def grammar(self) -> Callable[[], ParserPEG | ParserPython]:
+    def grammar(self) -> Callable[[Callable], ParserPython]:
         return self._grammar
 
     @property
@@ -145,12 +147,40 @@ class ParserIRVisitor(PTNodeVisitor):
     def ir_graph(self) -> IRGraph:
         return self._ir_graph
 
-    def visit_program(self, _: NonTerminal, child: SemanticActionResults) -> IR:
+    def visit_type_program(self, _: NonTerminal, child: SemanticActionResults) -> IR:
+        refs: dict[Symbol | CompositeSymbol, Path] = dict()
+        types: tuple[BaseTypeDataStructure, ...] | tuple = ()
 
-        main = None
-        refs = [dict(), dict()]
-        types = ()
-        fns = ()
+        for k in child:
+            match k:
+                case ImportDicts():
+                    refs.update(k.types)
+
+                case BaseTypeDataStructure():
+                    types += (k,)
+
+                case _:
+                    print(f"[type-program] ?? {type(k)}")
+
+        visited_ir = build_ir(
+            path=self._module_path,
+            ref_types=refs,
+            ref_fns=dict(),
+            types=types,
+            fns=(),
+            main=None,
+        )
+
+        self._ir_graph.add_node(visited_ir)
+
+        return visited_ir
+
+    def visit_fn_program(self, _: NonTerminal, child: SemanticActionResults) -> IR:
+        main: BodyBlock | None = None
+        ref_types: dict[Symbol | CompositeSymbol, Path] = dict()
+        ref_fns: dict[BaseFnCheck, Path] = dict()
+        types: tuple[BaseTypeDataStructure, ...] | tuple = ()
+        fns: tuple[FnDef, ...] | tuple = ()
 
         for k in child:
             match k:
@@ -159,25 +189,25 @@ class ParserIRVisitor(PTNodeVisitor):
                         main = k
 
                 case ImportDicts():
-                    refs[0].update(k.types)
-                    refs[1].update(k.fns)
+                    ref_types.update(k.types)
+                    ref_fns.update(k.fns)
 
                 case BaseTypeDataStructure():
-                    types += k,
+                    types += (k,)
 
                 case FnDef():
-                    fns += k,
+                    fns += (k,)
 
                 case _:
                     print(f"[?] unknown child of type {type(k)}")
 
         visited_ir = build_ir(
             path=self._module_path,
-            ref_types=refs[0],
-            ref_fns=refs[1],
+            ref_types=ref_types,
+            ref_fns=ref_fns,
             types=types,
             fns=fns,
-            main=main
+            main=main,
         )
 
         if isinstance(main, BodyBlock):
@@ -195,7 +225,7 @@ class ParserIRVisitor(PTNodeVisitor):
 
     def visit_typesingle(
         self, _: NonTerminal, child: SemanticActionResults
-    ) -> BaseTypeDataStructure:
+    ) -> SingleDS | ErrorHandler:
         # TODO: implement a better resolver to account for custom and circular imports;
         #  for now, just check if it's built-in.
 
@@ -273,7 +303,7 @@ class ParserIRVisitor(PTNodeVisitor):
         return BodyBlock(*child)
 
     def visit_body(self, _: NonTerminal, child: SemanticActionResults) -> BodyBlock:
-        values = ()
+        values: tuple[IRInstr | IRBlock, ...] | tuple = ()
         for k in child:
             match k:
                 case IRInstr():
@@ -330,14 +360,16 @@ class ParserIRVisitor(PTNodeVisitor):
             return DeclareAssignInstr(
                 var=ModifierBlock(obj=child[0], args=child[1]),
                 var_type=child[2],
-                value=ArgsBlock(*child[3:]) if len(child) > 4 else child[3]
+                value=ArgsBlock(*child[3:]) if len(child) > 4 else child[3],
             )
 
         return DeclareAssignInstr(
             var=child[0], var_type=child[1], value=ArgsBlock(*child[2:])
         )
 
-    def visit_fn_return(self, _: NonTerminal, child: SemanticActionResults) -> ReturnBlock:
+    def visit_fn_return(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> ReturnBlock:
         return ReturnBlock(*child)
 
     def visit_expr(
@@ -399,8 +431,10 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_args(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> ArgsBlock | ArgsValuesBlock:
-        argsvalues = ()
-        args = ()
+        argsvalues: tuple[ArgsValuesBlock, ...] | tuple = ()
+        args: (
+            tuple[WorkingData | CompositeWorkingData | IRInstr | ModifierBlock] | tuple
+        ) = ()
 
         for k in child:
             match k:
@@ -472,7 +506,8 @@ class ParserIRVisitor(PTNodeVisitor):
                         f"unexpected value on call with body options {k} ({type(k)})"
                     )
 
-        return CallInstr(name=child[0], args=args or None, body=body)
+        args_entry = ArgsBlock(*args) if args else None
+        return CallInstr(name=child[0], args=args_entry, body=body)
 
     def visit_callwithargsoptions(
         self, _: NonTerminal, child: SemanticActionResults
@@ -507,7 +542,7 @@ class ParserIRVisitor(PTNodeVisitor):
     ) -> TypesDict:
         if isinstance(child[0], tuple):
             types = TypesDict()
-            importer = TypeImporter(self._root, self._grammar, parse)
+            importer = TypeImporter(self._root, self._grammar, type_program, parse)
             res = importer.import_types(child[0], self._ir_graph)
 
             for k, v in res.items():
@@ -520,7 +555,7 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_fnimport(self, _: NonTerminal, child: SemanticActionResults) -> FnsDict:
         if isinstance(child[0], tuple):
             fns = FnsDict()
-            importer = FnImporter(self._root, self._grammar, parse)
+            importer = FnImporter(self._root, self._grammar, fn_program, parse)
             res = importer.import_fns(child[0], self._ir_graph)
 
             for k, v in res.items():

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 # base folder names
 SOURCE_FOLDER_NAME = "src"
 TYPES_FOLDER_NAME = "hat_types"

@@ -162,7 +162,9 @@ def _gen_res_a_r_phf(
     return ()
 
 
-def gen_phf(group_tuple: tuple[Hashable, ...]) -> tuple[tuple[Hashable, ...], ResultPHF]:
+def gen_phf(
+    group_tuple: tuple[Hashable, ...],
+) -> tuple[tuple[Hashable, ...], ResultPHF]:
     """
     Generate the perfect hash function (PHF). Each ``group_tuple`` element will be ordered
     in a new tuple according to its newly calculated hash value. Each element has exactly

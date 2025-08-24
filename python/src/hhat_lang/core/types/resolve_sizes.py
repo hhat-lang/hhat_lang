@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from hhat_lang.core.code.ir import TypeTable
+from hhat_lang.core.code.symbol_table import TypeTable
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
 

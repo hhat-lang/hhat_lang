@@ -5,7 +5,7 @@ import inspect
 from typing import Any, Callable, Iterable, cast
 
 from hhat_lang.core.code.instructions import QInstrFlag
-from hhat_lang.core.code.ir import BlockIR, InstrIR, InstrIRFlag, TypeIR
+from hhat_lang.core.code.ir import BlockIR, InstrIR
 from hhat_lang.core.code.utils import InstrStatus
 from hhat_lang.core.data.core import (
     CompositeLiteral,
@@ -17,20 +17,22 @@ from hhat_lang.core.data.core import (
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
+    # HeapInvalidKeyError,
     InstrNotFoundError,
     InstrStatusError,
-    HeapInvalidKeyError,
 )
 from hhat_lang.core.execution.abstract_base import BaseEvaluator
 from hhat_lang.core.lowlevel.abstract_qlang import BaseLowLevelQLang
-from hhat_lang.core.memory.core import IndexManager, MemoryManager
+
+# from hhat_lang.core.memory.core import IndexManager, MemoryManager
 from hhat_lang.core.utils import Error, Ok, Result
-from hhat_lang.dialects.heather.code.ast import Literal
-from hhat_lang.dialects.heather.code.simple_ir_builder.ir import (
-    IRArgs,
-    IRBlock,
-    IRInstr,
-)
+
+# from hhat_lang.dialects.heather.code.ast import Literal
+# from hhat_lang.dialects.heather.code.simple_ir_builder.ir import (
+#     IRArgs,
+#     IRBlock,
+#     IRInstr,
+# )
 
 
 class LowLeveQLang(BaseLowLevelQLang):
@@ -56,6 +58,8 @@ class LowLeveQLang(BaseLowLevelQLang):
         if literal in self._idx:
             (literal.type)
             return tuple(f"x q[{n}];" for n, k in enumerate(literal.bin) if k == "1")
+
+        return ("",)
 
     def _gen_literal_bool(self, literal: CoreLiteral) -> tuple[str, ...]:
         return tuple("x q[")

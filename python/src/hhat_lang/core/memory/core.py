@@ -1,31 +1,37 @@
 from __future__ import annotations
 
+import sys
 from abc import ABC, abstractmethod
-from collections import deque, OrderedDict
-from queue import LifoQueue
-from typing import Any, Hashable
+from collections import OrderedDict, deque
+from copy import deepcopy
+from enum import Enum, auto
+from typing import Any, Hashable, Iterator, cast
 from uuid import UUID
 
 from hhat_lang.core.code.abstract_new_ir import BaseIRBlock
-from hhat_lang.core.code.symbol_table import SymbolTable
-from hhat_lang.core.utils import gen_uuid
 from hhat_lang.core.data.core import (
     CompositeLiteral,
     CompositeMixData,
+    CompositeSymbol,
+    CompositeWorkingData,
     CoreLiteral,
     Symbol,
     WorkingData,
-    CompositeWorkingData,
 )
+from hhat_lang.core.data.fn_def import BaseFnCheck
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
+    FnWrongArgsTypesError,
     HeapInvalidKeyError,
     IndexAllocationError,
     IndexInvalidVarError,
     IndexUnknownError,
     IndexVarHasIndexesError,
+    StackFrameGetError,
+    StackFrameNotFnError,
 )
+from hhat_lang.core.utils import gen_uuid
 
 
 class PIDManager:
@@ -121,7 +127,7 @@ class IndexManager:
         """Return the deque of indexes from a quantum data."""
 
         if res := self._in_use_by.get(item, False):
-            return res
+            return res  # type: ignore [return-value]
 
         return IndexInvalidVarError(var_name=item)
 
@@ -226,60 +232,220 @@ class IndexManager:
 #########################
 
 
-class BaseStack(ABC):
-    _data: LifoQueue
+class StackFrame:
+    """Stack memory frame. To be used inside ``Stack`` instance whenever a new scope is needed"""
 
-    @abstractmethod
-    def push(self, data: MemoryDataTypes) -> None:
-        pass
+    _data: OrderedDict[
+        WorkingData | BaseFnCheck, BaseDataContainer | CoreLiteral | None
+    ]
+    _fn_header: BaseFnCheck | None
+    _for_fn_use: bool
 
-    @abstractmethod
-    def pop(self) -> MemoryDataTypes:
-        pass
+    def __init__(self, for_fn_use: bool = False):
+        self._data = OrderedDict()
+        self._for_fn_use = for_fn_use
 
-    @abstractmethod
-    def peek(self) -> MemoryDataTypes:
-        pass
+    @property
+    def keys(self) -> tuple[WorkingData, ...] | tuple:
+        return tuple(self._data.keys())
+
+    @property
+    def for_fn_use(self) -> bool:
+        return self._for_fn_use
+
+    def add_no_assign(self, key: WorkingData) -> None:
+        if key not in self._data and isinstance(key, WorkingData):
+            self._data[key] = None
+
+    def add(self, key: WorkingData, value: BaseDataContainer | CoreLiteral) -> None:
+        if (
+            isinstance(key, WorkingData)
+            and (key not in self._data or self._data[key] is None)
+            and isinstance(value, BaseDataContainer | CoreLiteral)
+        ):
+            self._data[key] = value
+
+    def add_fn_header(self, header: BaseFnCheck) -> None:
+        """First thing to be added on the stack frame instance if it is used for a function."""
+
+        if isinstance(header, BaseFnCheck):
+            self._fn_header = header
+
+    def _check_fn_args_types(self, *values_types: Symbol | CompositeSymbol) -> bool:
+        if self._for_fn_use:
+            return cast(BaseFnCheck, self._fn_header).check_args_types(*values_types)
+
+        sys.exit(StackFrameNotFnError()())
+
+    def add_ordered(self, *values: BaseDataContainer | CoreLiteral) -> None:
+        """
+        **Note**: to be used only for functions, on its startup parameters declaration.
+
+        Use when no argument name is provided and the ``*values`` are assumed to be in
+        the correct order
+        """
+
+        if self._for_fn_use:
+            if self._check_fn_args_types(*values):
+                for k, v in zip(self._data, values):
+                    self._data[k] = v
+
+                return
+
+            sys.exit(
+                FnWrongArgsTypesError(
+                    values=values,
+                    expected=cast(BaseFnCheck, self._fn_header)._args_types,
+                )()
+            )
+
+        # if no function-use stack frame defined, error is raised
+        sys.exit(StackFrameNotFnError()())
+
+    def get(self, item: WorkingData) -> BaseDataContainer | CoreLiteral | ErrorHandler:
+        return self._data.get(item) or StackFrameGetError(item)
+
+    def __contains__(self, item: Any) -> bool:
+        return item in self._data
 
 
-class Stack(BaseStack):
+class Stack:
+    """
+    Stack memory handling data inside frames according to scopes that appears in Lifo order.
+    """
+
+    class EntryType(Enum):
+        VALUE_ONLY = auto()
+        ARG_VALUE = auto()
+
+    _data: list[StackFrame] | list
+    _entry_stack: (
+        list[
+            BaseDataContainer
+            | CoreLiteral
+            | tuple[Symbol, BaseDataContainer | CoreLiteral]
+        ]
+        | list
+    )
+    _entry_type: Stack.EntryType
+    _return_stack: list[BaseDataContainer | CoreLiteral] | list
+
     def __init__(self):
-        self._data = LifoQueue()
+        self._data = []
+        self._entry_stack = []
+        self._return_stack = []
 
-    def push(self, data: MemoryDataTypes) -> None:
-        """Push ``data`` into stack as its new last item"""
+    def new(self, for_fn_use: bool = False) -> None:
+        """Push a new ``StackFrame`` instance to the stack"""
 
-        self._data.put(data)
+        self._data.append(StackFrame(for_fn_use))
 
-    def pop(self) -> MemoryDataTypes:
-        """Pop last item from stack"""
+    def push(self, data: BaseDataContainer | CoreLiteral) -> None:
+        """Push ``data`` into current stack's frame as its new last item"""
 
-        return self._data.get()
+        if isinstance(data, BaseDataContainer):
+            self._data[-1].add(data.name, data)
 
-    def peek(self) -> MemoryDataTypes:
-        """Expensive method to 'peek' the last item from the stack."""
+        else:
+            self._data[-1].add(data, data)
 
-        last_item = self._data.get()
-        self._data.put(last_item)
-        return last_item
+    def get(self, item: WorkingData) -> BaseDataContainer | CoreLiteral:
+        """Retrieves data from the current stack frame"""
+
+        match res := self._data[-1].get(item):
+            case ErrorHandler():
+                sys.exit(res())
+
+            case _:
+                return res
+
+    def set_fn_entry(
+        self,
+        *values: BaseDataContainer | CoreLiteral,
+        fn_header: BaseFnCheck,
+        **args_values: BaseDataContainer | CoreLiteral,
+    ) -> None:
+        """
+        Set the function entry, i.e. it's arguments. It can be through only
+        arguments (``*values``) or through keyword arguments (``**args_values``).
+
+        It will be consumed by the function once the stack frame is initialized
+        for it.
+
+        Args:
+            *values: ``BaseDataContainer`` or ``CoreLiteral`` data
+            fn_header: ``BaseFnCheck`` instance
+            **args_values: ``BaseDataContainer`` or ``CoreLiteral`` data
+        """
+
+        assert (values and not args_values) or (
+            not values and args_values
+        ), "stack frame cannot have both values and args values-pair"
+
+        if isinstance(fn_header, BaseFnCheck):
+            self._data[-1].add_fn_header(fn_header)
+
+        if values:
+            self._entry_stack.extend(value for value in values)
+            self._entry_type = Stack.EntryType.VALUE_ONLY
+            return
+
+        self._entry_stack.extend(
+            (Symbol(arg), value) for arg, value in args_values.items()
+        )
+        self._entry_type = Stack.EntryType.ARG_VALUE
+
+    def get_fn_entry(self) -> None:
+        """
+        Retrieve function entry for the function stack frame.
+        """
+
+        if self._data[-1].for_fn_use:
+            match self._entry_type:
+                case Stack.EntryType.ARG_VALUE:
+                    for arg, value in self._entry_stack:
+                        self._data[-1].add(arg, value)
+
+                case Stack.EntryType.VALUE_ONLY:
+                    self._data[-1].add_ordered(*self._entry_stack)
+
+        sys.exit(StackFrameNotFnError()())
+
+    def set_fn_return(self, item: BaseDataContainer | CoreLiteral) -> None:
+        """
+        Add a function return to a special space in the stack; to be
+        retrieved by the newest last stack frame
+        """
+
+        self._return_stack = [item]
+
+    def get_fn_return(self) -> BaseDataContainer | CoreLiteral:
+        """
+        After the function is finished and its return value is properly
+        addressed, this method must be used to clean the queue from
+        function returns. Its output is the value being hold (possibly
+        to be used by another stack frame).
+        """
+
+        return_res = deepcopy(self._return_stack)[0]
+        self._return_stack = []
+        return return_res
+
+    def free(self) -> None:
+        """Free last frame from stack"""
+
+        self._data.pop()
+
+    def __contains__(self, item: Any) -> bool:
+        """Always check in the last stack frame added"""
+        return item in self._data[-1]
 
 
-class BaseHeap(ABC):
+class Heap:
+    """Heap memory handling data of dynamic size"""
+
     _data: dict[Symbol, BaseDataContainer]
 
-    @abstractmethod
-    def set(self, key: Symbol, value: BaseDataContainer) -> None:
-        pass
-
-    @abstractmethod
-    def get(self, key: Symbol) -> BaseDataContainer:
-        pass
-
-    def __getitem__(self, item: Symbol) -> BaseDataContainer:
-        return self.get(item)
-
-
-class Heap(BaseHeap):
     def __init__(self):
         self._data = dict()
 
@@ -313,6 +479,17 @@ class Heap(BaseHeap):
 
     def __contains__(self, item: Symbol) -> bool:
         return item in self._data
+
+    def __getitem__(self, item: Symbol) -> BaseDataContainer:
+        match res := self.get(item):
+            case BaseDataContainer():
+                return res
+
+            case HeapInvalidKeyError():
+                sys.exit(res())
+
+            case _:
+                raise ValueError("could not get heap value")
 
 
 class ScopeValue:

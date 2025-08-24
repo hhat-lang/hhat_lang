@@ -37,14 +37,14 @@ from __future__ import annotations
 from typing import Any, Type
 
 from hhat_lang.core.code.ir import BlockIR
+from hhat_lang.core.code.symbol_table import SymbolTable
 from hhat_lang.core.data.core import WorkingData
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.core.execution.abstract_base import BaseEvaluator
 from hhat_lang.core.execution.abstract_program import BaseProgram
 from hhat_lang.core.lowlevel.abstract_qlang import BaseLowLevelQLang
-from hhat_lang.core.memory.core import BaseStack, IndexManager, Stack
-from hhat_lang.core.code.symbol_table import SymbolTable
-from hhat_lang.dialects.heather.code.simple_ir_builder.ir import IRBlock
+from hhat_lang.core.memory.core import IndexManager, Stack
+from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import IRBlock
 
 # TODO: the imports below must come from the config file, not hardcoded
 from hhat_lang.low_level.target_backend.qiskit.openqasm.code_executor import (
@@ -98,7 +98,7 @@ class Program(BaseProgram):
             )
 
     @property
-    def qstack(self) -> BaseStack:
+    def qstack(self) -> Stack:
         return self._qstack
 
     def run(self, debug: bool = False) -> Any | ErrorHandler:

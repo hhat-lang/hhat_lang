@@ -3,24 +3,24 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import Any, Iterable, Iterator, Hashable, Mapping
+from typing import Any, Iterable, Iterator, Mapping
 
 from hhat_lang.core.code.abstract_new_ir import BaseIRBlock
 from hhat_lang.core.code.symbol_table import SymbolTable
-from hhat_lang.core.code.utils import ResultPHF, get_hash, gen_phf
+from hhat_lang.core.code.utils import ResultPHF, gen_phf, get_hash
 from hhat_lang.core.data.core import (
-    WorkingData,
+    CompositeSymbol,
     CompositeWorkingData,
     Symbol,
-    CompositeSymbol,
+    WorkingData,
 )
 from hhat_lang.core.data.fn_def import BaseFnCheck, FnDef
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
-
 ##############
 # IR SECTION #
 ##############
+
 
 class BaseIRModule(ABC):
     """Base abstract class for IR module definitions."""
@@ -54,7 +54,9 @@ class BaseIRModule(ABC):
 
         return False
 
-    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck) -> bool:
+    def __contains__(
+        self, item: Symbol | CompositeSymbol | BaseFnCheck | Path | Any
+    ) -> bool:
         return item in self._symbol_table.type or item in self._symbol_table.fn
 
     @abstractmethod
@@ -135,6 +137,7 @@ class BaseIRInstr(ABC):
 # REFERENCE TABLE CLASSES #
 ###########################
 
+
 class RefTypeTable:
     """Reference to types from another IR"""
 
@@ -145,7 +148,9 @@ class RefTypeTable:
         self._table = dict()
 
     def add_ref(self, type_name: Symbol | CompositeSymbol, ir_path: Path) -> None:
-        if isinstance(type_name, Symbol | CompositeSymbol) and isinstance(ir_path, Path):
+        if isinstance(type_name, Symbol | CompositeSymbol) and isinstance(
+            ir_path, Path
+        ):
             self._table[type_name] = IRHash(ir_path)
 
         else:
@@ -166,7 +171,7 @@ class RefTypeTable:
 
         return False
 
-    def __contains__(self, item: Symbol | CompositeSymbol) -> bool:
+    def __contains__(self, item: Symbol | CompositeSymbol | Any) -> bool:
         return item in self._table
 
     def __len__(self) -> int:
@@ -266,6 +271,7 @@ class RefTable:
 ####################
 # IR GRAPH CLASSES #
 ####################
+
 
 class IRHash:
     """
@@ -368,7 +374,9 @@ class IRNode:
 
         return False
 
-    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck | Path) -> bool:
+    def __contains__(
+        self, item: Symbol | CompositeSymbol | BaseFnCheck | Path | Any
+    ) -> bool:
         return item in self._ir.module or item == self._path
 
     def __repr__(self) -> str:
@@ -385,7 +393,11 @@ class NodeSet:
     _phf: ResultPHF | None
 
     def __init__(self, *data: IRNode, phf: ResultPHF | None = None):
-        if all(isinstance(k, IRNode) for k in data) and isinstance(phf, ResultPHF) or phf is None:
+        if (
+            all(isinstance(k, IRNode) for k in data)
+            and isinstance(phf, ResultPHF)
+            or phf is None
+        ):
             self._data = data
             self._phf = phf
 
@@ -393,11 +405,14 @@ class NodeSet:
             raise ValueError("node set accepts only IRNode instances")
 
     @property
-    def phf(self) -> ResultPHF | None:
-        return self._phf
+    def phf(self) -> ResultPHF:
+        if self._phf is not None:
+            return self._phf
+
+        raise ValueError("node's phf instance is null")
 
     @classmethod
-    def new_set(cls, *data: Hashable, phf: ResultPHF) -> NodeSet:
+    def new_set(cls, *data: IRNode, phf: ResultPHF) -> NodeSet:
         return cls(*data, phf=phf)
 
     def __contains__(
@@ -424,19 +439,23 @@ class NodeSet:
                 for node in self._data:
                     _path = item[0]
                     _symbol = item[1]
+
                     if _path == node.path and _symbol in node.ir.module:
                         return True
 
         return False
 
-    def __getitem__(self, item: IRHash | int) -> IRNode:
+    def __getitem__(self, item: IRHash | int) -> IRNode | None:
         if isinstance(item, IRHash):
             if self._phf is not None:
-                return self._data[
-                    get_hash(hash(item), self.phf)
-                ]
+                res = get_hash(hash(item), self.phf)
 
-            raise ValueError("node set must have phf attribute defined")
+                if res is not None:
+                    return self._data[res]
+
+            raise ValueError(
+                "node set must have phf attribute defined and item hash mush not be null"
+            )
 
         # assuming it is integer
         return self._data[item]
@@ -509,9 +528,9 @@ class IRGraph:
     def build(self) -> None:
         """Build IR graph for performance and optimization purposes."""
 
-        if not self._is_built:
+        if not self._is_built and len(self._tmp_nodes) > 0:
             node_res, node_phf = gen_phf(self._tmp_nodes)
-            self._nodes = NodeSet.new_set(*node_res, phf=node_phf)
+            self._nodes = NodeSet.new_set(*node_res, phf=node_phf)  # type: ignore [arg-type]
             self._tmp_nodes = ()
 
             if self._check_refs():
@@ -521,7 +540,10 @@ class IRGraph:
                 raise ValueError("missing nodes to build the ir graph")
 
         else:
-            raise ValueError("ir graph is already built.")
+            raise ValueError(
+                f"ir graph is already built ({self._is_built}) or no nodes were found"
+                f" (total nodes: {len(self._tmp_nodes)})."
+            )
 
     def update(self, cur_node_key: IRHash, new_node: BaseIR) -> None:
         """
@@ -562,13 +584,17 @@ class IRGraph:
 
     def __repr__(self) -> str:
         max_n = str(len(self.nodes))
-        txt = "".join(f"\nN#{'0'*(len(max_n) - len(str(n)))}{n}{k.ir}" for n, k in enumerate(self.nodes))
+        txt = "".join(
+            f"\nN#{'0'*(len(max_n) - len(str(n)))}{n}{k.ir}"
+            for n, k in enumerate(self.nodes)
+        )
         return f"==============\n=*=IR GRAPH=*=\n==============\n{txt}\n"
 
 
 ####################################
 # BUILDING REFERENCE TABLE SECTION #
 ####################################
+
 
 def build_reftable(
     types: Mapping[Symbol | CompositeSymbol, Path] | None = None,
@@ -591,19 +617,26 @@ def build_reftable(
 # RETRIEVING FUNCTIONS SECTION #
 ################################
 
-def import_type(
+
+def get_type(
     node_key: IRHash, importing: Symbol | CompositeSymbol, ir_graph: IRGraph
-) -> BaseTypeDataStructure:
+) -> BaseTypeDataStructure | None:
     """
     Import a type ``importing`` from an IR module's hash value ``node_key``. Return
-    the type instance.
+    the type instance or ``None`` if not found.
     """
 
-    node: IRNode = ir_graph.nodes[node_key]
-    return node.ir.module.symbol_table.type.get(importing)
+    node: IRNode | None = ir_graph.nodes[node_key]
+
+    if node is not None:
+        return node.ir.module.symbol_table.type.get(importing)
+
+    return None
 
 
-def import_fn(node_key: IRHash, importing: BaseFnCheck, ir_graph: IRGraph) -> FnDef:
+def get_fn(
+    node_key: IRHash, importing: BaseFnCheck, ir_graph: IRGraph
+) -> FnDef | dict[BaseFnCheck, FnDef] | None:
     """
     Import a function check instance ``importing`` from an IR module's hash value ``node_key``.
 
@@ -613,8 +646,12 @@ def import_fn(node_key: IRHash, importing: BaseFnCheck, ir_graph: IRGraph) -> Fn
         ir_graph: the program's ``IRGraph``
 
     Returns:
-        A ``FnDef`` instance
+        A ``FnDef`` instance or ``None``, if no function is found.
     """
 
-    node: IRNode = ir_graph.nodes[node_key]
-    return node.ir.module.symbol_table.fn.get(importing)
+    node: IRNode | None = ir_graph.nodes[node_key]
+
+    if node is not None:
+        return node.ir.module.symbol_table.fn.get(importing)
+
+    return None

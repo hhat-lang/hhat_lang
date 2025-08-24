@@ -30,6 +30,10 @@ class ErrorCodes(Enum):
     CAST_INT_OVERFLOW_ERROR = auto()
     CAST_ERROR = auto()
 
+    FUNCTION_WRONG_ARGS_TYPES_ERROR = auto()
+
+    STACK_FRAME_GET_ERROR = auto()
+    STACK_FRAME_NOT_FN_ERROR = auto()
     STACK_EMPTY_ERROR = auto()
     STACK_OVERFLOW_ERROR = auto()
 
@@ -271,6 +275,39 @@ class CastError(ErrorHandler):
 
     def __call__(self) -> str:
         return f"[[{self.__class__.__name__}]]: Cannot cast {self._data} into {self._type_cast}."
+
+
+class FnWrongArgsTypesError(ErrorHandler):
+    def __init__(self, values: Any, expected: Any):
+        self._values = values
+        self._expected = expected
+        super().__init__(ErrorCodes.FUNCTION_WRONG_ARGS_TYPES_ERROR)
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: wrong args types; expected {self._expected},"
+            f" but got {self._values}."
+        )
+
+
+class StackFrameGetError(ErrorHandler):
+    def __init__(self, data: Any):
+        self._data = data
+        super().__init__(ErrorCodes.STACK_FRAME_GET_ERROR)
+
+    def __call__(self) -> str:
+        return f"[[{self.__class__.__name__}]]: Stack frame could not retrieve data {self._data}."
+
+
+class StackFrameNotFnError(ErrorHandler):
+    def __init__(self):
+        super().__init__(ErrorCodes.STACK_FRAME_NOT_FN_ERROR)
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: Stack frame is not defined for functions,"
+            f" but tried to used as if."
+        )
 
 
 class StackEmptyError(ErrorHandler):

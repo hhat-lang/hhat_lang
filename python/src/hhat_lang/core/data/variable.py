@@ -3,8 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Iterable
 
-from hhat_lang.core.data.core import CompositeSymbol, Symbol, WorkingData, CoreLiteral
-from hhat_lang.core.data.utils import VariableKind, isquantum, AbstractDataContainer
+from hhat_lang.core.data.core import CompositeSymbol, CoreLiteral, Symbol, WorkingData
+from hhat_lang.core.data.utils import AbstractDataContainer, VariableKind, isquantum
 from hhat_lang.core.error_handlers.errors import (
     ContainerVarError,
     ContainerVarIsImmutableError,
@@ -13,7 +13,7 @@ from hhat_lang.core.error_handlers.errors import (
     VariableFreeingBorrowedError,
     VariableWrongMemberError,
 )
-from hhat_lang.core.types.utils import BaseTypeEnum, AbstractDataTypeStructure
+from hhat_lang.core.types.utils import AbstractDataTypeStructure, BaseTypeEnum
 from hhat_lang.core.utils import SymbolOrdered
 
 
@@ -185,7 +185,7 @@ class BaseDataContainer(AbstractDataContainer):
     def _check_and_assign_ds_vals(
         self,
         data: Any,
-        attr_type: Symbol | CoreLiteral,
+        attr_type: Symbol | CompositeSymbol,
     ) -> bool:
         """
         Check data structure when passing values only (equivalent to `fn(*args)`) and
@@ -274,7 +274,7 @@ class BaseDataContainer(AbstractDataContainer):
         self,
         *args: Any,
         **kwargs: SymbolOrdered,
-    ) -> None | ErrorHandler:
+    ) -> BaseDataContainer | ErrorHandler:
         return self.assign(*args, **kwargs)
 
     def __iter__(self) -> Iterable:

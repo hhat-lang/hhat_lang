@@ -5,15 +5,18 @@ from typing import Mapping
 
 from hhat_lang.core.code.new_ir import build_reftable
 from hhat_lang.core.code.symbol_table import SymbolTable
-from hhat_lang.core.data.core import Symbol, CompositeSymbol
-from hhat_lang.core.data.fn_def import FnDef, BaseFnCheck
+from hhat_lang.core.data.core import CompositeSymbol, Symbol
+from hhat_lang.core.data.fn_def import BaseFnCheck, FnDef
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
-    IRModule,
-    BodyBlock,
     IR,
+    BodyBlock,
+    IRModule,
 )
-from hhat_lang.dialects.heather.parsing.utils import TypesDict, FnsDict
+from hhat_lang.dialects.heather.parsing.utils import FnsDict, TypesDict
+
+TypesTyping = TypesDict | dict[Symbol | CompositeSymbol, Path]
+FnsTyping = FnsDict | dict[BaseFnCheck, Path]
 
 
 def build_ir_module(
@@ -53,8 +56,8 @@ def build_ir_module(
 def build_ir(
     *,
     path: Path | str,
-    ref_types: Mapping[Symbol | CompositeSymbol, Path] | None = None,
-    ref_fns: Mapping[BaseFnCheck, Path] | None = None,
+    ref_types: TypesTyping | None = None,
+    ref_fns: FnsTyping | None = None,
     types: tuple[BaseTypeDataStructure, ...] | None = None,
     fns: tuple[FnDef, ...] | None = None,
     main: BodyBlock | None = None,
@@ -62,4 +65,3 @@ def build_ir(
     ref_table = build_reftable(types=ref_types, fns=ref_fns)
     ir_module = build_ir_module(path=path, types=types, fns=fns, main=main)
     return IR(ref_table=ref_table, ir_module=ir_module)
-

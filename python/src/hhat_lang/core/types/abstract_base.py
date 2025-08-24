@@ -4,9 +4,9 @@ from abc import ABC, abstractmethod
 from typing import Any, Iterable
 
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
-from hhat_lang.core.data.utils import VariableKind, AbstractDataContainer
+from hhat_lang.core.data.utils import AbstractDataContainer, VariableKind
 from hhat_lang.core.error_handlers.errors import ErrorHandler
-from hhat_lang.core.types.utils import BaseTypeEnum, AbstractDataTypeStructure
+from hhat_lang.core.types.utils import AbstractDataTypeStructure, BaseTypeEnum
 from hhat_lang.core.utils import SymbolOrdered
 
 
@@ -65,13 +65,13 @@ class BaseTypeDataStructure(AbstractDataTypeStructure):
     _name: Symbol | CompositeSymbol
     _ds_type: BaseTypeEnum
     _type_container: SymbolOrdered
-    _tmp_container: tuple[Symbol | CompositeSymbol] | None
+    _tmp_container: tuple[Symbol | CompositeSymbol] | tuple
     """temporary container for yet-to-be-validated members"""
 
     _is_quantum: bool
     _is_builtin: bool
-    _size: Size | None
-    _qsize: QSize | None
+    _size: Size
+    _qsize: QSize
     _array_type: bool
 
     def __init__(
@@ -84,6 +84,7 @@ class BaseTypeDataStructure(AbstractDataTypeStructure):
         self._is_quantum = name.is_quantum
         self._is_builtin = is_builtin
         self._array_type = array_type
+        self._tmp_container = ()
 
     @property
     def name(self) -> Symbol | CompositeSymbol:
@@ -106,7 +107,7 @@ class BaseTypeDataStructure(AbstractDataTypeStructure):
         return self._is_builtin
 
     @property
-    def size(self) -> Size | None:
+    def size(self) -> Size:
         return self._size
 
     @size.setter
@@ -115,7 +116,7 @@ class BaseTypeDataStructure(AbstractDataTypeStructure):
             self._size = value
 
     @property
-    def qsize(self) -> QSize | None:
+    def qsize(self) -> QSize:
         return self._qsize
 
     @qsize.setter
@@ -132,7 +133,7 @@ class BaseTypeDataStructure(AbstractDataTypeStructure):
         return tuple(k for k in self)
 
     @property
-    def tmp_members(self) -> tuple[Symbol | CompositeSymbol] | None:
+    def tmp_members(self) -> tuple[Symbol | CompositeSymbol] | tuple:
         """
         Temporary place to hold members that need validation, e.g. their types are
         not yet defined at symbol table's ``TypeTable`` or ref table's ``RefTypeTable``.

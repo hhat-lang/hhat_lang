@@ -8,6 +8,7 @@ from hhat_lang.core.data.variable import BaseDataContainer, VariableTemplate
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
 )
+from hhat_lang.core.types import POINTER_SIZE
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure, QSize, Size
 from hhat_lang.core.types.utils import BaseTypeEnum
 from hhat_lang.core.utils import SymbolOrdered
@@ -46,8 +47,8 @@ class BuiltinSingleDS(BaseTypeDataStructure):
     ):
         super().__init__(name, is_builtin=True)
         self._type_container: SymbolOrdered = SymbolOrdered({0: name})
-        self._size = bitsize
-        self._qsize = qsize or QSize(0, 0)
+        self._size = bitsize or Size(POINTER_SIZE)
+        self._qsize = qsize or QSize(0)
         self._ds_type = BaseTypeEnum.SINGLE
 
     @property
@@ -71,7 +72,7 @@ class BuiltinSingleDS(BaseTypeDataStructure):
 
     def __call__(
         self, *, var_name: Symbol, flag: VariableKind = VariableKind.MUTABLE, **_: Any
-    ) -> BaseDataContainer | ErrorHandler:
+    ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
         return VariableTemplate(
             var_name=var_name,
             type_name=self.name,

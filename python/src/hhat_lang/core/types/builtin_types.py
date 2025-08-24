@@ -5,7 +5,6 @@ from hhat_lang.core.types import POINTER_SIZE
 from hhat_lang.core.types.abstract_base import QSize, Size
 from hhat_lang.core.types.builtin_base import BuiltinSingleDS
 
-
 #######################
 # BUILT-IN DATA TYPES #
 #######################

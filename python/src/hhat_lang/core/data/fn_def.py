@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Any, Iterable
+from typing import Any, Iterable, Sized, cast
 
 from hhat_lang.core.code.abstract_new_ir import BaseIRBlock
-from hhat_lang.core.data.core import Symbol, CompositeSymbol
+from hhat_lang.core.data.core import (
+    CompositeSymbol,
+    CompositeWorkingData,
+    Symbol,
+    WorkingData,
+)
 
 
 class BaseFnKey:
@@ -51,7 +56,8 @@ class BaseFnKey:
             isinstance(fn_name, Symbol)
             and isinstance(fn_type, Symbol | CompositeSymbol)
             and all(isinstance(k, Symbol) for k in args_names)
-            and all(isinstance(p, Symbol | CompositeSymbol) for p in args_types),
+            and all(isinstance(p, Symbol | CompositeSymbol) for p in args_types)
+        ), (
             f"Wrong types provided for function definition on SymbolTable:\n"
             f"  name: {fn_name}\n  type: {fn_type}\n  args types: {args_types}\n"
             f"  args names: {args_names}\n",
@@ -106,21 +112,21 @@ class BaseFnCheck:
     Base function class to check and retrieve a given function from the SymbolTable.
     """
 
-    _name: Symbol
+    _name: Symbol | CompositeSymbol
     _args_types: tuple | tuple[Symbol | CompositeSymbol, ...]
     _hash_value: int
     __slots__ = ("_name", "_args_types", "_hash_value")
 
     def __init__(
         self,
-        fn_name: Symbol,
+        fn_name: Symbol | CompositeSymbol,
         args_types: tuple | tuple[Symbol | CompositeSymbol, ...],
     ):
 
         # checks types correctness
-        assert (
-            isinstance(fn_name, Symbol)
-            and all(isinstance(p, Symbol | CompositeSymbol) for p in args_types),
+        assert isinstance(fn_name, Symbol | CompositeSymbol) and all(
+            isinstance(p, Symbol | CompositeSymbol) for p in args_types
+        ), (
             f"Wrong types provided for function retrieval on SymbolTable:\n"
             f"  name: {fn_name}\n  args types: {args_types}\n",
         )
@@ -130,15 +136,15 @@ class BaseFnCheck:
         self._hash_value = hash((hash(self._name), hash(self._args_types)))
 
     @property
-    def name(self) -> Symbol:
+    def name(self) -> Symbol | CompositeSymbol:
         return self._name
 
     def transform(
         self, fn_type: Symbol | CompositeSymbol, args_names: tuple[Symbol, ...]
     ) -> BaseFnKey:
-        if all(isinstance(p, Symbol) for p in args_names) and isinstance(
-            fn_type, Symbol | CompositeSymbol
-        ):
+        if all(
+            isinstance(p, Symbol | CompositeSymbol) for p in args_names
+        ) and isinstance(fn_type, Symbol | CompositeSymbol):
             return BaseFnKey(
                 fn_name=self.name,
                 fn_type=fn_type,
@@ -147,6 +153,13 @@ class BaseFnCheck:
             )
         raise ValueError(
             f"cannot transform FnKey with fn type {fn_type} and args {args_names}"
+        )
+
+    def check_args_types(self, *values: Iterable) -> bool:
+        """Check whether ``*values`` have the same values as in function args types"""
+
+        return len(values) == len(self._args_types) and all(
+            k == v for k, v in zip(values, self._args_types)
         )
 
     def __hash__(self) -> int:
@@ -168,8 +181,8 @@ class FnDef:
     Function definition class
     """
 
-    _name: Symbol | BaseIRBlock
-    _type: Symbol | CompositeSymbol | None
+    _name: Symbol | CompositeSymbol
+    _type: Symbol | CompositeSymbol
     _body: BaseIRBlock
     _fn_check: BaseFnCheck
     _args: BaseIRBlock
@@ -181,20 +194,20 @@ class FnDef:
 
     def __init__(
         self,
-        fn_name: Symbol | BaseIRBlock,
+        fn_name: Symbol | CompositeSymbol,
         fn_args: BaseIRBlock,
         fn_body: BaseIRBlock,
         fn_type: Symbol | CompositeSymbol | None = None,
     ):
         if (
-            isinstance(fn_name, Symbol | BaseIRBlock)
+            isinstance(fn_name, Symbol | CompositeSymbol)
             and isinstance(fn_args, BaseIRBlock)
             and isinstance(fn_body, BaseIRBlock)
             and isinstance(fn_type, Symbol | CompositeSymbol)
             or fn_type is None
         ):
             self._name = fn_name
-            self._args = fn_args
+            self._args = self._unwrap_args(cast(Sized, fn_args))
             self._body = fn_body
             self._type = fn_type or Symbol("null")
             self._fn_check = BaseFnCheck(fn_name=self.name, args_types=self.arg_values)
@@ -206,7 +219,7 @@ class FnDef:
             )
 
     @property
-    def name(self) -> Symbol | BaseIRBlock:
+    def name(self) -> Symbol | CompositeSymbol:
         return self._name
 
     @property
@@ -223,22 +236,34 @@ class FnDef:
 
     @property
     @lru_cache
-    def arg_names(self) -> tuple[Symbol, ...]:
+    def arg_names(self) -> tuple[WorkingData | CompositeWorkingData, ...]:
+        if hasattr(self._args, "args"):
+            return self._args.args
+
         return tuple(k.arg for k in self.args)
 
     @property
     @lru_cache
-    def arg_values(self) -> tuple[Symbol | CompositeSymbol, ...]:
-        return tuple(k.value for k in self.args)
+    def arg_values(self) -> tuple[Symbol | CompositeSymbol | BaseIRBlock, ...]:
+        if hasattr(self._args, "values"):
+            return self._args.values
+
+        return tuple(k.value for k in self._args)
 
     @property
     def fn_check(self) -> BaseFnCheck:
         return self._fn_check
 
+    def _unwrap_args(self, args: Sized) -> BaseIRBlock:
+        if len(args) == 1:
+            if hasattr(args, "args"):
+                if hasattr(args.args[0], "values"):
+                    return args.args[0]
+
+        raise ValueError("function definition must contain arg-value pairs")
+
     def __repr__(self) -> str:
         args = " ".join(str(k) for k in self.args)
-        fn_header = (
-            f"FN-DEF NAME[{self.name}] ARGS[{args}] TYPE[{self.type or 'null'}]"
-        )
+        fn_header = f"FN-DEF NAME[{self.name}] ARGS[{args}] TYPE[{self.type or 'null'}]"
         body = "\n            ".join(str(k) for k in self.body)
         return f"{fn_header}" + "\n            " + f"{body}" + "\n"

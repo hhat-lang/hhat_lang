@@ -128,8 +128,8 @@ def test_parse_type_ir(
 ) -> None:
     # # uncomment below to enable cProfile-ing the code, to
     # # check for time execution bottlenecks
-    pr = cProfile.Profile()
-    pr.enable()
+    # pr = cProfile.Profile()
+    # pr.enable()
 
     project_name = "parse-test"
     project_root = THIS / project_name
@@ -147,6 +147,7 @@ def test_parse_type_ir(
             types_path += (create_new_type_file(project_name, k),)
 
         type_fn(types_path)
+        assert all(k.exists() for k in types_path)
 
         fns_path = ()
 
@@ -154,6 +155,7 @@ def test_parse_type_ir(
             fns_path += (create_new_file(project_name, f),)
 
         fn_fn(fns_path)
+        assert all(k.exists() for k in fns_path)
 
         shutil.copy(src=(THIS / file_name), dst=project_main_file_cp)
         os.remove(project_root / "src" / "main.hat")
@@ -196,8 +198,8 @@ def test_parse_type_ir(
 
         # # uncomment below to enable cProfile-ing the code, to
         # # check for time execution bottlenecks
-        pr.disable()
-        pr.print_stats(sort=SortKey.CUMULATIVE)
+        # pr.disable()
+        # pr.print_stats(sort=SortKey.CUMULATIVE)
         # ps = Stats(pr).sort_stats(SortKey.CUMULATIVE)
         #
         # print(f"print callers:\n")

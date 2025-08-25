@@ -15,6 +15,7 @@ from arpeggio import (
     visit_parse_tree,
 )
 
+from hhat_lang.core.code.base import BaseFnCheck
 from hhat_lang.core.code.new_ir import IRGraph
 from hhat_lang.core.data.core import (
     CompositeLiteral,
@@ -24,7 +25,7 @@ from hhat_lang.core.data.core import (
     Symbol,
     WorkingData,
 )
-from hhat_lang.core.data.fn_def import BaseFnCheck, FnDef
+from hhat_lang.core.data.fn_def import FnDef
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.core.imports import TypeImporter
 from hhat_lang.core.imports.importer import FnImporter

@@ -4,8 +4,8 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
+from hhat_lang.core.code.base import BaseFnCheck
 from hhat_lang.core.data.core import Symbol
-from hhat_lang.core.data.fn_def import BaseFnCheck
 from hhat_lang.core.imports.utils import BaseImports
 
 

@@ -3,8 +3,9 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Any, Iterable
 
+from hhat_lang.core.code.base import BaseFnCheck, BaseFnKey
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
-from hhat_lang.core.data.fn_def import BaseFnCheck, BaseFnKey, FnDef
+from hhat_lang.core.data.fn_def import FnDef
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
 

@@ -9,7 +9,8 @@ from pstats import SortKey, Stats, StatsProfile
 from typing import Callable
 
 import pytest
-from hhat_lang.core.code.new_ir import IRGraph, IRHash
+from hhat_lang.core.code.abstract import IRHash
+from hhat_lang.core.code.new_ir import IRGraph
 from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
 from hhat_lang.dialects.heather.parsing.ir_visitor import parse, parser_grammar_code
 from hhat_lang.toolchain.project.new import (

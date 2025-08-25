@@ -3,7 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
-from hhat_lang.core.code.new_ir import BaseIR, IRGraph
+from hhat_lang.core.code.abstract import BaseIR
+from hhat_lang.core.code.new_ir import IRGraph
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.memory.core import MemoryManager
 

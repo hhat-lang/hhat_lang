@@ -6,17 +6,17 @@ from enum import auto
 from pathlib import Path
 from typing import Any, cast
 
-from hhat_lang.core.code.new_ir import (
-    BaseIR,
+from hhat_lang.core.code.abstract import BaseIR, BaseIRModule, IRHash, RefTable
+from hhat_lang.core.code.base import (
+    BaseFnCheck,
     BaseIRBlock,
     BaseIRBlockFlag,
     BaseIRFlag,
     BaseIRInstr,
-    BaseIRModule,
+)
+from hhat_lang.core.code.new_ir import (
     IRGraph,
-    IRHash,
     IRNode,
-    RefTable,
     get_type,
 )
 from hhat_lang.core.code.symbol_table import SymbolTable
@@ -28,7 +28,6 @@ from hhat_lang.core.data.core import (
     Symbol,
     WorkingData,
 )
-from hhat_lang.core.data.fn_def import BaseFnCheck
 from hhat_lang.core.data.utils import VariableKind
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import HeapInvalidKeyError
@@ -779,23 +778,8 @@ def _get_assign_datatype(
 
         case OptionBlock():
 
-            # FIXME: properly address option block
-
-            new_blocks = ()
-
-            for k in value:
-                new_blocks += (
-                    _get_assign_datatype(
-                        var_type=var_type,
-                        value=k,
-                        mem=mem,
-                        node=node,
-                        ir_graph=ir_graph,
-                    ),
-                )
-
-            new_instr = cast(IRInstr, value.__class__(*new_blocks))
-            new_instr.resolve(mem=mem, node=node, ir_graph=ir_graph)
+            # FIXME: implement option block
+            raise NotImplementedError()
 
         case _:
             raise NotImplementedError(

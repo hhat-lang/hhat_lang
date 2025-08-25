@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import sys
-from abc import ABC, abstractmethod
+from abc import ABC
 from collections import OrderedDict, deque
 from copy import deepcopy
 from enum import Enum, auto
-from idlelib.configdialog import is_int
-from typing import Any, Hashable, Iterator, cast
+from typing import Any, Hashable, cast
 from uuid import UUID
 
-from hhat_lang.core.code.new_ir import BaseIRBlock
+from hhat_lang.core.code.base import BaseFnCheck, BaseIRBlock
 from hhat_lang.core.data.core import (
     CompositeLiteral,
     CompositeMixData,
@@ -19,7 +18,6 @@ from hhat_lang.core.data.core import (
     Symbol,
     WorkingData,
 )
-from hhat_lang.core.data.fn_def import BaseFnCheck
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
@@ -373,7 +371,7 @@ class Stack:
             self._data[-1].add(data, data)
 
     def get(
-        self, item: WorkingData | CompositeWorkingData
+        self, item: WorkingData | CompositeSymbol
     ) -> BaseDataContainer | CoreLiteral:
         """Retrieves data from the current stack frame"""
 

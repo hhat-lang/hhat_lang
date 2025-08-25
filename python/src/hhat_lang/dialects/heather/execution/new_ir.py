@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from hhat_lang.core.code.new_ir import BaseIR, IRGraph, IRHash
+from hhat_lang.core.code.abstract import BaseIR, IRHash
+from hhat_lang.core.code.new_ir import IRGraph
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.execution.abstract_base import BaseIRManager
 from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import IR

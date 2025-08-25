@@ -27,6 +27,7 @@ def types_ex_main04(files: tuple[Path, ...]) -> None:
         f.write(
             "type space {x:i64 y:u64 z:i64}\n" "type surface:u64\n" "type volume:u64\n"
         )
+    print(f"{THIS=} | folder {files[0].parent}:{os.listdir(files[0].parent)}")
 
     with open(files[1], "a") as f:
         f.write("type form {vol:u64}\n")
@@ -132,19 +133,19 @@ def test_parse_type_ir(
     # pr.enable()
 
     project_name = "parse-test"
-    project_root = THIS / project_name
+    project_root = Path(THIS / project_name).resolve()
 
     project_main_file_cp = project_root / "src" / file_name
     project_main_file = project_root / "src" / "main.hat"
 
     try:
-        if not Path(project_root).resolve().exists():
+        if not project_root.exists():
             create_new_project(project_root)
 
         types_path = ()
 
         for k in type_files:
-            types_path += (create_new_type_file(project_name, k),)
+            types_path += (create_new_type_file(project_root, k),)
 
         type_fn(types_path)
         assert all(k.exists() for k in types_path)
@@ -152,13 +153,12 @@ def test_parse_type_ir(
         fns_path = ()
 
         for f in fn_files:
-            fns_path += (create_new_file(project_name, f),)
+            fns_path += (create_new_file(project_root, f),)
 
         fn_fn(fns_path)
         assert all(k.exists() for k in fns_path)
 
         shutil.copy(src=(THIS / file_name), dst=project_main_file_cp)
-        os.remove(project_root / "src" / "main.hat")
         shutil.move(project_main_file_cp, project_main_file)
 
         code = open(project_main_file.resolve(), "r").read()
@@ -193,7 +193,7 @@ def test_parse_type_ir(
     finally:
         # # comment the line below to avoid deleting the folder with the project;
         # # useful for debugging possible project toolchain-related errors
-        shutil.rmtree(project_root)
+        # shutil.rmtree(project_root)
         pass
 
         # # uncomment below to enable cProfile-ing the code, to

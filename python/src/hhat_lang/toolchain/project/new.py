@@ -32,9 +32,7 @@ def _is_project_scope(project_name: str | Path, some_path: Path) -> bool:
 ######################
 
 
-def create_new_project(project_name: str | Path) -> Any:
-    project_name = str_to_path(project_name)
-
+def create_new_project(project_name: Path) -> Any:
     _create_template_folders(project_name)
     _create_template_files(project_name)
 
@@ -62,18 +60,15 @@ def _create_template_files(project_name: Path) -> Any:
 ###################
 
 
-def create_new_file(project_name: str | Path, file_name: str | Path) -> Path:
-    project_name = str_to_path(project_name)
+def create_new_file(project_root: Path, file_name: str | Path) -> Path:
     file_name = str(file_name) + ".hat"
-    doc_file = (
-        file_name + ".md"
-    )  # file_name.parent.parent / DOCS_FOLDER_NAME / (file_name.name + ".md")
+    doc_file = file_name + ".md"
 
-    file_path: Path = project_name / SOURCE_FOLDER_NAME / file_name
+    file_path: Path = project_root / SOURCE_FOLDER_NAME / file_name
     if file_path.parent != Path("."):
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
-    doc_path = project_name / DOCS_FOLDER_NAME / doc_file
+    doc_path = project_root / DOCS_FOLDER_NAME / doc_file
     if doc_path.parent != Path("."):
         doc_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -83,16 +78,15 @@ def create_new_file(project_name: str | Path, file_name: str | Path) -> Path:
     return file_path
 
 
-def create_new_type_file(project_name: str | Path, file_name: str | Path) -> Path:
-    project_name = str_to_path(project_name)
+def create_new_type_file(project_path: Path, file_name: str | Path) -> Path:
     file_name = str(file_name) + ".hat"
     doc_file = file_name + ".md"
 
-    file_path: Path = project_name / SOURCE_TYPES_PATH / file_name
+    file_path: Path = project_path / SOURCE_TYPES_PATH / file_name
     if file_path.parent != Path("."):
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
-    doc_path = project_name / DOCS_TYPES_PATH / doc_file
+    doc_path = project_path / DOCS_TYPES_PATH / doc_file
     if doc_path.parent != Path("."):
         doc_path.parent.mkdir(parents=True, exist_ok=True)
 

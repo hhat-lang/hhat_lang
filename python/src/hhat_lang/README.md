@@ -1,20 +1,15 @@
-# H-Hat Python Package
-High-level container for the Python implementation of the H-hat language stack. Provides:
+# H‑hat Python Package
+High-level container for the Python implementation of the H‑hat language stack. Provides:
 * Core language substrate (IR, type system, memory / scope, import + linking, execution contracts, error model, backend abstraction).
 * Dialect hosting surface (example dialect(s), parsing + lowering entry points, dialect-specific assets).
 * Low-level target integration (quantum assembly language representations, backend adapters / emitters).
 * User tooling (CLI, project scaffolding, notebook integration, auxiliary developer utilities).
 
-## Architectural Overview
+## 1. Architectural Overview
 End-to-end flow (conceptual pipeline):
-Dialect Frontend (parse / build) -> Core IR (modules, blocks, instructions) -> Linking / Imports -> Execution (interpreter / evaluator) -> Low-Level Backend Adapter -> Target Runtime (simulator / hardware / serialization)
+Dialect Frontend (parse / build) → Core IR (modules, blocks, instructions) → Linking / Imports → Execution (interpreter / evaluator) → Low-Level Backend Adapter → Target Runtime (simulator / hardware / serialization)
 
-Isolation goals:
-* Dialect evolution must not require changes in backend adapters if IR contract unchanged.
-* Backend innovations (new quantum gates / capabilities) introduced behind capability flags; dialects adapt through lowering choices.
-* Deterministic IR construction to enable reproducible tests and potential caching.
-
-## Directory Topology
+## 2. Directory Topology
 ```
 hhat_lang/
 ├── __init__.py        # Package marker / version surface (keep lightweight)

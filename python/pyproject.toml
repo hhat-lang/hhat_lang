@@ -7,7 +7,8 @@ name = "hhat-lang"
 description = "H-hat quantum programming language core and rule system implemented in Python"
 dynamic = ["version"]
 authors = [
-    { name = "Eduardo Maschio", email = "eduardo.maschio@hhat-lang.org" }
+    { name = "Eduardo Maschio", email = "eduardo.maschio@hhat-lang.org" },
+    { name = "Inho Choi", email = "inho.quantum@gmail.com" }
 ]
 readme = "README"
 requires-python = ">=3.12"

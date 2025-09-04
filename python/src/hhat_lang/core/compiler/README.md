@@ -1,37 +1,46 @@
 # Compiler Layer Overview
 
-Interfaces and orchestration logic for transforming dialect-specific parsed representations (AST or direct builders) into Core IR modules ready for import/link, execution, and backend emission. This layer defines the stable contract a dialect compiler must satisfy without prescribing parsing strategy or syntax shape.
+Abstract compiler interface and coordination context for lowering into core representations and for driving evaluation across classical and quantum programs. This directory defines contracts for parsing and evaluation. Implementations carry references to cooperating compilers, evaluators, quantum device specifications, backends, and language descriptors.
 
 ## 1. Purpose
-Provide a small, explicit abstraction boundary between (a) dialect frontends that understand source syntax and (b) the Core IR + runtime subsystems. The compiler layer centralizes:
-* Lowering pipeline stages (parse → validate → build IR structures).
-* Integration points for multi-dialect / mixed classical–quantum compilation.
-* Capability discovery (available evaluators, quantum language backends, device specs) influencing lowering choices.
-* Deterministic production of IR Modules, Blocks, Instructions, and populated symbol / reference tables consistent with Core invariants.
+1. Define a stable abstract interface for compile and run phases.
+2. Centralize references to cooperating compilers across dialects and paradigms.
+3. Provide consistent entry points for parsing and for evaluation.
 
-## 2. Scope & Responsibilities
-Included:
-* Abstract base compiler API (`BaseCompiler`) establishing required entry points (`parse`, `evaluate` / future `lower`).
-* Coordination placeholders for: other dialect compilers, classical vs quantum lowering paths, evaluator selection.
-* Strategy hooks for injecting backend capability checks early (fail fast if an instruction family cannot be emitted downstream).
-* Normalization rules from dialect-specific constructs into canonical IR instruction & type forms.
+## 2. Architectural Role
+This layer sits between dialect front ends and runtime evaluators. The compiler consumes source artifacts and produces an intermediate representation or an abstract syntax tree. The compiler invokes evaluation through registered evaluators. The layer does not prescribe the IR shape or the evaluator API. It fixes method names and minimal contracts that implementations must satisfy. Implementations may delegate evaluation to interpreter and evaluator contracts in hhat_lang.core.execution.
 
-Excluded (handled elsewhere):
-* Concrete parsing logic (dialect directories own tokenization / AST building).
-* Execution semantics (execution layer / evaluators).
-* Memory allocation details (memory layer) or runtime value materialization.
-* Cross-module symbol resolution (imports layer) beyond emitting required reference metadata.
-* Low-level backend instruction emission (lowlevel layer).
+## 3. Processing Flow
+Dialect source → BaseCompiler.parse → IR or AST → BaseCompiler.evaluate → result value or runtime effect.
 
-## 3. High-Level Flow
-Dialect Source → (Dialect Parser) → Parsed Representation (AST or builder calls) → Compiler Lowering → Core IR Module(s) → (Imports / Linking) → Execution / Backend.
+## 4. File Inventory
+Technical description of files in this directory. Subdirectory contents are documented in their own locations. No subdirectories are present in this path.
 
-Stage emphasis within this layer:
-1. Parse: Produce a structurally validated intermediate (may be skipped if dialect builds IR directly).
-2. Analyze & Normalize: Apply dialect rules, resolve local symbols, enforce early type constraints.
-3. Lower: Create IR blocks + instructions with stable ordering / hashing assumptions respected.
-4. Prepare for Linking: Emit placeholders or reference table entries for external symbols/types (no lazy late binding).
-5. Handoff: Return fully constructed IR module graph to import layer / execution orchestrator.
+### core.py
+Module path: `hhat_lang.core.compiler.core`
 
-## 4. Status
-Current implementation provides only the abstract base (`BaseCompiler`). Concrete dialect compilers, extended lowering APIs, and optimization hooks will live in dialect directories and toolchain integration layers. This README intentionally omits per-file detail pending expansion.
+Public API and contracts:
+
+1. Class `BaseCompiler`
+   Abstract base class for compilers. Holds compilation information including cooperating compilers for classical and quantum paradigms, evaluators that execute intermediate code for those paradigms, quantum device specifications, backends, and quantum language descriptors. Inherits from `abc.ABC`.
+
+2. Method `parse(self)`
+   Abstract method. Calling this method on the abstract class raises `NotImplementedError`. A concrete implementation ingests program source or a builder context captured at construction time and produces an intermediate artifact such as a module graph or an abstract syntax tree. Implementations should document the concrete return type. Implementations may populate symbol tables or analysis caches as a side effect. Implementations should avoid global state.
+
+3. Method `evaluate(self)`
+   Abstract method. Calling this method on the abstract class raises `NotImplementedError`. A concrete implementation consumes the artifact produced by `parse` and drives evaluation through available evaluators. Implementations should document the concrete return type and the meaning of the result. Implementations should define how runtime errors are surfaced.
+
+### __init__.py
+Module path: `hhat_lang.core.compiler`
+
+Package marker with no runtime behavior. Establishes the package boundary. Reexports can be added if required.
+
+## 5. Integration Points
+Concrete compilers reference the following concepts from other core layers. This document does not specify those layers. The list clarifies roles and boundaries.
+1. Cooperating compilers: classical compilers, compilers for other dialects, and quantum compilers.
+2. Evaluators: components that evaluate intermediate artifacts for classical and quantum programs.
+3. Quantum device specifications: descriptions of available devices and their capabilities.
+4. Backends: adapters that translate intermediate artifacts into device or vendor instruction streams.
+5. Quantum languages: descriptors that define available instruction sets or syntactic forms for quantum programs.
+
+Interpreter and evaluator contracts are defined in `hhat_lang.core.execution.abstract_base`. Backend adapters are defined in hhat_lang.core.lowlevel.

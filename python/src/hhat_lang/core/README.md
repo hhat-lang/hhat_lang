@@ -1,111 +1,46 @@
-# H-hat Core
+# Core Layer Overview
 
-Language-agnostic substrate for H-hat. Provides: intermediate representations (IR), type system, memory & scope model, execution interfaces, symbol/import resolution, error model, and low-level backend abstraction.
+Foundational abstractions and interfaces that define the program model, its intermediate representation (IR), the runtime memory model, evaluator contracts, cross-module linking, backend integration points, and error semantics. This layer is dialect-agnostic and backend-agnostic; it bounds the stable contracts used by compilers and tools within the project.
 
-Focus: deterministic IR construction + portable execution semantics for both classical and quantum operations.
+## 1. Purpose
+Provide a coherent kernel for building, linking, and evaluating programs across classical and quantum paradigms. Emphasis is on:
+* Ordered maps and explicit equality/hash semantics facilitate separate compilation. Python’s `hash()` is process‑local; cross‑run stability requires explicit identifiers (e.g., UUID v5 from canonical strings).
+* Clear separation of concerns: syntax lives in dialects; execution/backends implement pluggable interfaces; core holds types, IR shape, and runtime contracts.
+* Employ typed result propagation (`Ok`/`Error`) with explicit error codes along runtime paths; validation errors and precondition violations may raise exceptions.
 
-> Deprecation Notice: Any legacy AST-based build path is deprecated and will be removed. Only direct construction of Core IR objects is supported going forward.
+## 2. Subsystem Layout
+High‑level roles of the immediate subdirectories (detailed specifications appear in each subdirectory’s README):
+* `code/`: Structural IR substrate (modules, blocks, instructions, symbol and reference tables, hashing helpers).
+* `compiler/`: Lowering contracts from dialect-specific parses/builders into Core IR.
+* `data/`: Canonical symbolic entities (symbols, literals), function signatures/definitions, and value containers.
+* `types/`: Type-system primitives, built-ins, and size/compatibility utilities.
+* `memory/`: Runtime memory model (stack/heap/scopes) and allocation/index management.
+* `execution/`: Evaluator traits and program orchestration interfaces.
+* `imports/`: Cross-IR linking and reference resolution protocols.
+* `lowlevel/`: Backend adapter interfaces for emitting device/runtime instructions.
+* `error_handlers/`: Centralized error codes and typed error handlers.
 
-## 1. Scope & Responsibilities
-Included:
-* Stable in-memory IR objects (program/module, blocks, instructions, symbol tables).
-* Type primitives (classical + quantum) and size/layout utilities.
-* Memory model (stack / heap abstraction, scope frames, index & qubit allocation).
-* Execution contracts: evaluators consume IR + memory and emit side-effects to backend adapters.
-* Import/link layer (cross-module symbol/type resolution; namespace integrity).
-* Error categorization and propagation utilities (typed, non-exceptional flow where practical).
-* Backend boundary traits for quantum/classical target emission.
+This README intentionally omits per‑file details for these directories; refer to each subdirectory’s README for specifications.
 
+## 3. Processing Flow
+Dialect Source → (Dialect Parser) → Compiler Lowering → Core IR Module(s) → Imports/Linking (external symbol refs) → Execution (evaluators + memory) → Low-level Emission (backend adapters).
 
-## 2. High-Level Data / Control Flow
-Dialect Frontend (Direct IR Builder) → Core IR Module(s) → (Optional: Link/Import) → Interpreter / Program (Evaluator + Memory) → Backend Adapter → Target Runtime
+Types and data entities propagate along this path: the compiler populates symbol/reference tables; the imports layer binds external entries; the execution layer materializes runtime values via the memory model; low‑level back ends consume resolved operations.
 
-Key transitions:
-1. Build: Frontend constructs canonical IR instructions directly (modules, blocks, symbol & type tables) – no intermediate AST layer.
-2. Linking: Inter-module references resolved via namespace + symbol tables (no partial binding at runtime) using reference tables (`RefTable` for types & functions).
-3. Execution: `BaseInterpreter` / `BaseProgram` coordinate an Evaluator walking IR blocks; memory manager mediates value & qubit allocation; backend adapter receives finalized low-level operations.
-4. Backend emission is intentionally side-effect isolated (pure-ish translation functions with explicit state objects).
+## 4. File Inventory
+Technical description of the files in this directory (excluding subdirectories):
 
-Determinism goals: identical source + dependency graph → identical IR graph IDs & instruction ordering (facilitates reproducible testing and potential memoization).
+* `__init__.py`: Defines `DataParadigm` (`StrEnum`) with members `classical` and `quantum`. This enum provides an explicit, comparable tag used across core subsystems (types, data containers, evaluators) to select paradigm‑specific behavior. Invariants: the set of paradigms is fixed; clients must not rely on implicit truthiness or ad hoc strings.
 
+* `namespace.py`: Namespacing utilities for stable, fully-qualified identifiers.
+  - `Namespace`: Tuple‑backed namespace; supports membership tests and compact `repr` via dot‑separated segments. Serves as the canonical container for hierarchical scopes (e.g., module, package, dialect qualifiers).
+  - `FullName`: Couples a `Namespace` with a terminal name; supports membership checks against the enclosing namespace and renders as `namespace.name`. Used wherever stable, human-readable, and hashable identifiers are required without embedding type information.
 
-## 3. Directory Overview
-Only conceptual roles; per-file detail intentionally omitted here.
+* `utils.py`: Core utilities used across IR construction and evaluation.
+  - `gen_uuid(obj)`: UUID version 5 (OID namespace) converted to an integer; determinism assumes the input representation (`str(obj)`) is stable across runs (avoid ephemeral object representations) to ensure reproducible layout and indexing.
+  - `SymbolOrdered`: Ordered mapping specialized for symbol-like keys. Accepts `str`, `Symbol`, `CompositeSymbol`, `WorkingData`, or `int` and normalizes to canonical keys, preserving insertion order. Contract: key normalization is lossless for symbol types; iteration preserves deterministic ordering; suitable for building symbol tables and composite data structures.
+    The `keys()` method yields normalized values (e.g., `Symbol.value`) rather than typed key objects; use `items()` to retrieve typed keys.
+  - `Result`/`Ok`/`Error`: Minimal typed result wrapper used by evaluators and instruction executions. `Ok` yields the successful payload; `Error` carries an `ErrorHandler`. Encourages explicit, inspectable handling of success and failure without raising exceptions through core layers.
 
-* `code/`: IR structures (modules, blocks, instructions), symbol & reference tables, helper utilities for graph-like traversals.
-* `compiler/`: (Legacy abstraction – slated for removal) Previously housed transformations from parsed structures into IR. Direct IR builders in dialect frontends should be used instead.
-* `data/`: Canonical symbolic entities (variables, literals, function signatures) used across IR stages.
-* `error_handlers/`: Central error enumerations + lightweight Result-like helpers; unify reporting format.
-* `execution/`: Abstract program & evaluator contracts; scheduling / stepping semantics over IR.
-* `imports/`: Resolution & namespace binding for cross-unit symbols, including type merging guardrails.
-* `lowlevel/`: Abstract quantum language / backend target traits (e.g., emission surface for QASM-like languages).
-* `memory/`: Runtime memory / scope frames, allocation strategies (indices, qubits), lifetime & ownership invariants.
-* `types/`: Type system primitives and registry support for dialect or backend extensions.
-* Root helpers (`namespace.py`, `utils.py`): canonical naming + deterministic ID generation + ordered mappings.
-
-## 4. Core Abstractions
-IR:
-* Instruction: minimal opcode + operand/value references + optional attributes/flags.
-* Block: ordered instruction list; no implicit control-flow edges beyond explicit terminators (keeps analysis simple).
-* Module: owns symbol/type tables and top-level blocks (entry + subsidiary) plus import metadata.
-
-Type System:
-* Distinguishes classical scalar/composite vs quantum entities (e.g., qubit arrays); layout metadata available for memory planning.
-* Registration mechanism allows dialect or backend to introduce new intrinsic types while preserving core invariants (unique name, stable size semantics if classical).
-
-Memory Model:
-* Frame stack (lexical scopes) + heap-like region for dynamic or composite values.
-* Deterministic allocation order; provides stable IDs for referencing values and quantum resources.
-
-Execution:
-* `BaseInterpreter` defines parse/evaluate orchestration; `BaseProgram` encapsulates execution context (IR block, evaluator, low-level language, stacks, symbol table).
-* Evaluator consumes a Program (collection of modules) and drives instruction dispatch (`run` / recursive `walk`).
-* Side-effects mediated through a narrow backend interface to isolate target-specific behavior.
-
-Import / Linking:
-* Namespace objects ensure collisions resolved explicitly; no silent shadowing across modules.
-* `RefTable` holds per-IR references: `RefTypeTable` (types) + `RefFnTable` (functions) keyed by symbols/function signatures to originating IR hashes.
-* Linking produces a fully resolved symbol table + populated reference tables before execution (no lazy resolution during evaluation phase).
-
-Errors:
-* Typed error objects; common pattern: return Ok(value) | Err(error) instead of raising (except truly exceptional conditions – programmer mistakes, internal invariants).
-
-Low-Level Backend Interface:
-* Defines capability surface (emit gate, allocate qubit, map measurement, etc.).
-* Backends declare feature flags; lowering or execution may branch on availability early to fail fast.
-
-## 5. Extension Points
-Add a new Type:
-1. Define type descriptor (ensuring unique canonical name and size / arity metadata).
-2. Register with type registry in `types/` before IR construction needing it.
-3. Provide lowering logic in dialect compiler if syntax introduces the type.
-
-Add an Instruction:
-1. Specify opcode + operand schema + side-effect classification (pure, reads memory, writes memory, affects control, quantum operation).
-2. Extend instruction factory / enum in `code/`.
-3. Update evaluator dispatch table; ensure Result-based error paths.
-4. Add minimal tests (construction, evaluation, error case) under `tests/core`.
-
-Add a Backend Adapter:
-1. Implement required low-level interface methods (qubit allocation, gate emission, finalize / serialize).
-2. Declare capability flags; add mapping layer from IR instruction subset to backend ops.
-3. Provide adapter-specific tests asserting translation correctness & failure modes.
-
-Import Mechanism Extension:
-* For dialect-specific resolution rules, wrap or extend importer utilities; never bypass namespace validation.
-
-## 6. Design Principles & Invariants
-* Separation of Concerns: IR is structurally simple; semantic richness resides in types + symbol metadata.
-* Determinism: ID and ordering generation functions are pure with respect to input graph shape.
-* Explicit State: Memory / backend state objects passed, not global singletons.
-* Fail Fast: Validate opcode/type compatibility on construction when feasible.
-* Minimal Hidden Mutation: Instruction objects are immutable post-finalization (conceptual contract; enforce via usage discipline).
-* Namespace Clarity: Fully-qualified names required at linking boundaries; short names only inside a resolved module scope.
-
-
-## 7. Program Lifecycle
-1. Build IR: Dialect frontend directly creates IR modules (blocks, instructions, symbol & type tables).
-2. Link: Imports resolved; cross-module references validated; type compatibility checks executed.
-3. Prepare Execution: Memory manager initializes global frame; backend adapter declares capabilities.
-4. Evaluate: Instruction iteration + dispatch; memory & backend operations emitted.
-5. Finalize: Backend flush / serialization; collected results returned.
+## 5. Status
+The core package provides stable scaffolding and directory-level READMEs. File-by-file documentation lives in each subdirectory. This document covers only the files defined directly in `core/` and the architectural role of its subdirectories.

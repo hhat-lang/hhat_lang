@@ -1,18 +1,38 @@
 # Data Layer Overview
 
-Symbolic and runtime-facing entities shared across IR construction, linking, and execution. Provides canonical representations for: symbols (names), literals, composite symbol forms (qualified / attribute access), function signatures & definitions, and variable / constant containers with mutability + quantum-aware behaviors. This layer abstracts semantic payloads stored in symbol tables and manipulated by evaluators without embedding control-flow or backend logic.
+Canonical data abstractions that model symbols, literals, composite values, function definitions, and variable containers across classical and quantum paradigms. This layer provides deterministic identity and comparison, paradigm tagging, structured assignment semantics, and well specified interfaces with the Core IR and the type system. The layer is dialect agnostic and back end agnostic. It defines data contracts consumed by compilers, linkers, and evaluators in the project.
 
 ## 1. Purpose
-Unify handling of named program entities and their associated values or structural descriptors. Exposes minimal, hash-stable objects that:
-* Participate in symbol table indexing (deterministic hashing / equality).
-* Preserve paradigm (classical vs quantum) flags early for dispatch / validation.
-* Encode function signature identity separate from function body storage.
-* Provide container semantics (immutability, mutability, append-only, constant) for values and composite data structures (single, struct, enum, array-like / quantum sequences).
+Provide precise and inspectable data entities that can be created by compilers, linked across modules, and consumed by evaluators. Design objectives are:
+1. Deterministic equality and hashing for symbols, composite symbols, composite values, and signature descriptors within a process.
+2. Explicit classical or quantum tagging with validation that prevents accidental mixing of paradigms.
+3. Structured containers for variables that enforce mutability policies and data structure shape during assignment and retrieval.
+4. A function definition object that normalizes argument representation and exposes a value based signature for storage and lookup.
+5. Efficient string and binary representations for literals to support debugging and analysis.
 
-## 2. Provided Conceptual Components
-* Symbol & Composite Symbol: Base name token and dotted/qualified attribute chains; suppress most type display in repr for compact symbol table dumps; quantum tagged via leading '@'.
-* Literals (Core & Composite): Typed atomic values (numeric, string, quantum-prefixed) and grouped collections (arrays / mixed lists) with binary transformation helper for deterministic, backend-agnostic bit views.
-* Function Signature Objects: Distinct key vs check forms (`FnKey` vs `FnCheck`) to (a) define and store functions and (b) query / retrieve them without full body duplication; equality driven by name + ordered argument type tuple.
-* Function Definition Wrapper: Couples name, argument block, body block, return type; derives hashable key/check objects on demand (no eager duplication inside symbol table builders).
-* Data Containers (Variable Template + Concrete Variants): Runtime storage abstraction parameterized by mutability kind (constant, immutable single-assign, mutable reassign, appendable incremental growth). Quantum containers are always appendable for ordered emission of quantum instructions. Containers track assignment state, borrowing/transfer flags (placeholders for ownership flow), and ordered member insertion.
-* Utility Enumerations / Helpers: VariableKind, CompositeGroup, simple quantum detection, paradigm compatibility checks.
+## 2. Scope
+1. Symbolic identifiers and composite symbolic forms with qualified names and attribute chains.
+2. Literals with defined ordering and inequality when the type supports them and cached binary encoding.
+3. Variable containers for constant, immutable, mutable, and appendable policies with quantum aware behavior.
+4. A factory for variable containers that selects the correct policy from requested properties and paradigm.
+5. A function definition container with argument and body blocks and a signature descriptor used by symbol tables.
+6. Utilities for paradigm detection and comparison.
+
+## 3. Core Concepts
+1. **Symbolic identity**: A symbol is a value that names a variable, function, type, argument, or parameter. It carries a type tag and a boolean tag that marks the quantum paradigm. Composite symbols represent qualified names and attribute or method chains as an ordered tuple of segments. Equality and hashing are value based and do not depend on object identity.
+2. **Literals**: A literal couples a textual value with a type tag that can be a single tag or an ordered tuple of tags for composite cases. Quantum and classical markers must agree between the textual value and the type tag. Ordering and inequality comparisons are defined when the literal type supports them and they respect the represented value category and encoding. The literal exposes a cached binary encoding that yields bits for integers, double precision for floating point values in network byte order, and code points for strings.
+3. **Composite data**: Composite value objects support qualified attribute chains. Array composition is mediated by the type system and container assignment. They expose the group of segments, the group kind for classification, and a type tag. Iteration yields the underlying segments. String presentation uses dot separation and an optional colon followed by the type tag.
+4. **Paradigm discipline**: A small set of helpers detects the quantum paradigm from the at sign convention and checks that two entities share the same paradigm. These helpers are used by type system validation and by container construction. Variable assignment enforces paradigm consistency through type checks.
+5. **Variable containers**: The base container associates a name, a declared type, a description of the data structure layout, and a store of runtime values. The container tracks mutability policy, quantum status, assignment state, transfer and borrow state, and an instruction counter that orders side effects important for quantum and appendable containers. Assignment accepts positional values that align with the declared layout or keyword values addressed by member names. For array like or quantum members the container appends to per member lists and increases the instruction counter. Retrieval returns a member by name with a default to the first declared member. Implementations return typed error values for invalid operations. Unsupported paths may raise exceptions during development.
+6. **Function definitions**: A function definition object stores a name, an optional declared return type, an argument block, and a body block. The argument block is normalized to a single block that holds paired sequences of names and types. A signature descriptor is derived from the function name and the ordered list of argument types and it is suitable for table based storage and exact lookup.
+
+## 4. File Inventory
+1. `__init__.py`: Package marker without runtime behavior.
+2. `core.py`: Defines the data building blocks used across the core layer. Provides symbols and composite symbols with qualified names and attribute chains, literal values with value based equality and cached binary encoding, and composite value objects for attribute chains and mixed compositions. Also defines a classification of composite groups and enforces compatibility between quantum markers in textual values and type tags.
+3. `fn_def.py`: Provides a container for function definitions that binds a function name, an optional declared return type, a normalized argument block, and a body block. Exposes cached accessors for argument names and argument types and a signature descriptor used for storage and retrieval in symbol tables.
+4. `utils.py`: Collects utilities for this layer. Provides an enumeration of variable policies that covers constant, immutable, mutable, and appendable forms. Supplies a predicate that detects the quantum paradigm for strings and for objects that advertise a paradigm tag. Supplies a predicate that checks if two data entities share the same paradigm. Declares an abstract base for data containers used to avoid circular imports.
+5. `variable.py`: Implements the variable container hierarchy and a factory that selects a container based on requested policy and paradigm. The base container ties a name and a declared type to a data structure description and a store of values and it provides assignment, retrieval, iteration, and freeing. Concrete containers implement constant behavior with no assignment, immutable behavior with single assignment, mutable behavior with repeated assignment, and appendable behavior that appends values per member and advances the instruction counter. The factory ensures that quantum variables are always appendable. Assignment checks declared layout and type for each member. When using keyword style assignment the mutable and appendable containers map names to members and accept a conventional prefix that denotes quantum arguments. Operational errors return typed error handlers. Unsupported paths may raise exceptions during development.
+
+## 5. Processing Flow
+ 
+Compilers or dialect builders create symbols and literals for names and values. Variable containers are constructed from a name, a declared type, a layout description from the type system, and a requested policy. Assignment is performed either positionally in the order of the declared layout or by member names. Quantum or array members are appended and the instruction counter is increased. Function definitions are built from a name, a normalized argument block, and a body block. The compiler inserts the signature descriptor derived from the name and argument types into the function table for exact lookup. Evaluators can query containers for values and may consult the instruction counter to preserve ordering when needed.

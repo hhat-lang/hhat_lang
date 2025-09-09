@@ -1,4 +1,4 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.0.6 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36" version="28.0.6" pages="7">
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.1.2 Chrome/138.0.7204.243 Electron/37.4.0 Safari/537.36" version="28.1.2" pages="7">
   <diagram id="JTdK02_ILqz346RE07ru" name="overview">
     <mxGraphModel dx="663" dy="432" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -1472,6 +1472,50 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.011;entryY=0.485;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="p4PrbIC4ZjOhvRcNVYP6-2" target="p4PrbIC4ZjOhvRcNVYP6-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="143" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-2" value="variable &lt;b&gt;@A&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="80" y="123" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-3" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;type @T&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="265" y="123" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-4" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;@A * T&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="190" y="265" width="90" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-5" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;(variable of type @T being cast into T)&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="80" y="305" width="360" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-6" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;@T is a single type (@bool, @u2, @u3, ...)&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="390" y="120" width="410" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-7" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;@fn1(@A)&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;@fn2(@A)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;...&lt;/font&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="190" y="175" width="120" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-8" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;variable @B -&amp;gt; composite type @V&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="110" y="400" width="340" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-9" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;type @V {@S1:@bool @S2:@bool}&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="470" y="400" width="340" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-10" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;@fn1(@V)&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;@fn2(@V.@S1)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;@fn3(@V.@S2)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;@fn4(@V.@S1 @V.@S2)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;@V.@S1 * bool&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;@fn5(@V.@S2)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;@V.@S2 * bool&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;@V * smt&lt;/font&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="190" y="440" width="250" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-11" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;type @sync_t {@source:@bool @target:@bool}&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="80" width="450" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-12" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;@data:@sync_t = .{@source=@true @target=@false}&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;@encode(@data.@source)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;@sync(@data)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;res1:bool = @data.@source * bool&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;if (res1: @not(@data.@target) )&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;res2:bool = @data.@target * bool&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;@data * smt&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;&lt;br&gt;&lt;/font&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="150" width="510" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-13" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;cast(@data) {&lt;/font&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;font-size: 20px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;@encode(@data.@source)&lt;/span&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;@sync(@data)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;res1:bool = @data.@source * bool&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;if (res1: @not(@data.@target) )&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;res2:bool = @data.@target * bool&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;}&lt;/font&gt;&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="360" width="370" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="p4PrbIC4ZjOhvRcNVYP6-14" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;1- implementing function structure/logic&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;2- implementing qlang&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;3- implementing cast (quantum translation and&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;&amp;nbsp;protocol cast from quantum to classical)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1790" y="120" width="430" height="120" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>

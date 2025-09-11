@@ -253,13 +253,3 @@ class BaseIRInstr(ABC):
     @abstractmethod
     def __repr__(self) -> str:
         raise NotImplementedError()
-
-
-class BaseBuiltinInstr(BaseIRInstr):
-    """
-    Built-in instructions base class
-    """
-
-    @abstractmethod
-    def resolve(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError()

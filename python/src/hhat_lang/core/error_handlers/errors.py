@@ -31,6 +31,7 @@ class ErrorCodes(Enum):
     CAST_ERROR = auto()
 
     FUNCTION_WRONG_ARGS_TYPES_ERROR = auto()
+    FUNCTION_EXECUTION_ERROR = auto()
 
     STACK_FRAME_GET_ERROR = auto()
     STACK_FRAME_NOT_FN_ERROR = auto()
@@ -386,3 +387,17 @@ class InstrStatusError(ErrorHandler):
 
     def __call__(self) -> str:
         return f"[[{self.__class__.__name__}]]: instr {self._name} has status error"
+
+
+class FunctionExecutionError(ErrorHandler):
+    def __init__(self, *args: Any, fn_name: Any, reason: str):
+        super().__init__(ErrorCodes.FUNCTION_EXECUTION_ERROR)
+        self._name = fn_name
+        self._args = args
+        self._reason = reason
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: function {self._name} with args {self.args}"
+            f" failed due to: {self._reason}"
+        )

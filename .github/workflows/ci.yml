@@ -3,8 +3,8 @@ on:
   push:
     branches:
       - main
-      - dev/python
-      - dev/rust
+      - 'dev/python'
+      - 'dev/rust'
 permissions:
   contents: write
 jobs:

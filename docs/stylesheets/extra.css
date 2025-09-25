@@ -1,4 +1,8 @@
 :root > * {
+.md-typeset .admonition,
+.md-typeset details {
+  font-size: 100%
+}
 
 }
 

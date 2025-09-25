@@ -1,0 +1,3 @@
+use (type:geometry.euclidian.space)
+
+main {}

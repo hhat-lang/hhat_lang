@@ -1,6 +1,6 @@
 # TODOs
 
-Here sits an updated list of things to implement/write. Feel free to check them out and [place an issue](https://github.com/hhat-lang/hhat_lang/issues) or discuss them at the [Discord](http://discord.unitary.foundation)'s `#h-hat` channel.
+Here sits an updated list of things to implement/write. Feel free to check them out and [place an issue](https://github.com/hhat-lang/hhat_lang/issues) or discuss them at the [Discord `#h-hat` channel](https://discord.gg/J8udsUNRnk).
 
 ## H-hat core modules
 

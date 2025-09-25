@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from hhat_lang.core.code.ir import BodyIR, BlockIR, TypeIR, BaseFnIR
+from hhat_lang.core.code.ir import BaseFnIR, BlockIR, BodyIR, TypeIR
 from hhat_lang.core.execution.abstract_base import BaseEvaluator
 from hhat_lang.core.memory.core import MemoryManager
 

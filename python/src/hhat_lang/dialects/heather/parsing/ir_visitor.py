@@ -492,7 +492,6 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_callwithbodyoptions(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> CallInstr:
-
         args: tuple = ()
         body: BodyBlock | None = None
 
@@ -672,7 +671,6 @@ class ParserIRVisitor(PTNodeVisitor):
 def _resolve_data_to_str(
     data: SemanticActionResults | tuple | WorkingData | CompositeWorkingData | str,
 ) -> tuple | tuple[str, ...]:
-
     match data:
         case WorkingData():
             return (data.value,)
@@ -708,7 +706,6 @@ def _flatten_recursive_closure(
         | tuple[str | Symbol | CompositeSymbol | list | tuple, ...]
     ),
 ) -> tuple | tuple[CompositeSymbol, ...]:
-
     members: tuple | tuple[CompositeSymbol, ...] = ()
     parent: str | WorkingData | CompositeWorkingData | None = None
     composite_members: tuple[CompositeSymbol, ...] | tuple = ()

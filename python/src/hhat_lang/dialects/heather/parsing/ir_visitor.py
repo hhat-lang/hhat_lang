@@ -729,7 +729,7 @@ def _flatten_recursive_closure(
         return members
 
     for k in members:
-        composite_members += (CompositeSymbol(_resolve_data_to_str(parent) + k),)
+        composite_members += (CompositeSymbol(_resolve_data_to_str(parent) + k),)  # type: ignore [operator]
 
     return composite_members
 

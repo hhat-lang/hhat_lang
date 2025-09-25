@@ -5,8 +5,9 @@ import shutil
 from pathlib import Path
 
 import pytest
-from hhat_lang.toolchain.cli.cli import app
 from typer.testing import CliRunner
+
+from hhat_lang.toolchain.cli.cli import app
 
 runner = CliRunner()
 

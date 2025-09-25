@@ -276,9 +276,7 @@ class QNez(QInstr):
 
             case Error():
                 # error while obtaining mask indexes
-                return (
-                    mask_res.result(),
-                ), InstrStatus.ERROR  # type: ignore[return-value]
+                return (mask_res.result(),), InstrStatus.ERROR  # type: ignore[return-value]
 
             case _:
                 return tuple(), InstrStatus.ERROR

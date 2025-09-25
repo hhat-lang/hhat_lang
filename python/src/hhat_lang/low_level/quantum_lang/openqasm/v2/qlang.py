@@ -82,7 +82,6 @@ class LowLeveQLang(BaseLowLevelQLang):
         code_tuple: tuple[str, ...] = ()
 
         for member, data in cast(Iterable[tuple[Any, Any]], var_data):
-
             match data:
                 case Symbol():
                     d_res = self.gen_var(data, executor=self._executor)
@@ -163,7 +162,6 @@ class LowLeveQLang(BaseLowLevelQLang):
                     raise NotImplementedError()
 
                 case IRInstr():
-
                     match instr_res := self.gen_instrs(instr=k, **kwargs):
                         case Ok():
                             code_tuple += instr_res.result()
@@ -204,9 +202,7 @@ class LowLeveQLang(BaseLowLevelQLang):
         )
 
         for name, obj in inspect.getmembers(instr_module, inspect.isclass):
-
             if (x := getattr(obj, "name", False)) and x == instr.name:
-
                 skip_gen = (
                     getattr(obj, "flag", QInstrFlag.NONE) == QInstrFlag.SKIP_GEN_ARGS
                 )
@@ -272,7 +268,6 @@ class LowLeveQLang(BaseLowLevelQLang):
         )
 
         for instr in self._code:  # type: ignore [attr-defined]
-
             instr_cls = None
             for name, obj in inspect.getmembers(instr_module, inspect.isclass):
                 if getattr(obj, "name", False) == instr.name:
@@ -287,9 +282,7 @@ class LowLeveQLang(BaseLowLevelQLang):
                 )
 
             if instr.args and not skip_gen:
-
                 match gen_args := self.gen_args(instr.args):
-
                     case Ok():
                         if gen_args.result():
                             body_code += "\n".join(gen_args.result()) + "\n"
@@ -304,7 +297,6 @@ class LowLeveQLang(BaseLowLevelQLang):
             match gen_instr := self.gen_instrs(
                 instr=instr, idx=self._idx, executor=self._executor
             ):
-
                 case Ok():
                     body_code += "\n".join(gen_instr.result())
 

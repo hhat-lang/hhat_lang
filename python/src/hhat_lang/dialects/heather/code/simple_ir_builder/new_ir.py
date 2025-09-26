@@ -821,7 +821,6 @@ def _get_assign_datatype(
             return mem.scope.stack[mem.cur_scope].pop()
 
         case OptionBlock():
-
             # FIXME: implement option block
             raise NotImplementedError()
 

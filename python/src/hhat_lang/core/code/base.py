@@ -50,7 +50,6 @@ class BaseFnKey:
         args_names: tuple | tuple[Symbol, ...],
         args_types: tuple | tuple[Symbol | CompositeSymbol, ...],
     ):
-
         # check correct types for each argument before proceeding
         assert (
             isinstance(fn_name, Symbol | CompositeSymbol)
@@ -122,7 +121,6 @@ class BaseFnCheck:
         fn_name: Symbol | CompositeSymbol,
         args_types: tuple | tuple[Symbol | CompositeSymbol, ...],
     ):
-
         # checks types correctness
         assert isinstance(fn_name, Symbol | CompositeSymbol) and all(
             isinstance(p, Symbol | CompositeSymbol) for p in args_types

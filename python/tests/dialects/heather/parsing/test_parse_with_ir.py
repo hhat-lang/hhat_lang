@@ -9,6 +9,7 @@ from pstats import SortKey, Stats, StatsProfile
 from typing import Callable
 
 import pytest
+
 from hhat_lang.core.code.abstract import IRHash
 from hhat_lang.core.code.new_ir import IRGraph
 from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
@@ -24,9 +25,7 @@ THIS = Path(__file__).parent
 
 def types_ex_main04(files: tuple[Path, ...]) -> None:
     with open(files[0], "a") as f:
-        f.write(
-            "type space {x:i64 y:u64 z:i64}\n" "type surface:u64\n" "type volume:u64\n"
-        )
+        f.write("type space {x:i64 y:u64 z:i64}\ntype surface:u64\ntype volume:u64\n")
     print(f"{THIS=} | folder {files[0].parent}:{os.listdir(files[0].parent)}")
 
     with open(files[1], "a") as f:

@@ -260,7 +260,6 @@ class IRGraph:
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Symbol | BaseFnCheck):
-
             for tmp_node in self._tmp_nodes:
                 if item in tmp_node:
                     return True
@@ -275,7 +274,7 @@ class IRGraph:
     def __repr__(self) -> str:
         max_n = str(len(self.nodes))
         txt = "".join(
-            f"\nN#{'0'*(len(max_n) - len(str(n)))}{n}{k.ir}"
+            f"\nN#{'0' * (len(max_n) - len(str(n)))}{n}{k.ir}"
             for n, k in enumerate(self.nodes)
         )
         return f"==============\n=*=IR GRAPH=*=\n==============\n{txt}\n"

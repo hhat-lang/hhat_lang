@@ -4,7 +4,7 @@ import sys
 from abc import ABC, abstractmethod
 from enum import auto
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, cast, Callable
 
 from hhat_lang.core.code.abstract import BaseIR, BaseIRModule, IRHash, RefTable
 from hhat_lang.core.code.base import (
@@ -37,11 +37,12 @@ from hhat_lang.core.memory.core import (
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 from hhat_lang.core.types.builtin_conversion import compatible_types
 from hhat_lang.core.types.builtin_types import builtins_types
+from hhat_lang.dialects.heather.code.builtins.fns import BUILTIN_FNS_DICT
+
 
 ###########################
 # IR INSTRUCTIONS CLASSES #
 ###########################
-
 
 class IRFlag(BaseIRFlag):
     """
@@ -65,6 +66,49 @@ class IRFlag(BaseIRFlag):
     RETURN = auto()
 
 
+class BuiltinInstr(BaseIRInstr):
+    def __init__(self, *args: Any, name: Symbol, flag: IRFlag):
+        self.args = (name, args)
+        self._name = flag
+        super().__init__()
+
+    @property
+    def builtin_name(self) -> Symbol:
+        return cast(Symbol, self.args[0])
+
+    @property
+    def builtin_args(self) -> tuple[Any, ...] | tuple:
+        return self.args[1:]
+
+    def resolve(
+        self,
+        mem: MemoryManager,
+        node: IRNode,
+        ir_graph: IRGraph,
+        **kwargs: Any
+    ) -> Any:
+        """
+
+        Args:
+            mem: ``MemoryManager`` instance
+            node: ``IRNode`` instance
+            ir_graph: ``IRGraph`` instance
+            **kwargs: extra arguments for the function to work
+
+        Returns:
+            Whatever the built-in function should return
+        """
+
+        fns_dict: dict[tuple, Callable] = BUILTIN_FNS_DICT[self.builtin_name.value]
+        args_types = _handle_call_args(*self.builtin_args,  mem=mem, node=node, ir_graph=ir_graph)
+        builtin_fn: Callable = fns_dict[args_types]
+        # TODO: call builtin_fn() directly or _handle_call_instr() ?
+        # builtin_fn(*self.builtin_args)
+
+    def __repr__(self) -> str:
+        return f"{self.name}({' '.join(str(k) for k in self.args)})"
+
+
 class IRInstr(BaseIRInstr):
     """
     Base class for IR instructions. Custom IR instructions names must adhere to
@@ -82,11 +126,11 @@ class IRInstr(BaseIRInstr):
 
     def __init__(
         self,
-        *args: IRBlock | IRInstr | WorkingData | CompositeWorkingData,
+        *args: IRBlock | BaseIRInstr | WorkingData | CompositeWorkingData,
         name: IRFlag,
     ):
         if all(
-            isinstance(k, IRBlock | IRInstr | WorkingData | CompositeWorkingData)
+            isinstance(k, IRBlock | BaseIRInstr | WorkingData | CompositeWorkingData)
             for k in args
         ) and isinstance(name, IRFlag):
             self._name = name
@@ -116,11 +160,11 @@ class IRInstr(BaseIRInstr):
 class CastInstr(IRInstr):
     def __init__(
         self,
-        data: WorkingData | CompositeWorkingData | IRInstr,
+        data: WorkingData | CompositeWorkingData | BaseIRInstr,
         to_type: WorkingData | CompositeWorkingData | ModifierBlock,
     ):
         if isinstance(
-            data, WorkingData | CompositeWorkingData | IRInstr
+            data, WorkingData | CompositeWorkingData | BaseIRInstr
         ) and isinstance(to_type, WorkingData | CompositeWorkingData | ModifierBlock):
             super().__init__(data, to_type, name=IRFlag.CAST)
 
@@ -145,7 +189,7 @@ class CallInstr(IRInstr):
         option: OptionBlock | None = None,
         body: BodyBlock | None = None,
     ):
-        instr_args: tuple[IRBlock | IRInstr | WorkingData] | tuple
+        instr_args: tuple[IRBlock | BaseIRInstr | WorkingData] | tuple
 
         if option is None and body is None:
             instr_args = (args,)
@@ -265,13 +309,13 @@ class DeclareAssignInstr(IRInstr):
         self,
         var: Symbol | ModifierBlock,
         var_type: Symbol | CompositeSymbol | ModifierBlock,
-        value: WorkingData | CompositeWorkingData | IRInstr | IRBlock,
+        value: WorkingData | CompositeWorkingData | BaseIRInstr | IRBlock,
     ):
         if (
             isinstance(var, Symbol | ModifierBlock)
             and isinstance(var_type, Symbol | CompositeSymbol | ModifierBlock)
             and isinstance(
-                value, WorkingData | CompositeWorkingData | IRInstr | IRBlock
+                value, WorkingData | CompositeWorkingData | BaseIRInstr | IRBlock
             )
         ):
             super().__init__(var, var_type, value, name=IRFlag.DECLARE_ASSIGN)
@@ -330,8 +374,8 @@ class IRBlock(BaseIRBlock, ABC):
 class BodyBlock(IRBlock):
     _name = IRBlockFlag.BODY
 
-    def __init__(self, *args: IRBlock | IRInstr):
-        if all(isinstance(k, IRBlock | IRInstr) for k in args):
+    def __init__(self, *args: IRBlock | BaseIRInstr):
+        if all(isinstance(k, IRBlock | BaseIRInstr) for k in args):
             if len(args) == 1 and isinstance(args[0], BodyBlock):
                 self.args = args[0].args
 
@@ -350,11 +394,11 @@ class BodyBlock(IRBlock):
 class ArgsBlock(IRBlock):
     _name = IRBlockFlag.ARGS
 
-    args: tuple[WorkingData | CompositeWorkingData | IRBlock | IRInstr, ...] | tuple
+    args: tuple[WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr, ...] | tuple
 
-    def __init__(self, *args: WorkingData | CompositeWorkingData | IRBlock | IRInstr):
+    def __init__(self, *args: WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr):
         if all(
-            isinstance(k, WorkingData | CompositeWorkingData | IRBlock | IRInstr)
+            isinstance(k, WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr)
             for k in args
         ):
             self.args = args
@@ -378,13 +422,13 @@ class ArgsValuesBlock(IRBlock):
         ]
         | tuple
     )
-    values: tuple[WorkingData | CompositeWorkingData | IRBlock | IRInstr, ...] | tuple
+    values: tuple[WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr, ...] | tuple
 
     def __init__(
         self,
         *args: tuple[
             Symbol,
-            WorkingData | CompositeWorkingData | IRBlock | IRInstr,
+            WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr,
         ],
     ):
         self.args = ()
@@ -398,7 +442,7 @@ class ArgsValuesBlock(IRBlock):
                     "args values block's args must be symbol or modifier block "
                 )
 
-            if isinstance(k[1], WorkingData | CompositeWorkingData | IRBlock | IRInstr):
+            if isinstance(k[1], WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr):
                 self.values += (k[1],)
             else:
                 raise ValueError(
@@ -414,20 +458,20 @@ class OptionBlock(IRBlock):
 
     args: (  # type: ignore [assignment]
         tuple[
-            tuple[WorkingData | CompositeWorkingData | IRBlock | IRInstr, ...],
-            IRBlock | IRInstr,
+            tuple[WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr, ...],
+            IRBlock | BaseIRInstr,
         ]
         | tuple
     )
 
     def __init__(
         self,
-        option: WorkingData | CompositeWorkingData | IRBlock | IRInstr,
-        block: IRBlock | IRInstr,
+        option: WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr,
+        block: IRBlock | BaseIRInstr,
     ):
         if isinstance(
-            option, WorkingData | CompositeWorkingData | IRBlock | IRInstr
-        ) and isinstance(block, WorkingData | CompositeWorkingData | IRBlock | IRInstr):
+            option, WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr
+        ) and isinstance(block, WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr):
             self.args = (option, block)
 
         else:
@@ -436,11 +480,11 @@ class OptionBlock(IRBlock):
             )
 
     @property
-    def option(self) -> WorkingData | CompositeWorkingData | IRBlock | IRInstr:
+    def option(self) -> WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr:
         return self.args[0]
 
     @property
-    def block(self) -> WorkingData | CompositeWorkingData | IRBlock | IRInstr:
+    def block(self) -> WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr:
         return self.args[1]
 
     def __repr__(self) -> str:
@@ -450,11 +494,11 @@ class OptionBlock(IRBlock):
 class ReturnBlock(IRBlock):
     _name = IRBlockFlag.RETURN
 
-    args: tuple[WorkingData | CompositeWorkingData | IRBlock | IRInstr, ...]
+    args: tuple[WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr, ...]
 
-    def __init__(self, *args: WorkingData | CompositeWorkingData | IRBlock | IRInstr):
+    def __init__(self, *args: WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr):
         if all(
-            isinstance(k, WorkingData | CompositeWorkingData | IRBlock | IRInstr)
+            isinstance(k, WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr)
             for k in args
         ):
             self.args = args
@@ -469,12 +513,12 @@ class ReturnBlock(IRBlock):
 class ModifierBlock(IRBlock):
     _name = IRBlockFlag.MODIFIER
 
-    args: tuple[Symbol | CompositeSymbol | IRInstr, ModifierArgsBlock]
+    args: tuple[Symbol | CompositeSymbol | BaseIRInstr, ModifierArgsBlock]
 
     def __init__(
-        self, obj: Symbol | CompositeSymbol | IRInstr, args: ModifierArgsBlock
+        self, obj: Symbol | CompositeSymbol | BaseIRInstr, args: ModifierArgsBlock
     ):
-        if isinstance(obj, Symbol | CompositeSymbol | IRInstr) and isinstance(
+        if isinstance(obj, Symbol | CompositeSymbol | BaseIRInstr) and isinstance(
             args, ModifierArgsBlock
         ):
             self.args = (obj, args)
@@ -485,7 +529,7 @@ class ModifierBlock(IRBlock):
             )
 
     @property
-    def obj(self) -> Symbol | CompositeSymbol | IRInstr:
+    def obj(self) -> Symbol | CompositeSymbol | BaseIRInstr:
         return self.args[0]
 
     @property
@@ -657,7 +701,7 @@ def _declare_variable(
 
 def _get_assign_datatype(
     var_type: Symbol | CompositeSymbol,
-    value: WorkingData | CompositeWorkingData | IRInstr | IRBlock,
+    value: WorkingData | CompositeWorkingData | BaseIRInstr | IRBlock,
     mem: MemoryManager,
     node: IRNode,
     ir_graph: IRGraph,
@@ -680,7 +724,7 @@ def _get_assign_datatype(
 
     Args:
         var_type: ``CompositeSymbol`` (or ``Symbol``) object of the variable type
-        value: data name as ``WorkingData``, ``CompositeWorkingData``, ``IRInstr`` or
+        value: data name as ``WorkingData``, ``CompositeWorkingData``, ``BaseIRInstr`` or
             ``IRBlock`` object to be assigned to the variable
         mem: ``MemoryManager`` object
         node:
@@ -691,7 +735,7 @@ def _get_assign_datatype(
          is not compatible
     """
 
-    new_instr: IRInstr
+    new_instr: BaseIRInstr
 
     match value:
         case Symbol():
@@ -734,7 +778,7 @@ def _get_assign_datatype(
                 "composite literal on variable assignment not implemente yet"
             )
 
-        case IRInstr():
+        case BaseIRInstr():
             new_args: (
                 tuple[WorkingData | CompositeWorkingData | BaseDataContainer] | tuple
             ) = ()
@@ -811,7 +855,7 @@ def _assign_variable(
         **arg_values: Any extra argument used
     """
 
-    args: WorkingData | CompositeWorkingData | IRInstr | IRBlock = mem.scope.stack[
+    args: WorkingData | CompositeWorkingData | BaseIRInstr | IRBlock = mem.scope.stack[
         mem.cur_scope
     ].pop()
     new_args: tuple = (
@@ -854,7 +898,7 @@ def _get_type_from_data(
 
 
 def _handle_call_args(
-    *args: IRBlock | IRInstr | WorkingData | CompositeWorkingData,
+    *args: IRBlock | BaseIRInstr | WorkingData | CompositeWorkingData,
     mem: MemoryManager,
     node: IRNode,
     ir_graph: IRGraph,
@@ -879,7 +923,7 @@ def _handle_call_args(
                         *k, mem=mem, node=node, ir_graph=ir_graph
                     )
 
-            case IRInstr():
+            case BaseIRInstr():
                 arg.resolve(mem, node, ir_graph)
                 res_return = mem.stack.get_fn_return()
                 resolved_args += (_get_type_from_data(res_return),)
@@ -955,7 +999,7 @@ def _handle_call_instr(
 
 
 def _resolve_fn_block(
-    data: IRBlock | IRInstr, mem: MemoryManager, node: IRNode, ir_graph: IRGraph
+    data: IRBlock | BaseIRInstr, mem: MemoryManager, node: IRNode, ir_graph: IRGraph
 ) -> None:
     """
     Convenient function to resolve function blocks. Whenever it's called from outside,
@@ -974,5 +1018,6 @@ def _resolve_fn_block(
             for k in data:
                 _resolve_fn_block(k, mem, node, ir_graph)
 
-        case IRInstr():
+        case BaseIRInstr():
             data.resolve(mem=mem, node=node, ir_graph=ir_graph)
+

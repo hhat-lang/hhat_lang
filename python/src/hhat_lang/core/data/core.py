@@ -154,6 +154,15 @@ class Symbol(WorkingData):
         super().__init__()
 
 
+class Alias(Symbol):
+    """
+    Alias to a type or function name
+    """
+
+    def __init__(self, value: str):
+        super().__init__(value, "`alias")
+
+
 class CompositeSymbol(CompositeWorkingData):
     """
     When a symbol has attributes, properties or methods.

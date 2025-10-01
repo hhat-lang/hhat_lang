@@ -13,15 +13,10 @@ from hhat_lang.core.data.core import (
 from hhat_lang.core.data.fn_def import FnDef
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
-##############
-# IR SECTION #
-##############
-
 
 ####################
 # IR GRAPH CLASSES #
 ####################
-
 
 class IRNode:
     """

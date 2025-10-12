@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arpeggio import Kwd, OneOrMore, Optional, ZeroOrMore
-from arpeggio import RegExMatch as _
+from arpeggio import Kwd, OneOrMore, Optional, ZeroOrMore, RegExMatch as _
 
 
 def id_composite_value() -> Any:
@@ -11,7 +10,7 @@ def id_composite_value() -> Any:
 
 
 def callargs() -> Any:
-    return simple_id, "=", valonly
+    return full_id, "=", valonly
 
 
 def valonly() -> Any:
@@ -26,22 +25,60 @@ def simple_id() -> Any:
     return _(r"@?[a-zA-Z][a-zA-Z0-9\-_]*")
 
 
+def trait_name_id() -> Any:
+    return _(r"@?[A-Z][a-zA-Z0-9\-_]*")
+
+
+def trait_id() -> Any:
+    """
+    Trait id always starts with ``#`` and an uppercase letter, ex: ``#Printable``.
+    It can also contain multiple trait ids, as: ``#[Printable Integers]``
+    """
+    return (
+        "#",
+        [
+            trait_name_id,
+            ('[', OneOrMore(trait_name_id), ']')
+        ],
+        Optional(modifier)
+    )
+
+
 def composite_id() -> Any:
-    return simple_id, OneOrMore(".", simple_id)
+    return full_id, OneOrMore(".", full_id)
 
 
 def composite_id_with_closure() -> Any:
     return (
-        [composite_id, simple_id],
+        [full_id],
         ".",
         "{",
-        OneOrMore([composite_id_with_closure, composite_id, simple_id]),
+        OneOrMore([composite_id_with_closure, composite_id, full_id]),
         "}",
     )
 
 
+def composite_id_with_values() -> Any:
+    return (
+        full_id,
+        ".",
+        "[",
+        [
+            OneOrMore(
+                [
+                    ([literal, simple_id], capped_range, [literal, simple_id]),
+                    valonly,
+                ]
+            ),
+            ([full_id, literal], variadic),
+            (variadic, [full_id, literal]),
+        ],
+        "]"
+    )
+
+
 def modifier() -> Any:
-    return "<", [ref, pointer, OneOrMore([callargs, valonly])], ">"
+    return "<", [ref, pointer, variadic, OneOrMore([callargs, valonly])], ">"
 
 
 def full_id() -> Any:
@@ -56,9 +93,18 @@ def pointer() -> Any:
     return Kwd("*")
 
 
+def variadic() -> Any:
+    return Kwd("...")
+
+
+def capped_range() -> Any:
+    return Kwd("..")
+
+
 def literal() -> Any:
-    return [t_float, t_null, t_bool, t_str, t_int, qt_bool, qt_int], Optional(
-        ":", composite_id
+    return (
+        [t_float, t_null, t_bool, t_str, t_int, qt_bool, qt_int],
+        Optional(":", composite_id)
     )
 
 
@@ -114,9 +160,9 @@ def expr() -> Any:
     return [
         cast,
         assign_ds,
-        callwithargsoptions,
-        callwithbodyoptions,
-        callwithbody,
+        call_optn,
+        call_optbdn,
+        call_bdn,
         call,
         array,
         full_id,
@@ -166,20 +212,32 @@ def args() -> Any:
 
 
 def assignargs() -> Any:
-    return [composite_id, simple_id], "=", expr
+    return full_id, "=", expr
 
 
 def option() -> Any:
     return [call, array, full_id], ":", [body, expr]
 
 
-def callwithbodyoptions() -> Any:
+def call_optbdn() -> Any:
     return full_id, "(", args, ")", "{", OneOrMore(option), "}"
 
 
-def callwithargsoptions() -> Any:
+def call_optn() -> Any:
     return full_id, "(", OneOrMore(option), ")"
 
 
-def callwithbody() -> Any:
+def call_bdn() -> Any:
     return full_id, "(", args, ")", body
+
+
+def const_import() -> Any:
+    return Kwd("const"), ":", [single_import, many_import]
+
+
+def metafn_import() -> Any:
+    return Kwd("metafn"), ":", [single_import, many_import]
+
+
+def metamod_import() -> Any:
+    return Kwd("metamod"), ":", [single_import, many_import]

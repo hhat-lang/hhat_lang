@@ -4,6 +4,7 @@ from typing import Any
 
 from qiskit import QuantumCircuit, qasm2, transpile
 from qiskit.primitives.containers.pub_result import DataBin, PubResult
+from qiskit.primitives.containers.bit_array import BitArray
 
 # TODO: to set the configuration's simulator instead of a fixed simulator
 from qiskit_aer import AerSimulator

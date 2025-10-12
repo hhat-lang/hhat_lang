@@ -18,6 +18,7 @@ class ErrorCodes(Enum):
     TYPE_STRUCT_ASSIGN_ERROR = auto()
     TYPE_UNION_ASSIGN_ERROR = auto()
     TYPE_ENUM_ASSIGN_ERROR = auto()
+    TYPE_MEMBER_NOT_RESOLVED = auto()
 
     CONTAINER_VAR_ASSIGN_ERROR = auto()
     CONTAINER_VAR_IS_IMMUTABLE_ERROR = auto()
@@ -184,6 +185,19 @@ class TypeEnumError(ErrorHandler):
         return (
             f"[[{self.__class__.__name__}]]: Attempting to add wrong member"
             f" types to type '{self._type_name}'."
+        )
+
+
+class TypeMemberNotResolvedError(ErrorHandler):
+    def __init__(self, type_name: Any, type_member: Any):
+        super().__init__(ErrorCodes.TYPE_MEMBER_NOT_RESOLVED)
+        self._type_name = type_name
+        self._type_member = type_member
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: member {self._type_member} cannot"
+            f" be resolved for type '{self._type_name}'."
         )
 
 

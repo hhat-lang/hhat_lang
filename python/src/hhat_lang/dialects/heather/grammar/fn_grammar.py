@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arpeggio import Kwd
-from arpeggio.peg import EOF, OneOrMore, Optional, ZeroOrMore
+from arpeggio import Kwd, EOF, OneOrMore, Optional, ZeroOrMore
 
 from hhat_lang.dialects.heather.grammar.generic_grammar import (
     assign,
@@ -19,6 +18,10 @@ from hhat_lang.dialects.heather.grammar.generic_grammar import (
     many_import,
     simple_id,
     single_import,
+    const_import,
+    metafn_import,
+    metamod_import,
+    option,
 )
 from hhat_lang.dialects.heather.grammar.type_grammar import typeimport
 
@@ -28,7 +31,12 @@ def fn_program() -> Any:
 
 
 def imports() -> Any:
-    return Kwd("use"), "(", OneOrMore([typeimport, fnimport]), ")"
+    return (
+        Kwd("use"),
+        "(",
+        OneOrMore([typeimport, fnimport, const_import, metafn_import, metamod_import]),
+        ")"
+    )
 
 
 def fnimport() -> Any:
@@ -44,7 +52,7 @@ def fnargs() -> Any:
 
 
 def argtype() -> Any:
-    return simple_id, ":", id_composite_value
+    return full_id, ":", id_composite_value
 
 
 def fn_body() -> Any:
@@ -68,6 +76,53 @@ def fn_body() -> Any:
 
 def fn_return() -> Any:
     return "::", expr
+
+
+def metafn_def() -> Any:
+    """
+    Meta function grammar definition::
+
+        metafn <simple_id> <fnargs> (fn_t | optn_t | bdn_t | optbdn_t) <metafn_body>
+
+    where
+
+    - ``fn_t`` type is for (common) function
+    - ``optn_t`` type is for functions with arguments as options
+    - ``bdn_t`` type is for functions with arguments and body
+    - ``optbdn_t`` type is for functions with arguments and options in the body
+    """
+
+    return (
+        Kwd("metafn"),
+        simple_id,
+        fnargs,
+        [
+            Kwd("fn_t"),
+            Kwd("optn_t"),
+            Kwd("bdn_t"),
+            Kwd("optbdn_t")
+        ],
+        metafn_body
+    )
+
+
+def metafn_body() -> Any:
+    return (
+        "{",
+        OneOrMore(
+            [
+                option,
+                declareassign,
+                declareassign_ds,
+                declare,
+                assignargs,
+                assign_ds,
+                assign,
+                expr,
+            ]
+        ),
+        "}"
+    )
 
 
 def main() -> Any:

@@ -1,11 +1,41 @@
+"""
+Collection of functions to resolve types and sizes (``Size`` and ``QSize``).
+
+This is the step after all the types are stored in the ``SymbolTable``'s ``TypeTable``
+of all the modules. It will look up for unresolved type members inside types, that is
+types that are not built-in.
+
+It checks for the right types definitions and sizes so all types are defined and
+ready to be used during program execution.
+"""
+
 from __future__ import annotations
 
 from typing import Any
 
 from hhat_lang.core.code.new_ir import IRGraph, IRNode, get_type
-from hhat_lang.core.code.symbol_table import TypeTable
+from hhat_lang.core.code.symbol_table import TypeTable, SymbolTable
+from hhat_lang.core.error_handlers.errors import ErrorHandler, TypeMemberNotResolvedError
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
+
+#################
+# Resolve types #
+#################
+
+def resolve_members(
+    table: TypeTable,
+) -> None | ErrorHandler:
+    """
+    To resolve type members so everything is defined when the program is executed
+    """
+
+    # return TypeMemberNotResolvedError()
+
+
+#################
+# Resolve sizes #
+#################
 
 def _size_resolver():
     pass
@@ -54,3 +84,5 @@ def runtime_qsize() -> Any:
     """Runtime qsize resolver."""
 
     pass
+
+

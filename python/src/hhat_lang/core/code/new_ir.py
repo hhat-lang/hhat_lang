@@ -18,6 +18,7 @@ from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 # IR GRAPH CLASSES #
 ####################
 
+
 class IRNode:
     """
     Stores node key as ``IRHash`` and value as ``BaseIRModule`` child instance.

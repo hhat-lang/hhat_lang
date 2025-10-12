@@ -326,6 +326,11 @@ class StackFrame:
     ) -> BaseDataContainer | CoreLiteral | ErrorHandler:
         return self._data.get(item) or StackFrameGetError(item)
 
+    def pop(self) -> BaseDataContainer | CoreLiteral:
+        """Pops last value from ``StackFrame`` (data container or literal)"""
+
+        return self._data.popitem()[-1]
+
     def __contains__(self, item: Any) -> bool:
         return item in self._data
 
@@ -382,6 +387,11 @@ class Stack:
             case _:
                 return res
 
+    def pop(self) -> BaseDataContainer | CoreLiteral:
+        """Pops last element from current ``StackFrame`` (either data container or literal)"""
+
+        return self._data[-1].pop()
+
     def set_fn_entry(
         self,
         *values: BaseDataContainer | CoreLiteral,
@@ -403,7 +413,7 @@ class Stack:
 
         assert (values and not args_values) or (
             not values and args_values
-        ), "stack frame cannot have both values and args values-pair"
+        ), "stack frame must have either values org args values-pair"
 
         if isinstance(fn_header, BaseFnCheck):
             self._data[-1].add_fn_header(fn_header)

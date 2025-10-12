@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Mapping
 
 from hhat_lang.core.code.base import BaseFnCheck
 from hhat_lang.core.code.new_ir import build_reftable

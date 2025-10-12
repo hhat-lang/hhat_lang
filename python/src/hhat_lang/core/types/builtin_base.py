@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from typing import Any, Callable, Iterable
 
-from hhat_lang.core.data.core import CoreLiteral, Symbol, WorkingData
-from hhat_lang.core.data.utils import VariableKind
+from hhat_lang.core.data.core import CoreLiteral, Symbol, WorkingData, CompositeSymbol
+from hhat_lang.core.data.utils import VariableKind, AbstractDataContainer, has_same_paradigm
 from hhat_lang.core.data.variable import BaseDataContainer, VariableTemplate
 from hhat_lang.core.error_handlers.errors import (
-    ErrorHandler,
+    ErrorHandler, TypeQuantumOnClassicalError, TypeAndMemberNoMatchError,
 )
 from hhat_lang.core.types import POINTER_SIZE
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure, QSize, Size
+from hhat_lang.core.types.core import is_valid_member
 from hhat_lang.core.types.utils import BaseTypeEnum
 from hhat_lang.core.utils import SymbolOrdered
 
@@ -88,3 +89,52 @@ class BuiltinSingleDS(BaseTypeDataStructure):
 
     def __iter__(self) -> Iterable:
         raise NotImplementedError()
+
+
+
+class BuiltinStructDS(BaseTypeDataStructure):
+    def __init__(self, name: Symbol, bitsize: Size | None = None, qsize: QSize | None = None):
+        super().__init__(name, is_builtin=True)
+        self._type_container: SymbolOrdered = SymbolOrdered()
+        self._size = bitsize or Size(POINTER_SIZE)
+        self._qsize = qsize or QSize(0)
+        self._ds_type = BaseTypeEnum.STRUCT
+
+    @property
+    def bitsize(self) -> Size | None:
+        return self._size
+
+    def add_member(
+        self, member_type: BaseTypeDataStructure, member_name: Symbol | CompositeSymbol
+    ) -> Any | ErrorHandler:
+        if has_same_paradigm(member_type, member_name):
+            if is_valid_member(self, member_type.name):
+                self._type_container[member_name] = member_type.name
+                return self
+
+            return TypeQuantumOnClassicalError(member_type.name, self.name)
+
+        return TypeAndMemberNoMatchError(member_type.name, self.name)
+
+    def add_tmp_member(
+        self,
+        member_type: Symbol | CompositeSymbol,
+        member_name: Symbol | CompositeSymbol
+    ) -> BuiltinStructDS:
+        self._tmp_container += ((member_type, member_name),)
+        return self
+
+    def __call__(
+        self,
+        *,
+        var_name: Symbol | CompositeSymbol,
+        flag: VariableKind,
+        **kwargs: Any
+    ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
+        return VariableTemplate(
+            var_name=var_name,
+            type_name=self._name,
+            ds_data=self._type_container,
+            ds_type=self._ds_type,
+            flag=flag,
+        )

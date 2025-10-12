@@ -6,4 +6,3 @@ from typing import Any
 
 class BaseBuiltinFnContainer(ABC):
     pass
-

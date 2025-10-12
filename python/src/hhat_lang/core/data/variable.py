@@ -216,7 +216,9 @@ class BaseDataContainer(AbstractDataContainer):
                     else:
                         self._data[attr_type] = [data]
 
-                    self._instr_counter += 1
+                    if data.is_quantum:
+                        self._instr_counter += 1
+
                     return True
 
                 return False

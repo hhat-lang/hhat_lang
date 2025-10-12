@@ -76,6 +76,15 @@ def read_grammar() -> str:
 
 
 def parser_grammar_code(program_fn: Callable) -> ParserPython:
+    """
+
+    Args:
+        program_fn: the function that starts the grammar (probably "<something>_program").
+
+    Returns:
+        The ``ParserPython`` constructor
+    """
+
     return ParserPython(
         program_fn, comment_def=comment, ws=WHITESPACE, memoization=True
     )
@@ -94,6 +103,24 @@ def parse(
     module_path: Path,
     ir_graph: IRGraph,
 ) -> IR:
+    """
+    Used to parse code according to some grammar.
+
+    Args:
+        grammar_parser: function like
+            ``hhat_lang.dialects.heather.parsing.ir_visitor.parser_grammar_code`` that
+            receives a program rule (a function that starts the grammar), and returns a
+            ``ParserPython`` instance
+        program_rule: the function that starts the grammar (probably ``<something>_program``
+        raw_code: the code to be parsed as str
+        project_root: ``Path`` object of the project root path
+        module_path: ``Path`` object of the current module path
+        ir_graph: the project ``IRGraph``
+
+    Returns:
+        An ``IR`` instance
+    """
+
     parse_tree = grammar_parser(program_rule).parse(raw_code)
     return visit_parse_tree(
         parse_tree,
@@ -113,6 +140,8 @@ def parse(
 
 class ParserIRVisitor(PTNodeVisitor):
     """Visitor for parsing using IR code logic instead of AST's"""
+
+    # TODO: split the ParserIRVisitor class for different grammars
 
     _root: Path
     _module_path: Path
@@ -405,7 +434,7 @@ class ParserIRVisitor(PTNodeVisitor):
                     raise NotImplementedError("trait not implemented yet")
 
                 case _:
-                    raise NotImplementedError("unkown case")
+                    raise NotImplementedError("unknown case")
 
         if len(child) == 3:
             # possible cases: trait_id and args, trait_id and modifier, args and modifier
@@ -482,34 +511,42 @@ class ParserIRVisitor(PTNodeVisitor):
         return child[0]
 
     def visit_option(self, _: NonTerminal, child: SemanticActionResults) -> OptionBlock:
-        return OptionBlock(*child[1:], block=child[0])
+        assert len(child) == 2, "Option grammar must have one option and one block"
+        return OptionBlock(option=child[0], block=child[1])
 
-    def visit_callwithbody(
+    def visit_call_bdn(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> CallInstr:
         raise NotImplementedError()
 
-    def visit_callwithbodyoptions(
+    def visit_call_optbdn(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> CallInstr:
         args: tuple = ()
         body: BodyBlock | None = None
+        option: tuple[OptionBlock] | tuple = ()
 
         for k in child[1:]:
             match k:
                 case ArgsBlock() | ArgsValuesBlock():
                     args += (k,)
+
                 case BodyBlock():
                     body = k
+
+                case OptionBlock():
+                    option += k,
+
                 case _:
                     raise ValueError(
                         f"unexpected value on call with body options {k} ({type(k)})"
                     )
 
+        body = BodyBlock(*option) if option else body
         args_entry = ArgsBlock(*args) if args else None
         return CallInstr(name=child[0], args=args_entry, body=body)
 
-    def visit_callwithargsoptions(
+    def visit_call_optn(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> CallInstr:
         return CallInstr(name=child[0], option=child[1])
@@ -613,6 +650,7 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_composite_id(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> CompositeSymbol:
+        print(f"{type(child)} | {child}")
         return CompositeSymbol(value=_resolve_data_to_str(child))
 
     def visit_simple_id(self, node: Terminal, _: None) -> Symbol:
@@ -669,7 +707,7 @@ class ParserIRVisitor(PTNodeVisitor):
 
 
 def _resolve_data_to_str(
-    data: SemanticActionResults | tuple | WorkingData | CompositeWorkingData | str,
+    data: SemanticActionResults | tuple | WorkingData | ModifierBlock | CompositeWorkingData | str,
 ) -> tuple | tuple[str, ...]:
     match data:
         case WorkingData():
@@ -678,18 +716,22 @@ def _resolve_data_to_str(
         case CompositeWorkingData():
             return _resolve_data_to_str(data.value)
 
+        case ModifierBlock():
+            return (data,)
+
         case SemanticActionResults() | tuple():
             pure_data: tuple | tuple[str, ...] = ()
 
             for k in data:
-                if isinstance(k, WorkingData):
-                    pure_data += (k.value,)
+                match k:
+                    case WorkingData():
+                        pure_data += (k.value,)
 
-                elif isinstance(k, str):
-                    pure_data += (k,)
+                    case str():
+                        pure_data += (k,)
 
-                elif isinstance(k, CompositeWorkingData):
-                    pure_data += k.value
+                    case CompositeWorkingData():
+                        pure_data += k.value
 
             return pure_data
 

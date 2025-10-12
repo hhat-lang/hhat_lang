@@ -225,7 +225,7 @@ class BaseIRInstr(ABC):
     args: tuple[BaseIRBlock | WorkingData | CompositeWorkingData, ...] | tuple
     _hash_value: int
 
-    def __init__(self):
+    def __init__(self, *args: Any, **kwargs: Any):
         self._hash_value = hash((hash(self.name), hash(self.args)))
 
     @property

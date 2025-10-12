@@ -24,7 +24,7 @@ I64 = BuiltinSingleDS(Symbol("i64"), Size(64))
 Float = BuiltinSingleDS(Symbol("float"), Size(64))
 F32 = BuiltinSingleDS(Symbol("f32"), Size(32))
 F64 = BuiltinSingleDS(Symbol("f64"), Size(64))
-
+HashMap = None
 
 # -------- #
 # quantum  #
@@ -63,6 +63,7 @@ builtins_types = {
     Symbol("i64"): I64,
     Symbol("f32"): F32,
     Symbol("f64"): F64,
+    Symbol("hashmap"): HashMap,
     # quantum
     Symbol("@bool"): QBool,
     Symbol("@int"): QInt,

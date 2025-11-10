@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import struct
 from enum import Enum, auto
+from functools import lru_cache
 from typing import Any, Iterable
 
 ACCEPTABLE_VALUES: dict = {
@@ -18,7 +20,7 @@ ACCEPTABLE_VALUES: dict = {
 
 
 class InvalidType:
-    """It just exists to be used as 'default' instance for the `ACCEPTABLE_VALUES` above."""
+    """It just exists to be used as 'default' instance for the ``ACCEPTABLE_VALUES`` above."""
 
     pass
 
@@ -35,48 +37,35 @@ class WorkingData:
     """
 
     _value: str
-    _type: str
+    _type: str | tuple[str, ...]
     _is_quantum: bool
     _suppress_type: bool
+    _hash_value: int
+    __slots__ = ("_value", "_type", "_is_quantum", "_suppress_type", "_hash_value")
+
+    def __init__(self):
+        self._hash_value = hash((self.value, self.type))
 
     @property
     def value(self) -> str:
         return self._value
 
     @property
-    def type(self) -> str:
+    def type(self) -> str | tuple[str, ...]:
         return self._type
 
     @property
     def is_quantum(self) -> bool:
         return self._is_quantum
 
-    def _op_bitwise(self, op: str, other: Any) -> bool:
-        if isinstance(other, self.__class__):
-            return getattr(self.value, op)(other.value)
-
-        if isinstance(other, ACCEPTABLE_VALUES.get(self._type, InvalidType)):
-            return getattr(self.value, op)(other)
-
-        return False
-
     def __hash__(self) -> int:
-        return hash((self.value, self.type))
+        return self._hash_value
 
     def __eq__(self, other: Any) -> bool:
-        return self._op_bitwise("__eq__", other)
+        if isinstance(other, self.__class__):
+            return self.value == other.value and self.type == other.type
 
-    def __le__(self, other) -> bool:
-        return self._op_bitwise("__le__", other)
-
-    def __ge__(self, other) -> bool:
-        return self._op_bitwise("__ge__", other)
-
-    def __lt__(self, other) -> bool:
-        return self._op_bitwise("__lt__", other)
-
-    def __ne__(self, other) -> bool:
-        return self._op_bitwise("__ne__", other)
+        return False
 
     def __repr__(self) -> str:
         type_txt = "" if self.type is None or self._suppress_type else f":{self.type}"
@@ -95,6 +84,25 @@ class CompositeWorkingData:
     _group_type: CompositeGroup
     _is_quantum: bool
     _suppress_type: bool
+    _hash_value: int
+    __slots__ = (
+        "_group",
+        "_type",
+        "_group_type",
+        "_is_quantum",
+        "_suppress_type",
+        "_hash_value",
+    )
+
+    def __init__(self):
+        self._hash_value = hash(
+            (
+                hash(self._group),
+                hash(self._type),
+                hash(self._group_type),
+                hash(self._is_quantum),
+            )
+        )
 
     @property
     def value(self) -> tuple[str, ...]:
@@ -123,14 +131,14 @@ class CompositeWorkingData:
         return False
 
     def __hash__(self) -> int:
-        return hash((self._group, self._type, self._group_type, self._is_quantum))
+        return self._hash_value
 
     def __iter__(self) -> Iterable:
-        yield from self._group
+        return iter(self._group)
 
     def __repr__(self) -> str:
         txt = "" if self.type is None or self._suppress_type else f":{self.type}"
-        return " ".join(str(k) for k in self._group) + f"{txt}"
+        return ".".join(str(k) for k in self._group) + f"{txt}"
 
 
 class Symbol(WorkingData):
@@ -140,9 +148,19 @@ class Symbol(WorkingData):
 
     def __init__(self, value: str, symbol_type: str | None = None):
         self._value = value
-        self._type = symbol_type or "str"
-        self._is_quantum = True if value.startswith("@") else False
+        self._type = symbol_type or "`symbol"
+        self._is_quantum = value.startswith("@")
         self._suppress_type = True
+        super().__init__()
+
+
+class Alias(Symbol):
+    """
+    Alias to a type or function name
+    """
+
+    def __init__(self, value: str):
+        super().__init__(value, "`alias")
 
 
 class CompositeSymbol(CompositeWorkingData):
@@ -154,8 +172,9 @@ class CompositeSymbol(CompositeWorkingData):
         self._group = value
         self._type = "str"
         self._group_type = CompositeGroup.SymbolAttrs
-        self._is_quantum = True if all(k.startswith("@") for k in value) else False
+        self._is_quantum = value[-1].startswith("@")
         self._suppress_type = True
+        super().__init__()
 
 
 class Atomic(Symbol):
@@ -171,27 +190,79 @@ class CoreLiteral(WorkingData):
     Any defined literal by the dialect.
     """
 
-    def __init__(self, value: str, lit_type: str):
-        if (value.startswith("@") and not lit_type.startswith("@")) or (
-            not value.startswith("@") and lit_type.startswith("@")
-        ):
-            raise ValueError(
-                f"Literal got incompatible {value} value and type {lit_type}."
-            )
+    def __init__(self, value: str, lit_type: str | tuple[str, ...]):
+        match lit_type:
+            case str():
+                if (value.startswith("@") and not lit_type.startswith("@")) or (
+                    not value.startswith("@") and lit_type.startswith("@")
+                ):
+                    raise ValueError(
+                        f"Literal got incompatible {value} value and type {lit_type}."
+                    )
+                self._is_quantum = lit_type.startswith("@")
+
+            case tuple():
+                if (value.startswith("@") and not lit_type[-1].startswith("@")) or (
+                    not value.startswith("@") and lit_type[-1].startswith("@")
+                ):
+                    raise ValueError(
+                        f"Literal got incompatible {value} value and type {lit_type}."
+                    )
+                self._is_quantum = lit_type[-1].startswith("@")
 
         self._value = value
         self._type = lit_type
-        self._is_quantum = True if lit_type.startswith("@") else False
         self._suppress_type = False
-        self._bin_form = bin(int(value.strip("@")))[2:]
+        super().__init__()
 
-    @property
-    def value(self) -> str:
-        return self._value
+    @lru_cache
+    def transform_bin(self) -> str:
+        value: str
+
+        try:
+            # works if integer
+            value = bin(int(self.value.strip("@")))[2:]
+
+        except ValueError:
+            try:
+                # works if float
+                value = "".join(
+                    f"{k:08b}" for k in struct.pack(">d", float(self.value.strip("@")))
+                )
+
+            except ValueError:
+                # works if string
+                value = "".join(f"{ord(s):08b}" for s in self.value)
+
+        return value
+
+    def _op_bitwise(self, op: str, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return getattr(self.value, op)(other.value)
+
+        if isinstance(other, ACCEPTABLE_VALUES.get(self._type, InvalidType)):
+            return getattr(self.value, op)(other)
+
+        return False
+
+    # def __eq__(self, other: Any) -> bool:
+    #     return self._op_bitwise("__eq__", other)
+
+    def __le__(self, other) -> bool:
+        return self._op_bitwise("__le__", other)
+
+    def __ge__(self, other) -> bool:
+        return self._op_bitwise("__ge__", other)
+
+    def __lt__(self, other) -> bool:
+        return self._op_bitwise("__lt__", other)
+
+    def __ne__(self, other) -> bool:
+        return self._op_bitwise("__ne__", other)
 
     @property
     def bin(self) -> str:
-        return self._bin_form
+        return self.transform_bin()
 
 
 class CompositeLiteral(CompositeWorkingData):

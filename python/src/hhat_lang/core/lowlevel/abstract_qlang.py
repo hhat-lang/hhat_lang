@@ -3,55 +3,60 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
-from hhat_lang.core.data.core import WorkingData
-from hhat_lang.core.execution.abstract_base import BaseEvaluator
-from hhat_lang.core.memory.core import IndexManager
-from hhat_lang.dialects.heather.code.simple_ir_builder.ir import IRBlock
+from hhat_lang.core.code.ir_graph import IRNode, IRGraph
+from hhat_lang.core.data.variable import BaseDataContainer
+from hhat_lang.core.execution.abstract_base import BaseExecutor
+from hhat_lang.core.memory.core import MemoryManager
 
 
-class BaseLowLevelQLang(ABC):
+class BaseLLQManager(ABC):
     """
-    Hold H-hat quantum data to transform into low-level
+    Manager to hold H-hat quantum data and transform it into low-level
     quantum-specific language.
     """
 
-    _qdata: WorkingData
-    _num_idxs: int
-    _code: IRBlock
-    _idx: IndexManager
-    _executor: BaseEvaluator
+    _qdata: BaseDataContainer
+    _mem: MemoryManager
+    _node: IRNode
+    _ir_graph: IRGraph
+    _executor: BaseExecutor
 
     def __init__(
         self,
-        qvar: WorkingData,
-        code: IRBlock,
-        idx: IndexManager,
-        executor: BaseEvaluator,
+        qdata: BaseDataContainer,
+        mem: MemoryManager,
+        node: IRNode,
+        ir_graph: IRGraph,
+        executor: BaseExecutor,
         *_args: Any,
-        **_kwargs: Any
+        **_kwargs: Any,
     ):
-        self._qdata = qvar
-        self._code = code
-        self._idx = idx
+        self._qdata = qdata
+        self._mem = mem
         self._executor = executor
-        self._num_idxs = len(self._idx.in_use_by.get(self._qdata, []))
+        self._node = node
+        self._ir_graph = ir_graph
 
     @abstractmethod
-    def init_qlang(self) -> tuple[str, ...]:
-        ...
+    def compile(self, *args: Any, **kwargs: Any) -> BaseQLang:
+        """
+        The compile method should return a ``BaseQLang`` child class object. It then
+        can be used inside a target backend evaluator to execute code on simulator/device.
+        """
+
+        raise NotImplementedError()
+
+
+class BaseQLang(ABC):
+    """
+    Base class for (low level) quantum language (aka OpenQASM, NetQASM, etc.) implementation.
+    """
 
     @abstractmethod
-    def end_qlang(self) -> tuple[str, ...]:
-        ...
+    def code(self) -> Any:
+        """
+        Use this method to implement code generation for specific quantum language.
+        It should return the correct type for the target backend instance.
+        """
 
-    @abstractmethod
-    def gen_instrs(self, *args: Any, **kwargs: Any) -> tuple[str, ...]:
-        ...
-
-    @abstractmethod
-    def gen_program(self, *args: Any, **kwargs: Any) -> str:
-        ...
-
-    @abstractmethod
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        ...
+        raise NotImplementedError()

@@ -17,7 +17,8 @@ into `u32`. It also is valid for quantum variables::
 
 The quantum program workflow is as follows:
 
-- Instructions are analyzed according to the low level language and target backend support (lower level counterparts, LLC)
+- Instructions are analyzed according to the low level language and target
+backend support (lower level counterparts, LLC)
 
     - If classical instructions are supported, they will be handled by those
     - If not, they will fall back into this dialect's classical branch interpreter
@@ -33,33 +34,42 @@ The quantum program workflow is as follows:
 
 from __future__ import annotations
 
-from typing import Any, Callable, Type
+from typing import Any, Type
 
 from hhat_lang.core.code.ir import BlockIR
-from hhat_lang.core.data.core import Symbol, WorkingData
+from hhat_lang.core.data.core import WorkingData
 from hhat_lang.core.error_handlers.errors import ErrorHandler
-from hhat_lang.core.execution.abstract_base import BaseEvaluator
-from hhat_lang.core.execution.abstract_program import BaseProgram
-from hhat_lang.core.lowlevel.abstract_qlang import BaseLowLevelQLang
-from hhat_lang.core.memory.core import IndexManager
-
+from hhat_lang.core.execution.abstract_base import BaseExecutor
+from hhat_lang.core.execution.abstract_program import BaseQuantumProgram
+from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager
+from hhat_lang.core.memory.core import BaseStack, IndexManager, Stack, SymbolTable
 from hhat_lang.dialects.heather.code.simple_ir_builder.ir import IRBlock
 
 # TODO: the imports below must come from the config file, not hardcoded
-from hhat_lang.low_level.target_backend.qiskit.openqasm.code_executor import (
+from hhat_lang.low_level.target_backend.qiskit.openqasm.code_evaluator import (
     execute_program,
 )
 
 
-class Program(BaseProgram):
+class Program(BaseQuantumProgram):
     def __init__(
         self,
         *,
         qdata: WorkingData,
         idx: IndexManager,
         block: IRBlock,
-        executor: BaseEvaluator,
-        qlang: Type[BaseLowLevelQLang[WorkingData, IRBlock | BlockIR, IndexManager, BaseEvaluator]],
+        executor: BaseExecutor,
+        symboltable: SymbolTable,
+        qlang: Type[  # type: ignore [type-arg]
+            BaseLLQManager[
+                WorkingData,
+                IRBlock | BlockIR,
+                IndexManager,
+                BaseExecutor,
+                Stack,
+                SymbolTable,
+            ]
+        ],
     ):
         if (
             isinstance(qdata, WorkingData)
@@ -70,10 +80,25 @@ class Program(BaseProgram):
             self._idx = idx
             self._block = block
             self._executor = executor
-            self._qlang = qlang(self._qdata, self._block, self._idx, self._executor)
+            self._qstack = Stack()
+            self._symbol = symboltable
+            self._qlang = qlang(
+                self._qdata,
+                self._block,
+                self._idx,
+                self._executor,
+                self._qstack,
+                self._symbol,
+            )
 
         else:
-            raise ValueError(f"Quantum program got invalid parameters: {qdata=} | {idx=} {block=}")
+            raise ValueError(
+                f"Quantum program got invalid parameters: {qdata=} | {idx=} {block=}"
+            )
+
+    @property
+    def qstack(self) -> BaseStack:
+        return self._qstack
 
     def run(self, debug: bool = False) -> Any | ErrorHandler:
         qlang_code = self._qlang.gen_program()

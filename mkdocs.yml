@@ -6,13 +6,19 @@ repo_url: "https://github.com/hhat-lang/hhat_lang/"
 repo_name: hhat-lang/hhat_lang
 
 nav:
-  - Home: index.md
+  - Home:
+      - H-hat language: index.md
+      - How to Contribute: how_contribute.md
   - Getting Started:
       - Getting Started: getting_started.md
       - Guides:
           - Python: python/python_guide.md
           - Rust: rust/rust_guide.md
       - Understanding H-hat:
+          - Built-in Instructions:
+            - core/builtin_instr.md
+            - Classical: core/classical_instr.md
+            - Quantum: core/quantum_instr.md
           - Rule System: rule_system.md
           - Core Features: core/index.md
       - Tools:
@@ -87,6 +93,8 @@ theme:
   font:
     text: Lato
     code: JetBrains Mono
+  logo: hhat_logo.svg
+  favicon: hhat_logo.ico
   features:
     - navigation.sections
     - navigation.tabs

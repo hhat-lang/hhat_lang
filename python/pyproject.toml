@@ -7,7 +7,8 @@ name = "hhat-lang"
 description = "H-hat quantum programming language core and rule system implemented in Python"
 dynamic = ["version"]
 authors = [
-    { name = "Eduardo Maschio", email = "eduardo.maschio@hhat-lang.org" }
+    { name = "Eduardo Maschio", email = "eduardo.maschio@hhat-lang.org" },
+    { name = "Inho Choi", email = "inho.quantum@gmail.com" }
 ]
 readme = "README"
 requires-python = ">=3.12"
@@ -25,6 +26,8 @@ classifiers = [
 ]
 
 dependencies = [
+    "rich>=14.0.0",
+    "typer>=0.16.0",
 ]
 
 [project.optional-dependencies]
@@ -35,6 +38,7 @@ heather = [
 
 qiskit = [
     "qiskit",
+    "qiskit-aer",
     "qiskit-ibm-runtime",
 ]
 
@@ -52,7 +56,7 @@ openqasm2 = [
 ]
 
 all = [
-    "hhat-lang[heather,qiskit,squidasm,netqasm,openqasm2]"
+    "hhat-lang[heather,qiskit,openqasm2,netqasm,squidasm]"
 ]
 
 dev = [
@@ -60,8 +64,12 @@ dev = [
     "pytest",
     "pytest-xdist",
     "pytest-mypy",
+    "pytest-mock",
     "ipython",
+    "isort",
+    "ruff",
     "black",
+    "flaky",
     "isort",
     "pre-commit",
     "mkdocs",
@@ -70,6 +78,9 @@ dev = [
     "markdown",
     "mike",
 ]
+
+[project.scripts]
+hat = "hhat_lang.toolchain.cli.cli:main"
 
 [tool.setuptools_scm]
 root = ".."
@@ -99,6 +110,6 @@ required-imports = ["from __future__ import annotations"]
 
 [tool.mypy]
 python_version = "3.12"
-disable_error_code = ["import-untyped"]
+disable_error_code = ["import-untyped", "override", "misc", "attr-defined"]
 pretty = true
-exclude = "build"
+exclude = ["build", "tests"]

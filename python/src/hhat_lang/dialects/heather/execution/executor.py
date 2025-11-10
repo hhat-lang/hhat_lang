@@ -2,19 +2,48 @@ from __future__ import annotations
 
 from typing import Any
 
-from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import IRBlock
+from hhat_lang.core.code.ir_graph import IRGraph, IRNode
+from hhat_lang.core.execution.abstract_base import (
+    BaseExecutor,
+    BaseClassicalEvaluator,
+    BaseQuantumEvaluator
+)
+from hhat_lang.core.memory.core import MemoryManager
 
 
-class Evaluator:
-    def __init__(self, code: IRBlock):
-        if isinstance(code, IRBlock):
-            self._code = code
+class Executor(BaseExecutor):
+    def __init__(self):
+        self._cexec = CExecutor()
+        self._qexec = QExecutor()
 
-        else:
-            raise ValueError("code to be evaluated must be an IR type.")
+    def run(
+        self,
+        *,
+        code: Any,
+        mem: MemoryManager,
+        node: IRNode,
+        ir_graph: IRGraph,
+        **kwargs: Any
+    ) -> None:
+        self.walk(code, mem, node, ir_graph)
 
-    def walk(self, *args: Any, **kwargs: Any) -> Any:
+    def walk(
+        self,
+        code: Any,
+        mem: MemoryManager,
+        node: IRNode,
+        ir_graph: IRGraph,
+        **kwargs: Any
+    ) -> Any:
         pass
 
-    def run(self):
+    def __call__(self, *args: Any, **kwargs: Any):
         pass
+
+
+class CExecutor(BaseClassicalEvaluator):
+    pass
+
+
+class QExecutor(BaseQuantumEvaluator):
+    pass

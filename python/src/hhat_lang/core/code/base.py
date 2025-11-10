@@ -174,6 +174,28 @@ class BaseFnCheck:
         return f"fn(name={self.name}, args=({args}))"
 
 
+class BaseOptnCheck:
+    """
+    Base function with arguments as options (optn) class to check
+    a given optn from the SymbolTable.
+    """
+    # TODO: implement it
+
+
+class BaseBdnCheck:
+    """
+    Base function with arguments and body (bdn) class to check
+    a given bdn from the SymbolTable.
+    """
+
+
+class BaseOptBdnCheck:
+    """
+    Base function with arguments and options in the body (optbdn) class to check
+    a given optbdn from the SymbolTable
+    """
+
+
 class BaseIRBlock(ABC):
     """
     Base for IR block classes.
@@ -186,6 +208,10 @@ class BaseIRBlock(ABC):
     def name(self) -> BaseIRBlockFlag:
         return self._name
 
+    @abstractmethod
+    def append(self, data: Any, *args: Any, **kwargs: Any) -> Any:
+        raise NotImplementedError("base IRBlock append method must be implemented")
+
     def __hash__(self) -> int:
         return hash((hash(self._name), hash(self.args)))
 
@@ -197,6 +223,12 @@ class BaseIRBlock(ABC):
 
     def __iter__(self) -> Iterator:
         return iter(self.args)
+
+    def __len__(self) -> int:
+        return len(self.args)
+
+    def __getitem__(self, item: Any) -> Any:
+        return self.args[item]
 
     @abstractmethod
     def __repr__(self) -> str:

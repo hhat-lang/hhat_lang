@@ -4,10 +4,14 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from hhat_lang.core.code.abstract import BaseIR
-from hhat_lang.core.code.new_ir import IRGraph
+from hhat_lang.core.code.ir_graph import IRGraph, IRNode
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.memory.core import MemoryManager
 
+
+###################
+# BASE IR SECTION #
+###################
 
 class BaseIRManager(ABC):
     """
@@ -51,6 +55,10 @@ class BaseIRManager(ABC):
 
         raise NotImplementedError()
 
+
+############################
+# BASE INTERPRETER SECTION #
+############################
 
 class BaseInterpreter(ABC):
     """
@@ -103,21 +111,44 @@ class BaseInterpreter(ABC):
         raise NotImplementedError()
 
 
-class BaseEvaluator(ABC):
+#########################
+# BASE EXECUTOR SECTION #
+#########################
+
+class BaseExecutor(ABC):
     """
-    An abstract evaluator class.
+    An abstract executor class.
     """
 
+    _cexec: BaseClassicalEvaluator
+    _qexec: BaseQuantumEvaluator
+
+    @property
+    def cexec(self) -> BaseClassicalEvaluator:
+        """Classical executor instance."""
+
+        return self._cexec
+
+    @property
+    def qexec(self) -> BaseQuantumEvaluator:
+        """Quantum executor instance."""
+
+        return self._qexec
+
     @abstractmethod
-    def run(self, *, code: Any, mem: MemoryManager, **kwargs: Any) -> Any:
-        """To run only once, when calling the evaluator to execute the code."""
+    def run(
+        self, *, code: Any, mem: MemoryManager, node: IRNode, ir_graph: IRGraph, **kwargs: Any
+    ) -> Any:
+        """To be called only once, when calling the instance to execute the code."""
 
         raise NotImplementedError()
 
     @abstractmethod
-    def walk(self, code: Any, mem: MemoryManager, **kwargs: Any) -> Any:
+    def walk(
+        self, code: Any, mem: MemoryManager, node: IRNode, ir_graph: IRGraph, **kwargs: Any
+    ) -> Any:
         """
-        To run recursively and evaluate the code. Should not be called directly be
+        To run recursively and execute the code. Should not be called directly be
         the user, but rather through `run` and internal methods.
         """
 
@@ -126,3 +157,11 @@ class BaseEvaluator(ABC):
     @abstractmethod
     def __call__(self, *args: Any, **kwargs: Any):
         raise NotImplementedError()
+
+
+class BaseClassicalEvaluator(ABC):
+    """Base evaluator for overall classical instructions"""
+
+
+class BaseQuantumEvaluator(ABC):
+    """Base evaluator for quantum programs"""

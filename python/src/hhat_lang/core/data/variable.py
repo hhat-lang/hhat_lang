@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any, Iterable
 
+from hhat_lang.core.code.base import BaseIRBlock, BaseIRInstr
+from hhat_lang.core.code.ir_block import BodyBlock
 from hhat_lang.core.data.core import CompositeSymbol, CoreLiteral, Symbol, WorkingData
 from hhat_lang.core.data.utils import AbstractDataContainer, VariableKind, isquantum
 from hhat_lang.core.error_handlers.errors import (
@@ -207,17 +209,36 @@ class BaseDataContainer(AbstractDataContainer):
         data_type = self._get_data_type(data)
 
         if data_type == self._get_correct_ds_member(attr_type):
-            # is quantum or array data structure
-            if data.is_quantum or self._check_array_prop(data):
+            # is quantum
+            if data.is_quantum:
+                if attr_type in self._ds:
+                    if attr_type in self._data:
+                        self._data[attr_type].append(data)
+
+                    else:
+                        match data:
+                            case BaseIRBlock() | BaseIRInstr() | CoreLiteral():
+                                self._data[attr_type] = BodyBlock(data)
+
+                            case _:
+                                raise ValueError(
+                                    f"trying to assign value {data} to {self._name} variable; "
+                                    f"value with type {type(data)} not expected"
+                                )
+
+                    self._instr_counter += 1
+                    return True
+
+                return False
+
+            # is array data structure
+            if self._check_array_prop(data):
                 if attr_type in self._ds:
                     if attr_type in self._data:
                         self._data[attr_type].append(data)
 
                     else:
                         self._data[attr_type] = [data]
-
-                    if data.is_quantum:
-                        self._instr_counter += 1
 
                     return True
 
@@ -245,15 +266,33 @@ class BaseDataContainer(AbstractDataContainer):
         """
 
         if key in self._ds:
-            # is quantum or array data structure
-            if key.is_quantum or self._check_array_prop(value):
+            # is quantum
+            if key.is_quantum:
+                if key in self._data:
+                    self._data[key].append(value)
+
+                else:
+                    match value:
+                        case BaseIRBlock() | BaseIRInstr() | CoreLiteral():
+                            self._data[key] = BodyBlock(value)
+
+                        case _:
+                            raise ValueError(
+                                f"trying to assign value {value} to {self._name} variable; "
+                                f"value with type {type(value)} not expected"
+                            )
+
+                self._instr_counter += 1
+                return True
+
+            # is array data structure
+            if self._check_array_prop(value):
                 if key in self._data:
                     self._data[key].append(value)
 
                 else:
                     self._data[key] = [value]
 
-                self._instr_counter += 1
                 return True
 
             # not quantum

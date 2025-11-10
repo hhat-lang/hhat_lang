@@ -19,13 +19,38 @@ from hhat_lang.core.error_handlers.errors import (
     InstrNotFoundError,
     InstrStatusError,
 )
-from hhat_lang.core.execution.abstract_base import BaseEvaluator
-from hhat_lang.core.lowlevel.abstract_qlang import BaseLowLevelQLang
+from hhat_lang.core.execution.abstract_base import BaseExecutor
+from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager, BaseQLang
 from hhat_lang.core.utils import Error, Ok, Result
-from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import IRBlock, IRInstr
+from hhat_lang.core.code.ir_block import IRInstr, IRBlock
 
 
-class LowLeveQLang(BaseLowLevelQLang):
+class LLQManager(BaseLLQManager):
+    """
+    Low-level quantum manager for OpenQASM v2. It generates the ``QLang`` object
+    (that currently holds the Qiskit's ``QuantumCircuit`` object). Ex::
+        llq = LLQManager()
+        qlang = llq.compile() # QLang
+        circ = qlang.code()  # qiskit.QuantumCircuit
+    """
+
+    def compile(self, *args: Any, **kwargs: Any) -> BaseQLang:
+        """compile code contained in quantum data"""
+        pass
+
+
+class QLang(BaseQLang):
+    """
+    QLang class for OpenQASM v2 code generation (currently through
+    Qiskit's ``QuantumCircuit`` object). Use ``code`` method to generate
+    the circuit.
+    """
+
+    def code(self) -> Any:
+        pass
+
+
+class LowLeveQLang(BaseLLQManager):
     def init_qlang(self) -> tuple[str, ...]:
         code_list = (
             "OPENQASM 2.0;",
@@ -74,7 +99,7 @@ class LowLeveQLang(BaseLowLevelQLang):
         return tuple(f"x q[{n}];" for n, k in enumerate(literal.bin) if k == "1")
 
     def gen_var(
-        self, var: BaseDataContainer | Symbol, executor: BaseEvaluator
+        self, var: BaseDataContainer | Symbol, executor: BaseExecutor
     ) -> tuple[str, ...] | ErrorHandler:
         """Generate QASM code from variable data"""
 

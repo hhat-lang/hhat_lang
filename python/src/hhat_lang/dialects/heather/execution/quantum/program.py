@@ -34,74 +34,59 @@ backend support (lower level counterparts, LLC)
 
 from __future__ import annotations
 
-from typing import Any, Type
+from typing import Any, Callable
 
-from hhat_lang.core.code.symbol_table import SymbolTable
-from hhat_lang.core.data.core import WorkingData
+from hhat_lang.core.code.ir_graph import IRNode, IRGraph
+from hhat_lang.core.data.core import CoreLiteral
+from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import ErrorHandler
-from hhat_lang.core.execution.abstract_base import BaseEvaluator
-from hhat_lang.core.execution.abstract_program import BaseProgram
-from hhat_lang.core.lowlevel.abstract_qlang import BaseLowLevelQLang
-from hhat_lang.core.memory.core import IndexManager, Stack
-from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import IRBlock
+from hhat_lang.core.execution.abstract_base import BaseExecutor
+from hhat_lang.core.execution.abstract_program import QuantumProgram as CoreQuantumProgram
+from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager, BaseQLang
+from hhat_lang.core.memory.core import MemoryManager
 
 # TODO: the imports below must come from the config file, not hardcoded
-from hhat_lang.low_level.target_backend.qiskit.openqasm.code_executor import (
+from hhat_lang.low_level.target_backend.qiskit.openqasm.code_evaluator import (
     execute_program,
 )
 
 
-class Program(BaseProgram):
+class QuantumProgram(CoreQuantumProgram):
     def __init__(
         self,
         *,
-        qdata: WorkingData,
-        idx: IndexManager,
-        block: IRBlock,
-        executor: BaseEvaluator,
-        symboltable: SymbolTable,
-        qlang: Type[  # type: ignore [type-arg]
-            BaseLowLevelQLang[
-                WorkingData,
-                IRBlock,
-                IndexManager,
-                BaseEvaluator,
-                Stack,
-                SymbolTable,
-            ]
-        ],
+        qdata: BaseDataContainer | CoreLiteral,
+        mem: MemoryManager,
+        node: IRNode,
+        ir_graph: IRGraph,
+        executor: BaseExecutor,
+        llq: Callable[
+            [BaseDataContainer, MemoryManager, IRNode, IRGraph, BaseExecutor],
+            BaseLLQManager
+        ]
     ):
-        if (
-            isinstance(qdata, WorkingData)
-            and isinstance(idx, IndexManager)
-            and isinstance(block, IRBlock)
-        ):
-            self._qdata = qdata
-            self._idx = idx
-            self._block = block
-            self._executor = executor
-            self._qstack = Stack()
-            self._symbol = symboltable
-            self._qlang = qlang(
-                self._qdata,
-                self._block,
-                self._idx,
-                self._executor,
-                self._qstack,
-                self._symbol,
-            )
+        """
+        Quantum program for Heather dialect.
 
-        else:
-            raise ValueError(
-                f"Quantum program got invalid parameters: {qdata=} | {idx=} {block=}"
-            )
-
-    @property
-    def qstack(self) -> Stack:
-        return self._qstack
+        Args:
+            qdata: a quantum literal or quantum variable
+            mem: ``MemoryManager`` object
+            node: ``IRNode`` object
+            ir_graph: ``IRGraph`` object
+            executor: dialect-specific code executor
+            llq: Low-level quantum manager callable
+        """
+        super().__init__(
+            qdata=qdata,
+            mem=mem,
+            node=node,
+            ir_graph=ir_graph,
+            base_llq=llq,
+            executor=executor
+        )
 
     def run(self, debug: bool = False) -> Any | ErrorHandler:
-        qlang_code = self._qlang.gen_program()
+        qlang_code: BaseQLang = self._qlang.compile()
 
         if debug:
             print(qlang_code)

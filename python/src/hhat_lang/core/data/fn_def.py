@@ -103,3 +103,24 @@ class FnDef:
         fn_header = f"FN-DEF NAME[{self.name}] ARGS[{args}] TYPE[{self.type or 'null'}]"
         body = "\n            ".join(str(k) for k in self.body)
         return f"{fn_header}" + "\n            " + f"{body}" + "\n"
+
+
+class OptnDef:
+    """
+    Function with arguments as options (optn) definition class
+    """
+    # TODO: implement it
+
+
+class BdnDef:
+    """
+    Function with arguments and body (bdn) definition class
+    """
+    # TODO: implement it
+
+
+class OptBdnDef:
+    """
+    Function with arguments and options in the body (optbdn) definition class
+    """
+    # TODO: implement it

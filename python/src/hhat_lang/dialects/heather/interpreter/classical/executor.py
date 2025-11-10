@@ -9,11 +9,11 @@ from __future__ import annotations
 from typing import Any
 
 from hhat_lang.core.code.ir import BaseFnIR, BlockIR, BodyIR, TypeIR
-from hhat_lang.core.execution.abstract_base import BaseEvaluator
+from hhat_lang.core.execution.abstract_base import BaseExecutor
 from hhat_lang.core.memory.core import MemoryManager
 
 
-class Evaluator(BaseEvaluator):
+class Executor(BaseExecutor):
     def __init__(self, mem: MemoryManager, type_table: TypeIR, fn_table: BaseFnIR):
         self._mem = mem
         self._type_table = type_table

@@ -39,33 +39,33 @@ from typing import Any, Type
 from hhat_lang.core.code.ir import BlockIR
 from hhat_lang.core.data.core import WorkingData
 from hhat_lang.core.error_handlers.errors import ErrorHandler
-from hhat_lang.core.execution.abstract_base import BaseEvaluator
-from hhat_lang.core.execution.abstract_program import BaseProgram
-from hhat_lang.core.lowlevel.abstract_qlang import BaseLowLevelQLang
+from hhat_lang.core.execution.abstract_base import BaseExecutor
+from hhat_lang.core.execution.abstract_program import BaseQuantumProgram
+from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager
 from hhat_lang.core.memory.core import BaseStack, IndexManager, Stack, SymbolTable
 from hhat_lang.dialects.heather.code.simple_ir_builder.ir import IRBlock
 
 # TODO: the imports below must come from the config file, not hardcoded
-from hhat_lang.low_level.target_backend.qiskit.openqasm.code_executor import (
+from hhat_lang.low_level.target_backend.qiskit.openqasm.code_evaluator import (
     execute_program,
 )
 
 
-class Program(BaseProgram):
+class Program(BaseQuantumProgram):
     def __init__(
         self,
         *,
         qdata: WorkingData,
         idx: IndexManager,
         block: IRBlock,
-        executor: BaseEvaluator,
+        executor: BaseExecutor,
         symboltable: SymbolTable,
         qlang: Type[  # type: ignore [type-arg]
-            BaseLowLevelQLang[
+            BaseLLQManager[
                 WorkingData,
                 IRBlock | BlockIR,
                 IndexManager,
-                BaseEvaluator,
+                BaseExecutor,
                 Stack,
                 SymbolTable,
             ]

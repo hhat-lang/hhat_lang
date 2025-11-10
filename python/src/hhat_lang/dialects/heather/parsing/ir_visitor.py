@@ -16,7 +16,7 @@ from arpeggio import (
 )
 
 from hhat_lang.core.code.base import BaseFnCheck
-from hhat_lang.core.code.new_ir import IRGraph
+from hhat_lang.core.code.ir_graph import IRGraph
 from hhat_lang.core.data.core import (
     CompositeLiteral,
     CompositeSymbol,
@@ -37,18 +37,16 @@ from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
     ArgsBlock,
     ArgsValuesBlock,
     AssignInstr,
-    BodyBlock,
     CallInstr,
     CastInstr,
     DeclareAssignInstr,
     DeclareInstr,
-    IRBlock,
-    IRInstr,
     ModifierArgsBlock,
     ModifierBlock,
     OptionBlock,
     ReturnBlock,
 )
+from hhat_lang.core.code.ir_block import IRInstr, IRBlock, BodyBlock
 from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir_builder import build_ir
 from hhat_lang.dialects.heather.grammar import WHITESPACE
 from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program

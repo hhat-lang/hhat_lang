@@ -15,7 +15,7 @@ from hhat_lang.core.error_handlers.errors import (
     HeapInvalidKeyError,
     IndexUnknownError,
 )
-from hhat_lang.core.execution.abstract_base import BaseEvaluator
+from hhat_lang.core.execution.abstract_base import BaseExecutor
 from hhat_lang.core.memory.core import MemoryDataTypes
 from hhat_lang.core.utils import Error, Ok, Result
 
@@ -80,7 +80,7 @@ class If(CInstr):
         return transformed_instrs, InstrStatus.DONE
 
     def __call__(
-        self, *, executor: BaseEvaluator, **kwargs: Any
+        self, *, executor: BaseExecutor, **kwargs: Any
     ) -> tuple[tuple[str, ...], InstrStatus]:
         """Transforms `if` instruction to openQASMv2.0 code."""
 
@@ -145,7 +145,7 @@ class QSync(QInstr):
         self,
         *,
         idxs: tuple[tuple[int, ...], ...],
-        executor: BaseEvaluator,
+        executor: BaseExecutor,
         **_kwargs: Any,
     ) -> tuple[tuple[str, ...], InstrStatus]:
         """Transforms `@sync` instruction to openQASMv2.0 code."""
@@ -165,7 +165,7 @@ class QIf(QInstr):
     name = "@if"
 
     def __call__(
-        self, *, idxs: tuple[int, ...], executor: BaseEvaluator, **kwargs: Any
+        self, *, idxs: tuple[int, ...], executor: BaseExecutor, **kwargs: Any
     ) -> tuple[tuple[str, ...], InstrStatus]:
         """Transforms `@if` instruction to openQASMv2.0 code."""
 
@@ -207,7 +207,7 @@ class QNez(QInstr):
     def _get_mask_idxs(
         mask: CoreLiteral | BaseDataContainer | Symbol,
         num_idxs: int,
-        executor: BaseEvaluator | None = None,
+        executor: BaseExecutor | None = None,
     ) -> Result:
         """Return indexes from ``mask`` that are non-zero.
 
@@ -263,7 +263,7 @@ class QNez(QInstr):
         idxs: tuple[int, ...],
         mask: CoreLiteral | BaseDataContainer | Symbol,
         body_instr: QInstr,
-        executor: BaseEvaluator | None = None,
+        executor: BaseExecutor | None = None,
         **kwargs: Any,
     ) -> tuple[tuple[str, ...], InstrStatus]:
         """Translate ``@nez`` instruction."""
@@ -296,7 +296,7 @@ class QNez(QInstr):
         idxs: tuple[int, ...],
         mask: CoreLiteral | BaseDataContainer | Symbol,
         body_instr: QInstr,
-        executor: BaseEvaluator | None = None,
+        executor: BaseExecutor | None = None,
         **kwargs: Any,
     ) -> tuple[tuple[str, ...], InstrStatus]:
         """Transforms ``@nez`` instruction to OpenQASM v2.0 code."""

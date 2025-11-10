@@ -3,16 +3,16 @@ from __future__ import annotations
 from pathlib import Path
 
 from hhat_lang.core.code.base import BaseFnCheck
-from hhat_lang.core.code.new_ir import build_reftable
+from hhat_lang.core.code.ir_graph import build_reftable
 from hhat_lang.core.code.symbol_table import SymbolTable
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.data.fn_def import FnDef
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
     IR,
-    BodyBlock,
     IRModule,
 )
+from hhat_lang.core.code.ir_block import BodyBlock
 from hhat_lang.dialects.heather.parsing.utils import FnsDict, TypesDict
 
 TypesTyping = TypesDict | dict[Symbol | CompositeSymbol, Path]

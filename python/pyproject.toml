@@ -56,7 +56,7 @@ openqasm2 = [
 ]
 
 all = [
-    "hhat-lang[heather,qiskit,openqasm2]"
+    "hhat-lang[heather,qiskit,openqasm2,netqasm,squidasm]"
 ]
 
 dev = [

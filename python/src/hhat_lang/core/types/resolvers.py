@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from hhat_lang.core.code.new_ir import IRGraph, IRNode, get_type
+from hhat_lang.core.code.ir_graph import IRGraph, IRNode, get_type
 from hhat_lang.core.code.symbol_table import TypeTable, SymbolTable
 from hhat_lang.core.error_handlers.errors import ErrorHandler, TypeMemberNotResolvedError
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure

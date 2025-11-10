@@ -8,12 +8,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from hhat_lang.core.execution.abstract_base import BaseEvaluator
+from hhat_lang.core.execution.abstract_base import BaseExecutor
 from hhat_lang.core.memory.core import MemoryManager
-from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import IRBlock
+from hhat_lang.core.code.ir_block import IRBlock
 
 
-class Evaluator(BaseEvaluator):
+class Executor(BaseExecutor):
     def __init__(self, mem: MemoryManager, **_kwargs: Any):
         self._mem = mem
 

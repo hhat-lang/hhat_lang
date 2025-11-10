@@ -615,6 +615,9 @@ class Scope:
     def __contains__(self, item: ScopeValue) -> bool:
         return item in self._table
 
+    def __getitem__(self, item: ScopeValue) -> Heap:
+        return self._table[item]
+
 
 ########################
 # MEMORY MANAGER CLASS #

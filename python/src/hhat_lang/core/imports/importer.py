@@ -9,7 +9,7 @@ from arpeggio.cleanpeg import ParserPEG
 
 from hhat_lang.core.code.abstract import BaseIR
 from hhat_lang.core.code.base import BaseFnCheck
-from hhat_lang.core.code.new_ir import IRGraph
+from hhat_lang.core.code.ir_graph import IRGraph
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.toolchain.project import SOURCE_FOLDER_NAME, SOURCE_TYPES_PATH
 

@@ -34,6 +34,9 @@ class ErrorCodes(Enum):
     FUNCTION_WRONG_ARGS_TYPES_ERROR = auto()
     FUNCTION_EXECUTION_ERROR = auto()
 
+    INVALID_DATA_CONTAINER_CAST_ERROR = auto()
+    INVALID_TYPE_CAST_ERROR = auto()
+
     STACK_FRAME_GET_ERROR = auto()
     STACK_FRAME_NOT_FN_ERROR = auto()
     STACK_EMPTY_ERROR = auto()
@@ -48,6 +51,11 @@ class ErrorCodes(Enum):
 
     INSTR_NOTFOUND_ERROR = auto()
     INSTR_STATUS_ERROR = auto()
+
+    DATA_OVERFLOW_ERROR = auto()
+
+    EVALUATOR_CAST_DATA_ERROR = auto()
+    EVALUATOR_CAST_WILDCARD_BUILTIN_TYPE_ERROR = auto()
 
 
 class ErrorHandler(BaseException, ABC):
@@ -305,6 +313,33 @@ class FnWrongArgsTypesError(ErrorHandler):
         )
 
 
+class InvalidDataContainerCastError(ErrorHandler):
+    def __init__(self, dc_type: Any, from_type: Any, to_type: Any):
+        self._dc_type = dc_type
+        self._from_type = from_type
+        self._to_type = to_type
+        super().__init__(ErrorCodes.INVALID_DATA_CONTAINER_CAST_ERROR)
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: invalid data container {self._dc_type} when"
+            f" casting from {self._from_type} to {self._to_type}."
+        )
+
+
+class InvalidTypeCastError(ErrorHandler):
+    def __init__(self, current: Any, expected: Any):
+        self._current = current
+        self._expected = expected
+        super().__init__(ErrorCodes.INVALID_TYPE_CAST_ERROR)
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: invalid type cast; expected type {self._expected},"
+            f" but got {self._current}."
+        )
+
+
 class StackFrameGetError(ErrorHandler):
     def __init__(self, data: Any):
         self._data = data
@@ -414,4 +449,43 @@ class FunctionExecutionError(ErrorHandler):
         return (
             f"[[{self.__class__.__name__}]]: function {self._name} with args {self.args}"
             f" failed due to: {self._reason}"
+        )
+
+
+class DataOverflowError(ErrorHandler):
+    def __init__(self, data: Any, data_type: Any, expected_type: Any):
+        super().__init__(ErrorCodes.DATA_OVERFLOW_ERROR)
+        self._data_type = data_type
+        self._expected_type = expected_type
+        self._data = data
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: data {self._data} of type {self._data_type},"
+            f" but attempted to cast into type {self._expected_type} (data overflow)."
+        )
+
+
+class EvaluatorCastDataError(ErrorHandler):
+    def __init__(self, data: Any):
+        super().__init__(ErrorCodes.EVALUATOR_CAST_DATA_ERROR)
+        self._name = type(data)
+        self._data = data
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: data {self._data} should be container"
+            f" or literal, but got {self._name} instead."
+        )
+
+
+class EvaluatorCastWildcardBuiltinTypeError(ErrorHandler):
+    def __init__(self, t_name: Any):
+        super().__init__(ErrorCodes.EVALUATOR_CAST_WILDCARD_BUILTIN_TYPE_ERROR)
+        self._name = t_name
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: a precise type should be known, but"
+            f" a wildcard type was given ({self._name})."
         )

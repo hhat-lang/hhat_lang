@@ -8,7 +8,8 @@ from hhat_lang.core.cast.base import (
     CastQ2Q,
     CastQ2C,
     CastC2Q,
-    CastC2C, CastOperator,
+    CastC2C,
+    CastOperator,
 )
 from hhat_lang.core.code.abstract import BaseIR, BaseIRModule, IRHash, RefTable
 from hhat_lang.core.code.base import (

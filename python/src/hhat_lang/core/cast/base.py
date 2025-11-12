@@ -118,10 +118,21 @@ class CastOperator(ABC):
 
     @abstractmethod
     def flush(self) -> CastOperator:
+        """Use this method to execute the cast logic."""
+
+        raise NotImplementedError()
+
+    @abstractmethod
+    def cast(self) -> CastOperator:
+        """Use this method to perform the cast conversion."""
+
         raise NotImplementedError()
 
     @abstractmethod
     def get_cast_data(self) -> BaseDataContainer | CoreLiteral:
+        """Retrieve the cast data with the correct type. Must be used after
+        ``flush`` and ``cast`` methods."""
+
         raise NotImplementedError()
 
 

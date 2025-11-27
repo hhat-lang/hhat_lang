@@ -42,11 +42,11 @@ from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.core.execution.abstract_base import BaseExecutor
 from hhat_lang.core.execution.abstract_program import QuantumProgram as CoreQuantumProgram
-from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager, BaseQLang
+from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager, BaseLLQ
 from hhat_lang.core.memory.core import MemoryManager
 
 # TODO: the imports below must come from the config file, not hardcoded
-from hhat_lang.low_level.target_backend.qiskit.openqasm.code_evaluator import (
+from hhat_lang.low_level.target_backend.qiskit.aer_simulator.code_evaluator import (
     execute_program,
 )
 
@@ -86,7 +86,7 @@ class QuantumProgram(CoreQuantumProgram):
         )
 
     def run(self, debug: bool = False) -> Any | ErrorHandler:
-        qlang_code: BaseQLang = self._qlang.compile()
+        qlang_code: BaseLLQ = self._qlang.compile()
 
         if debug:
             print(qlang_code)

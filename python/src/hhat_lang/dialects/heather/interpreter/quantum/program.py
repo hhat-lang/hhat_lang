@@ -46,7 +46,7 @@ from hhat_lang.core.memory.core import BaseStack, IndexManager, Stack, SymbolTab
 from hhat_lang.dialects.heather.code.simple_ir_builder.ir import IRBlock
 
 # TODO: the imports below must come from the config file, not hardcoded
-from hhat_lang.low_level.target_backend.qiskit.openqasm.code_evaluator import (
+from hhat_lang.low_level.target_backend.qiskit.aer_simulator.code_evaluator import (
     execute_program,
 )
 

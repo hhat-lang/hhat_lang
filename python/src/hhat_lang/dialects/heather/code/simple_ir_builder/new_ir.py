@@ -4,13 +4,7 @@ import sys
 from pathlib import Path
 from typing import Any, cast, Callable
 
-from hhat_lang.core.cast.base import (
-    CastQ2Q,
-    CastQ2C,
-    CastC2Q,
-    CastC2C,
-    CastOperator,
-)
+from hhat_lang.core.cast.base import BaseCastOperator
 from hhat_lang.core.code.abstract import BaseIR, BaseIRModule, IRHash, RefTable
 from hhat_lang.core.code.base import (
     BaseFnCheck,
@@ -35,12 +29,11 @@ from hhat_lang.core.data.core import (
 from hhat_lang.core.data.utils import VariableKind
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import HeapInvalidKeyError
-from hhat_lang.core.memory.core import (
-    MemoryManager,
-)
+from hhat_lang.core.memory.core import MemoryManager
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 from hhat_lang.core.types.builtin_conversion import compatible_types
 from hhat_lang.core.types.builtin_types import builtins_types
+from hhat_lang.dialects.heather.cast.base import CastQ2C, CastC2C, CastC2Q, CastQ2Q
 from hhat_lang.dialects.heather.code.builtins.fns import BUILTIN_FN_DICT
 
 
@@ -856,23 +849,33 @@ def _resolve_cast(
     node: IRNode,
     ir_graph: IRGraph
 ) -> None:
-    cast_op: CastOperator
+    # cast_op: BaseCastOperator
 
     if data.is_quantum:
         if to_type.is_quantum:
-            cast_op = CastQ2Q()
+            # cast_op = CastQ2Q(data=data, to_type=to_type, mem=mem, node=node, ir_graph=ir_graph)
+            cast_op: type[CastQ2Q] = CastQ2Q
 
         else:
-            cast_op = CastQ2C(data=data, to_type=to_type, mem=mem, node=node, ir_graph=ir_graph)
+            # cast_op = CastQ2C(data=data, to_type=to_type, mem=mem, node=node, ir_graph=ir_graph)
+            cast_op: type[CastQ2C] = CastQ2C
 
     else:
         if to_type.is_quantum:
-            cast_op = CastC2Q()
+            # cast_op = CastC2Q(data=data, to_type=to_type, mem=mem, node=node, ir_graph=ir_graph)
+            cast_op: type[CastC2Q] = CastC2Q
 
         else:
-            cast_op = CastC2C()
+            # cast_op = CastC2C(data=data, to_type=to_type, mem=mem, node=node, ir_graph=ir_graph)
+            cast_op: type[CastC2C] = CastC2C
 
-    cast_data = cast_op.flush().get_cast_data()
+    cast_data = cast_op(
+        data=data,
+        to_type=to_type,
+        mem=mem,
+        node=node,
+        ir_graph=ir_graph
+    ).flush().retrieve_cast_data()
     mem.stack.push(cast_data)
 
 

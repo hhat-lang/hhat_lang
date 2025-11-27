@@ -24,6 +24,11 @@ S_BOOL = Symbol("bool")
 S_U16 = Symbol("u16")
 S_U32 = Symbol("u32")
 S_U64 = Symbol("u64")
+S_I16 = Symbol("i16")
+S_I32 = Symbol("i32")
+S_I64 = Symbol("i64")
+S_F32 = Symbol("f32")
+S_F64 = Symbol("f64")
 
 # quantum symbol
 S_QINT = Symbol("@int")
@@ -33,7 +38,8 @@ S_QU3 = Symbol("@u3")
 S_QU4 = Symbol("@u4")
 
 # sets
-int_types: set = {S_INT, S_U16, S_U32, S_U64}
+int_types: set = {S_INT, S_U16, S_U32, S_U64, S_I16, S_I32, S_I64}
+float_types: set = {S_F32, S_F64}
 qint_types: set = {S_QINT, S_QU2, S_QU3, S_QU4}
 
 
@@ -106,7 +112,7 @@ class BuiltinStructDS(BaseTypeDataStructure):
 
     def add_member(
         self, member_type: BaseTypeDataStructure, member_name: Symbol | CompositeSymbol
-    ) -> Any | ErrorHandler:
+    ) -> BuiltinStructDS | ErrorHandler:
         if has_same_paradigm(member_type, member_name):
             if is_valid_member(self, member_type.name):
                 self._type_container[member_name] = member_type.name

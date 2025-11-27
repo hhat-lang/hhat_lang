@@ -5,6 +5,11 @@ from pathlib import Path
 from typing import Callable, Any
 
 conversion_types: dict[str, Callable[[Path], dict | Any]] = dict()
+"""
+Dictionary to hold all the available conversion types used in H-hat configuration files.
+The key is the name, e.g. "json", and the value is the function to execute the proper type 
+conversion, e.g. ``read_json`` .
+"""
 
 
 def insert_reader(ext: str) -> Callable:

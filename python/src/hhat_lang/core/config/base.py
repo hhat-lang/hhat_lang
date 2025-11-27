@@ -2,33 +2,36 @@
 Q: Why does this file exist?
 
 A: To keep configuration files and data under strict keys and values,
-and expected behavior. This way, generating a configuration file for
-new dialects, low-level languages, target backends, with multiple
-options will always follow the same recipe.
+and expected behavior. This way, generating or retrieving a configuration
+file for new dialects, low-level languages, target backends, with
+multiple options will always follow the same recipe.
 """
 
 from __future__ import annotations
 
 from abc import ABC
 from dataclasses import dataclass, field, asdict
+from importlib import import_module
 from pathlib import Path
-from typing import Any, Callable
+from types import ModuleType
+from typing import Any, Callable, Optional
 from functools import wraps
 
 from hhat_lang.core.config.utils import read_file
-
-
-#######################################
-# CONSTRUCTOR AND AUXILIARY FUNCTIONS #
-#######################################
+from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager, BaseLLQ
 
 _settings_classes: dict[str, Callable] = dict()
 """
 A dictionary containing classes for each setting; 
-'compiler' contains BaseCompilerSettings, 'executor' contains BaseExecutorSettings,
+'dialect' contains the DialectSettings, 'llq' contains LLQSettings, 
+'backend' contains TargetBackendSettings,
 and so on.
 """
 
+
+########################################
+# CONSTRUCTORS AND AUXILIARY FUNCTIONS #
+########################################
 
 def insert_setting_class(config_name: str) -> Callable:
     """
@@ -45,6 +48,117 @@ def insert_setting_class(config_name: str) -> Callable:
         return wrapper
 
     return decorator
+
+
+@insert_setting_class("default")
+def _build_default_obj(settings: dict) -> Any:
+    """
+    Define the default ('current_settings') configuration data to be used by the
+    project to compile and execute code.
+    """
+
+    dialect, llq, backend = _retrieve_current_settings_data(settings)
+
+
+
+def _retrieve_current_settings_data(settings: dict) -> tuple[dict, dict, dict]:
+    """
+    Retrieve project current settings to build the right objects and feed the program executor.
+
+    Args:
+        settings: dictionary containing the settings from project's configuration file
+
+    Returns:
+        A tuple with dialect, llq and backend data dictionaries
+    """
+
+    current: dict | None = settings.get("current_settings", None)
+
+    if current is None:
+        raise ValueError(
+            "could not find 'current_settings' key on the project configuration file."
+        )
+
+    dialect_list: list[str] = current["dialect"]["dir"]
+    llq_list: list[list[str]] = list(k["dir"] for k in current["llq"])
+    backend_list: list[list[str]] = list(k["dir"] for k in current["backend"])
+
+    dialect_data: dict = _retrieve_data_from_settings(settings, "dialect", dialect_list)
+    llq_data: dict[tuple[str, ...], dict] = _retrieve_data_from_composed_settings(
+        settings=settings,
+        which_data="llq",
+        data_list=llq_list
+    )
+    backend_data: dict[tuple[str, ...], dict] = _retrieve_data_from_composed_settings(
+        settings=settings,
+        which_data="backend",
+        data_list=backend_list
+    )
+    return dialect_data, llq_data, backend_data
+
+
+def _retrieve_data_from_settings(
+    settings: dict,
+    which_data: str,
+    data_dir: list[str]
+) -> dict[tuple[str, ...], dict]:
+    """
+    Retrieve a single dictionary entry from project settings.
+
+    Args:
+        settings:
+        which_data:
+        data_dir:
+
+    Returns:
+        The dictionary where key is the data reference name tuple
+        and the value is data from settings.
+    """
+
+    data: dict = (
+        settings[which_data]
+        if (avail := settings.get("available_settings", None)) is None
+        else avail[which_data]
+    )
+
+    for name in data_dir:
+        data = data[name]
+
+    return {tuple(data_dir): data}
+
+
+def _retrieve_data_from_composed_settings(
+    settings: dict,
+    which_data: str,
+    data_list: list[list[str]]
+) -> dict[tuple[str, ...], dict]:
+    """
+    Retrieve a list of dictionary entries from project settings.
+
+    Args:
+        settings:
+        which_data:
+        data_list:
+
+    Returns:
+        The dictionary where the keys are the data reference name tuple and
+        the values are data from settings.
+    """
+
+    data: dict = (
+        settings[which_data]
+        if (avail := settings.get("available_settings", None)) is None
+        else avail[which_data]
+    )
+    res: dict[tuple[str, ...], dict] = dict()
+
+    for data_dir in data_list:
+        for name in data_dir:
+            data = data[name]
+
+        res.update({tuple(data_dir): data})
+
+    return res
 
 
 @insert_setting_class("dialect")
@@ -129,9 +243,12 @@ def _build_backend_obj(backends: dict) -> TargetBackendSettings:
 
 
 class ConstructorBaseHhatSettings:
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, **file_data: dict):
+        _settings_classes.get()
 
-        return HhatSettings()
+        hhat_settings = CurrentSettings(dialect=None, llq=None, backend=None)
+        return hhat_settings
+
 
 
 class OuterSettings(ABC):
@@ -160,10 +277,17 @@ class InnerSettings(ABC):
 # BASE SETTINGS CLASSES #
 #########################
 
+class HhatProjectSettings:
+    """Class to hold all H-hat project settings (current and available ones)."""
+
+    _current: Any
+    _available: Any
+
+
 @dataclass
-class HhatSettings:
+class CurrentSettings:
     """
-    Use BaseHhatSettings as the configuration data to run the project completely.
+    Use HhatSettings as the main settings class to configure the whole project.
     It contains settings for:
 
     - dialects
@@ -173,6 +297,9 @@ class HhatSettings:
     Data may be stored in configuration files, such as json, yaml, toml, etc. (according
     to implementations available). They should be able to be retrieved by this very same
     class through its ``load`` method.
+
+    **Important**: it will load data contained in the "current_settings" section of the
+    configuration file.
     """
 
     dialect: DialectSettings
@@ -180,7 +307,7 @@ class HhatSettings:
     backend: TargetBackendSettings
 
     @classmethod
-    def load(cls, file: Path) -> HhatSettings:
+    def load(cls, file: Path) -> CurrentSettings:
         """
         Loads data from ``file`` (``Path`` type) to a new H-hat settings instance.
         """
@@ -191,9 +318,33 @@ class HhatSettings:
         return {**self.dialect.serialize(), **self.llq.serialize(), **self.backend.serialize()}
 
 
+class CurrentDialect:
+    _dialect: ModuleType
+
+    def __init__(self, dialect: list[str] | tuple[str, ...]):
+        self._dialect = import_module(".".join(dialect))
+
+    @property
+    def dialect(self) -> ModuleType:
+        return self._dialect
+
+
+class CurrentLLQ:
+    _manager: dict[tuple[str, str], BaseLLQManager]
+    _llq: dict[tuple[str, str], BaseLLQ]
+
+    def __init__(self, llq_dir: dict[tuple[str, str], dict]):
+        pass
+
+
+class CurrentBackend:
+    _executor: Callable
+
+
 class DialectSettings(OuterSettings):
     """
-    Dialects settings
+    General dialects settings class. Should hold the list of available
+    dialect options (``DialectOptions``).
     """
 
     _opts: dict[tuple[str, str], DialectOptions]
@@ -388,9 +539,9 @@ class ShotsSettings(InnerSettings):
 @dataclass
 class ShotsOptions:
     name: str
-    base: int
-    min: int
-    max: int
+    base: Optional[int] = None
+    min: Optional[int] = None
+    max: Optional[int] = None
 
     def serialize(self) -> dict:
         return asdict(self)

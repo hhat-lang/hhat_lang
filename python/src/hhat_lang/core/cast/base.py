@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Mapping, Protocol, runtime_checkable
+from typing import Any, Mapping, Protocol, runtime_checkable, Callable
 from collections import Counter
 
 from hhat_lang.core.code.ir_graph import IRNode, IRGraph
 from hhat_lang.core.data.core import CoreLiteral
-from hhat_lang.core.data.utils import isquantum
 from hhat_lang.core.data.variable import BaseDataContainer
+from hhat_lang.core.error_handlers.errors import InterpreterEvaluationError
 from hhat_lang.core.execution.abstract_program import QuantumProgram
 from hhat_lang.core.memory.core import MemoryManager
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
+
+
+CastFnType = Callable[[BaseDataContainer | CoreLiteral | Any], CoreLiteral]
+"""cast function type annotation"""
 
 
 def is_iterable(data: Any) -> bool:
@@ -92,51 +96,59 @@ class BaseBitString(ABC):
         raise NotImplementedError()
 
 
-class CastOperator(ABC):
+class BaseCastOperator(ABC):
     """Cast base class to handle the casting workflow"""
 
     _data: BaseDataContainer | CoreLiteral
     _to_type: BaseTypeDataStructure
+    _cast_fn: CastFnType
 
     def __init__(
         self,
         data: BaseDataContainer | CoreLiteral,
         to_type: BaseTypeDataStructure,
+        cast_fn: CastFnType
     ):
         if (
             isinstance(data, BaseDataContainer | CoreLiteral)
             and isinstance(to_type, BaseTypeDataStructure)
+            and isinstance(cast_fn, Callable)
         ):
             self._data = data
             self._to_type = to_type
+            self._cast_fn = cast_fn
 
         else:
-            raise ValueError(
-                f"data {data} must be BaseDataContainer or literal"
-                f" and type must be BaseTypeDataStructure"
+            raise InterpreterEvaluationError(
+                error_where="cast operator instantiation",
+                msg=f"data {data} must be BaseDataContainer or literal, "
+                f"type must be BaseTypeDataStructure and cast function"
+                f" a callable."
             )
 
     @abstractmethod
-    def flush(self) -> CastOperator:
+    def flush(self) -> BaseCastOperator:
         """Use this method to execute the cast logic."""
 
         raise NotImplementedError()
 
     @abstractmethod
-    def cast(self) -> CastOperator:
+    def cast(self) -> BaseCastOperator:
         """Use this method to perform the cast conversion."""
 
         raise NotImplementedError()
 
     @abstractmethod
-    def get_cast_data(self) -> BaseDataContainer | CoreLiteral:
-        """Retrieve the cast data with the correct type. Must be used after
-        ``flush`` and ``cast`` methods."""
+    def retrieve_cast_data(self) -> BaseDataContainer | CoreLiteral:
+        """
+        Retrieve the cast data with the correct type. Must be used after
+        ``flush`` and ``cast`` methods.
+        """
 
         raise NotImplementedError()
 
 
-class CastC2C(CastOperator):
+class BaseCastC2C(BaseCastOperator):
     """Class to handle classical data casting to classical type"""
 
     _mem: MemoryManager
@@ -147,6 +159,7 @@ class CastC2C(CastOperator):
         self,
         data: BaseDataContainer | CoreLiteral,
         to_type: BaseTypeDataStructure,
+        cast_fn: CastFnType,
         mem: MemoryManager,
         node: IRNode,
         ir_graph: IRGraph
@@ -156,19 +169,23 @@ class CastC2C(CastOperator):
             and isinstance(node, IRNode)
             and isinstance(ir_graph, IRGraph)
         ):
-            super().__init__(data=data, to_type=to_type)
+            super().__init__(data=data, to_type=to_type, cast_fn=cast_fn)
             self._mem = mem
             self._node = node
             self._ir_graph = ir_graph
 
-    def flush(self) -> CastC2C:
+    def flush(self) -> BaseCastC2C:
         raise NotImplementedError()
 
-    def get_cast_data(self) -> BaseDataContainer | CoreLiteral:
+    @abstractmethod
+    def cast(self) -> BaseCastC2C:
+        raise NotImplementedError()
+
+    def retrieve_cast_data(self) -> BaseDataContainer | CoreLiteral:
         pass
 
 
-class CastQ2C(CastOperator):
+class BaseCastQ2C(BaseCastOperator):
     """Class to handle quantum data casting to classical type"""
 
     _program: QuantumProgram
@@ -177,36 +194,56 @@ class CastQ2C(CastOperator):
         self,
         data: BaseDataContainer | CoreLiteral,
         to_type: BaseTypeDataStructure,
+        cast_fn: CastFnType,
         mem: MemoryManager,
         node: IRNode,
         ir_graph: IRGraph
     ):
-        super().__init__(data=data, to_type=to_type)
-        self._program = QuantumProgram(qdata=self._data, mem=mem, node=node, ir_graph=ir_graph)
+        super().__init__(data=data, to_type=to_type, cast_fn=cast_fn)
+        self._program = QuantumProgram(
+            qdata=self._data,
+            mem=mem,
+            node=node,
+            ir_graph=ir_graph,
+            base_llq=None,
+            executor=None
+        )
 
-    def flush(self) -> CastQ2C:
+    def flush(self) -> BaseCastQ2C:
         self._program.run()
         return self
 
-    def get_cast_data(self) -> BaseDataContainer | CoreLiteral:
-        pass
+    @abstractmethod
+    def cast(self) -> BaseCastQ2C:
+        raise NotImplementedError()
+
+    def retrieve_cast_data(self) -> BaseDataContainer | CoreLiteral:
+        return self._cast_fn(self._data)
 
 
-class CastC2Q(CastOperator):
+class BaseCastC2Q(BaseCastOperator):
     """Class to handle classical data casting to quantum type"""
 
-    def flush(self) -> CastC2Q:
+    def flush(self) -> BaseCastC2Q:
         raise NotImplementedError()
 
-    def get_cast_data(self) -> BaseDataContainer | CoreLiteral:
-        pass
+    @abstractmethod
+    def cast(self) -> BaseCastC2Q:
+        raise NotImplementedError()
+
+    def retrieve_cast_data(self) -> BaseDataContainer | CoreLiteral:
+        raise NotImplementedError()
 
 
-class CastQ2Q(CastOperator):
+class BaseCastQ2Q(BaseCastOperator):
     """Class to handle quantum data casting to quantum type"""
 
-    def flush(self) -> CastQ2Q:
+    def flush(self) -> BaseCastQ2Q:
         raise NotImplementedError()
 
-    def get_cast_data(self) -> BaseDataContainer | CoreLiteral:
-        pass
+    @abstractmethod
+    def cast(self) -> BaseCastQ2Q:
+        raise NotImplementedError()
+
+    def retrieve_cast_data(self) -> BaseDataContainer | CoreLiteral:
+        raise NotImplementedError()

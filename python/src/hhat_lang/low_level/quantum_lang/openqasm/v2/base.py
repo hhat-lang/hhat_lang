@@ -20,7 +20,7 @@ from hhat_lang.core.error_handlers.errors import (
     InstrStatusError,
 )
 from hhat_lang.core.execution.abstract_base import BaseExecutor
-from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager, BaseQLang
+from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager, BaseLLQ
 from hhat_lang.core.utils import Error, Ok, Result
 from hhat_lang.core.code.ir_block import IRInstr, IRBlock
 
@@ -34,12 +34,12 @@ class LLQManager(BaseLLQManager):
         circ = qlang.code()  # qiskit.QuantumCircuit
     """
 
-    def compile(self, *args: Any, **kwargs: Any) -> BaseQLang:
+    def compile(self, *args: Any, **kwargs: Any) -> BaseLLQ:
         """compile code contained in quantum data"""
         pass
 
 
-class QLang(BaseQLang):
+class LLQ(BaseLLQ):
     """
     QLang class for OpenQASM v2 code generation (currently through
     Qiskit's ``QuantumCircuit`` object). Use ``code`` method to generate
@@ -50,7 +50,9 @@ class QLang(BaseQLang):
         pass
 
 
-class LowLeveQLang(BaseLLQManager):
+class LowLeveQLang:
+    # TODO: to be removed; legacy code
+
     def init_qlang(self) -> tuple[str, ...]:
         code_list = (
             "OPENQASM 2.0;",

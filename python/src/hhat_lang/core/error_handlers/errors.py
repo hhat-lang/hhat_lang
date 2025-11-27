@@ -57,6 +57,8 @@ class ErrorCodes(Enum):
     EVALUATOR_CAST_DATA_ERROR = auto()
     EVALUATOR_CAST_WILDCARD_BUILTIN_TYPE_ERROR = auto()
 
+    INTERPRETER_EVALUATION_ERROR = auto()
+
 
 class ErrorHandler(BaseException, ABC):
     def __init__(self, error_code: ErrorCodes):
@@ -489,3 +491,13 @@ class EvaluatorCastWildcardBuiltinTypeError(ErrorHandler):
             f"[[{self.__class__.__name__}]]: a precise type should be known, but"
             f" a wildcard type was given ({self._name})."
         )
+
+
+class InterpreterEvaluationError(ErrorHandler):
+    def __init__(self, error_where: str, msg: str):
+        super().__init__(ErrorCodes.INTERPRETER_EVALUATION_ERROR)
+        self._msg = msg
+        self._err = error_where
+
+    def __call__(self) -> str:
+        return f"[[{self.__class__.__name__}]]<{self._err} error]>: {self._msg}"

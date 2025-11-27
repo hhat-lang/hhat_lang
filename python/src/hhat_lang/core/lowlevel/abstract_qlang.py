@@ -38,7 +38,7 @@ class BaseLLQManager(ABC):
         self._ir_graph = ir_graph
 
     @abstractmethod
-    def compile(self, *args: Any, **kwargs: Any) -> BaseQLang:
+    def compile(self, *args: Any, **kwargs: Any) -> BaseLLQ:
         """
         The compile method should return a ``BaseQLang`` child class object. It then
         can be used inside a target backend evaluator to execute code on simulator/device.
@@ -47,7 +47,7 @@ class BaseLLQManager(ABC):
         raise NotImplementedError()
 
 
-class BaseQLang(ABC):
+class BaseLLQ(ABC):
     """
     Base class for (low level) quantum language (aka OpenQASM, NetQASM, etc.) implementation.
     """

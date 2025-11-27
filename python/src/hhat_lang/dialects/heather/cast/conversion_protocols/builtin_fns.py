@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import sys
 import ctypes
+from functools import wraps
 from typing import Any, NoReturn, Callable
 
+from hhat_lang.core.cast.base import CastFnType
 from hhat_lang.core.data.core import CoreLiteral
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import (
     InvalidDataContainerCastError,
     EvaluatorCastWildcardBuiltinTypeError,
     EvaluatorCastDataError,
-    DataOverflowError
+    DataOverflowError, InterpreterEvaluationError
 )
 
 # TODO: implement complex data conversion functions as well
@@ -33,6 +35,46 @@ U64_MIN: int = 0
 I64_MIN: int = -(2 << 63)
 F32_MIN: float = -F32_MAX
 # (not representable in python) F64_MIN = -F64_MAX
+
+
+########################
+# FUNCTIONS DICTIONARY #
+########################
+
+
+cast_fns_dict: dict[tuple[str, str], CastFnType] = dict()
+"""
+Dictionary to hold all the available cast functions. 
+The key is a pair tuple with 'from_type' and 'to_type', and
+the value is the function to perform the casting operation.
+"""
+
+
+def insert_cast_fns(entry_types: tuple[str, str]) -> Callable:
+    """
+    Decorator function to store entry_types (tuple) as key and the function
+    as value in the ``cast_fns_dict`` dictionary.
+    """
+
+    # check whether entry data has the correct type and shape
+    if not (isinstance(entry_types, tuple) and len(entry_types) == 2):
+        raise InterpreterEvaluationError(
+            error_where="appending cast functions",
+            msg=(
+                f"a cast function must provide a tuple with 'from_type' and "
+                f"'to_type' types names, but got {entry_types} ({type(entry_types)})."
+            )
+        )
+
+    def decorator(fn: Callable) -> Callable:
+        @wraps(fn)
+        def wrapper(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
+            return fn(data)
+
+        cast_fns_dict[entry_types] = wrapper
+        return wrapper
+
+    return decorator
 
 
 ########################
@@ -72,6 +114,7 @@ def _cast_to(
 # BOOLEAN FUNCTIONS #
 #####################
 
+@insert_cast_fns(("bool", "int"))
 def bool_to_int(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from bool to int.
@@ -86,6 +129,7 @@ def bool_to_int(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, int, "bool", "int")
 
 
+@insert_cast_fns(("bool", "float"))
 def bool_to_float(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from bool to float.
@@ -100,6 +144,7 @@ def bool_to_float(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, float, "bool", "float")
 
 
+@insert_cast_fns(("bool", "u32"))
 def bool_to_u32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from bool to u32.
@@ -114,6 +159,7 @@ def bool_to_u32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, int, "bool", "u32")
 
 
+@insert_cast_fns(("bool", "i32"))
 def bool_to_i32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from bool to i32.
@@ -128,6 +174,7 @@ def bool_to_i32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, int, "bool", "i32")
 
 
+@insert_cast_fns(("bool", "f32"))
 def bool_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from bool to f32.
@@ -142,6 +189,7 @@ def bool_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, float, "bool", "f32")
 
 
+@insert_cast_fns(("bool", "f64"))
 def bool_to_f64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from bool to f64.
@@ -156,6 +204,7 @@ def bool_to_f64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, float, "bool", "f64")
 
 
+@insert_cast_fns(("int", "bool"))
 def int_to_bool(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from any int to bool.
@@ -177,13 +226,12 @@ def int_to_bool(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
             from_type = data.type
 
         case _:
-            sys.exit(
-                EvaluatorCastDataError(data)()
-            )
+            sys.exit(EvaluatorCastDataError(data)())
 
     return _cast_to(data, int, from_type, "bool")
 
 
+@insert_cast_fns(("float", "bool"))
 def float_to_bool(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from any float to bool.
@@ -214,6 +262,7 @@ def float_to_bool(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
 # INTEGER FUNCTIONS #
 #####################
 
+@insert_cast_fns(("int", "float"))
 def int_to_float(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from int to float. Data is expected to be
@@ -230,9 +279,7 @@ def int_to_float(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
         case BaseDataContainer():
             # Probably itś not base data container, because the integer type should
             # be known already (u32, i32, u64, i64, ...) instead of generic int
-            sys.exit(
-                EvaluatorCastWildcardBuiltinTypeError("int")()
-            )
+            sys.exit(EvaluatorCastWildcardBuiltinTypeError("int")())
 
         case CoreLiteral():
             return CoreLiteral(str(int(data.value)), "float")
@@ -273,6 +320,7 @@ def _cast_to_smaller_bitsize(
     return CoreLiteral(str(cast_fn(value).value), to_type)
 
 
+@insert_cast_fns(("int", "u32"))
 def int_to_u32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from int to u32.
@@ -295,6 +343,7 @@ def int_to_u32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     )
 
 
+@insert_cast_fns(("int", "i32"))
 def int_to_i32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from int to i32.
@@ -317,6 +366,7 @@ def int_to_i32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     )
 
 
+@insert_cast_fns(("int", "u64"))
 def int_to_u64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from int to u64.
@@ -339,6 +389,7 @@ def int_to_u64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     )
 
 
+@insert_cast_fns(("int", "i64"))
 def int_to_i64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from int to i64.
@@ -361,6 +412,7 @@ def int_to_i64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     )
 
 
+@insert_cast_fns(("u32", "float"))
 def u32_to_float(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from u32 to float.
@@ -375,6 +427,7 @@ def u32_to_float(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, float, "u32", "float")
 
 
+@insert_cast_fns(("u32", "f32"))
 def u32_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from u32 to f32.
@@ -389,6 +442,7 @@ def u32_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, float, "u32", "f32")
 
 
+@insert_cast_fns(("u32", "f64"))
 def u32_to_f64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from u32 to f64.
@@ -403,6 +457,7 @@ def u32_to_f64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, float, "u32", "f64")
 
 
+@insert_cast_fns(("u64", "f32"))
 def u64_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from u64 to f32.
@@ -425,6 +480,7 @@ def u64_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     )
 
 
+@insert_cast_fns(("u64", "f64"))
 def u64_to_f64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from u64 to f64.
@@ -439,6 +495,7 @@ def u64_to_f64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, float, "u64", "f64")
 
 
+@insert_cast_fns(("i32", "f32"))
 def i32_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from i32 to f32.
@@ -453,6 +510,7 @@ def i32_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, float, "i32", "f32")
 
 
+@insert_cast_fns(("i32", "f64"))
 def i32_to_f64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from i32 to f64.
@@ -467,6 +525,7 @@ def i32_to_f64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     return _cast_to(data, float, "i32", "f64")
 
 
+@insert_cast_fns(("i64", "f32"))
 def i64_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from i64 to f32.
@@ -489,6 +548,7 @@ def i64_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     )
 
 
+@insert_cast_fns(("i64", "f64"))
 def i64_to_f64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
     Cast conversion function from i64 to f64.
@@ -507,6 +567,7 @@ def i64_to_f64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
 # FLOAT FUNCTIONS #
 ###################
 
+@insert_cast_fns(("float", "int"))
 def float_to_int(data: BaseDataContainer | CoreLiteral | Any) -> float:
     """
     Cast conversion function to convert float to int
@@ -516,3 +577,67 @@ def float_to_int(data: BaseDataContainer | CoreLiteral | Any) -> float:
     Returns:
 
     """
+
+
+#####################
+# HASHMAP FUNCTIONS #
+#####################
+
+@insert_cast_fns(("hashmap", "int"))
+def hashmap_to_int(data: BaseDataContainer | Any) -> CoreLiteral:
+    """
+
+    Args:
+        data:
+
+    Returns:
+
+    """
+
+    raise NotImplementedError()
+
+
+@insert_cast_fns(("hashmap", "float"))
+def hashmap_to_float(data: BaseDataContainer | Any) -> CoreLiteral:
+    """
+
+    Args:
+        data:
+
+    Returns:
+
+    """
+
+    raise NotImplementedError()
+
+
+####################
+# SAMPLE FUNCTIONS #
+####################
+
+@insert_cast_fns(("sample", "int"))
+def sample_to_int(data: BaseDataContainer | Any) -> CoreLiteral:
+    """
+
+    Args:
+        data:
+
+    Returns:
+
+    """
+
+    raise NotImplementedError()
+
+
+@insert_cast_fns(("sample", "float"))
+def sample_to_float(data: BaseDataContainer | Any) -> CoreLiteral:
+    """
+
+    Args:
+        data:
+
+    Returns:
+
+    """
+
+    raise NotImplementedError()

@@ -15,7 +15,7 @@ from hhat_lang.core.code.ir_graph import IRGraph
 from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
 from hhat_lang.dialects.heather.parsing.ir_visitor import parse, parser_grammar_code
 from hhat_lang.toolchain.project.new import (
-    create_new_file,
+    create_new_fn_file,
     create_new_project,
     create_new_type_file,
 )
@@ -152,7 +152,7 @@ def test_parse_type_ir(
         fns_path = ()
 
         for f in fn_files:
-            fns_path += (create_new_file(project_root, f),)
+            fns_path += (create_new_fn_file(project_root, f),)
 
         fn_fn(fns_path)
         assert all(k.exists() for k in fns_path)

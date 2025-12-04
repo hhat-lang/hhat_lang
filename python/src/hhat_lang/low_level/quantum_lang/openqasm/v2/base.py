@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib
 import inspect
+from functools import lru_cache
 from typing import Any, Callable, Iterable, cast
 
 from hhat_lang.core.code.instructions import QInstrFlag
@@ -46,6 +47,10 @@ class LLQ(BaseLLQ):
     the circuit.
     """
 
+    def __init__(self):
+        super().__init__()
+
+    @lru_cache
     def code(self) -> Any:
         pass
 

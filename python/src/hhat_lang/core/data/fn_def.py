@@ -124,3 +124,10 @@ class OptBdnDef:
     Function with arguments and options in the body (optbdn) definition class
     """
     # TODO: implement it
+
+
+class ModifierDef:
+    """
+    Modifier function
+    """
+    # TODO: implement it

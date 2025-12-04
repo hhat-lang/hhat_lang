@@ -10,34 +10,29 @@ from rich.console import Console
 from rich.panel import Panel
 
 from hhat_lang.toolchain.project.new import (
-    create_new_file,
+    create_new_fn_file,
     create_new_project,
-    create_new_type_file,
+    create_new_type_file, create_new_const_file,
 )
 from hhat_lang.toolchain.project.run import run_project
-
-
-def get_proj_dir() -> Path:
-    current = Path().absolute()
-    while current != current.parent:
-        if (current / "src" / "main.hat").exists():
-            return current
-        current = current.parent
-    raise ValueError("Not inside a H-hat project directory or src/main.hat missing")
-
+from hhat_lang.toolchain.project.utils import get_proj_dir
 
 app = typer.Typer(
     name="hat",
-    help="Command line interface for H-hat language toolchain",
+    help="[bold royal_blue1]Command line interface for H-hat language toolchain[/bold royal_blue1]",
     no_args_is_help=True,
+    rich_markup_mode="rich",
 )
 
 console = Console()
 
 
-def version_callback(value: bool):
+def version_callback(value: bool) -> None:
     if value:
-        print("[blue]H-hat Language Toolchain[/blue] version 0.1.0")
+        print(
+            "[bold royal_blue1]H-hat Language Toolchain[/] "
+            "version [bold royal_blue1]0.1.0[/]"
+        )
         raise typer.Exit()
 
 
@@ -51,7 +46,7 @@ def common(
         callback=version_callback,
         is_eager=True,
     ),
-):
+) -> None:
     """
     H-hat Language Toolchain - A quantum programming language toolchain
 
@@ -61,7 +56,9 @@ def common(
 
 
 @app.command()
-def help(command: Optional[str] = typer.Argument(None, help="Command to get help for")):
+def help(
+    command: Optional[str] = typer.Argument(None, help="Command to get help for")
+) -> None:
     """
     Show help about commands.
 
@@ -99,22 +96,29 @@ def new(
     ),
     file_name: str = typer.Option(None, "--file", "-f", help="Create a new file"),
     type_file: str = typer.Option(None, "--type", "-t", help="Create a new type file"),
-):
+    const_file: str = typer.Option(None, "--const", "-c", help="Create a new constant file"),
+) -> None:
     """
-    Create a new project, file, or type file.
+    Create a new project, file, constant or type file.
 
     This command can create:
     - A new H-hat project with required structure
-    - A new .hat file within a project
-    - A new type definition file within a project
+    - A new .hat file within the project
+    - A new type definition file within the project
+    - A new constant definition file within the project
 
     Examples:
         hat new myproject           # Create a new project
-        hat new -f module/myfile    # Create a new file (and directories if needed)
+        hat new -f myfile           # Create a new file
         hat new -t custom_type      # Create a new type file
+        hat new -c some_constants   # Create a new constant file
+
+    All new files can be created inside one or nested directories. Directories may
+    exist or will be created.
     """
+
     try:
-        if project_name and not (file_name or type_file):
+        if project_name and not (file_name or type_file or const_file):
             # Create new project
             create_new_project(Path(project_name))
             console.print(
@@ -142,12 +146,7 @@ def new(
                 )
                 raise typer.Exit(1)
             else:
-                file_path = Path(file_name)
-                if (proj_dir / f"{file_path}.hat").is_file():
-                    raise FileExistsError(f"File {file_path}.hat already exists")
-                if file_path.parent != Path("."):
-                    file_path.parent.mkdir(parents=True, exist_ok=False)
-                create_new_file(proj_dir, f"{file_path}.hat")
+                create_new_fn_file(proj_dir, Path(file_name))
                 console.print(
                     Panel(
                         f"File [bold]{file_name}.hat[/bold] created successfully!",
@@ -178,13 +177,36 @@ def new(
                 )
                 raise typer.Exit(1)
 
+        elif const_file:
+            proj_dir = get_proj_dir()
+            try:
+                create_new_const_file(proj_dir, Path(const_file))
+                console.print(
+                    Panel(
+                        f"Constant file [bold]{const_file}.hat[/bold] create successfully!",
+                        title="✓ Success",
+                        border_style="green",
+                    )
+                )
+            except ValueError as e:
+                console.print(
+                    Panel(
+                        str(e)
+                        + "\n\nPlease make sure you're inside a H-hat project directory.",
+                        title="⚠ Error",
+                        border_style="red",
+                    )
+                )
+                raise typer.Exit(1)
+
         else:
             console.print(
                 Panel(
-                    "Please specify what to create (project, file, or type)\n\n"
+                    "Please specify what to create (project, file, constant or type)\n\n"
                     "Examples:\n"
                     "  hat new myproject           # Create a new project\n"
                     "  hat new -f module/myfile    # Create a new file\n"
+                    "  hat new -c const_file       # Create a new constant file\n"
                     "  hat new -t custom_type      # Create a new type file",
                     title="⚠ Missing Arguments",
                     border_style="yellow",
@@ -214,7 +236,7 @@ def new(
 
 
 @app.command()
-def run():
+def run() -> None:
     """
     Run the current H-hat project.
 
@@ -257,6 +279,6 @@ def run():
         raise typer.Exit(1)
 
 
-def main():
+def main() -> None:
     """Entry point for the CLI"""
     app()

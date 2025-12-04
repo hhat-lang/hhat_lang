@@ -113,6 +113,24 @@ class BaseImporter(ABC):
         )
 
 
+class ConstImporter(BaseImporter):
+    def __init__(
+        self,
+        project_root: Path,
+        grammar_parser: Callable[[Callable], ParserPEG | ParserPython],
+        program_rule: Callable,
+        parser_fn: Callable,
+    ):
+        self._base = Path(project_root).resolve() / SOURCE_FOLDER_NAME
+        super().__init__(project_root, grammar_parser, program_rule, parser_fn)
+
+    def _retrieve_const_reference(self):
+        pass
+
+    def import_consts(self):
+        pass
+
+
 class TypeImporter(BaseImporter):
     """Locate and load types under ``src/hat_types`` relative to a project.
 
@@ -211,3 +229,39 @@ class FnImporter(BaseImporter):
             res += self._retrieve_fn_reference(name, ir_graph)
 
         return dict(res)
+
+
+class ModifierImporter(BaseImporter):
+    def __init__(
+        self,
+        project_root: Path,
+        grammar_parser: Callable[[Callable], ParserPEG | ParserPython],
+        program_rule: Callable,
+        parser_fn: Callable,
+    ):
+        self._base = Path(project_root).resolve() / SOURCE_FOLDER_NAME
+        super().__init__(project_root, grammar_parser, program_rule, parser_fn)
+
+    def _retrieve_modifier_reference(self):
+        pass
+
+    def import_modifiers(self):
+        pass
+
+
+class MetaModImporter(BaseImporter):
+    def __init__(
+        self,
+        project_root: Path,
+        grammar_parser: Callable[[Callable], ParserPEG | ParserPython],
+        program_rule: Callable,
+        parser_fn: Callable,
+    ):
+        self._base = Path(project_root).resolve() / SOURCE_FOLDER_NAME
+        super().__init__(project_root, grammar_parser, program_rule, parser_fn)
+
+    def _retrieve_metamod_reference(self):
+        pass
+
+    def import_metamods(self):
+        pass

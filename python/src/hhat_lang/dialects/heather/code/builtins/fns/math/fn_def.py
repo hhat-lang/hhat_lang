@@ -28,7 +28,7 @@ def _add_res(*args: CoreLiteral) -> str:
     )
 
 
-def builtin_fn_int_add(*args: CoreLiteral) -> CoreLiteral:
+def builtin_fn_int_add(*args: CoreLiteral, fn_path) -> CoreLiteral:
     return CoreLiteral(
         str(reduce(lambda x, y: x + int(y.value), args[1:], int(args[0].value))),
         lit_type="int",
@@ -165,3 +165,11 @@ def builtin_fn_int_float_pow(base: CoreLiteral, power: CoreLiteral) -> CoreLiter
 
 def builtin_fn_float_int_pow(base: CoreLiteral, power: CoreLiteral) -> CoreLiteral:
     return CoreLiteral(str(float(base.value) ** int(power.value)), lit_type="float")
+
+
+########################
+# CONSTRUCTORS SECTION #
+########################
+
+# TODO: create a class to work as the "math" module
+

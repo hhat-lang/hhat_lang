@@ -52,6 +52,9 @@ class BaseLLQ(ABC):
     Base class for (low level) quantum language (aka OpenQASM, NetQASM, etc.) implementation.
     """
 
+    def __init__(self, *args: Any, **kwargs: Any):
+        pass
+
     @abstractmethod
     def code(self) -> Any:
         """

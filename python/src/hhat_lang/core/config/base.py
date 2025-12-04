@@ -20,12 +20,14 @@ from functools import wraps
 from hhat_lang.core.config.utils import read_file
 from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager, BaseLLQ
 
-_settings_classes: dict[str, Callable] = dict()
+
+settings_classes: dict[str, Callable[[], Any]] = dict()
 """
-A dictionary containing classes for each setting; 
-'dialect' contains the DialectSettings, 'llq' contains LLQSettings, 
-'backend' contains TargetBackendSettings,
-and so on.
+A dictionary containing classes for each setting::
+    - 'default' for current settings, 
+    - 'dialect' contains the DialectSettings,
+    - 'llq' contains LLQSettings, 
+    - 'backend' contains TargetBackendSettings,
 """
 
 
@@ -39,25 +41,31 @@ def insert_setting_class(config_name: str) -> Callable:
     according to the key name (str).
     """
 
-    def decorator(cls: Any) -> Callable:
-        @wraps(cls)
+    def decorator(fn: Any) -> Callable:
+        @wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            return cls(*args, **kwargs)
+            return fn(*args, **kwargs)
 
-        _settings_classes[config_name] = wrapper
+        settings_classes[config_name] = wrapper
         return wrapper
 
     return decorator
 
 
 @insert_setting_class("default")
-def _build_default_obj(settings: dict) -> Any:
+def _build_default_obj(settings: dict) -> tuple[CurrentDialect, CurrentLLQ, CurrentBackend]:
     """
     Define the default ('current_settings') configuration data to be used by the
     project to compile and execute code.
     """
 
     dialect, llq, backend = _retrieve_current_settings_data(settings)
+
+    return (
+        CurrentDialect(next(iter(dialect.keys())), **next(iter(dialect.values()))),
+        CurrentLLQ(),
+        CurrentBackend()
+    )
 
 
 
@@ -243,12 +251,14 @@ def _build_backend_obj(backends: dict) -> TargetBackendSettings:
 
 
 class ConstructorBaseHhatSettings:
-    def __new__(cls, **file_data: dict):
-        _settings_classes.get()
+    def __new__(cls, setting: str = "default"):
+        match setting:
+            case "default":
+                dialect, llq, backend = settings_classes.get(setting)
+                return CurrentSettings(dialect=dialect, llq=llq, backend=backend)
 
-        hhat_settings = CurrentSettings(dialect=None, llq=None, backend=None)
-        return hhat_settings
-
+            case _:
+                return settings_classes.get(setting)
 
 
 class OuterSettings(ABC):
@@ -280,8 +290,8 @@ class InnerSettings(ABC):
 class HhatProjectSettings:
     """Class to hold all H-hat project settings (current and available ones)."""
 
-    _current: Any
-    _available: Any
+    _current: CurrentSettings
+    _available: AvailableSettings
 
 
 @dataclass
@@ -319,26 +329,49 @@ class CurrentSettings:
 
 
 class CurrentDialect:
-    _dialect: ModuleType
+    _dialect: Any
+    _module: ModuleType
+    _opts: DialectOptions
 
-    def __init__(self, dialect: list[str] | tuple[str, ...]):
-        self._dialect = import_module(".".join(dialect))
+    def __init__(self, dialect: list[str] | tuple[str, ...], **options: dict):
+        self._module = import_module(".".join(dialect))
+        self._opts = DialectOptions(**options)
 
     @property
     def dialect(self) -> ModuleType:
         return self._dialect
 
+    @property
+    def opts(self) -> DialectOptions:
+        return self._opts
+
 
 class CurrentLLQ:
+    _module: dict[tuple[str, str], ModuleType]
     _manager: dict[tuple[str, str], BaseLLQManager]
     _llq: dict[tuple[str, str], BaseLLQ]
+    _opts: LLQSettings
 
-    def __init__(self, llq_dir: dict[tuple[str, str], dict]):
-        pass
+    def __init__(self, llq_dir: tuple[tuple[str, str], ...], **options: dict):
+        self._opts = settings_classes["llq"]
+        self._module = dict()
+        self._manager = dict()
+        self._llq = dict()
+
+        for ld in llq_dir:
+            self._module = {ld: import_module(".".join(ld))}
+            # every module must contain the following ``.base.LLQManager`` and ``.base.LLQ``
+            self._manager = {ld: self._module[ld].base.LLQManager()}
+            self._llq = {ld: self._module[ld].base.LLQ()}
 
 
 class CurrentBackend:
     _executor: Callable
+
+
+
+class AvailableSettings:
+    pass
 
 
 class DialectSettings(OuterSettings):
@@ -374,7 +407,7 @@ class DialectOptions:
     version: str
     version_type: str
     name_folder: str
-    version_folder: str
+    version_folder: Optional[str] = None
     package_name: str = field(default="")
 
     def serialize(self) -> dict:

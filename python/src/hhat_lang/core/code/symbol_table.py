@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any, Iterable
+from typing import Any, Iterable, Callable
 
 from hhat_lang.core.code.base import BaseFnCheck, BaseFnKey
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
-from hhat_lang.core.data.fn_def import FnDef
+from hhat_lang.core.data.fn_def import FnDef, ModifierDef
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
@@ -76,7 +76,7 @@ class FnTable:
     the base for an IR object picturing the full code.
     """
 
-    _table: OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef]]
+    _table: OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef | Callable]]
     __slots__ = ("_table",)
 
     def __init__(self):
@@ -85,7 +85,7 @@ class FnTable:
     @property
     def table(
         self,
-    ) -> OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef]]:
+    ) -> OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef | Callable]]:
         return self._table
 
     def add(self, fn_entry: BaseFnCheck, data: FnDef) -> None:
@@ -109,6 +109,15 @@ class FnTable:
 
             else:
                 raise ValueError(f"fn_entry is of wrong type ({type(fn_entry)})")
+
+    def add_builtin(self, fn_entry: BaseFnCheck, fn: Callable) -> None:
+        if isinstance(fn, Callable):
+            if isinstance(fn_entry, BaseFnCheck):
+                if fn_entry.name in self.table:
+                    self.table[fn_entry.name].update({fn_entry: fn})
+
+                else:
+                    self.table[fn_entry.name] = {fn_entry: fn}
 
     def get(
         self,
@@ -291,6 +300,71 @@ class MetaModTable:
         return iter((p, q) for v in self.table.values() for p, q in v.items())
 
 
+class ModifierTable:
+    """
+    This class holds all modifiers in a module
+    """
+
+    _table: OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, ModifierDef]]
+    __slots__ = ("_table",)
+
+    def __init__(self):
+        self._table = OrderedDict()
+
+    @property
+    def table(self) -> OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, ModifierDef]]:
+        return self._table
+
+    def add(self, fn_entry: BaseFnCheck, data: ModifierDef) -> None:
+        if isinstance(data, ModifierDef) and isinstance(fn_entry, BaseFnCheck):
+            if fn_entry.name in self.table:
+                self.table[fn_entry.name].update({fn_entry: data})
+
+            else:
+                self.table[fn_entry.name] = {fn_entry: data}
+
+    def get(
+        self,
+        item: Symbol | CompositeSymbol | BaseFnCheck,
+        default: Any | None = None
+    ) -> ModifierDef | dict[BaseFnCheck, ModifierDef] | None:
+        match item:
+            case Symbol() | CompositeSymbol():
+                return self.table.get(item, default)
+
+            case BaseFnCheck():
+                if item.name in self.table:
+                    return self.table[item.name].get(item, default)
+
+        raise ValueError(f"cannot retrieve fn {item}")
+
+    def __hash__(self) -> int:
+        return hash(self.table)
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, ModifierTable):
+            return hash(self) == hash(other)
+
+        return False
+
+    def __contains__(self, item: Any) -> bool:
+        match item:
+            case Symbol() | CompositeSymbol():
+                return item in self._table
+
+            case BaseFnCheck():
+                return item in self._table[item.name]
+
+            case _:
+                return False
+
+    def __len__(self) -> int:
+        return sum(len(k) for k in self.table.values())
+
+    def __iter__(self) -> Iterable:
+        return iter((p, q) for v in self.table.values() for p, q in v.items())
+
+
 class SymbolTable:
     """To store types and functions"""
 
@@ -298,13 +372,15 @@ class SymbolTable:
     _fns: FnTable
     _consts: ConstTable
     _metamods: MetaModTable
-    __slots__ = ("_types", "_fns", "_consts", "_metamods")
+    _modifiers: ModifierTable
+    __slots__ = ("_types", "_fns", "_consts", "_metamods", "_modifiers")
 
     def __init__(self):
         self._types = TypeTable()
         self._fns = FnTable()
         self._consts = ConstTable()
         self._metamods = MetaModTable()
+        self._modifiers = ModifierTable()
 
     @property
     def type(self) -> TypeTable:
@@ -322,8 +398,12 @@ class SymbolTable:
     def metamod(self) -> MetaModTable:
         return self._metamods
 
+    @property
+    def modifiers(self) -> ModifierTable:
+        return self._modifiers
+
     def __hash__(self) -> int:
-        return hash((self._types, self._fns, self._consts, self._metamods))
+        return hash((self._types, self._fns, self._consts, self._metamods, self._modifiers))
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, SymbolTable):

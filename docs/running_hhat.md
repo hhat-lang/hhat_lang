@@ -54,7 +54,7 @@ A new file can be created through:
 
 ```python
 
-new.create_new_file("new_project", "file_name")
+new.create_new_fn_file("new_project", "file_name")
 ```
 
 This will create a `file_name.hat` file into the `new_project` project, as well as a `file_name.hat.md` file at `hat_docs/`. For every file, there will be a documentation file.

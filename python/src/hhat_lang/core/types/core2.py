@@ -14,27 +14,6 @@ from hhat_lang.core.utils import SymbolOrdered
 # DATA TYPES MEMBERS AND CONTAINERS SECTIONS #
 ##############################################
 
-class TypeMemberPairContainer:
-    _name: Symbol
-    _type: BaseDataType
-    __slots__ = ("_name", "_type")
-
-    def __init__(self, member_name: Symbol, member_type: BaseDataType):
-        self._name = member_name
-        self._type = member_type
-
-    @property
-    def name(self) -> Symbol:
-        return self._name
-
-    @property
-    def type(self) -> BaseDataType:
-        return self._type
-
-    def __repr__(self) -> str:
-        return f"{self._name}:{self._type}"
-
-
 class TypeContainer(ABC):
     _data: Any
     _resolved: bool

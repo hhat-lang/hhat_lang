@@ -12,7 +12,8 @@ from rich.panel import Panel
 from hhat_lang.toolchain.project.new import (
     create_new_fn_file,
     create_new_project,
-    create_new_type_file, create_new_const_file,
+    create_new_type_file,
+    create_new_const_file,
 )
 from hhat_lang.toolchain.project.run import run_project
 from hhat_lang.toolchain.project.utils import get_proj_dir
@@ -96,7 +97,9 @@ def new(
     ),
     file_name: str = typer.Option(None, "--file", "-f", help="Create a new file"),
     type_file: str = typer.Option(None, "--type", "-t", help="Create a new type file"),
-    const_file: str = typer.Option(None, "--const", "-c", help="Create a new constant file"),
+    const_file: str = typer.Option(
+        None, "--const", "-c", help="Create a new constant file"
+    ),
 ) -> None:
     """
     Create a new project, file, constant or type file.

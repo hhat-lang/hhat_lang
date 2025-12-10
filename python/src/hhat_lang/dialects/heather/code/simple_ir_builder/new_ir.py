@@ -4,13 +4,19 @@ import sys
 from pathlib import Path
 from typing import Any, cast, Callable
 
-from hhat_lang.core.cast.base import BaseCastOperator
 from hhat_lang.core.code.abstract import BaseIR, BaseIRModule, IRHash, RefTable
 from hhat_lang.core.code.base import (
     BaseFnCheck,
     BaseIRInstr,
 )
-from hhat_lang.core.code.ir_block import IRFlag, IRInstr, IRBlockFlag, IRBlock, BodyBlock
+from hhat_lang.core.code.ir_block import (
+    IRFlag,
+    IRInstr,
+    IRBlockFlag,
+    IRBlock,
+    BodyBlock,
+    ArgsValuesBlock,
+)
 from hhat_lang.core.code.ir_graph import (
     IRGraph,
     IRNode,
@@ -26,6 +32,7 @@ from hhat_lang.core.data.core import (
     Symbol,
     WorkingData,
 )
+from hhat_lang.core.data.fn_def import FnDef
 from hhat_lang.core.data.utils import VariableKind
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import HeapInvalidKeyError
@@ -102,7 +109,9 @@ class CastInstr(IRInstr):
                 f"and {to_type} ({type(to_type)})"
             )
 
-    def resolve(self, mem: MemoryManager, node: IRNode, ir_graph: IRGraph, **kwargs: Any) -> None:
+    def resolve(
+        self, mem: MemoryManager, node: IRNode, ir_graph: IRGraph, **kwargs: Any
+    ) -> None:
         _data = _resolve_expr_to_data(self.args[0], mem, node, ir_graph)
         _type = _resolve_type(self.args[1], mem, node, ir_graph)
         _resolve_cast(_data, to_type=_type, mem=mem, node=node, ir_graph=ir_graph)
@@ -150,32 +159,30 @@ class CallInstr(IRInstr):
     ) -> None:
 
         match self.name:
-            case IRFlag.FN_CALL:
-                caller: Symbol | CompositeSymbol = (
-                    self.args[0]  # type: ignore [assignment]
-                    if isinstance(self.args[0], Symbol | CompositeSymbol)
-                    else (
-                        self.args[0].name
-                        if isinstance(self.args[0], ModifierBlock)
-                        else sys.exit("call instr error")
-                    )
+            case IRFlag.BUILTIN_FN_CALL:
+                args, fn_header = self._set_fn_call(ir_graph, mem, node)
+                fn_def = get_fn(
+                    node_key=node.irhash, importing=fn_header, ir_graph=ir_graph
                 )
-                args: tuple = self.args[1:]
-                num_args: int = len(args)
-                resolved_args = _resolve_call_args(*args, mem=mem, node=node, ir_graph=ir_graph)
-                resolved_args_types = _resolve_call_args_types(*resolved_args)
 
-                fn_header = BaseFnCheck(fn_name=caller, args_types=resolved_args_types)
+                # set new stack for function context; it's freed when exiting the context
+                with mem.new_fn_stack(*args, fn_header=fn_header):
+                    _resolve_builtin_fn(
+                        fn_def=fn_def, mem=mem, node=node, ir_graph=ir_graph
+                    )
+
+            case IRFlag.FN_CALL:
+                args, fn_header = self._set_fn_call(ir_graph, mem, node)
                 mem.stack.new(for_fn_use=True)
                 mem.stack.set_fn_entry(*args, fn_header=fn_header)
                 _handle_call_instr(
-                    caller=caller,
-                    number_args=num_args,
+                    fn_header=fn_header,
                     mem=mem,
                     node=node,
                     ir_graph=ir_graph,
                     flag=self.name,
                 )
+                mem.stack.free()
 
             # TODO: implement case for IRFlag.OPTN_CALL, IRFlag.BDN_CALL, IRFlag.OPTBDN_CALL
 
@@ -192,6 +199,25 @@ class CallInstr(IRInstr):
                 raise NotImplementedError(
                     f"resolve method from CallInstr for {self.name} not implemented"
                 )
+
+    def _set_fn_call(
+        self, ir_graph: IRGraph, mem: MemoryManager, node: IRNode
+    ) -> tuple[tuple, BaseFnCheck]:
+        caller: Symbol | CompositeSymbol | ModifierBlock = (
+            cast(Symbol | CompositeSymbol, self.args[0])  # type: ignore [assignment]
+            if isinstance(self.args[0], Symbol | CompositeSymbol)
+            else (
+                cast(ModifierBlock, self.args[0]).name
+                if isinstance(self.args[0], ModifierBlock)
+                else sys.exit("call instr error")
+            )
+        )
+        args: tuple = self.args[1:]
+        resolved_args = _resolve_call_args(*args, mem=mem, node=node, ir_graph=ir_graph)
+        resolved_args_types = _resolve_call_args_types(*resolved_args)
+
+        fn_header = BaseFnCheck(fn_name=caller, args_types=resolved_args_types)
+        return args, fn_header
 
 
 class DeclareInstr(IRInstr):
@@ -300,6 +326,7 @@ class DeclareAssignInstr(IRInstr):
 # IR BLOCK CLASSES #
 ####################
 
+
 class ArgsBlock(IRBlock):
     _name = IRBlockFlag.ARGS
 
@@ -321,56 +348,6 @@ class ArgsBlock(IRBlock):
 
     def __repr__(self) -> str:
         return " ".join(str(k) for k in self.args)
-
-
-class ArgsValuesBlock(IRBlock):
-    _name = IRBlockFlag.ARGS_VALUES
-
-    args: (
-        tuple[
-            Symbol,
-            ...,
-        ]
-        | tuple
-    )
-    values: (
-        tuple[WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr, ...] | tuple
-    )
-
-    def __init__(
-        self,
-        *args: tuple[
-            Symbol | ModifierBlock,
-            WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr,
-        ],
-    ):
-        self.args = ()
-        self.values = ()
-
-        for k in args:
-            match k[0]:
-                case Symbol():
-                    self.args += (k[0],)
-
-                case ModifierBlock():
-                    self.args += (k[0],)
-
-                case _:
-                    raise ValueError(
-                        "args values block's args must be symbol or modifier block "
-                    )
-
-            match k[1]:
-                case WorkingData() | CompositeWorkingData() | IRBlock() | BaseIRInstr():
-                    self.values += (k[1],)
-
-                case _:
-                    raise ValueError(
-                        "args values block's values must be symbol, literal, ir block or ir instr"
-                    )
-
-    def __repr__(self) -> str:
-        return f"ARG-VALUE#[{' '.join(f'{a}:{v}' for a, v in zip(self.args, self.values))}]"
 
 
 class OptionBlock(IRBlock):
@@ -825,7 +802,7 @@ def _resolve_type(
     data: Symbol | CompositeSymbol | IRBlock | IRInstr,
     mem: MemoryManager,
     node: IRNode,
-    ir_graph: IRGraph
+    ir_graph: IRGraph,
 ) -> BaseTypeDataStructure:
     """"""
 
@@ -847,7 +824,7 @@ def _resolve_cast(
     to_type: BaseTypeDataStructure,
     mem: MemoryManager,
     node: IRNode,
-    ir_graph: IRGraph
+    ir_graph: IRGraph,
 ) -> None:
     # cast_op: BaseCastOperator
 
@@ -869,21 +846,26 @@ def _resolve_cast(
             # cast_op = CastC2C(data=data, to_type=to_type, mem=mem, node=node, ir_graph=ir_graph)
             cast_op: type[CastC2C] = CastC2C
 
-    cast_data = cast_op(
-        data=data,
-        to_type=to_type,
-        mem=mem,
-        node=node,
-        ir_graph=ir_graph
-    ).flush().retrieve_cast_data()
+    cast_data = (
+        cast_op(data=data, to_type=to_type, mem=mem, node=node, ir_graph=ir_graph)
+        .flush()
+        .retrieve_cast_data()
+    )
     mem.stack.push(cast_data)
 
 
 def _resolve_expr_to_data(
-    expr: IRBlock | BaseIRInstr | Symbol | CompositeSymbol | CoreLiteral | BaseDataContainer,
+    expr: (
+        IRBlock
+        | BaseIRInstr
+        | Symbol
+        | CompositeSymbol
+        | CoreLiteral
+        | BaseDataContainer
+    ),
     mem: MemoryManager,
     node: IRNode,
-    ir_graph: IRGraph
+    ir_graph: IRGraph,
 ) -> CoreLiteral | BaseDataContainer:
     """Resolve expression (core literal, symbol, ir block, etc) into actual data"""
 
@@ -958,8 +940,7 @@ def _resolve_call_args_types(
 
 
 def _handle_call_instr(
-    caller: Symbol | CompositeSymbol | ModifierBlock,
-    number_args: int,
+    fn_header: BaseFnCheck,
     mem: MemoryManager,
     node: IRNode,
     ir_graph: IRGraph,
@@ -969,16 +950,29 @@ def _handle_call_instr(
     Convenient function to handle call instruction and evaluated it.
 
     Args:
-        caller: the caller name
-        number_args: number of arguments; needed to pop data out of the stack the
-            correct amount of times
+        fn_header: the caller header (name and arguments types)
         mem: ``MemoryManager`` object
-        flag: ``IRFlag`` value
+        node:
+        ir_graph:
+        flag: ``IRFlag`` enum value
     """
 
-    # TODO: reimplement it
-
     match flag:
+        case IRFlag.BUILTIN_FN_CALL:
+            fn_def = get_fn(
+                node_key=node.irhash, importing=fn_header, ir_graph=ir_graph
+            )
+            _resolve_builtin_fn(fn_def=fn_def, mem=mem, node=node, ir_graph=ir_graph)
+
+        case IRFlag.BUILTIN_OPTN_CALL:
+            pass
+
+        case IRFlag.BUILTIN_BDN_CALL:
+            pass
+
+        case IRFlag.BUILTIN_OPTBDN_CALL:
+            pass
+
         case IRFlag.FN_CALL:
             args_types: tuple[WorkingData] | tuple = ()
             args: tuple[BaseDataContainer] | tuple = ()
@@ -986,14 +980,13 @@ def _handle_call_instr(
             mem.stack.new(for_fn_use=True)
             mem.stack.set_fn_entry()
 
-            caller = caller[0] if isinstance(caller, ModifierBlock) else caller
-            fn_entry = BaseFnCheck(fn_name=caller, args_types=())
+            fn_header = (
+                fn_header[0] if isinstance(fn_header, ModifierBlock) else fn_header
+            )
+            fn_entry = BaseFnCheck(fn_name=fn_header, args_types=())
             fn_def = get_fn(node_key=node.irhash, importing=fn_entry, ir_graph=ir_graph)
             _resolve_fn_block(
-                data=cast(IRBlock, fn_def.body),
-                mem=mem,
-                node=node,
-                ir_graph=ir_graph
+                data=cast(IRBlock, fn_def.body), mem=mem, node=node, ir_graph=ir_graph
             )
 
             # for _ in range(number_args):
@@ -1033,8 +1026,20 @@ def _handle_call_instr(
     pass
 
 
+def _resolve_builtin_fn(
+    fn_def: FnDef, mem: MemoryManager, node: IRNode, ir_graph: IRGraph
+) -> None:
+    """
+    Resolve built-in functions. As they do not have ``IRBlock`` or
+    ``IRInstr`` instances, they are treated separated.
+    """
+
+
 def _resolve_fn_block(
-    data: IRBlock | BaseIRInstr, mem: MemoryManager, node: IRNode, ir_graph: IRGraph
+    data: IRBlock | BaseIRInstr | CoreLiteral | BaseDataContainer,
+    mem: MemoryManager,
+    node: IRNode,
+    ir_graph: IRGraph,
 ) -> None:
     """
     Convenient function to resolve function blocks. Whenever it's called from outside,

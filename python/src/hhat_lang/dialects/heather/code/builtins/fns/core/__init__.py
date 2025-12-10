@@ -1,10 +1,6 @@
 from __future__ import annotations
 
-from hhat_lang.dialects.heather.code.builtins.fns.core.fn_def import (
-    builtin_fn__match,
-)
+from hhat_lang.core.fns import BUILTIN_CORE_MODULE_ROOT_PATH
 
 
-__all__ = [
-    "builtin_fn__match"
-]
+CORE_MODULE_PATH = BUILTIN_CORE_MODULE_ROOT_PATH / "core.hat"

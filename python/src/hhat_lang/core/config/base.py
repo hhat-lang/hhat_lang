@@ -35,6 +35,7 @@ A dictionary containing classes for each setting::
 # CONSTRUCTORS AND AUXILIARY FUNCTIONS #
 ########################################
 
+
 def insert_setting_class(config_name: str) -> Callable:
     """
     Inserts setting class to the settings classes dictionary
@@ -52,8 +53,15 @@ def insert_setting_class(config_name: str) -> Callable:
     return decorator
 
 
+@insert_setting_class("project_root")
+def _build_project_root(settings: dict) -> tuple[Path]:
+    return (Path(settings.get("project_root")),)
+
+
 @insert_setting_class("default")
-def _build_default_obj(settings: dict) -> tuple[CurrentDialect, CurrentLLQ, CurrentBackend]:
+def _build_default_obj(
+    settings: dict,
+) -> tuple[CurrentDialect, CurrentLLQ, CurrentBackend]:
     """
     Define the default ('current_settings') configuration data to be used by the
     project to compile and execute code.
@@ -64,9 +72,8 @@ def _build_default_obj(settings: dict) -> tuple[CurrentDialect, CurrentLLQ, Curr
     return (
         CurrentDialect(next(iter(dialect.keys())), **next(iter(dialect.values()))),
         CurrentLLQ(),
-        CurrentBackend()
+        CurrentBackend(),
     )
-
 
 
 def _retrieve_current_settings_data(settings: dict) -> tuple[dict, dict, dict]:
@@ -93,22 +100,16 @@ def _retrieve_current_settings_data(settings: dict) -> tuple[dict, dict, dict]:
 
     dialect_data: dict = _retrieve_data_from_settings(settings, "dialect", dialect_list)
     llq_data: dict[tuple[str, ...], dict] = _retrieve_data_from_composed_settings(
-        settings=settings,
-        which_data="llq",
-        data_list=llq_list
+        settings=settings, which_data="llq", data_list=llq_list
     )
     backend_data: dict[tuple[str, ...], dict] = _retrieve_data_from_composed_settings(
-        settings=settings,
-        which_data="backend",
-        data_list=backend_list
+        settings=settings, which_data="backend", data_list=backend_list
     )
     return dialect_data, llq_data, backend_data
 
 
 def _retrieve_data_from_settings(
-    settings: dict,
-    which_data: str,
-    data_dir: list[str]
+    settings: dict, which_data: str, data_dir: list[str]
 ) -> dict[tuple[str, ...], dict]:
     """
     Retrieve a single dictionary entry from project settings.
@@ -136,9 +137,7 @@ def _retrieve_data_from_settings(
 
 
 def _retrieve_data_from_composed_settings(
-    settings: dict,
-    which_data: str,
-    data_list: list[list[str]]
+    settings: dict, which_data: str, data_list: list[list[str]]
 ) -> dict[tuple[str, ...], dict]:
     """
     Retrieve a list of dictionary entries from project settings.
@@ -181,7 +180,7 @@ def _build_dialects_obj(dialects: dict) -> DialectSettings:
                 version_type=content["version_type"],
                 package_name=content["package_name"] or "",
                 name_folder=name_folder,
-                version_folder=version_folder
+                version_folder=version_folder,
             )
 
     return DialectSettings(*_opts)
@@ -197,7 +196,7 @@ def _build_llq_obj(llqs: dict) -> LLQSettings:
                 version=content["version"],
                 name_folder=name_folder,
                 version_folder=version_folder,
-                package_name=content["package_name"]
+                package_name=content["package_name"],
             )
 
     return LLQSettings(*_opts)
@@ -207,7 +206,9 @@ def _build_llq_obj(llqs: dict) -> LLQSettings:
 def _build_backend_obj(backends: dict) -> TargetBackendSettings:
 
     def _get_executor(executor: dict) -> ExecutorOptions:
-        shots = ShotsSettings(*tuple(ShotsOptions(**shots_opt) for shots_opt in executor["shots"]))
+        shots = ShotsSettings(
+            *tuple(ShotsOptions(**shots_opt) for shots_opt in executor["shots"])
+        )
         # implement pass
         # passes = PassSettings(*tuple(PassOptions(**pass_opt) for pass_opt in executor["pass"]))
         passes = PassSettings()
@@ -217,19 +218,15 @@ def _build_backend_obj(backends: dict) -> TargetBackendSettings:
 
         return ExecutorOptions(shots=shots, passes=passes, cast=casts)
 
-
     def _get_device(device: dict) -> DeviceSettings:
         _res = tuple(
             DeviceOptions(
-                name=name,
-                max_num_qubits=dv["max_num_qubits"],
-                metadata=dict()
+                name=name, max_num_qubits=dv["max_num_qubits"], metadata=dict()
             )
             for name, dv in device.items()
         )
 
         return DeviceSettings(*_res)
-
 
     _opts: tuple[BackendOptions, ...] = ()
 
@@ -287,11 +284,37 @@ class InnerSettings(ABC):
 # BASE SETTINGS CLASSES #
 #########################
 
+
 class HhatProjectSettings:
     """Class to hold all H-hat project settings (current and available ones)."""
 
+    _project_root: Path
     _current: CurrentSettings
     _available: AvailableSettings
+
+    def __init__(
+        self, project_root: Path, current: CurrentSettings, available: AvailableSettings
+    ):
+        self._project_root = project_root
+        self._current = current
+        self._available = available
+
+    @property
+    def project_root(self) -> Path:
+        return self._project_root
+
+    @property
+    def current(self) -> CurrentSettings:
+        return self._current
+
+    @property
+    def available(self) -> AvailableSettings:
+        return self._available
+
+    @classmethod
+    def load(cls, settings_path: Path | str) -> HhatProjectSettings:
+        data = read_file(settings_path)
+        # TODO: finish implementing it
 
 
 @dataclass
@@ -325,7 +348,11 @@ class CurrentSettings:
         return ConstructorBaseHhatSettings(**read_file(file))
 
     def serialize(self) -> dict:
-        return {**self.dialect.serialize(), **self.llq.serialize(), **self.backend.serialize()}
+        return {
+            **self.dialect.serialize(),
+            **self.llq.serialize(),
+            **self.backend.serialize(),
+        }
 
 
 class CurrentDialect:
@@ -367,7 +394,6 @@ class CurrentLLQ:
 
 class CurrentBackend:
     _executor: Callable
-
 
 
 class AvailableSettings:
@@ -417,7 +443,7 @@ class DialectOptions:
                     "name": self.name,
                     "version": self.version,
                     "version_type": self.version_type,
-                    "package_name": self.package_name
+                    "package_name": self.package_name,
                 }
             }
         }
@@ -459,7 +485,7 @@ class LLQOptions:
                 self.version_folder: {
                     "name": self.name,
                     "version": self.version,
-                    "package_name": self.package_name
+                    "package_name": self.package_name,
                 }
             }
         }

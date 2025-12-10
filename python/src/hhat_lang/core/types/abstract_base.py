@@ -5,7 +5,10 @@ from typing import Any, Iterable
 
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.data.utils import AbstractDataContainer, VariableKind
-from hhat_lang.core.error_handlers.errors import ErrorHandler, TypeMemberNotResolvedError
+from hhat_lang.core.error_handlers.errors import (
+    ErrorHandler,
+    TypeMemberNotResolvedError,
+)
 from hhat_lang.core.memory.core import MemoryManager
 from hhat_lang.core.types.utils import AbstractDataTypeStructure, BaseTypeEnum
 from hhat_lang.core.utils import SymbolOrdered

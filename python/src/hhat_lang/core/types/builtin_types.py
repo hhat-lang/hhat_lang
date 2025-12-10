@@ -30,24 +30,18 @@ F64 = BuiltinSingleDS(Symbol("f64"), Size(64))
 # HASHMAP TYPES
 HashKey = BuiltinSingleDS(Symbol("hash-key"), Size(POINTER_SIZE))
 HashValue = BuiltinSingleDS(Symbol("hash-value"), Size(POINTER_SIZE))
-HashSet = BuiltinStructDS(
-    Symbol("hash-set"),
-    Size(POINTER_SIZE)
-).add_member(
-    member_type=HashKey,
-    member_name=Symbol("key")
-).add_member(
-    member_type=HashValue,
-    member_name=Symbol("value")
+HashSet = (
+    BuiltinStructDS(Symbol("hash-set"), Size(POINTER_SIZE))
+    .add_member(member_type=HashKey, member_name=Symbol("key"))
+    .add_member(member_type=HashValue, member_name=Symbol("value"))
 )
 """
 ```HashSet`` ("hash-set") is the holder of hash keys and hash values 
 for ``HashMap`` ("hashmap").
 """
-HashMap = BuiltinStructDS(
-    Symbol("hashmap"),
-    Size(POINTER_SIZE)
-).add_member(member_type=ArrayDS(Symbol("hash-set")), member_name=Symbol("data"))
+HashMap = BuiltinStructDS(Symbol("hashmap"), Size(POINTER_SIZE)).add_member(
+    member_type=ArrayDS(Symbol("hash-set")), member_name=Symbol("data")
+)
 """
 ``HashMap`` ("hashmap") is the common hashmap(dictionary) data structure
 """
@@ -56,24 +50,18 @@ HashMap = BuiltinStructDS(
 # SAMPLE TYPES
 HashKeyInt = BuiltinSingleDS(Symbol("hash-key_int"), Size(64))
 HashValueInt = BuiltinSingleDS(Symbol("hash-value_int"), Size(64))
-HashSetInt = BuiltinStructDS(
-    Symbol("hash-set_int"),
-    Size(POINTER_SIZE)
-).add_member(
-    member_type=HashKeyInt,
-    member_name=Symbol("key")
-).add_member(
-    member_type=HashValueInt,
-    member_name=Symbol("value")
+HashSetInt = (
+    BuiltinStructDS(Symbol("hash-set_int"), Size(POINTER_SIZE))
+    .add_member(member_type=HashKeyInt, member_name=Symbol("key"))
+    .add_member(member_type=HashValueInt, member_name=Symbol("value"))
 )
 """
 ```HashSetInt`` ("hash-set_int") is the holder of integer hash keys and hash values 
 for ``Sample`` ("sample").
 """
-Sample = BuiltinStructDS(
-    Symbol("sample"),
-    Size(POINTER_SIZE)
-).add_member(member_type=ArrayDS(Symbol("hash-set_int")), member_name=Symbol("data"))
+Sample = BuiltinStructDS(Symbol("sample"), Size(POINTER_SIZE)).add_member(
+    member_type=ArrayDS(Symbol("hash-set_int")), member_name=Symbol("data")
+)
 """
 ``Sample`` is an efficient and fast hashmap(dictionary)-like data structure that knows all
 its keys beforehand, so it can compute its exact length; The keys (index number) and values

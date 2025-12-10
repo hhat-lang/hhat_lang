@@ -5,7 +5,7 @@ from typing import Any, Iterable, Callable
 
 from hhat_lang.core.code.base import BaseFnCheck, BaseFnKey
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
-from hhat_lang.core.data.fn_def import FnDef, ModifierDef
+from hhat_lang.core.data.fn_def import FnDef, ModifierDef, BuiltinFnDef
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
@@ -76,7 +76,9 @@ class FnTable:
     the base for an IR object picturing the full code.
     """
 
-    _table: OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef | Callable]]
+    _table: OrderedDict[
+        Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef | BuiltinFnDef]
+    ]
     __slots__ = ("_table",)
 
     def __init__(self):
@@ -85,11 +87,11 @@ class FnTable:
     @property
     def table(
         self,
-    ) -> OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef | Callable]]:
+    ) -> OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef | BuiltinFnDef]]:
         return self._table
 
-    def add(self, fn_entry: BaseFnCheck, data: FnDef) -> None:
-        if isinstance(data, FnDef):
+    def add(self, fn_entry: BaseFnCheck, data: FnDef | BuiltinFnDef) -> None:
+        if isinstance(data, FnDef | BuiltinFnDef):
             if isinstance(fn_entry, BaseFnCheck):
                 if fn_entry.name in self.table:
                     self.table[fn_entry.name].update({fn_entry: data})
@@ -110,20 +112,11 @@ class FnTable:
             else:
                 raise ValueError(f"fn_entry is of wrong type ({type(fn_entry)})")
 
-    def add_builtin(self, fn_entry: BaseFnCheck, fn: Callable) -> None:
-        if isinstance(fn, Callable):
-            if isinstance(fn_entry, BaseFnCheck):
-                if fn_entry.name in self.table:
-                    self.table[fn_entry.name].update({fn_entry: fn})
-
-                else:
-                    self.table[fn_entry.name] = {fn_entry: fn}
-
     def get(
         self,
         fn_entry: Symbol | CompositeSymbol | BaseFnCheck,
         default: Any | None = None,
-    ) -> FnDef | dict[BaseFnCheck, FnDef] | None:
+    ) -> FnDef | BuiltinFnDef | dict[BaseFnCheck, FnDef | BuiltinFnDef] | None:
         match fn_entry:
             case Symbol() | CompositeSymbol():
                 return self.table.get(fn_entry, default)
@@ -195,7 +188,9 @@ class ConstTable:
     ) -> BaseDataContainer | Any | None:
         return self._table.get(item, default)
 
-    def __getitem__(self, item: Symbol | CompositeSymbol) -> BaseDataContainer | Any | Any:
+    def __getitem__(
+        self, item: Symbol | CompositeSymbol
+    ) -> BaseDataContainer | Any | Any:
         return self.get(item)
 
     def __hash__(self) -> int:
@@ -312,7 +307,9 @@ class ModifierTable:
         self._table = OrderedDict()
 
     @property
-    def table(self) -> OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, ModifierDef]]:
+    def table(
+        self,
+    ) -> OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, ModifierDef]]:
         return self._table
 
     def add(self, fn_entry: BaseFnCheck, data: ModifierDef) -> None:
@@ -324,9 +321,7 @@ class ModifierTable:
                 self.table[fn_entry.name] = {fn_entry: data}
 
     def get(
-        self,
-        item: Symbol | CompositeSymbol | BaseFnCheck,
-        default: Any | None = None
+        self, item: Symbol | CompositeSymbol | BaseFnCheck, default: Any | None = None
     ) -> ModifierDef | dict[BaseFnCheck, ModifierDef] | None:
         match item:
             case Symbol() | CompositeSymbol():
@@ -403,7 +398,9 @@ class SymbolTable:
         return self._modifiers
 
     def __hash__(self) -> int:
-        return hash((self._types, self._fns, self._consts, self._metamods, self._modifiers))
+        return hash(
+            (self._types, self._fns, self._consts, self._metamods, self._modifiers)
+        )
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, SymbolTable):

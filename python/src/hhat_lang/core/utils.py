@@ -4,7 +4,7 @@ import uuid
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import Mapping
-from typing import Any, Hashable, Iterator
+from typing import Any, Hashable, Iterator, TypeVar
 from uuid import NAMESPACE_OID
 
 from hhat_lang.core.data.core import CompositeSymbol, Symbol, WorkingData
@@ -15,7 +15,11 @@ def gen_uuid(obj: Hashable) -> int:
     return int(uuid.uuid5(NAMESPACE_OID, f"{obj}").hex, 16)
 
 
-class SymbolOrdered(Mapping):
+Key = TypeVar("Key")
+Value = TypeVar("Value")
+
+
+class SymbolOrdered[Key, Value](Mapping):
     """
     A special OrderedDict that accepts Symbol as keys but transforms them
     as str to unpack the class. Useful for building data structures such

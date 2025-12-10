@@ -13,6 +13,8 @@ class VariableKind(Enum):
 
 
 def isquantum(data: Any) -> bool:
+    """Check if a given object is quantum"""
+
     if isinstance(data, str):
         return data.startswith("@")
 

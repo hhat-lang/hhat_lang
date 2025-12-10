@@ -12,7 +12,9 @@ from hhat_lang.core.data.core import CoreLiteral
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.memory.core import MemoryManager
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
-from hhat_lang.dialects.heather.cast.conversion_protocols.builtin_fns import cast_fns_dict
+from hhat_lang.dialects.heather.cast.conversion_protocols.builtin_fns import (
+    cast_fns_dict,
+)
 
 
 class CastC2C(BaseCastC2C):
@@ -22,9 +24,11 @@ class CastC2C(BaseCastC2C):
         to_type: BaseTypeDataStructure,
         mem: MemoryManager,
         node: IRNode,
-        ir_graph: IRGraph
+        ir_graph: IRGraph,
     ):
-        d_type: str = data.type.value if isinstance(data, BaseDataContainer) else data.type
+        d_type: str = (
+            data.type.value if isinstance(data, BaseDataContainer) else data.type
+        )
         cast_fn: CastFnType = cast_fns_dict[(d_type, to_type.name.value)]
 
         super().__init__(
@@ -33,7 +37,7 @@ class CastC2C(BaseCastC2C):
             cast_fn=cast_fn,
             mem=mem,
             node=node,
-            ir_graph=ir_graph
+            ir_graph=ir_graph,
         )
 
     def cast(self) -> CastC2C:
@@ -49,7 +53,7 @@ class CastQ2C(BaseCastQ2C):
         to_type: BaseTypeDataStructure,
         mem: MemoryManager,
         node: IRNode,
-        ir_graph: IRGraph
+        ir_graph: IRGraph,
     ):
         """
         Class to cast from quantum data to classical type.
@@ -62,7 +66,9 @@ class CastQ2C(BaseCastQ2C):
             ir_graph: the program's ir graph (``IRGraph``)
         """
 
-        d_type: str = data.type.value if isinstance(data, BaseDataContainer) else data.type
+        d_type: str = (
+            data.type.value if isinstance(data, BaseDataContainer) else data.type
+        )
         cast_fn: CastFnType = cast_fns_dict[(d_type, to_type.name.value)]
 
         super().__init__(
@@ -71,7 +77,7 @@ class CastQ2C(BaseCastQ2C):
             cast_fn=cast_fn,
             mem=mem,
             node=node,
-            ir_graph=ir_graph
+            ir_graph=ir_graph,
         )
 
     def cast(self) -> CastQ2C:
@@ -87,9 +93,11 @@ class CastQ2Q(BaseCastQ2Q):
         to_type: BaseTypeDataStructure,
         mem: MemoryManager,
         node: IRNode,
-        ir_graph: IRGraph
+        ir_graph: IRGraph,
     ):
-        d_type: str = data.type.value if isinstance(data, BaseDataContainer) else data.type
+        d_type: str = (
+            data.type.value if isinstance(data, BaseDataContainer) else data.type
+        )
         cast_fn: CastFnType = cast_fns_dict[(d_type, to_type.name.value)]
 
         super().__init__(
@@ -112,15 +120,13 @@ class CastC2Q(BaseCastC2Q):
         to_type: BaseTypeDataStructure,
         mem: MemoryManager,
         node: IRNode,
-        ir_graph: IRGraph
+        ir_graph: IRGraph,
     ):
-        d_type: str = data.type.value if isinstance(data, BaseDataContainer) else data.type
-        cast_fn: CastFnType = cast_fns_dict[(d_type, to_type.name.value)]
-        super().__init__(
-            data=data,
-            to_type=to_type,
-            cast_fn=cast_fn
+        d_type: str = (
+            data.type.value if isinstance(data, BaseDataContainer) else data.type
         )
+        cast_fn: CastFnType = cast_fns_dict[(d_type, to_type.name.value)]
+        super().__init__(data=data, to_type=to_type, cast_fn=cast_fn)
 
     def cast(self) -> BaseCastC2Q:
         return self

@@ -35,7 +35,7 @@ def imports() -> Any:
         Kwd("use"),
         "(",
         OneOrMore([typeimport, fnimport, const_import, metafn_import, metamod_import]),
-        ")"
+        ")",
     )
 
 
@@ -96,13 +96,8 @@ def metafn_def() -> Any:
         Kwd("metafn"),
         simple_id,
         fnargs,
-        [
-            Kwd("fn_t"),
-            Kwd("optn_t"),
-            Kwd("bdn_t"),
-            Kwd("optbdn_t")
-        ],
-        metafn_body
+        [Kwd("fn_t"), Kwd("optn_t"), Kwd("bdn_t"), Kwd("optbdn_t")],
+        metafn_body,
     )
 
 
@@ -121,7 +116,29 @@ def metafn_body() -> Any:
                 expr,
             ]
         ),
-        "}"
+        "}",
+    )
+
+
+def modifier_def() -> Any:
+    return Kwd("modifier"), simple_id, modifier_args, metafn_body
+
+
+def modifier_args() -> Any:
+    return (
+        "(",
+        Kwd("self"),
+        ZeroOrMore(argtype),
+        [
+            Kwd("fn_t"),
+            Kwd("optn_t"),
+            Kwd("bdn_t"),
+            Kwd("optbdn_t"),
+            Kwd("var_t"),
+            Kwd("type_t"),
+            Kwd("data_t"),
+        ],
+        ")",
     )
 
 

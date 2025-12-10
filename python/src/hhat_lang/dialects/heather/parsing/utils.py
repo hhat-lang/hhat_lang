@@ -65,7 +65,7 @@ class TypesDict(Mapping):
 class FnsDict(Mapping):
     """
     A special dict-like class that holds functions definitions, with key
-    as ``BaseFnKey`` and value as ``FnDef`` object.
+    as ``BaseFnKey`` and value as ``FnDef`` or ``BuiltinFnDef`` object.
     """
 
     _data: dict[BaseFnCheck, Path]

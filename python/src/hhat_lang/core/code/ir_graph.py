@@ -10,7 +10,8 @@ from hhat_lang.core.data.core import (
     CompositeSymbol,
     Symbol,
 )
-from hhat_lang.core.data.fn_def import FnDef
+from hhat_lang.core.data.fn_def import FnDef, BuiltinFnDef
+from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
 
@@ -250,7 +251,15 @@ class IRGraph:
         raise NotImplementedError()
 
     def get_fns(self, module_path: Path, item: Symbol) -> tuple[BaseFnCheck, ...]:
-        for tmp_node in self._tmp_nodes:
+        """
+        Get all functions from a module with name given by 'item' argument, and
+        return as a tuple of those function signatures.
+        """
+
+        # incomplete ir graph will have self._tmp_nodes filled in; otherwise, self._nodes
+        _nodes = self._tmp_nodes or self._nodes
+
+        for tmp_node in _nodes:
             if module_path == tmp_node.path and item in tmp_node.ir.module:
                 fns = tmp_node.ir.module.symbol_table.fn.get(item)
 
@@ -326,7 +335,7 @@ def get_type(
 
 def get_fn(
     node_key: IRHash, importing: BaseFnCheck, ir_graph: IRGraph
-) -> FnDef | dict[BaseFnCheck, FnDef] | None:
+) -> FnDef | BuiltinFnDef | dict[BaseFnCheck, FnDef | BuiltinFnDef] | None:
     """
     Import a function check instance ``importing`` from an IR module's hash value ``node_key``.
 

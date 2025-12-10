@@ -12,7 +12,8 @@ from hhat_lang.core.error_handlers.errors import (
     InvalidDataContainerCastError,
     EvaluatorCastWildcardBuiltinTypeError,
     EvaluatorCastDataError,
-    DataOverflowError, InterpreterEvaluationError
+    DataOverflowError,
+    InterpreterEvaluationError,
 )
 
 # TODO: implement complex data conversion functions as well
@@ -26,7 +27,7 @@ U32_MAX: int = 2 << 31
 I32_MAX: int = (2 << 31) - 1
 U64_MAX: int = 2 << 63
 I64_MAX: int = (2 << 63) - 1
-F32_MAX: float = (1 - 2**(-24)) * (2 << 127)
+F32_MAX: float = (1 - 2 ** (-24)) * (2 << 127)
 # (not representable in python) F64_MAX = (1 - 2**(-54)) * (2**1024)
 
 U32_MIN: int = 0
@@ -63,7 +64,7 @@ def insert_cast_fns(entry_types: tuple[str, str]) -> Callable:
             msg=(
                 f"a cast function must provide a tuple with 'from_type' and "
                 f"'to_type' types names, but got {entry_types} ({type(entry_types)})."
-            )
+            ),
         )
 
     def decorator(fn: Callable) -> Callable:
@@ -81,17 +82,16 @@ def insert_cast_fns(entry_types: tuple[str, str]) -> Callable:
 # CONVENIENT FUNCTIONS #
 ########################
 
+
 def _invalid_case_cast(data: Any, f_type: str, t_type: str) -> NoReturn:
-    sys.exit(
-        InvalidDataContainerCastError(data, f_type, t_type)()
-    )
+    sys.exit(InvalidDataContainerCastError(data, f_type, t_type)())
 
 
 def _cast_to(
     data: BaseDataContainer | CoreLiteral | Any,
     cast_fn: Callable,
     from_type: str,
-    to_type: str
+    to_type: str,
 ) -> CoreLiteral:
     """
     Simple casting function using a ``cast_fn`` function to convert ``data``
@@ -113,6 +113,7 @@ def _cast_to(
 #####################
 # BOOLEAN FUNCTIONS #
 #####################
+
 
 @insert_cast_fns(("bool", "int"))
 def bool_to_int(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
@@ -262,6 +263,7 @@ def float_to_bool(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
 # INTEGER FUNCTIONS #
 #####################
 
+
 @insert_cast_fns(("int", "float"))
 def int_to_float(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
@@ -333,13 +335,7 @@ def int_to_u32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
 
     return _cast_to_smaller_bitsize(
-        data,
-        int,
-        ctypes.c_uint32,
-        U32_MIN,
-        U32_MAX,
-        "int",
-        "u32"
+        data, int, ctypes.c_uint32, U32_MIN, U32_MAX, "int", "u32"
     )
 
 
@@ -356,13 +352,7 @@ def int_to_i32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
 
     return _cast_to_smaller_bitsize(
-        data,
-        int,
-        ctypes.c_int32,
-        I32_MIN,
-        I32_MAX,
-        "int",
-        "i32"
+        data, int, ctypes.c_int32, I32_MIN, I32_MAX, "int", "i32"
     )
 
 
@@ -379,13 +369,7 @@ def int_to_u64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
 
     return _cast_to_smaller_bitsize(
-        data,
-        int,
-        ctypes.c_uint64,
-        U64_MIN,
-        U64_MAX,
-        "int",
-        "u64"
+        data, int, ctypes.c_uint64, U64_MIN, U64_MAX, "int", "u64"
     )
 
 
@@ -402,13 +386,7 @@ def int_to_i64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
 
     return _cast_to_smaller_bitsize(
-        data,
-        int,
-        ctypes.c_int64,
-        I64_MIN,
-        I64_MAX,
-        "int",
-        "i64"
+        data, int, ctypes.c_int64, I64_MIN, I64_MAX, "int", "i64"
     )
 
 
@@ -470,13 +448,7 @@ def u64_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
 
     return _cast_to_smaller_bitsize(
-        data,
-        float,
-        ctypes.c_float,
-        F32_MIN,
-        F32_MAX,
-        "u64",
-        "f32"
+        data, float, ctypes.c_float, F32_MIN, F32_MAX, "u64", "f32"
     )
 
 
@@ -538,13 +510,7 @@ def i64_to_f32(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
     """
 
     return _cast_to_smaller_bitsize(
-        data,
-        float,
-        ctypes.c_float,
-        F32_MIN,
-        F32_MAX,
-        "i64",
-        "f32"
+        data, float, ctypes.c_float, F32_MIN, F32_MAX, "i64", "f32"
     )
 
 
@@ -567,6 +533,7 @@ def i64_to_f64(data: BaseDataContainer | CoreLiteral | Any) -> CoreLiteral:
 # FLOAT FUNCTIONS #
 ###################
 
+
 @insert_cast_fns(("float", "int"))
 def float_to_int(data: BaseDataContainer | CoreLiteral | Any) -> float:
     """
@@ -582,6 +549,7 @@ def float_to_int(data: BaseDataContainer | CoreLiteral | Any) -> float:
 #####################
 # HASHMAP FUNCTIONS #
 #####################
+
 
 @insert_cast_fns(("hashmap", "int"))
 def hashmap_to_int(data: BaseDataContainer | Any) -> CoreLiteral:
@@ -614,6 +582,7 @@ def hashmap_to_float(data: BaseDataContainer | Any) -> CoreLiteral:
 ####################
 # SAMPLE FUNCTIONS #
 ####################
+
 
 @insert_cast_fns(("sample", "int"))
 def sample_to_int(data: BaseDataContainer | Any) -> CoreLiteral:

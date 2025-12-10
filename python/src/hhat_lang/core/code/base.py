@@ -8,6 +8,7 @@ from hhat_lang.core.data.core import (
     CompositeSymbol,
     CompositeWorkingData,
     Symbol,
+    Tmp,
     WorkingData,
 )
 
@@ -83,6 +84,14 @@ class BaseFnKey:
     @property
     def args_names(self) -> tuple | tuple[Symbol, ...]:
         return self._args_names
+
+    def complement_name(self, text: str) -> None:
+        """
+        To finish off the function name for temporary 'variables', aka ``Tmp`` instances.
+        """
+
+        if isinstance(self._name, Tmp):
+            self._name.complement_name(text)
 
     def __hash__(self) -> int:
         return self._hash_value
@@ -179,6 +188,7 @@ class BaseOptnCheck:
     Base function with arguments as options (optn) class to check
     a given optn from the SymbolTable.
     """
+
     # TODO: implement it
 
 

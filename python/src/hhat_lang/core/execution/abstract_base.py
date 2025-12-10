@@ -13,6 +13,7 @@ from hhat_lang.core.memory.core import MemoryManager
 # BASE IR SECTION #
 ###################
 
+
 class BaseIRManager(ABC):
     """
     To manage IR code in a graph way, where nodes are IR from files and edges are the
@@ -59,6 +60,7 @@ class BaseIRManager(ABC):
 ############################
 # BASE INTERPRETER SECTION #
 ############################
+
 
 class BaseInterpreter(ABC):
     """
@@ -115,6 +117,7 @@ class BaseInterpreter(ABC):
 # BASE EXECUTOR SECTION #
 #########################
 
+
 class BaseExecutor(ABC):
     """
     An abstract executor class.
@@ -137,7 +140,13 @@ class BaseExecutor(ABC):
 
     @abstractmethod
     def run(
-        self, *, code: Any, mem: MemoryManager, node: IRNode, ir_graph: IRGraph, **kwargs: Any
+        self,
+        *,
+        code: Any,
+        mem: MemoryManager,
+        node: IRNode,
+        ir_graph: IRGraph,
+        **kwargs: Any,
     ) -> Any:
         """To be called only once, when calling the instance to execute the code."""
 
@@ -145,7 +154,12 @@ class BaseExecutor(ABC):
 
     @abstractmethod
     def walk(
-        self, code: Any, mem: MemoryManager, node: IRNode, ir_graph: IRGraph, **kwargs: Any
+        self,
+        code: Any,
+        mem: MemoryManager,
+        node: IRNode,
+        ir_graph: IRGraph,
+        **kwargs: Any,
     ) -> Any:
         """
         To run recursively and execute the code. Should not be called directly be

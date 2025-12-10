@@ -473,6 +473,25 @@ class Stack:
         """Always check in the last stack frame added"""
         return item in self._data[-1]
 
+    def __enter__(self) -> Stack:
+        """
+        This method must be invoked only when ``MemoryManager.new_stack_fn`` method
+        is used with ``with``.
+        """
+
+        return self
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> Any:
+        if not (exc_type or exc_val or exc_tb):
+            # TODO: improve this error handling
+            sys.exit(exc_type or exc_val or exc_tb)
+
+        return_result = self.get_fn_return()
+        # free function context stack
+        self.free()
+        # push return result to the former previous stack (now current one again)
+        self.push(return_result)
+
 
 class Heap:
     """Heap memory handling data of dynamic size"""
@@ -640,6 +659,11 @@ class BaseMemoryManager(ABC):
     @property
     def cur_scope(self) -> ScopeValue:
         return self._cur_scope
+
+    def new_fn_stack(self, *args: Any, fn_header: BaseFnCheck) -> Stack:
+        self._stack.new(for_fn_use=True)
+        self._stack.set_fn_entry(*args, fn_header=fn_header)
+        return self._stack
 
 
 class MemoryManager(BaseMemoryManager):

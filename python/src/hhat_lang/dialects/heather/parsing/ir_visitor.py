@@ -25,7 +25,7 @@ from hhat_lang.core.data.core import (
     Symbol,
     WorkingData,
 )
-from hhat_lang.core.data.fn_def import FnDef
+from hhat_lang.core.data.fn_def import FnDef, BuiltinFnDef
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.core.imports import TypeImporter
 from hhat_lang.core.imports.importer import FnImporter
@@ -35,7 +35,6 @@ from hhat_lang.core.types.core import EnumDS, SingleDS, StructDS
 from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
     IR,
     ArgsBlock,
-    ArgsValuesBlock,
     AssignInstr,
     CallInstr,
     CastInstr,
@@ -46,7 +45,7 @@ from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
     OptionBlock,
     ReturnBlock,
 )
-from hhat_lang.core.code.ir_block import IRInstr, IRBlock, BodyBlock
+from hhat_lang.core.code.ir_block import IRInstr, IRBlock, BodyBlock, ArgsValuesBlock
 from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir_builder import build_ir
 from hhat_lang.dialects.heather.grammar import WHITESPACE
 from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
@@ -208,7 +207,7 @@ class ParserIRVisitor(PTNodeVisitor):
         ref_types: dict[Symbol | CompositeSymbol, Path] = dict()
         ref_fns: dict[BaseFnCheck, Path] = dict()
         types: tuple[BaseTypeDataStructure, ...] | tuple = ()
-        fns: tuple[FnDef, ...] | tuple = ()
+        fns: tuple[FnDef | BuiltinFnDef, ...] | tuple = ()
 
         for k in child:
             match k:
@@ -223,7 +222,7 @@ class ParserIRVisitor(PTNodeVisitor):
                 case BaseTypeDataStructure():
                     types += (k,)
 
-                case FnDef():
+                case FnDef() | BuiltinFnDef():
                     fns += (k,)
 
                 case _:
@@ -512,9 +511,7 @@ class ParserIRVisitor(PTNodeVisitor):
         assert len(child) == 2, "Option grammar must have one option and one block"
         return OptionBlock(option=child[0], block=child[1])
 
-    def visit_call_bdn(
-        self, _: NonTerminal, child: SemanticActionResults
-    ) -> CallInstr:
+    def visit_call_bdn(self, _: NonTerminal, child: SemanticActionResults) -> CallInstr:
         raise NotImplementedError()
 
     def visit_call_optbdn(
@@ -533,7 +530,7 @@ class ParserIRVisitor(PTNodeVisitor):
                     body = k
 
                 case OptionBlock():
-                    option += k,
+                    option += (k,)
 
                 case _:
                     raise ValueError(
@@ -705,7 +702,14 @@ class ParserIRVisitor(PTNodeVisitor):
 
 
 def _resolve_data_to_str(
-    data: SemanticActionResults | tuple | WorkingData | ModifierBlock | CompositeWorkingData | str,
+    data: (
+        SemanticActionResults
+        | tuple
+        | WorkingData
+        | ModifierBlock
+        | CompositeWorkingData
+        | str
+    ),
 ) -> tuple | tuple[str, ...]:
     match data:
         case WorkingData():

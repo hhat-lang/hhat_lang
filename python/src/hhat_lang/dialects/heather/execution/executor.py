@@ -6,7 +6,7 @@ from hhat_lang.core.code.ir_graph import IRGraph, IRNode
 from hhat_lang.core.execution.abstract_base import (
     BaseExecutor,
     BaseClassicalEvaluator,
-    BaseQuantumEvaluator
+    BaseQuantumEvaluator,
 )
 from hhat_lang.core.memory.core import MemoryManager
 
@@ -23,7 +23,7 @@ class Executor(BaseExecutor):
         mem: MemoryManager,
         node: IRNode,
         ir_graph: IRGraph,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         self.walk(code, mem, node, ir_graph)
 
@@ -33,7 +33,7 @@ class Executor(BaseExecutor):
         mem: MemoryManager,
         node: IRNode,
         ir_graph: IRGraph,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> Any:
         pass
 

@@ -4,15 +4,27 @@ from abc import abstractmethod, ABC
 from enum import auto
 from typing import Any
 
-from hhat_lang.core.code.base import BaseIRFlag, BaseIRInstr, BaseIRBlockFlag, BaseIRBlock
+from hhat_lang.core.code.base import (
+    BaseIRFlag,
+    BaseIRInstr,
+    BaseIRBlockFlag,
+    BaseIRBlock,
+)
 from hhat_lang.core.code.ir_graph import IRNode, IRGraph
-from hhat_lang.core.data.core import WorkingData, CompositeWorkingData, CoreLiteral
+from hhat_lang.core.data.core import (
+    WorkingData,
+    CompositeWorkingData,
+    CoreLiteral,
+    Symbol,
+)
 from hhat_lang.core.memory.core import MemoryManager
+from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import ModifierBlock
 
 
 ####################
 # IR INSTR SECTION #
 ####################
+
 
 class IRFlag(BaseIRFlag):
     """
@@ -21,6 +33,11 @@ class IRFlag(BaseIRFlag):
     """
 
     NULL = auto()
+    BUILTIN_FN_CALL = auto()
+    BUILTIN_OPTN_CALL = auto()
+    BUILTIN_BDN_CALL = auto()
+    BUILTIN_OPTBDN_CALL = auto()
+
     FN_CALL = auto()
     """function with arguments (fn), defined as ``caller(args*)``"""
 
@@ -115,6 +132,7 @@ class IRInstr(BaseIRInstr):
 # IR BLOCK SECTION #
 ####################
 
+
 class IRBlockFlag(BaseIRBlockFlag):
     """Define all valid IR block flags for IR blocks"""
 
@@ -137,7 +155,7 @@ class IRBlock(BaseIRBlock, ABC):
     def append(self, data: Any, *args: Any, **kwargs: Any) -> None:
         match data:
             case IRBlock() | IRInstr() | CoreLiteral():
-                self.args += data,
+                self.args += (data,)
 
             case _:
                 raise NotImplementedError(f"data of type {type(data)} not imeplemented")
@@ -161,3 +179,53 @@ class BodyBlock(IRBlock):
 
     def __repr__(self) -> str:
         return "\n".join(str(k) for k in self.args)
+
+
+class ArgsValuesBlock(IRBlock):
+    _name = IRBlockFlag.ARGS_VALUES
+
+    args: (
+        tuple[
+            Symbol,
+            ...,
+        ]
+        | tuple
+    )
+    values: (
+        tuple[WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr, ...] | tuple
+    )
+
+    def __init__(
+        self,
+        *args: tuple[
+            Symbol | ModifierBlock,
+            WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr,
+        ],
+    ):
+        self.args = ()
+        self.values = ()
+
+        for k in args:
+            match k[0]:
+                case Symbol():
+                    self.args += (k[0],)
+
+                case ModifierBlock():
+                    self.args += (k[0],)
+
+                case _:
+                    raise ValueError(
+                        "args values block's args must be symbol or modifier block "
+                    )
+
+            match k[1]:
+                case WorkingData() | CompositeWorkingData() | IRBlock() | BaseIRInstr():
+                    self.values += (k[1],)
+
+                case _:
+                    raise ValueError(
+                        "args values block's values must be symbol, literal, ir block or ir instr"
+                    )
+
+    def __repr__(self) -> str:
+        return f"ARG-VALUE#[{' '.join(f'{a}:{v}' for a, v in zip(self.args, self.values))}]"

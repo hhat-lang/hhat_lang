@@ -5,6 +5,8 @@ from enum import Enum, auto
 from functools import lru_cache
 from typing import Any, Iterable
 
+from hhat_lang.core.error_handlers.errors import TypeSymbolConversionError
+
 ACCEPTABLE_VALUES: dict = {
     "int": (int,),
     "u16": (int,),
@@ -153,6 +155,34 @@ class Symbol(WorkingData):
         self._suppress_type = True
         super().__init__()
 
+    def __bool__(self) -> bool:
+        """
+        This method is for when using truthiness expressions, like::
+
+            Symbol("a") or Symbol("b")  # returns `Symbol("a")`
+            Symbol("null") or Symbol("x")  # returns `Symbol("b")`
+            Symbol("null") or None  # returns `None`
+        """
+
+        return self._value != "null"
+
+
+class Tmp(Symbol):
+    """
+    To be used as a temporary symbol only. Especially useful when handling
+    quantum functions results without assigning the result to a variable. For
+    instance::
+
+        @redim(@0)
+
+    This should be defined as ``Tmp("@redim(@0)")`` symbol inside a data
+    container.
+    """
+
+    def complement_name(self, text: str) -> Tmp:
+        self._value += f"({text})"
+        return self
+
 
 class Alias(Symbol):
     """
@@ -183,6 +213,19 @@ class Atomic(Symbol):
     """
 
     pass
+
+
+class TypeSymbolSetter:
+    def __new__(cls, type_name: str | tuple[str, ...]):
+        match type_name:
+            case str():
+                return Symbol(value=type_name)
+
+            case tuple():
+                return CompositeSymbol(value=type_name)
+
+            case _:
+                sys.exit(TypeSymbolConversionError(type(type_name))())
 
 
 class CoreLiteral(WorkingData):

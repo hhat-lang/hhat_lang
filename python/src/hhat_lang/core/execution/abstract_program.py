@@ -50,9 +50,9 @@ class QuantumProgram(BaseQuantumProgram):
         ir_graph: IRGraph,
         base_llq: Callable[
             [BaseDataContainer, MemoryManager, IRNode, IRGraph, BaseExecutor],
-            BaseLLQManager
+            BaseLLQManager,
         ],
-        executor: BaseExecutor
+        executor: BaseExecutor,
     ):
         if (
             isinstance(qdata, BaseDataContainer | CoreLiteral)

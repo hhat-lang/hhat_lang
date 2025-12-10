@@ -41,7 +41,9 @@ from hhat_lang.core.data.core import CoreLiteral
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.core.execution.abstract_base import BaseExecutor
-from hhat_lang.core.execution.abstract_program import QuantumProgram as CoreQuantumProgram
+from hhat_lang.core.execution.abstract_program import (
+    QuantumProgram as CoreQuantumProgram,
+)
 from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager, BaseLLQ
 from hhat_lang.core.memory.core import MemoryManager
 
@@ -62,8 +64,8 @@ class QuantumProgram(CoreQuantumProgram):
         executor: BaseExecutor,
         llq: Callable[
             [BaseDataContainer, MemoryManager, IRNode, IRGraph, BaseExecutor],
-            BaseLLQManager
-        ]
+            BaseLLQManager,
+        ],
     ):
         """
         Quantum program for Heather dialect.
@@ -82,7 +84,7 @@ class QuantumProgram(CoreQuantumProgram):
             node=node,
             ir_graph=ir_graph,
             base_llq=llq,
-            executor=executor
+            executor=executor,
         )
 
     def run(self, debug: bool = False) -> Any | ErrorHandler:

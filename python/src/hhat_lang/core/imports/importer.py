@@ -11,6 +11,7 @@ from hhat_lang.core.code.abstract import BaseIR
 from hhat_lang.core.code.base import BaseFnCheck
 from hhat_lang.core.code.ir_graph import IRGraph
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
+from hhat_lang.core.fns.core import builtin_fns_path
 from hhat_lang.toolchain.project import SOURCE_FOLDER_NAME, SOURCE_TYPES_PATH
 
 
@@ -86,8 +87,9 @@ class BaseImporter(ABC):
         parts = tuple(name.value)
 
         if len(parts) == 1:
+            # core built-in code
             dirs: tuple[str, ...] = ()
-            file_name = parts[0]
+            file_name = "core"
             importer_name = parts[0]
 
         else:
@@ -98,6 +100,9 @@ class BaseImporter(ABC):
         return dirs, file_name, Symbol(importer_name)
 
     def _get_module_path(self, *path: Path | str) -> Path:
+        if len(path) == 1 and path == Path("core.hat"):
+            return path[0]
+
         return Path().joinpath(self._base, *path[:-1], str(path[-1]) + ".hat")
 
     def _add_module(self, module_path: Path, ir_graph: IRGraph) -> None:
@@ -209,9 +214,23 @@ class FnImporter(BaseImporter):
             Tuple of tuple-pairs containing the function check object and the module file path
         """
 
-        dir_name, file_name, fn_name = self._path_parts(name)
-        module_path: Path = self._get_module_path(*dir_name, file_name)
+        # TODO: fix it as described below
+        #   - for project-defined functions, include only project name and folders
+        #       inside 'src' at the module path, like: "project/src/some_folder/some_file.hat"
+        #   - for external functions:
+        #       - core functions should be at "project/src/.hat_core/core.hat"
+        #       - other modules, such as 'math', like "project/stc/.hat_std/math/other_file.hat"
 
+        module_path: Path
+        dir_name, file_name, fn_name = self._path_parts(name)
+
+        module_path = Path(*dir_name) / (file_name + ".hat")
+        if module_path in builtin_fns_path:
+            return tuple(
+                (fn.fn_check, module_path) for fn in builtin_fns_path[module_path]
+            )
+
+        module_path = self._get_module_path(*dir_name, file_name)
         if module_path not in ir_graph:
             self._add_module(module_path, ir_graph)
 

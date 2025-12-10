@@ -107,7 +107,7 @@ class BaseCastOperator(ABC):
         self,
         data: BaseDataContainer | CoreLiteral,
         to_type: BaseTypeDataStructure,
-        cast_fn: CastFnType
+        cast_fn: CastFnType,
     ):
         if (
             isinstance(data, BaseDataContainer | CoreLiteral)
@@ -123,7 +123,7 @@ class BaseCastOperator(ABC):
                 error_where="cast operator instantiation",
                 msg=f"data {data} must be BaseDataContainer or literal, "
                 f"type must be BaseTypeDataStructure and cast function"
-                f" a callable."
+                f" a callable.",
             )
 
     @abstractmethod
@@ -162,7 +162,7 @@ class BaseCastC2C(BaseCastOperator):
         cast_fn: CastFnType,
         mem: MemoryManager,
         node: IRNode,
-        ir_graph: IRGraph
+        ir_graph: IRGraph,
     ):
         if (
             isinstance(mem, MemoryManager)
@@ -197,7 +197,7 @@ class BaseCastQ2C(BaseCastOperator):
         cast_fn: CastFnType,
         mem: MemoryManager,
         node: IRNode,
-        ir_graph: IRGraph
+        ir_graph: IRGraph,
     ):
         super().__init__(data=data, to_type=to_type, cast_fn=cast_fn)
         self._program = QuantumProgram(
@@ -206,7 +206,7 @@ class BaseCastQ2C(BaseCastOperator):
             node=node,
             ir_graph=ir_graph,
             base_llq=None,
-            executor=None
+            executor=None,
         )
 
     def flush(self) -> BaseCastQ2C:

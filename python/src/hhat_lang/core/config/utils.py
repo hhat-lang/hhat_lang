@@ -33,14 +33,24 @@ def read_json(file: Path) -> dict:
 
 @insert_reader("toml")
 def read_toml(file: Path) -> Any:
-    raise NotImplementedError("reading TOML config files for H-hat not implemented yet.")
+    raise NotImplementedError(
+        "reading TOML config files for H-hat not implemented yet."
+    )
 
 
 @insert_reader("yaml")
 def read_yaml(file: Path) -> dict:
-    raise NotImplementedError("reading YAML config files for H-hat not implemented yet.")
+    raise NotImplementedError(
+        "reading YAML config files for H-hat not implemented yet."
+    )
 
 
 def read_file(file: Path) -> dict | Any:
-    read_fn: Callable[[Path], dict | Any] = conversion_types.get(file.name.split(".")[-1])
+    """
+    Reads H-hat's project configuration file.
+    """
+
+    read_fn: Callable[[Path], dict | Any] = conversion_types.get(
+        file.name.split(".")[-1]
+    )
     return read_fn(file)

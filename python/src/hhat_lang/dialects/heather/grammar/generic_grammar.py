@@ -36,11 +36,8 @@ def trait_id() -> Any:
     """
     return (
         "#",
-        [
-            trait_name_id,
-            ('[', OneOrMore(trait_name_id), ']')
-        ],
-        Optional(modifier)
+        [trait_name_id, ("[", OneOrMore(trait_name_id), "]")],
+        Optional(modifier),
     )
 
 
@@ -73,7 +70,7 @@ def composite_id_with_values() -> Any:
             ([full_id, literal], variadic),
             (variadic, [full_id, literal]),
         ],
-        "]"
+        "]",
     )
 
 
@@ -104,7 +101,7 @@ def capped_range() -> Any:
 def literal() -> Any:
     return (
         [t_float, t_null, t_bool, t_str, t_int, qt_bool, qt_int],
-        Optional(":", composite_id)
+        Optional(":", composite_id),
     )
 
 

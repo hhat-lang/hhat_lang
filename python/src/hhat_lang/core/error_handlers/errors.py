@@ -20,6 +20,8 @@ class ErrorCodes(Enum):
     TYPE_ENUM_ASSIGN_ERROR = auto()
     TYPE_MEMBER_NOT_RESOLVED = auto()
 
+    TYPE_SYMBOL_CONVERSION_ERROR = auto()
+
     CONTAINER_VAR_ASSIGN_ERROR = auto()
     CONTAINER_VAR_IS_IMMUTABLE_ERROR = auto()
 
@@ -32,6 +34,7 @@ class ErrorCodes(Enum):
     CAST_ERROR = auto()
 
     FUNCTION_WRONG_ARGS_TYPES_ERROR = auto()
+    FUNCTION_WRONG_DATA_ERROR = auto()
     FUNCTION_EXECUTION_ERROR = auto()
 
     INVALID_DATA_CONTAINER_CAST_ERROR = auto()
@@ -211,6 +214,18 @@ class TypeMemberNotResolvedError(ErrorHandler):
         )
 
 
+class TypeSymbolConversionError(ErrorHandler):
+    def __init__(self, type_type: Any):
+        super().__init__(ErrorCodes.TYPE_SYMBOL_CONVERSION_ERROR)
+        self._type_type = type_type
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: symbol could not be converted; "
+            f"expected str or array of strs and got {self._type_type}."
+        )
+
+
 class ContainerVarError(ErrorHandler):
     def __init__(self, var_name: Any):
         super().__init__(ErrorCodes.CONTAINER_VAR_ASSIGN_ERROR)
@@ -311,6 +326,18 @@ class FnWrongArgsTypesError(ErrorHandler):
     def __call__(self) -> str:
         return (
             f"[[{self.__class__.__name__}]]: wrong args types; expected {self._expected},"
+            f" but got {self._values}."
+        )
+
+
+class FnWrongDataError(ErrorHandler):
+    def __init__(self, values: Any):
+        self._values = values
+        super().__init__(ErrorCodes.FUNCTION_WRONG_DATA_ERROR)
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: wrong args types; expected literal or data container,"
             f" but got {self._values}."
         )
 

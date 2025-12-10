@@ -15,13 +15,17 @@ from typing import Any
 
 from hhat_lang.core.code.ir_graph import IRGraph, IRNode, get_type
 from hhat_lang.core.code.symbol_table import TypeTable, SymbolTable
-from hhat_lang.core.error_handlers.errors import ErrorHandler, TypeMemberNotResolvedError
+from hhat_lang.core.error_handlers.errors import (
+    ErrorHandler,
+    TypeMemberNotResolvedError,
+)
 from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
 
 
 #################
 # Resolve types #
 #################
+
 
 def resolve_members(
     table: TypeTable,
@@ -36,6 +40,7 @@ def resolve_members(
 #################
 # Resolve sizes #
 #################
+
 
 def _size_resolver():
     pass
@@ -84,5 +89,3 @@ def runtime_qsize() -> Any:
     """Runtime qsize resolver."""
 
     pass
-
-

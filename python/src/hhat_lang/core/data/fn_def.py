@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Any, Sized, cast, Callable
+from typing import Any, Callable
 
 from hhat_lang.core.code.base import BaseFnCheck, BaseIRBlock
-from hhat_lang.core.code.ir_block import ArgsValuesBlock
+from hhat_lang.core.code.ir_custom import ArgsValuesBlock
 from hhat_lang.core.data.core import (
     CompositeSymbol,
-    CompositeWorkingData,
+    CompositeWorkingObj,
+    Literal,
     Symbol,
-    WorkingData,
-    CoreLiteral,
+    WorkingObj,
 )
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.memory.core import MemoryManager
@@ -76,7 +76,7 @@ class FnDef:
 
     @property
     @lru_cache
-    def arg_names(self) -> tuple[WorkingData | CompositeWorkingData, ...]:
+    def arg_names(self) -> tuple[WorkingObj | CompositeWorkingObj, ...]:
         if hasattr(self._args, "args"):
             return self._args.args  # type: ignore [return-value]
 
@@ -96,7 +96,9 @@ class FnDef:
 
     def __repr__(self) -> str:
         args = " ".join(str(k) for k in self.args)
-        fn_header = f"FN-DEF NAME[{self.name}] ARGS[{args}] {f'TYPE[{self.type}]' if self.type else ''}"
+        fn_header = (
+            f"FN-DEF NAME[{self.name}] ARGS[{args}] {f'TYPE[{self.type}]' if self.type else ''}"
+        )
         body = "\n            ".join(str(k) for k in self.body)
         return f"{fn_header}" + "\n            " + f"{body}" + "\n"
 
@@ -163,7 +165,7 @@ class BuiltinFnDef:
 
     @property
     @lru_cache
-    def arg_names(self) -> tuple[WorkingData | CompositeWorkingData, ...]:
+    def arg_names(self) -> tuple[WorkingObj | CompositeWorkingObj, ...]:
         if hasattr(self._args, "args"):
             return self._args.args  # type: ignore [return-value]
 
@@ -181,9 +183,7 @@ class BuiltinFnDef:
     def fn_check(self) -> BaseFnCheck:
         return self._fn_check
 
-    def __call__(
-        self, *args: Any, mem: MemoryManager
-    ) -> CoreLiteral | BaseDataContainer:
+    def __call__(self, *args: Any, mem: MemoryManager) -> Literal | BaseDataContainer:
         return self._body(*args, mem=mem)
 
     def __repr__(self) -> str:

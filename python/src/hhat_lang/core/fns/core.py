@@ -5,8 +5,8 @@ from functools import wraps
 from pathlib import Path
 
 from hhat_lang.core.code.base import BaseFnKey
-from hhat_lang.core.code.ir_block import ArgsValuesBlock
-from hhat_lang.core.data.core import CoreLiteral, Tmp
+from hhat_lang.core.code.ir_custom import ArgsValuesBlock
+from hhat_lang.core.data.core import Literal, Tmp
 from hhat_lang.core.data.fn_def import BuiltinFnDef
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.memory.core import MemoryManager
@@ -29,7 +29,7 @@ def include_builtin_fn(fn_entry: BaseFnKey, fn_path: Path) -> Callable:
         """
 
         @wraps(fn)
-        def wrapper(*args: Any, mem: MemoryManager) -> CoreLiteral | BaseDataContainer:
+        def wrapper(*args: Any, mem: MemoryManager) -> Literal | BaseDataContainer:
             """
             Built-in function signature implementation. Returns the function call result.
             """

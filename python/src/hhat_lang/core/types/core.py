@@ -1,24 +1,26 @@
 from __future__ import annotations
 
-from typing import Any, cast
+import sys
+from typing import Any, Iterable
 
-from hhat_lang.core.data.core import CompositeSymbol, Symbol, WorkingData
-from hhat_lang.core.data.utils import VariableKind, has_same_paradigm, isquantum
-from hhat_lang.core.data.variable import BaseDataContainer, VariableTemplate
+from hhat_lang.core.data.core import (
+    CompositeSymbol,
+    Literal,
+    Symbol,
+    SymbolObj,
+)
+from hhat_lang.core.data.utils import isquantum
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
-    TypeAndMemberNoMatchError,
-    TypeQuantumOnClassicalError,
+    TypeMemberAlreadyExistsError,
+    TypeMemberOverflowError,
 )
-from hhat_lang.core.types import POINTER_SIZE
-from hhat_lang.core.types.abstract_base import BaseTypeDataStructure, QSize, Size
+from hhat_lang.core.types.abstract_base import BaseTypeDataBin, BaseTypeDef, M
 from hhat_lang.core.types.utils import BaseTypeEnum
 from hhat_lang.core.utils import SymbolOrdered
 
 
-def is_valid_member(
-    datatype: BaseTypeDataStructure, member: str | Symbol | CompositeSymbol
-) -> bool:
+def is_valid_member(datatype: BaseTypeDef, member: str | Symbol | CompositeSymbol) -> bool:
     """
     Check if a datatype member is valid for the given datatype, e.g. quantum
     datatype supports classical members, but a classical datatype cannot contain
@@ -31,247 +33,197 @@ def is_valid_member(
     return True
 
 
-class SingleDS(BaseTypeDataStructure):
-    """Class to define data structure for single types."""
+##################
+# SINGLE SECTION #
+##################
 
-    def __init__(
-        self,
-        name: Symbol | CompositeSymbol,
-        size: Size | None = None,
-        qsize: QSize | None = None,
-    ):
-        super().__init__(name)
-        self._size = size or Size(POINTER_SIZE)
-        self._qsize = qsize or QSize(0)
-        self._type_container: SymbolOrdered = SymbolOrdered()
-        self._ds_type = BaseTypeEnum.SINGLE
-
-    def add_member(self, member_type: BaseTypeDataStructure) -> SingleDS | ErrorHandler:
-        if not is_valid_member(self, member_type.name):
-            return TypeQuantumOnClassicalError(member_type.name, self.name)
-
-        if member_type.type != self.type:
-            return TypeAndMemberNoMatchError(member_type, self.name)
-
-        self._type_container[self.name] = member_type.name
-        return self
-
-    def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError()
-
-    def __call__(
-        self,
-        *,
-        var_name: Symbol | CompositeSymbol,
-        flag: VariableKind = VariableKind.IMMUTABLE,
-        **_: Any,
-    ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
-        return VariableTemplate(
-            var_name=var_name,
-            type_name=self.name,
-            ds_data=SymbolOrdered(
-                {next(iter(self._type_container.values())): self._type_container}
-            ),
-            ds_type=self._ds_type,
-            flag=flag,
-        )
-
-    def __repr__(self) -> str:
-        member = "".join(str(k) for k in self._type_container.values())
-        return f"{self.name}<single>:{member}"
+# types annotation for SingleDataBin
+SingleT = Symbol | CompositeSymbol
+SingleC = tuple[Symbol | CompositeSymbol] | tuple
+SingleM = None
 
 
-class ArrayDS(BaseTypeDataStructure):
-    """This is an array data structure, to be thought as [u64] to represent an array of u64."""
+class SingleDataBin(BaseTypeDataBin[SingleT, SingleC, SingleM]):
+    _container: SingleC
+    _locked: bool
 
-    def __init__(
-        self,
-        name: Symbol | CompositeSymbol,
-        size: Size | None = None,
-        qsize: QSize | None = None,
-    ):
-        super().__init__(name, array_type=True)
-        self._size = size or Size(POINTER_SIZE)
-        self._qsize = qsize or QSize(0)
-        self._type_container: SymbolOrdered = SymbolOrdered()
+    def __init__(self):
+        self._container = ()
+        self._lock = False
 
-    def add_member(self, member_type: Any, member_name: Any) -> Any | ErrorHandler:
-        raise NotImplementedError()
-
-    def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError()
-
-    def __call__(
-        self,
-        *args: Any,
-        var_name: str,
-        flag: VariableKind = VariableKind.IMMUTABLE,
-        **kwargs: dict[WorkingData, WorkingData | VariableTemplate],
-    ) -> BaseDataContainer | ErrorHandler:
-        raise NotImplementedError()
-
-
-class StructDS(BaseTypeDataStructure):
-    """Class to define data structure for struct types."""
-
-    def __init__(
-        self,
-        name: Symbol | CompositeSymbol,
-        size: Size | None = None,
-        qsize: QSize | None = None,
-    ):
-        super().__init__(name)
-        self._size = size or Size(POINTER_SIZE)
-        self._qsize = qsize or QSize(0)
-        self._type_container: SymbolOrdered = SymbolOrdered()
-        self._ds_type = BaseTypeEnum.STRUCT
-
-    def add_member(
-        self, member_type: BaseTypeDataStructure, member_name: Symbol | CompositeSymbol
-    ) -> StructDS | ErrorHandler:
-        # check if type and name are consistent, i.e. both quantum or classical
-        if has_same_paradigm(member_type, member_name):
-            if is_valid_member(self, member_type.name):
-                self._type_container[member_name] = member_type.name
-                return self
-
-            return TypeQuantumOnClassicalError(member_type.name, self.name)
-
-        return TypeAndMemberNoMatchError(member_type.name, self.name)
-
-    def add_tmp_member(
-        self,
-        member_type: Symbol | CompositeSymbol,
-        member_name: Symbol | CompositeSymbol,
-    ) -> StructDS:
-        self._tmp_container += ((member_type, member_name),)
-        return self
-
-    def __call__(
-        self,
-        *,
-        var_name: Symbol | CompositeSymbol,
-        flag: VariableKind = VariableKind.IMMUTABLE,
-        **_: Any,
-    ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
-        return VariableTemplate(
-            var_name=var_name,
-            type_name=self._name,
-            ds_data=self._type_container,
-            ds_type=self._ds_type,
-            flag=flag,
-        )
-
-    def __repr__(self) -> str:
-        members = (
-            "{" + " ".join(f"{k}:{v}" for k, v in self._type_container.items()) + "}"
-        )
-        return f"{self.name}<struct>{members}"
-
-
-class EnumDS(BaseTypeDataStructure):
-    """Class to define data structure for enum types."""
-
-    def __init__(
-        self,
-        name: Symbol | CompositeSymbol,
-        size: Size | None = None,
-        qsize: QSize | None = None,
-    ):
-        super().__init__(name)
-        self._size = size or Size(POINTER_SIZE)
-        self._qsize = qsize or QSize(0)
-        self._type_container = SymbolOrdered()
-        self._ds_type = BaseTypeEnum.ENUM
-
-    def _get_member_name(self, member: BaseTypeDataStructure | Symbol) -> Symbol:
-        match member:
-            case Symbol():
-                return member
-
-            case BaseTypeDataStructure():
-                return cast(Symbol, member.name)
-
-            case _:
-                raise NotImplementedError()
-
-    def add_member(
-        self, member: BaseTypeDataStructure | Symbol
-    ) -> EnumDS | ErrorHandler:
-        member_name = self._get_member_name(member)
-
-        if is_valid_member(self, member_name):
-            self._type_container[member_name] = member
+    def add_member(self, type_name: SingleT, **kwargs: Any) -> SingleDataBin | ErrorHandler:
+        if not self._locked:
+            self._container += (type_name,)
+            self._locked = True
             return self
 
-        return TypeQuantumOnClassicalError(member_name, self.name)
+        return TypeMemberOverflowError()
 
-    def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError()
+    def __getitem__(self, item: Any) -> SingleT:
+        return self._container[0]
 
-    def __call__(
-        self,
-        *,
-        var_name: Symbol | CompositeSymbol,
-        flag: VariableKind = VariableKind.IMMUTABLE,
-        **_: Any,
-    ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
-        return VariableTemplate(
-            var_name=var_name,
-            type_name=self._name,
-            ds_data=self._type_container,
-            ds_type=self._ds_type,
-            flag=flag,
-        )
+    def __iter__(self) -> Iterable:
+        return iter(self._container)
 
 
-class RemoteUnionDS(BaseTypeDataStructure):
-    """Class to define data structure for remote union types"""
+class SingleTypeDef(BaseTypeDef[SingleT, None]):
+    _container: SingleDataBin
+    _t_type = BaseTypeEnum.SINGLE
 
-    def add_member(self, *args: Any, **kwargs: Any) -> Any | ErrorHandler:
-        raise NotImplementedError()
+    def __init__(self, name: Symbol):
+        self._name = name
+        self._is_quantum = isquantum(name)
+        self._container = SingleDataBin()
 
-    def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError()
+    def add_member(self, type_name: SingleT | None, **kwargs: Any) -> SingleTypeDef:
+        match res := self._container.add_member(type_name=type_name):
+            case TypeMemberOverflowError():
+                sys.exit(res(self._name, self._t_type))
 
-    def __call__(
-        self, *, var_name: Symbol | CompositeSymbol, flag: VariableKind, **kwargs: Any
-    ) -> BaseDataContainer | ErrorHandler:
-        raise NotImplementedError()
+            case _:
+                return self
+
+    def __iter__(self) -> Iterable:
+        return iter(self._container)
+
+    def __repr__(self) -> str:
+        return f"{self._name}<single>:{self._container[0]}"
 
 
-class UnionDS(BaseTypeDataStructure):
-    """Class to define data structure for union types."""
+##################
+# STRUCT SECTION #
+##################
 
-    def __init__(
-        self,
-        name: Symbol | CompositeSymbol,
-        size: Size | None = None,
-        qsize: QSize | None = None,
-    ):
-        super().__init__(name)
-        self._size = size or Size(POINTER_SIZE)
-        self._qsize = qsize or QSize(0)
-        self._type_container = SymbolOrdered()
-        self._ds_type = BaseTypeEnum.UNION
+StructT = SymbolObj
+StructC = SymbolOrdered[Symbol, SymbolObj]
+StructM = Symbol
 
-    def add_member(self, member_type: str, member_name: str) -> UnionDS:
-        raise NotImplementedError()
 
-    def add_tmp_member(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError()
+class StructDataBin(BaseTypeDataBin[StructT, StructC, StructM]):
+    _container: StructC
+    _num_members: int
 
-    def __call__(
-        self,
-        *,
-        var_name: Symbol | CompositeSymbol,
-        flag: VariableKind = VariableKind.IMMUTABLE,
-        **_: Any,
-    ) -> BaseDataContainer | VariableTemplate | ErrorHandler:
-        return VariableTemplate(
-            var_name=var_name,
-            type_name=self._name,
-            ds_data=self._type_container,
-            ds_type=self._ds_type,
-            flag=flag,
-        )
+    def __init__(self):
+        self._container = SymbolOrdered()
+        self._num_members = 0
+
+    def add_member(
+        self, type_name: StructT, member_name: StructM, **kwargs: Any
+    ) -> BaseTypeDataBin | ErrorHandler:
+        if member_name not in self._container:
+            self._container[member_name] = type_name
+            self._num_members += 1
+            return self
+
+        return TypeMemberAlreadyExistsError()
+
+    def __getitem__(self, item: Symbol) -> StructT:
+        return self._container[item]
+
+    def __iter__(self) -> Iterable:
+        return iter(self._container.items())
+
+
+class StructTypeDef(BaseTypeDef[StructT, StructM]):
+    _num_members: int
+    _container: StructDataBin
+    _t_type = BaseTypeEnum.STRUCT
+
+    def __init__(self, name: Symbol, num_members: int):
+        self._name = name
+        self._num_members = num_members
+        self._is_quantum = isquantum(name)
+        self._container = StructDataBin()
+
+    def add_member(self, type_name: StructT, member_name: StructM, **kwargs: Any) -> StructTypeDef:
+        if self._num_members > 0:
+
+            match res := self._container.add_member(type_name=type_name, member_name=member_name):
+                case TypeMemberAlreadyExistsError():
+                    sys.exit(res(self._name, member_name))
+
+                case _:
+                    self._num_members -= 1
+                    return self
+
+        sys.exit(TypeMemberOverflowError()(self._name, self._t_type))
+
+    def __iter__(self) -> Iterable:
+        return iter(self._container)
+
+    def __repr__(self) -> str:
+        members = "{" + " ".join(f"{k}:{v}" for k, v in self) + "}"
+        return f"{self._name}<struct>{members}"
+
+
+################
+# ENUM SECTION #
+################
+
+EnumT = Literal | StructDataBin
+EnumC = SymbolOrdered[Symbol, Symbol | StructTypeDef]
+EnumM = Symbol | StructDataBin
+
+
+class EnumDataBin(BaseTypeDataBin[EnumT, EnumC, EnumM]):
+    _container: EnumC
+    _counter: int
+
+    def __init__(self, num_members: int):
+        self._data = SymbolOrdered()
+        self._counter = 1 if num_members else 0
+
+    def add_member(
+        self, member_name: EnumM | None, **kwargs: Any
+    ) -> BaseTypeDataBin | ErrorHandler:
+        if member_name not in self._container:
+
+            match member_name:
+                case Symbol():
+                    self._counter *= 2
+                    self._container[member_name] = self._counter
+
+                case StructTypeDef():
+                    self._container[member_name.name] = member_name
+
+            return self
+
+        return TypeMemberAlreadyExistsError()
+
+    def __getitem__(self, item: Symbol) -> EnumT:
+        return self._container[item]
+
+    def __iter__(self) -> Iterable:
+        return iter(self._container.items())
+
+
+class EnumTypeDef(BaseTypeDef[EnumT, StructM]):
+    _num_members: int
+    _container: EnumDataBin
+    _t_type = BaseTypeEnum.ENUM
+
+    def __init__(self, name: Symbol, num_members: int):
+        self._name = name
+        self._num_members = num_members
+        self._is_quantum = isquantum(name)
+        self._container = EnumDataBin(num_members)
+
+    def add_member(self, member_name: M | None, **kwargs: Any) -> BaseTypeDef:
+        if self._num_members > 0:
+
+            match res := self._container.add_member(member_name):
+                case TypeMemberAlreadyExistsError():
+                    sys.exit(res(self._name, member_name))
+
+                case _:
+                    self._num_members -= 1
+                    return self
+
+        sys.exit(TypeMemberOverflowError()(self._name, self._t_type))
+
+    def __iter__(self) -> Iterable:
+        return iter(self._container)
+
+    def __repr__(self) -> str:
+        members = "{" + " ".join(f"{k}" if isinstance(v, int) else f"{v}" for k, v in self) + "}"
+        return f"{self._name}<enum>{members}"

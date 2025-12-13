@@ -6,10 +6,10 @@ from typing import Any, Iterable, Iterator
 
 from hhat_lang.core.data.core import (
     CompositeSymbol,
-    CompositeWorkingData,
+    CompositeWorkingObj,
     Symbol,
     Tmp,
-    WorkingData,
+    WorkingObj,
 )
 
 
@@ -91,7 +91,7 @@ class BaseFnKey:
         """
 
         if isinstance(self._name, Tmp):
-            self._name.complement_name(text)
+            self._name.append_to_name(text)
 
     def __hash__(self) -> int:
         return self._hash_value
@@ -149,18 +149,16 @@ class BaseFnCheck:
     def transform(
         self, fn_type: Symbol | CompositeSymbol, args_names: tuple[Symbol, ...]
     ) -> BaseFnKey:
-        if all(
-            isinstance(p, Symbol | CompositeSymbol) for p in args_names
-        ) and isinstance(fn_type, Symbol | CompositeSymbol):
+        if all(isinstance(p, Symbol | CompositeSymbol) for p in args_names) and isinstance(
+            fn_type, Symbol | CompositeSymbol
+        ):
             return BaseFnKey(
                 fn_name=self.name,
                 fn_type=fn_type,
                 args_types=self._args_types,
                 args_names=args_names,
             )
-        raise ValueError(
-            f"cannot transform FnKey with fn type {fn_type} and args {args_names}"
-        )
+        raise ValueError(f"cannot transform FnKey with fn type {fn_type} and args {args_names}")
 
     def check_args_types(self, *values: Symbol | CompositeSymbol) -> bool:
         """Check whether ``*values`` have the same values as in function args types"""
@@ -212,7 +210,7 @@ class BaseIRBlock(ABC):
     """
 
     _name: BaseIRBlockFlag
-    args: tuple[WorkingData | CompositeWorkingData | BaseIRBlock | BaseIRInstr, ...]
+    args: tuple[WorkingObj | CompositeWorkingObj | BaseIRBlock | BaseIRInstr, ...]
 
     @property
     def name(self) -> BaseIRBlockFlag:
@@ -264,7 +262,7 @@ class BaseIRInstr(ABC):
     """
 
     _name: BaseIRFlag
-    args: tuple[BaseIRBlock | WorkingData | CompositeWorkingData, ...] | tuple
+    args: tuple[BaseIRBlock | WorkingObj | CompositeWorkingObj, ...] | tuple
     _hash_value: int
 
     def __init__(self, *args: Any, **kwargs: Any):

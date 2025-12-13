@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from collections import OrderedDict
 
-from hhat_lang.core.data.core import CompositeSymbol, CoreLiteral, Symbol
+from hhat_lang.core.data.core import CompositeSymbol, Literal, Symbol
 from hhat_lang.core.error_handlers.errors import (
     TypeAndMemberNoMatchError,
     TypeQuantumOnClassicalError,
     VariableWrongMemberError,
 )
 from hhat_lang.core.types.builtin_types import QU3, U32, U64
-from hhat_lang.core.types.core import EnumDS, SingleDS, StructDS
+from hhat_lang.core.types.core import EnumTypeDef, SingleTypeDef, StructTypeDef
 from hhat_lang.core.types.utils import BaseTypeEnum
 
 # TODO: refactor the types to use `BuiltinSingleDS` or respective data
@@ -17,9 +17,9 @@ from hhat_lang.core.types.utils import BaseTypeEnum
 
 
 def test_single_ds() -> None:
-    lit_108 = CoreLiteral("108", "u32")
+    lit_108 = Literal("108", "u32")
 
-    user_type1 = SingleDS(name=Symbol("user_type1"))
+    user_type1 = SingleTypeDef(name=Symbol("user_type1"))
     user_type1.add_member(U32)
     var1 = user_type1(var_name=Symbol("var1"))
     var1.assign(lit_108)
@@ -34,10 +34,10 @@ def test_single_ds() -> None:
 
 
 def test_single_ds_quantum() -> None:
-    lit_q2 = CoreLiteral("@2", "@u3")
+    lit_q2 = Literal("@2", "@u3")
 
     # type @type1:@u3
-    qtype1 = SingleDS(name=Symbol("@type1"))
+    qtype1 = SingleTypeDef(name=Symbol("@type1"))
     qtype1.add_member(QU3)
 
     # @var1:@type1
@@ -56,15 +56,15 @@ def test_single_ds_quantum() -> None:
 
 
 def test_single_ds_quantum_wrong() -> None:
-    type1 = SingleDS(name=Symbol("type1"))
+    type1 = SingleTypeDef(name=Symbol("type1"))
     assert isinstance(type1.add_member(QU3), TypeQuantumOnClassicalError)
 
 
 def test_struct_ds() -> None:
-    lit_25 = CoreLiteral("25", "u32")
-    lit_17 = CoreLiteral("17", "u32")
+    lit_25 = Literal("25", "u32")
+    lit_17 = Literal("17", "u32")
 
-    point = StructDS(name=Symbol("point"))
+    point = StructTypeDef(name=Symbol("point"))
     point.add_member(U32, Symbol("x")).add_member(U32, Symbol("y"))
     p = point(var_name=Symbol("p"))
     p.assign(x=lit_25, y=lit_17)
@@ -79,11 +79,11 @@ def test_struct_ds() -> None:
 
 
 def test_struct_ds_quantum() -> None:
-    lit_8 = CoreLiteral("8", "u32")
-    lit_q2 = CoreLiteral("@2", "@u3")
+    lit_8 = Literal("8", "u32")
+    lit_q2 = Literal("@2", "@u3")
 
     # type @sample {counts:u32 @d:@u3}
-    qsample = StructDS(name=Symbol("@sample"))
+    qsample = StructTypeDef(name=Symbol("@sample"))
     (qsample.add_member(U32, Symbol("counts")).add_member(QU3, Symbol("@d")))
 
     # @var:@sample
@@ -111,7 +111,7 @@ def test_struct_ds_quantum() -> None:
 
 
 def test_struct_ds_quantum_wrong() -> None:
-    qtype = StructDS(name=Symbol("@type"))
+    qtype = StructTypeDef(name=Symbol("@type"))
     assert isinstance(qtype.add_member(QU3, Symbol("data")), TypeAndMemberNoMatchError)
 
 
@@ -122,7 +122,7 @@ def test_enum_ds() -> None:
     _quit = Symbol("QUIT")
 
     # type command {CONNECT JOIN QUIT}
-    command = EnumDS(name=Symbol("command"))
+    command = EnumTypeDef(name=Symbol("command"))
     command.add_member(_connect).add_member(_join).add_member(_quit)
 
     # opt:command
@@ -141,16 +141,16 @@ def test_enum_ds() -> None:
 
 def test_enum_ds_with_struct() -> None:
     _none = Symbol("NONE")
-    _res = StructDS(name=Symbol("RESULT")).add_member(U64, Symbol("result"))
+    _res = StructTypeDef(name=Symbol("RESULT")).add_member(U64, Symbol("result"))
 
     # type option {NONE RESULT{result:u64}}
-    option = EnumDS(name=Symbol("option"))
+    option = EnumTypeDef(name=Symbol("option"))
     option.add_member(_none).add_member(_res)
 
     # var:option
     var = option(var_name=Symbol("var"))
 
-    res_val = _res(var_name=_res.name).assign(CoreLiteral("16", "u64"))
+    res_val = _res(var_name=_res.name).assign(Literal("16", "u64"))
     # var=option.RESULT.{16:u64}
     var.assign(res_val)
 

@@ -6,8 +6,8 @@ from hhat_lang.core.code.instructions import CInstr, QInstr, QInstrFlag
 from hhat_lang.core.code.utils import InstrStatus
 from hhat_lang.core.data.core import (
     CompositeLiteral,
-    CompositeMixData,
-    CoreLiteral,
+    CompositeTuple,
+    Literal,
     Symbol,
 )
 from hhat_lang.core.data.variable import BaseDataContainer
@@ -51,10 +51,10 @@ class If(CInstr):
                 case BaseDataContainer():
                     c_value = c.name.value
 
-                case CoreLiteral() | Symbol():
+                case Literal() | Symbol():
                     c_value = c.value
 
-                case CompositeLiteral() | CompositeMixData():
+                case CompositeLiteral() | CompositeTuple():
                     raise NotImplementedError()
 
                 case _:
@@ -66,10 +66,10 @@ class If(CInstr):
                 case BaseDataContainer():
                     i_value = i.name.value
 
-                case CoreLiteral() | Symbol():
+                case Literal() | Symbol():
                     i_value = i.value
 
-                case CompositeLiteral() | CompositeMixData():
+                case CompositeLiteral() | CompositeTuple():
                     raise NotImplementedError()
 
                 case _:
@@ -94,9 +94,7 @@ class If(CInstr):
         if_instrs = executor.mem.stack.pop()
         if_instrs_tuple = if_instrs if isinstance(if_instrs, tuple) else (if_instrs,)
 
-        instrs, status = self._translate_instrs(
-            cond_test=cond_test_tuple, instrs=if_instrs_tuple
-        )
+        instrs, status = self._translate_instrs(cond_test=cond_test_tuple, instrs=if_instrs_tuple)
         self._instr_status = status
         return instrs, status
 
@@ -113,9 +111,7 @@ class QRedim(QInstr):
     def _instr(idx: int) -> str:
         return f"h q[{idx}];"
 
-    def _translate_instrs(
-        self, idxs: tuple[int, ...]
-    ) -> tuple[tuple[str, ...], InstrStatus]:
+    def _translate_instrs(self, idxs: tuple[int, ...]) -> tuple[tuple[str, ...], InstrStatus]:
         return tuple(self._instr(k) for k in idxs), InstrStatus.DONE
 
     def __call__(
@@ -182,9 +178,7 @@ class QNot(QInstr):
     def _instr(idx: int) -> str:
         return f"x q[{idx}];"
 
-    def _translate_instrs(
-        self, idxs: tuple[int, ...]
-    ) -> tuple[tuple[str, ...], InstrStatus]:
+    def _translate_instrs(self, idxs: tuple[int, ...]) -> tuple[tuple[str, ...], InstrStatus]:
         return tuple(self._instr(k) for k in idxs), InstrStatus.DONE
 
     def __call__(
@@ -205,7 +199,7 @@ class QNez(QInstr):
 
     @staticmethod
     def _get_mask_idxs(
-        mask: CoreLiteral | BaseDataContainer | Symbol,
+        mask: Literal | BaseDataContainer | Symbol,
         num_idxs: int,
         executor: BaseExecutor | None = None,
     ) -> Result:
@@ -216,12 +210,12 @@ class QNez(QInstr):
         """
 
         match mask:
-            case CoreLiteral():
+            case Literal():
                 lit = mask
 
             case Symbol() if mask.value in ("@true", "@false"):
                 bool_val = "@1" if mask.value == "@true" else "@0"
-                lit = CoreLiteral(bool_val, "@bool")
+                lit = Literal(bool_val, "@bool")
 
             case BaseDataContainer() | Symbol():
                 if executor is None:
@@ -237,7 +231,7 @@ class QNez(QInstr):
                 if isinstance(val, list):
                     val = val[-1]
 
-                if not isinstance(val, CoreLiteral):
+                if not isinstance(val, Literal):
                     return Error(IndexUnknownError())
 
                 lit = val
@@ -261,7 +255,7 @@ class QNez(QInstr):
     def _translate_instrs(
         self,
         idxs: tuple[int, ...],
-        mask: CoreLiteral | BaseDataContainer | Symbol,
+        mask: Literal | BaseDataContainer | Symbol,
         body_instr: QInstr,
         executor: BaseExecutor | None = None,
         **kwargs: Any,
@@ -294,7 +288,7 @@ class QNez(QInstr):
         self,
         *,
         idxs: tuple[int, ...],
-        mask: CoreLiteral | BaseDataContainer | Symbol,
+        mask: Literal | BaseDataContainer | Symbol,
         body_instr: QInstr,
         executor: BaseExecutor | None = None,
         **kwargs: Any,

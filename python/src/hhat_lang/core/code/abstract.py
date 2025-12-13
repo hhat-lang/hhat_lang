@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Iterable, Protocol
+from typing import Any, Iterable
 
 from hhat_lang.core.code.base import BaseFnCheck, BaseIRBlock
 from hhat_lang.core.code.symbol_table import SymbolTable

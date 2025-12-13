@@ -2,17 +2,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from hhat_lang.core.data.core import WorkingData, CompositeWorkingData, Symbol
+from hhat_lang.core.data.core import WorkingObj, CompositeWorkingObj, Symbol
 
 
-def builtin_fn__print(*args: WorkingData | CompositeWorkingData, **_: Any) -> Symbol:
+def builtin_fn__print(*args: WorkingObj | CompositeWorkingObj, **_: Any) -> Symbol:
     # transforming WorkingData/CompositeWorkingData into python objects
     for k in args:
         match k:
-            case WorkingData():
+            case WorkingObj():
                 print(k.value, end="")
 
-            case CompositeWorkingData():
+            case CompositeWorkingObj():
                 print(*k.value, end="")
 
             case _:

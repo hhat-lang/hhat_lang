@@ -1,13 +1,20 @@
+"""
+Syntax examples made in this module are just for anecdotal purposes;
+H-hat core's super-module does not have any syntax or grammar definitions.
+"""
+
 from __future__ import annotations
 
 import struct
+import sys
 from enum import Enum, auto
 from functools import lru_cache
 from typing import Any, Iterable
 
-from hhat_lang.core.error_handlers.errors import TypeSymbolConversionError
+from hhat_lang.core.data.utils import has_same_paradigm, isquantum
+from hhat_lang.core.error_handlers.errors import LiteralTypeMismatchError
 
-ACCEPTABLE_VALUES: dict = {
+ACCEPTABLE_TYPE_VALUES: dict = {
     "int": (int,),
     "u16": (int,),
     "u32": (int,),
@@ -32,31 +39,31 @@ class CompositeGroup(Enum):
     Array = auto()
 
 
-class WorkingData:
+##################
+# SYMBOL SECTION #
+##################
+
+
+class Symbol:
     """
-    Defines everything that can work as a literal, a variable, a function
-    or a type name.
+    It can be a variable, a function, a type, an argument or a parameter name.
     """
 
     _value: str
-    _type: str | tuple[str, ...]
     _is_quantum: bool
-    _suppress_type: bool
     _hash_value: int
-    __slots__ = ("_value", "_type", "_is_quantum", "_suppress_type", "_hash_value")
+    __slots__ = ("_value", "_is_quantum", "_hash_value")
 
-    def __init__(self):
-        self._hash_value = hash((self.value, self.type))
+    def __init__(self, value: str):
+        self._value = value
+        self._is_quantum = value.startswith("@")
+        self._hash_value = hash(self._value)
 
     @property
     def value(self) -> str:
         return self._value
 
     @property
-    def type(self) -> str | tuple[str, ...]:
-        return self._type
-
-    @property
     def is_quantum(self) -> bool:
         return self._is_quantum
 
@@ -65,95 +72,9 @@ class WorkingData:
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, self.__class__):
-            return self.value == other.value and self.type == other.type
+            return hash(self) == hash(other)
 
         return False
-
-    def __repr__(self) -> str:
-        type_txt = "" if self.type is None or self._suppress_type else f":{self.type}"
-        return f"{self.value}{type_txt}"
-
-
-class CompositeWorkingData:
-    """
-    Defines everything that can have multiple data grouped together, such as an array
-    of data, or a variable with attribute/method, or a type or function with their
-    namespace
-    """
-
-    _group: tuple[str, ...]
-    _type: str
-    _group_type: CompositeGroup
-    _is_quantum: bool
-    _suppress_type: bool
-    _hash_value: int
-    __slots__ = (
-        "_group",
-        "_type",
-        "_group_type",
-        "_is_quantum",
-        "_suppress_type",
-        "_hash_value",
-    )
-
-    def __init__(self):
-        self._hash_value = hash(
-            (
-                hash(self._group),
-                hash(self._type),
-                hash(self._group_type),
-                hash(self._is_quantum),
-            )
-        )
-
-    @property
-    def value(self) -> tuple[str, ...]:
-        return self._group
-
-    @property
-    def type(self) -> str:
-        return self._type
-
-    @property
-    def group_type(self) -> CompositeGroup:
-        return self._group_type
-
-    @property
-    def is_quantum(self) -> bool:
-        return self._is_quantum
-
-    def __eq__(self, other: Any) -> bool:
-        if isinstance(other, self.__class__):
-            return (
-                self._group == other._group
-                and self._type == other._type
-                and self._group_type == other._group_type
-                and self._is_quantum == other._is_quantum
-            )
-        return False
-
-    def __hash__(self) -> int:
-        return self._hash_value
-
-    def __iter__(self) -> Iterable:
-        return iter(self._group)
-
-    def __repr__(self) -> str:
-        txt = "" if self.type is None or self._suppress_type else f":{self.type}"
-        return ".".join(str(k) for k in self._group) + f"{txt}"
-
-
-class Symbol(WorkingData):
-    """
-    It can be a variable, a function, a type, an argument or a parameter name.
-    """
-
-    def __init__(self, value: str, symbol_type: str | None = None):
-        self._value = value
-        self._type = symbol_type or "`symbol"
-        self._is_quantum = value.startswith("@")
-        self._suppress_type = True
-        super().__init__()
 
     def __bool__(self) -> bool:
         """
@@ -165,6 +86,9 @@ class Symbol(WorkingData):
         """
 
         return self._value != "null"
+
+    def __repr__(self) -> str:
+        return f"{self._value}"
 
 
 class Tmp(Symbol):
@@ -179,7 +103,7 @@ class Tmp(Symbol):
     container.
     """
 
-    def complement_name(self, text: str) -> Tmp:
+    def append_to_name(self, text: str) -> Tmp:
         self._value += f"({text})"
         return self
 
@@ -190,21 +114,92 @@ class Alias(Symbol):
     """
 
     def __init__(self, value: str):
-        super().__init__(value, "`alias")
+        super().__init__(value)
 
 
-class CompositeSymbol(CompositeWorkingData):
+class CompositeSymbol:
     """
-    When a symbol has attributes, properties or methods.
+    When a symbol has attributes, properties or methods. It can be an import::
+
+        use(type:math.arithmetic.{add sub})
+
+    it can be a type member::
+
+        point.x
+        sys-flag.ERROR
+        @bell_t.@source
     """
 
-    def __init__(self, value: tuple[str, ...]):
-        self._group = value
-        self._type = "str"
-        self._group_type = CompositeGroup.SymbolAttrs
-        self._is_quantum = value[-1].startswith("@")
-        self._suppress_type = True
-        super().__init__()
+    _value: tuple[Symbol, ...]
+    _type: CompositeGroup
+    _is_quantum: bool
+    _hash_value: int
+    __slots__ = ("_value", "_type", "_is_quantum", "_hash_value")
+
+    def __init__(self, value: tuple[Symbol, ...]):
+        self._value = value
+        self._type = CompositeGroup.SymbolAttrs
+        self._is_quantum = value[0].is_quantum
+        self._hash_value = hash((hash(self._value), hash(self._type), hash(self._is_quantum)))
+
+    @property
+    def value(self) -> tuple[Symbol, ...]:
+        return self._value
+
+    @property
+    def type(self) -> CompositeGroup:
+        return self._type
+
+    @property
+    def is_quantum(self) -> bool:
+        return self._is_quantum
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return hash(self) == hash(other)
+
+        return False
+
+    def __hash__(self) -> int:
+        return self._hash_value
+
+    def __iter__(self) -> Iterable:
+        return iter(self._value)
+
+    def __repr__(self) -> str:
+        return ".".join(str(k) for k in self._value)
+
+
+class AsArray:
+    """
+    A class to resolve the representation of array of symbols, as in ``[u32]``.
+    Usually to be used for types definition.
+    """
+
+    _value: Symbol | CompositeSymbol
+    _is_quantum: bool
+    __slots__ = ("_value", "_is_quantum", "_hash_value")
+
+    def __init__(self, value: Symbol | CompositeSymbol):
+        self._value = value
+        self._is_quantum = value.is_quantum
+        self._hash_value = hash((self.__class__.__name__, self._value))
+
+    @property
+    def value(self) -> Symbol | CompositeSymbol:
+        return self._value
+
+    def __hash__(self) -> int:
+        return self._hash_value
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return hash(self) == hash(other)
+
+        return False
+
+    def __repr__(self) -> str:
+        return f"[{self._value}]"
 
 
 class Atomic(Symbol):
@@ -215,48 +210,56 @@ class Atomic(Symbol):
     pass
 
 
-class TypeSymbolSetter:
-    def __new__(cls, type_name: str | tuple[str, ...]):
-        match type_name:
-            case str():
-                return Symbol(value=type_name)
-
-            case tuple():
-                return CompositeSymbol(value=type_name)
-
-            case _:
-                sys.exit(TypeSymbolConversionError(type(type_name))())
+###################
+# LITERAL SECTION #
+###################
 
 
-class CoreLiteral(WorkingData):
+class Literal:
     """
-    Any defined literal by the dialect.
+    Any defined literal by the dialect. Examples::
+
+        1               // integer
+        "hoi quantum!"  // string
+        @4              // quantum unsigned integer
+        19.0i           // imaginary
+
+    ``Literal``'s ``value`` should be the literal's string and ``lit_type`` argument
+    should be its type as a ``Symbol`` or ``CompositeSymbol`` instance::
+
+        Literal("1", Symbol("int"))             // H-hat literal for integer 1
+        Literal("hoi quantum!", Symbol("str"))  // H-hat literal for string
+        Literal("@4", Symbol("@int"))           // H-hat literal for quantum unsigned integer
+        Literal("19.0i", Symbol("imag"))        // H-hat literal for imaginary
     """
 
-    def __init__(self, value: str, lit_type: str | tuple[str, ...]):
-        match lit_type:
-            case str():
-                if (value.startswith("@") and not lit_type.startswith("@")) or (
-                    not value.startswith("@") and lit_type.startswith("@")
-                ):
-                    raise ValueError(
-                        f"Literal got incompatible {value} value and type {lit_type}."
-                    )
-                self._is_quantum = lit_type.startswith("@")
+    _value: str
+    _type: Symbol | CompositeSymbol
+    _is_quantum: bool
+    _hash_value: int
+    __slots__ = ("_value", "_type", "_is_quantum", "_hash_value")
 
-            case tuple():
-                if (value.startswith("@") and not lit_type[-1].startswith("@")) or (
-                    not value.startswith("@") and lit_type[-1].startswith("@")
-                ):
-                    raise ValueError(
-                        f"Literal got incompatible {value} value and type {lit_type}."
-                    )
-                self._is_quantum = lit_type[-1].startswith("@")
+    def __init__(self, value: str, lit_type: Symbol | CompositeSymbol):
+        if has_same_paradigm(value, lit_type):
+            self._value = value
+            self._type = lit_type
+            self._is_quantum = isquantum(value)
+            self._hash_value = hash((self.value, self.type))
 
-        self._value = value
-        self._type = lit_type
-        self._suppress_type = False
-        super().__init__()
+        else:
+            sys.exit(LiteralTypeMismatchError(value, lit_type)())
+
+    @property
+    def value(self) -> str:
+        return self._value
+
+    @property
+    def type(self) -> Symbol | CompositeSymbol:
+        return self._type
+
+    @property
+    def is_quantum(self) -> bool:
+        return self._is_quantum
 
     @lru_cache
     def transform_bin(self) -> str:
@@ -269,9 +272,7 @@ class CoreLiteral(WorkingData):
         except ValueError:
             try:
                 # works if float
-                value = "".join(
-                    f"{k:08b}" for k in struct.pack(">d", float(self.value.strip("@")))
-                )
+                value = "".join(f"{k:08b}" for k in struct.pack(">d", float(self.value.strip("@"))))
 
             except ValueError:
                 # works if string
@@ -280,16 +281,15 @@ class CoreLiteral(WorkingData):
         return value
 
     def _op_bitwise(self, op: str, other: Any) -> bool:
+        # TODO: improve this function to account for custom checks, e.g. for quantum data
+
         if isinstance(other, self.__class__):
             return getattr(self.value, op)(other.value)
 
-        if isinstance(other, ACCEPTABLE_VALUES.get(self._type, InvalidType)):
+        if isinstance(other, ACCEPTABLE_TYPE_VALUES.get(self._type, InvalidType)):
             return getattr(self.value, op)(other)
 
         return False
-
-    # def __eq__(self, other: Any) -> bool:
-    #     return self._op_bitwise("__eq__", other)
 
     def __le__(self, other) -> bool:
         return self._op_bitwise("__le__", other)
@@ -303,12 +303,24 @@ class CoreLiteral(WorkingData):
     def __ne__(self, other) -> bool:
         return self._op_bitwise("__ne__", other)
 
+    def __hash__(self) -> int:
+        return self._hash_value
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return hash(self) == hash(other)
+
+        return False
+
     @property
     def bin(self) -> str:
         return self.transform_bin()
 
+    def __repr__(self) -> str:
+        return f"{self._value}:{self._type}"
 
-class CompositeLiteral(CompositeWorkingData):
+
+class CompositeLiteral:
     """
     Mostly to represent array of literals.
     """
@@ -316,11 +328,58 @@ class CompositeLiteral(CompositeWorkingData):
     pass
 
 
-class CompositeMixData(CompositeWorkingData):
+######################################
+# TUPLE OF COMPOSITE OBJECTS SECTION #
+######################################
+
+
+class CompositeTuple:
     """
-    Account for all sorts of data in an array or symbol a composition.
-    It can be an array with literals and variables, a symbol with
-    multiple attributes or methods (wonder if it's useful to have anyway).
+    Aggregate multiple data into a tuple. Data can be ``Symbol``, ``Literal``,
+    ``CompositeSymbol`` and ``CompositeLiteral``. Example::
+
+        [a b 1.0]
+        [3 5.0 -12]
+        [7i "hoi"]
+
+    A composite tuple may not have a proper type definition; it should be thought
+    as an aggregate of heterogeneous objects.
     """
 
     pass
+
+
+##############
+# UTIL TOOLS #
+##############
+
+SymbolObj = Symbol | CompositeSymbol | AsArray
+LiteralObj = Literal | CompositeLiteral
+WorkingObj = Symbol | Literal
+CompositeWorkingObj = CompositeSymbol | CompositeLiteral | AsArray
+
+
+def has_correct_paradigm_ordering(*obj_list: WorkingObj | CompositeWorkingObj) -> bool:
+    """
+    Checks whether a tuple of ``Symbol`` or ``Literal`` has the correct paradigm ordering,
+    that is: quantum can contain classical but classical cannot contain quantum. Examples::
+
+        @some.@thing        // correct
+        @other.thing        // correct
+        some.thing          // correct
+        @some.@long.thing   // correct
+        @other.long.thing   // correct
+
+        other.@thing        // incorrect
+        @other.long.@thing  // incorrect
+    """
+
+    _is_quantum = obj_list[0].is_quantum
+
+    for n, obj in enumerate(obj_list[1:]):
+        if obj.is_quantum and not _is_quantum:
+            return False
+
+        _is_quantum = obj.is_quantum and _is_quantum
+
+    return True

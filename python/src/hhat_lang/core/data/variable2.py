@@ -4,7 +4,7 @@ from typing import Any
 
 from hhat_lang.core.data.core import Symbol, CompositeSymbol
 from hhat_lang.core.data.utils import AbstractDataContainer
-from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
+from hhat_lang.core.types.abstract_base import BaseTypeDef
 
 
 class DataCollection:
@@ -17,5 +17,5 @@ class DataContainer(AbstractDataContainer):
     """
 
     _name: Symbol | CompositeSymbol
-    _type: BaseTypeDataStructure
+    _type: BaseTypeDef
     _data: DataCollection

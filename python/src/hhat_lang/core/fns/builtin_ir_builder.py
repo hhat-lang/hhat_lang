@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Any, Callable
 
 from hhat_lang.core.code.abstract import BaseIRModule, BaseIR, RefTable
-from hhat_lang.core.code.ir_graph import build_reftable, IRGraph
+from hhat_lang.core.code.ir_graph import IRGraph
+from hhat_lang.core.code.tools import build_reftable
 from hhat_lang.core.code.symbol_table import SymbolTable
 from hhat_lang.core.fns.core import builtin_fns_path
 

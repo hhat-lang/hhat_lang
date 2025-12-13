@@ -3,16 +3,16 @@ from __future__ import annotations
 from pathlib import Path
 
 from hhat_lang.core.code.base import BaseFnCheck
-from hhat_lang.core.code.ir_graph import build_reftable
+from hhat_lang.core.code.tools import build_reftable
 from hhat_lang.core.code.symbol_table import SymbolTable
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.data.fn_def import FnDef, BuiltinFnDef
-from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
+from hhat_lang.core.types.abstract_base import BaseTypeDef
 from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
     IR,
     IRModule,
 )
-from hhat_lang.core.code.ir_block import BodyBlock
+from hhat_lang.core.code.ir_custom import BodyBlock
 from hhat_lang.dialects.heather.parsing.utils import FnsDict, TypesDict
 
 TypesTyping = TypesDict | dict[Symbol | CompositeSymbol, Path]
@@ -22,7 +22,7 @@ FnsTyping = FnsDict | dict[BaseFnCheck, Path]
 def build_ir_module(
     *,
     path: Path | str,
-    types: tuple[BaseTypeDataStructure, ...] | None = None,
+    types: tuple[BaseTypeDef, ...] | None = None,
     fns: tuple[FnDef | BuiltinFnDef, ...] | None = None,
     main: BodyBlock | None = None,
 ) -> IRModule:
@@ -58,7 +58,7 @@ def build_ir(
     path: Path | str,
     ref_types: TypesTyping | None = None,
     ref_fns: FnsTyping | None = None,
-    types: tuple[BaseTypeDataStructure, ...] | None = None,
+    types: tuple[BaseTypeDef, ...] | None = None,
     fns: tuple[FnDef | BuiltinFnDef, ...] | None = None,
     main: BodyBlock | None = None,
 ) -> IR:

@@ -13,13 +13,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from hhat_lang.core.code.ir_graph import IRGraph, IRNode, get_type
+from hhat_lang.core.code.ir_graph import IRGraph, IRNode
+from hhat_lang.core.code.tools import get_type
 from hhat_lang.core.code.symbol_table import TypeTable, SymbolTable
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
     TypeMemberNotResolvedError,
 )
-from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
+from hhat_lang.core.types.abstract_base import BaseTypeDef
 
 
 #################
@@ -46,9 +47,7 @@ def _size_resolver():
     pass
 
 
-def _qsize_resolver(
-    ds: BaseTypeDataStructure, node: IRNode, ir_graph: IRGraph
-) -> int | None:
+def _qsize_resolver(ds: BaseTypeDef, node: IRNode, ir_graph: IRGraph) -> int | None:
     if ds.qsize is not None:
         if ds.qsize.max is None:
             qsize_max = 0
@@ -73,7 +72,7 @@ def ct_size() -> Any:
     pass
 
 
-def ct_qsize(ds: BaseTypeDataStructure, type_table: TypeTable) -> Any:
+def ct_qsize(ds: BaseTypeDef, type_table: TypeTable) -> Any:
     """Compile-time qsize resolver."""
 
     pass

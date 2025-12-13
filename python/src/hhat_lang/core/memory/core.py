@@ -11,12 +11,12 @@ from uuid import UUID
 from hhat_lang.core.code.base import BaseFnCheck, BaseIRBlock
 from hhat_lang.core.data.core import (
     CompositeLiteral,
-    CompositeMixData,
+    CompositeTuple,
     CompositeSymbol,
-    CompositeWorkingData,
-    CoreLiteral,
+    CompositeWorkingObj,
+    Literal,
     Symbol,
-    WorkingData,
+    WorkingObj,
 )
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import (
@@ -76,8 +76,8 @@ class IndexManager:
     _num_allocated: int
     _available: deque
     _allocated: deque
-    _resources: dict[WorkingData | CompositeWorkingData, int]
-    _in_use_by: dict[WorkingData | CompositeWorkingData, deque]
+    _resources: dict[WorkingObj | CompositeWorkingObj, int]
+    _in_use_by: dict[WorkingObj | CompositeWorkingObj, deque]
 
     def __init__(self, max_num_index: int):
         self._max_num_index = max_num_index
@@ -103,7 +103,7 @@ class IndexManager:
         return self._allocated
 
     @property
-    def resources(self) -> dict[WorkingData | CompositeWorkingData, int]:
+    def resources(self) -> dict[WorkingObj | CompositeWorkingObj, int]:
         """
         Dictionary containing the variable members/literal(s) and
         the index amount requested.
@@ -112,7 +112,7 @@ class IndexManager:
         return self._resources
 
     @property
-    def in_use_by(self) -> dict[WorkingData | CompositeWorkingData, deque]:
+    def in_use_by(self) -> dict[WorkingObj | CompositeWorkingObj, deque]:
         """
         Dictionary containing the variable members/literal(s) with
         the deque of indexes provided.
@@ -120,9 +120,7 @@ class IndexManager:
 
         return self._in_use_by
 
-    def __getitem__(
-        self, item: WorkingData | CompositeWorkingData
-    ) -> deque | IndexInvalidVarError:
+    def __getitem__(self, item: WorkingObj | CompositeWorkingObj) -> deque | IndexInvalidVarError:
         """Return the deque of indexes from a quantum data."""
 
         if res := self._in_use_by.get(item, False):
@@ -130,7 +128,7 @@ class IndexManager:
 
         return IndexInvalidVarError(var_name=item)
 
-    def __contains__(self, item: WorkingData | CompositeWorkingData) -> bool:
+    def __contains__(self, item: WorkingObj | CompositeWorkingObj) -> bool:
         """Checks whether there is item in the IndexManager."""
 
         return item in self._in_use_by
@@ -152,16 +150,14 @@ class IndexManager:
 
         return IndexAllocationError(requested_idxs=num_idxs, max_idxs=available)
 
-    def _alloc_var(
-        self, member_name: WorkingData | CompositeWorkingData, idxs_deque: deque
-    ) -> None:
+    def _alloc_var(self, member_name: WorkingObj | CompositeWorkingObj, idxs_deque: deque) -> None:
         self._in_use_by[member_name] = idxs_deque
         self._allocated.extend(idxs_deque)
 
-    def _has_var(self, member_name: WorkingData | CompositeWorkingData) -> bool:
+    def _has_var(self, member_name: WorkingObj | CompositeWorkingObj) -> bool:
         return member_name in self._resources
 
-    def _free_var(self, member_name: WorkingData | CompositeWorkingData) -> deque:
+    def _free_var(self, member_name: WorkingObj | CompositeWorkingObj) -> deque:
         """
         Free variable member's indexes and allocated deque with those indexes.
         """
@@ -174,7 +170,7 @@ class IndexManager:
         return idxs
 
     def add(
-        self, member_name: WorkingData | CompositeWorkingData, num_idxs: int
+        self, member_name: WorkingObj | CompositeWorkingObj, num_idxs: int
     ) -> None | ErrorHandler:
         """
         Add a variable member/literal with a given number of indexes required for it.
@@ -188,13 +184,9 @@ class IndexManager:
 
             return IndexVarHasIndexesError(member_name)
 
-        return IndexAllocationError(
-            requested_idxs=num_idxs, max_idxs=self._num_allocated
-        )
+        return IndexAllocationError(requested_idxs=num_idxs, max_idxs=self._num_allocated)
 
-    def request(
-        self, member_name: WorkingData | CompositeWorkingData
-    ) -> deque | ErrorHandler:
+    def request(self, member_name: WorkingObj | CompositeWorkingObj) -> deque | ErrorHandler:
         """
         Request a number of indexes given by the `resources` property for
         a variable member `var_name`.
@@ -216,7 +208,7 @@ class IndexManager:
 
         return IndexUnknownError()
 
-    def free(self, member_name: WorkingData | CompositeWorkingData) -> None:
+    def free(self, member_name: WorkingObj | CompositeWorkingObj) -> None:
         """
         Free indexes from a given variable member `var_name`.
         """
@@ -235,8 +227,8 @@ class StackFrame:
     """Stack memory frame. To be used inside ``Stack`` instance whenever a new scope is needed"""
 
     _data: OrderedDict[
-        WorkingData | CompositeSymbol | BaseFnCheck,
-        BaseDataContainer | CoreLiteral | None,
+        WorkingObj | CompositeSymbol | BaseFnCheck,
+        BaseDataContainer | Literal | None,
     ]
     _fn_header: BaseFnCheck | None
     _for_fn_use: bool
@@ -248,7 +240,7 @@ class StackFrame:
     @property
     def keys(
         self,
-    ) -> tuple[WorkingData | CompositeWorkingData | BaseFnCheck, ...] | tuple:
+    ) -> tuple[WorkingObj | CompositeWorkingObj | BaseFnCheck, ...] | tuple:
         return tuple(self._data.keys())
 
     @property
@@ -256,18 +248,18 @@ class StackFrame:
         return self._for_fn_use
 
     def add_no_assign(self, key: Symbol | CompositeSymbol) -> None:
-        if key not in self._data and isinstance(key, WorkingData):
+        if key not in self._data and isinstance(key, WorkingObj):
             self._data[key] = None
 
     def add(
         self,
-        key: Symbol | CompositeSymbol | CoreLiteral,
-        value: BaseDataContainer | CoreLiteral,
+        key: Symbol | CompositeSymbol | Literal,
+        value: BaseDataContainer | Literal,
     ) -> None:
         if (
-            isinstance(key, Symbol | CompositeSymbol | CoreLiteral)
+            isinstance(key, Symbol | CompositeSymbol | Literal)
             and (key not in self._data or self._data[key] is None)  # type: ignore [index]
-            and isinstance(value, BaseDataContainer | CoreLiteral)
+            and isinstance(value, BaseDataContainer | Literal)
         ):
             self._data[key] = value
 
@@ -277,26 +269,20 @@ class StackFrame:
         if isinstance(header, BaseFnCheck):
             self._fn_header = header
 
-    def _check_fn_args_types(
-        self, *values_types: BaseDataContainer | CoreLiteral
-    ) -> bool:
+    def _check_fn_args_types(self, *values_types: BaseDataContainer | Literal) -> bool:
         if self._for_fn_use:
             return all(
                 cast(BaseFnCheck, self._fn_header).check_args_types(
                     k.type
                     if isinstance(k, BaseDataContainer)
-                    else (
-                        Symbol(k.type)
-                        if isinstance(k.type, str)
-                        else CompositeSymbol(k.type)
-                    )
+                    else (Symbol(k.type) if isinstance(k.type, str) else CompositeSymbol(k.type))
                 )
                 for k in values_types
             )
 
         sys.exit(StackFrameNotFnError()())
 
-    def add_ordered(self, *values: BaseDataContainer | CoreLiteral) -> None:
+    def add_ordered(self, *values: BaseDataContainer | Literal) -> None:
         """
         **Note**: to be used only for functions, on its startup parameters declaration.
 
@@ -322,11 +308,11 @@ class StackFrame:
         sys.exit(StackFrameNotFnError()())
 
     def get(
-        self, item: WorkingData | CompositeSymbol | BaseFnCheck
-    ) -> BaseDataContainer | CoreLiteral | ErrorHandler:
+        self, item: WorkingObj | CompositeSymbol | BaseFnCheck
+    ) -> BaseDataContainer | Literal | ErrorHandler:
         return self._data.get(item) or StackFrameGetError(item)
 
-    def pop(self) -> BaseDataContainer | CoreLiteral:
+    def pop(self) -> BaseDataContainer | Literal:
         """Pops last value from ``StackFrame`` (data container or literal)"""
 
         return self._data.popitem()[-1]
@@ -346,15 +332,10 @@ class Stack:
 
     _data: list[StackFrame] | list
     _entry_stack: (
-        list[
-            BaseDataContainer
-            | CoreLiteral
-            | tuple[Symbol, BaseDataContainer | CoreLiteral]
-        ]
-        | list
+        list[BaseDataContainer | Literal | tuple[Symbol, BaseDataContainer | Literal]] | list
     )
     _entry_type: Stack.EntryType
-    _return_stack: list[BaseDataContainer | CoreLiteral] | list
+    _return_stack: list[BaseDataContainer | Literal] | list
 
     def __init__(self):
         self._data = []
@@ -366,7 +347,7 @@ class Stack:
 
         self._data.append(StackFrame(for_fn_use))
 
-    def push(self, data: BaseDataContainer | CoreLiteral) -> None:
+    def push(self, data: BaseDataContainer | Literal) -> None:
         """Push ``data`` into current stack's frame as its new last item"""
 
         if isinstance(data, BaseDataContainer):
@@ -375,9 +356,7 @@ class Stack:
         else:
             self._data[-1].add(data, data)
 
-    def get(
-        self, item: WorkingData | CompositeSymbol
-    ) -> BaseDataContainer | CoreLiteral:
+    def get(self, item: WorkingObj | CompositeSymbol) -> BaseDataContainer | Literal:
         """Retrieves data from the current stack frame"""
 
         match res := self._data[-1].get(item):
@@ -387,16 +366,16 @@ class Stack:
             case _:
                 return res
 
-    def pop(self) -> BaseDataContainer | CoreLiteral:
+    def pop(self) -> BaseDataContainer | Literal:
         """Pops last element from current ``StackFrame`` (either data container or literal)"""
 
         return self._data[-1].pop()
 
     def set_fn_entry(
         self,
-        *values: BaseDataContainer | CoreLiteral,
+        *values: BaseDataContainer | Literal,
         fn_header: BaseFnCheck,
-        **args_values: BaseDataContainer | CoreLiteral,
+        **args_values: BaseDataContainer | Literal,
     ) -> None:
         """
         Set the function entry, i.e. it's arguments. It can be through only
@@ -423,9 +402,7 @@ class Stack:
             self._entry_type = Stack.EntryType.VALUE_ONLY
             return
 
-        self._entry_stack.extend(
-            (Symbol(arg), value) for arg, value in args_values.items()
-        )
+        self._entry_stack.extend((Symbol(arg), value) for arg, value in args_values.items())
         self._entry_type = Stack.EntryType.ARG_VALUE
 
     def get_fn_entry(self) -> None:
@@ -444,7 +421,7 @@ class Stack:
 
         sys.exit(StackFrameNotFnError()())
 
-    def set_fn_return(self, item: BaseDataContainer | CoreLiteral) -> None:
+    def set_fn_return(self, item: BaseDataContainer | Literal) -> None:
         """
         Add a function return to a special space in the stack; to be
         retrieved by the newest last stack frame
@@ -452,7 +429,7 @@ class Stack:
 
         self._return_stack = [item]
 
-    def get_fn_return(self) -> BaseDataContainer | CoreLiteral:
+    def get_fn_return(self) -> BaseDataContainer | Literal:
         """
         After the function is finished and its return value is properly
         addressed, this method must be used to clean the queue from
@@ -712,9 +689,7 @@ class MemoryManager(BaseMemoryManager):
                 pass
 
         else:
-            raise ValueError(
-                "trying to free last scope, but no more scope is left; mind is empty"
-            )
+            raise ValueError("trying to free last scope, but no more scope is left; mind is empty")
 
 
 class QuantumMemoryManager(MemoryManager):
@@ -726,26 +701,20 @@ class QuantumMemoryManager(MemoryManager):
 
     _idx: IndexManager
 
-    def __init__(
-        self, *, ir_block: BaseIRBlock, max_num_index: int, depth_counter: int = 0
-    ):
+    def __init__(self, *, ir_block: BaseIRBlock, max_num_index: int, depth_counter: int = 0):
         if isinstance(max_num_index, int):
             self._idx = IndexManager(max_num_index)
             super().__init__(ir_block=ir_block, depth_counter=depth_counter)
 
         else:
-            raise ValueError(
-                f"max num index must be integer, got {type(max_num_index)}"
-            )
+            raise ValueError(f"max num index must be integer, got {type(max_num_index)}")
 
     @property
     def idx(self) -> IndexManager:
         return self._idx
 
 
-MemoryDataTypes = (
-    BaseDataContainer | CoreLiteral | CompositeLiteral | Symbol | CompositeMixData
-)
+MemoryDataTypes = BaseDataContainer | Literal | CompositeLiteral | Symbol | CompositeTuple
 """
 - BaseDataContainer
 - CoreLiteral

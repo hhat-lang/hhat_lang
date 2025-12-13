@@ -37,7 +37,7 @@ from __future__ import annotations
 from typing import Any, Type
 
 from hhat_lang.core.code.ir import BlockIR
-from hhat_lang.core.data.core import WorkingData
+from hhat_lang.core.data.core import WorkingObj
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.core.execution.abstract_base import BaseExecutor
 from hhat_lang.core.execution.abstract_program import BaseQuantumProgram
@@ -55,14 +55,14 @@ class Program(BaseQuantumProgram):
     def __init__(
         self,
         *,
-        qdata: WorkingData,
+        qdata: WorkingObj,
         idx: IndexManager,
         block: IRBlock,
         executor: BaseExecutor,
         symboltable: SymbolTable,
         qlang: Type[  # type: ignore [type-arg]
             BaseLLQManager[
-                WorkingData,
+                WorkingObj,
                 IRBlock | BlockIR,
                 IndexManager,
                 BaseExecutor,
@@ -72,7 +72,7 @@ class Program(BaseQuantumProgram):
         ],
     ):
         if (
-            isinstance(qdata, WorkingData)
+            isinstance(qdata, WorkingObj)
             and isinstance(idx, IndexManager)
             and isinstance(block, IRBlock)
         ):
@@ -92,9 +92,7 @@ class Program(BaseQuantumProgram):
             )
 
         else:
-            raise ValueError(
-                f"Quantum program got invalid parameters: {qdata=} | {idx=} {block=}"
-            )
+            raise ValueError(f"Quantum program got invalid parameters: {qdata=} | {idx=} {block=}")
 
     @property
     def qstack(self) -> BaseStack:

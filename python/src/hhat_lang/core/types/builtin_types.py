@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from hhat_lang.core.data.core import Symbol
+from hhat_lang.core.data.core import AsArray, Symbol
 from hhat_lang.core.types import POINTER_SIZE
 from hhat_lang.core.types.abstract_base import QSize, Size
-from hhat_lang.core.types.builtin_base import BuiltinSingleDS, BuiltinStructDS
-from hhat_lang.core.types.core import ArrayDS
+from hhat_lang.core.types.builtin_base import BuiltinSingleTypeDef, BuiltinStructTypeDef
 
 #######################
 # BUILT-IN DATA TYPES #
@@ -15,32 +14,32 @@ from hhat_lang.core.types.core import ArrayDS
 # ---------- #
 
 # BASIC SINGLE TYPES
-Int = BuiltinSingleDS(Symbol("int"), Size(64))
-Bool = BuiltinSingleDS(Symbol("bool"), Size(8))
-U16 = BuiltinSingleDS(Symbol("u16"), Size(16))
-U32 = BuiltinSingleDS(Symbol("u32"), Size(32))
-U64 = BuiltinSingleDS(Symbol("u64"), Size(64))
-I16 = BuiltinSingleDS(Symbol("i16"), Size(16))
-I32 = BuiltinSingleDS(Symbol("i32"), Size(32))
-I64 = BuiltinSingleDS(Symbol("i64"), Size(64))
-Float = BuiltinSingleDS(Symbol("float"), Size(64))
-F32 = BuiltinSingleDS(Symbol("f32"), Size(32))
-F64 = BuiltinSingleDS(Symbol("f64"), Size(64))
+Int = BuiltinSingleTypeDef(Symbol("int"), Size(64))
+Bool = BuiltinSingleTypeDef(Symbol("bool"), Size(8))
+U16 = BuiltinSingleTypeDef(Symbol("u16"), Size(16))
+U32 = BuiltinSingleTypeDef(Symbol("u32"), Size(32))
+U64 = BuiltinSingleTypeDef(Symbol("u64"), Size(64))
+I16 = BuiltinSingleTypeDef(Symbol("i16"), Size(16))
+I32 = BuiltinSingleTypeDef(Symbol("i32"), Size(32))
+I64 = BuiltinSingleTypeDef(Symbol("i64"), Size(64))
+Float = BuiltinSingleTypeDef(Symbol("float"), Size(64))
+F32 = BuiltinSingleTypeDef(Symbol("f32"), Size(32))
+F64 = BuiltinSingleTypeDef(Symbol("f64"), Size(64))
 
 # HASHMAP TYPES
-HashKey = BuiltinSingleDS(Symbol("hash-key"), Size(POINTER_SIZE))
-HashValue = BuiltinSingleDS(Symbol("hash-value"), Size(POINTER_SIZE))
+HashKey = BuiltinSingleTypeDef(Symbol("hash-key"), Size(POINTER_SIZE))
+HashValue = BuiltinSingleTypeDef(Symbol("hash-value"), Size(POINTER_SIZE))
 HashSet = (
-    BuiltinStructDS(Symbol("hash-set"), Size(POINTER_SIZE))
-    .add_member(member_type=HashKey, member_name=Symbol("key"))
-    .add_member(member_type=HashValue, member_name=Symbol("value"))
+    BuiltinStructTypeDef(Symbol("hash-set"), Size(POINTER_SIZE))
+    .add_member(type_name=HashKey, member_name=Symbol("key"))
+    .add_member(type_name=HashValue, member_name=Symbol("value"))
 )
 """
 ```HashSet`` ("hash-set") is the holder of hash keys and hash values 
 for ``HashMap`` ("hashmap").
 """
-HashMap = BuiltinStructDS(Symbol("hashmap"), Size(POINTER_SIZE)).add_member(
-    member_type=ArrayDS(Symbol("hash-set")), member_name=Symbol("data")
+HashMap = BuiltinStructTypeDef(Symbol("hashmap"), Size(POINTER_SIZE)).add_member(
+    type_name=AsArray(Symbol("hash-set")), member_name=Symbol("data")
 )
 """
 ``HashMap`` ("hashmap") is the common hashmap(dictionary) data structure
@@ -48,19 +47,19 @@ HashMap = BuiltinStructDS(Symbol("hashmap"), Size(POINTER_SIZE)).add_member(
 
 
 # SAMPLE TYPES
-HashKeyInt = BuiltinSingleDS(Symbol("hash-key_int"), Size(64))
-HashValueInt = BuiltinSingleDS(Symbol("hash-value_int"), Size(64))
+HashKeyInt = BuiltinSingleTypeDef(Symbol("hash-key_int"), Size(64))
+HashValueInt = BuiltinSingleTypeDef(Symbol("hash-value_int"), Size(64))
 HashSetInt = (
-    BuiltinStructDS(Symbol("hash-set_int"), Size(POINTER_SIZE))
-    .add_member(member_type=HashKeyInt, member_name=Symbol("key"))
-    .add_member(member_type=HashValueInt, member_name=Symbol("value"))
+    BuiltinStructTypeDef(Symbol("hash-set_int"), Size(POINTER_SIZE))
+    .add_member(type_name=HashKeyInt, member_name=Symbol("key"))
+    .add_member(type_name=HashValueInt, member_name=Symbol("value"))
 )
 """
 ```HashSetInt`` ("hash-set_int") is the holder of integer hash keys and hash values 
 for ``Sample`` ("sample").
 """
-Sample = BuiltinStructDS(Symbol("sample"), Size(POINTER_SIZE)).add_member(
-    member_type=ArrayDS(Symbol("hash-set_int")), member_name=Symbol("data")
+Sample = BuiltinStructTypeDef(Symbol("sample"), Size(POINTER_SIZE)).add_member(
+    type_name=AsArray(Symbol("hash-set_int")), member_name=Symbol("data")
 )
 """
 ``Sample`` is an efficient and fast hashmap(dictionary)-like data structure that knows all
@@ -86,11 +85,11 @@ its keys beforehand, so it can compute its exact length; The keys (index number)
 # -------- #
 
 # BASIC SINGLE TYPES
-QBool = BuiltinSingleDS(Symbol("@bool"), Size(POINTER_SIZE), qsize=QSize(1, 1))
-QU2 = BuiltinSingleDS(Symbol("@u2"), Size(POINTER_SIZE), qsize=QSize(2, 2))
-QU3 = BuiltinSingleDS(Symbol("@u3"), Size(POINTER_SIZE), qsize=QSize(3, 3))
-QU4 = BuiltinSingleDS(Symbol("@u4"), Size(POINTER_SIZE), qsize=QSize(4, 4))
-QInt = BuiltinSingleDS(
+QBool = BuiltinSingleTypeDef(Symbol("@bool"), Size(POINTER_SIZE), qsize=QSize(1, 1))
+QU2 = BuiltinSingleTypeDef(Symbol("@u2"), Size(POINTER_SIZE), qsize=QSize(2, 2))
+QU3 = BuiltinSingleTypeDef(Symbol("@u3"), Size(POINTER_SIZE), qsize=QSize(3, 3))
+QU4 = BuiltinSingleTypeDef(Symbol("@u4"), Size(POINTER_SIZE), qsize=QSize(4, 4))
+QInt = BuiltinSingleTypeDef(
     Symbol("@int"),
     Size(POINTER_SIZE),
     qsize=QSize(min_num=QU2.qsize.min, max_num=QU4.qsize.max),

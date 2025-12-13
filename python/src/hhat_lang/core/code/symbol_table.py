@@ -1,30 +1,28 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any, Iterable, Callable
+from typing import Any, Iterable
 
 from hhat_lang.core.code.base import BaseFnCheck, BaseFnKey
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
-from hhat_lang.core.data.fn_def import FnDef, ModifierDef, BuiltinFnDef
+from hhat_lang.core.data.fn_def import BuiltinFnDef, FnDef, ModifierDef
 from hhat_lang.core.data.variable import BaseDataContainer
-from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
+from hhat_lang.core.types.abstract_base import BaseTypeDef
 
 
 class TypeTable:
-    _table: OrderedDict[Symbol | CompositeSymbol, BaseTypeDataStructure]
+    _table: OrderedDict[Symbol | CompositeSymbol, BaseTypeDef]
     __slots__ = ("_table",)
 
     def __init__(self):
         self._table = OrderedDict()
 
     @property
-    def table(self) -> OrderedDict[Symbol | CompositeSymbol, BaseTypeDataStructure]:
+    def table(self) -> OrderedDict[Symbol | CompositeSymbol, BaseTypeDef]:
         return self._table
 
-    def add(self, name: Symbol | CompositeSymbol, data: BaseTypeDataStructure) -> None:
-        if isinstance(name, Symbol | CompositeSymbol) and isinstance(
-            data, BaseTypeDataStructure
-        ):
+    def add(self, name: Symbol | CompositeSymbol, data: BaseTypeDef) -> None:
+        if isinstance(name, Symbol | CompositeSymbol) and isinstance(data, BaseTypeDef):
             if name not in self.table:
                 self.table[name] = data
 
@@ -36,7 +34,7 @@ class TypeTable:
 
     def get(
         self, name: Symbol | CompositeSymbol, default: Any | None = None
-    ) -> BaseTypeDataStructure | Any | None:
+    ) -> BaseTypeDef | Any | None:
         return self.table.get(name, default)
 
     def __hash__(self) -> int:
@@ -48,9 +46,7 @@ class TypeTable:
 
         return False
 
-    def __getitem__(
-        self, item: Symbol | CompositeSymbol
-    ) -> BaseTypeDataStructure | Any | None:
+    def __getitem__(self, item: Symbol | CompositeSymbol) -> BaseTypeDef | Any | None:
         return self.get(item)
 
     def __contains__(self, item: Any) -> bool:

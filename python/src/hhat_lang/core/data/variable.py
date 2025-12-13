@@ -4,8 +4,8 @@ from abc import abstractmethod
 from typing import Any, Iterable
 
 from hhat_lang.core.code.base import BaseIRBlock, BaseIRInstr
-from hhat_lang.core.code.ir_block import BodyBlock
-from hhat_lang.core.data.core import CompositeSymbol, CoreLiteral, Symbol, WorkingData
+from hhat_lang.core.code.ir_custom import BodyBlock
+from hhat_lang.core.data.core import CompositeSymbol, Literal, Symbol, WorkingObj
 from hhat_lang.core.data.utils import AbstractDataContainer, VariableKind, isquantum
 from hhat_lang.core.error_handlers.errors import (
     ContainerVarError,
@@ -15,7 +15,7 @@ from hhat_lang.core.error_handlers.errors import (
     VariableFreeingBorrowedError,
     VariableWrongMemberError,
 )
-from hhat_lang.core.types.utils import AbstractDataTypeStructure, BaseTypeEnum
+from hhat_lang.core.types.utils import AbstractTypeDef, BaseTypeEnum
 from hhat_lang.core.utils import SymbolOrdered
 
 
@@ -120,14 +120,10 @@ class BaseDataContainer(AbstractDataContainer):
     ) -> Symbol | CompositeSymbol:
         return attr
 
-    def _get_struct_ds_member(
-        self, attr: Symbol | CompositeSymbol
-    ) -> Symbol | CompositeSymbol:
+    def _get_struct_ds_member(self, attr: Symbol | CompositeSymbol) -> Symbol | CompositeSymbol:
         return self._ds[attr]
 
-    def _get_correct_ds_member(
-        self, attr: Symbol | CompositeSymbol
-    ) -> Symbol | CompositeSymbol:
+    def _get_correct_ds_member(self, attr: Symbol | CompositeSymbol) -> Symbol | CompositeSymbol:
         if self._ds_type is BaseTypeEnum.SINGLE:
             return self._get_single_ds_member(attr)
 
@@ -136,16 +132,14 @@ class BaseDataContainer(AbstractDataContainer):
 
         raise NotImplementedError()
 
-    def _get_data_type(self, data: WorkingData) -> Symbol | CompositeSymbol:
+    def _get_data_type(self, data: WorkingObj) -> Symbol | CompositeSymbol:
         match data:
             case Symbol():
                 return data
 
-            case CoreLiteral():
+            case Literal():
                 return (
-                    Symbol(data.type)
-                    if isinstance(data.type, str)
-                    else CompositeSymbol(data.type)
+                    Symbol(data.type) if isinstance(data.type, str) else CompositeSymbol(data.type)
                 )
 
             case _:
@@ -175,7 +169,7 @@ class BaseDataContainer(AbstractDataContainer):
                     self._data[0] = Symbol(data.value[-1])
                     return True
 
-            case AbstractDataTypeStructure() | BaseDataContainer():
+            case AbstractTypeDef() | BaseDataContainer():
                 if data.name in self._ds:
                     self._data[0] = data
                     return True
@@ -217,7 +211,7 @@ class BaseDataContainer(AbstractDataContainer):
 
                     else:
                         match data:
-                            case BaseIRBlock() | BaseIRInstr() | CoreLiteral():
+                            case BaseIRBlock() | BaseIRInstr() | Literal():
                                 self._data[attr_type] = BodyBlock(data)
 
                             case _:
@@ -273,7 +267,7 @@ class BaseDataContainer(AbstractDataContainer):
 
                 else:
                     match value:
-                        case BaseIRBlock() | BaseIRInstr() | CoreLiteral():
+                        case BaseIRBlock() | BaseIRInstr() | Literal():
                             self._data[key] = BodyBlock(value)
 
                         case _:
@@ -372,9 +366,7 @@ class VariableTemplate:
                     return ConstantData(var_name, type_name, ds_data, ds_type)
 
                 case VariableKind.APPENDABLE:
-                    return AppendableVariable(
-                        var_name, type_name, ds_data, ds_type, False
-                    )
+                    return AppendableVariable(var_name, type_name, ds_data, ds_type, False)
 
                 case VariableKind.MUTABLE:
                     return MutableVariable(var_name, type_name, ds_data, ds_type)
@@ -522,7 +514,7 @@ class MutableVariable(BaseDataContainer):
         self._instr_counter = 0
 
     def assign(
-        self, *args: Any, **kwargs: dict[WorkingData, WorkingData | BaseDataContainer]
+        self, *args: Any, **kwargs: dict[WorkingObj, WorkingObj | BaseDataContainer]
     ) -> MutableVariable | ErrorHandler:
         if self._ds_type == BaseTypeEnum.ENUM:
             self._check_and_assign_enum_val(args[0])

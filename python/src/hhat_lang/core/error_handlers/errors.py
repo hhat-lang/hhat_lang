@@ -6,11 +6,14 @@ from typing import Any
 
 
 class ErrorCodes(Enum):
+    LITERAL_TYPE_MISMATCH_ERROR = auto()
+
     INDEX_UNKNOWN_ERROR = auto()
     INDEX_ALLOC_ERROR = auto()
     INDEX_VAR_HAS_INDEXES_ERROR = auto()
     INDEX_INVALID_VAR_ERROR = auto()
 
+    TYPE_MEMBER_OVERFLOW_ERROR = auto()
     TYPE_QUANTUM_ON_CLASSICAL_ERROR = auto()
     TYPE_AND_MEMBER_NO_MATCH = auto()
     TYPE_ADD_MEMBER_ERROR = auto()
@@ -18,7 +21,8 @@ class ErrorCodes(Enum):
     TYPE_STRUCT_ASSIGN_ERROR = auto()
     TYPE_UNION_ASSIGN_ERROR = auto()
     TYPE_ENUM_ASSIGN_ERROR = auto()
-    TYPE_MEMBER_NOT_RESOLVED = auto()
+    TYPE_MEMBER_NOT_RESOLVED_ERROR = auto()
+    TYPE_MEMBER_ALREADY_EXISTS_ERROR = auto()
 
     TYPE_SYMBOL_CONVERSION_ERROR = auto()
 
@@ -72,10 +76,28 @@ class ErrorHandler(BaseException, ABC):
         return self.err_code
 
     @abstractmethod
-    def __call__(self) -> str: ...
+    def __call__(self, **kwargs: Any) -> str: ...
 
     def __repr__(self) -> str:
         return f"Error<{self.err_code.name}:{self.err_code.value}>"
+
+
+#################
+# ERROR CLASSES #
+#################
+
+
+class LiteralTypeMismatchError(ErrorHandler):
+    def __init__(self, lit: Any, lit_type: Any):
+        self._lit = lit
+        self._lit_type = lit_type
+        super().__init__(ErrorCodes.LITERAL_TYPE_MISMATCH_ERROR)
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self}]]: literal {self._lit} and type {self._lit_type}"
+            f" mismatched paradigms; both need be classical or quantum."
+        )
 
 
 class IndexUnknownError(ErrorHandler):
@@ -83,7 +105,7 @@ class IndexUnknownError(ErrorHandler):
         super().__init__(ErrorCodes.INDEX_UNKNOWN_ERROR)
 
     def __call__(self) -> str:
-        return f"[[{self.__class__.__name__}]]: Unknown error."
+        return f"[[{self.__class__.__name__}]]: Index unknown error."
 
 
 class IndexAllocationError(ErrorHandler):
@@ -115,6 +137,19 @@ class IndexInvalidVarError(ErrorHandler):
 
     def __call__(self) -> str:
         return f"[[{self.__class__.__name__}]]: Var '{self._var}' not in IndexManager."
+
+
+class TypeMemberOverflowError(ErrorHandler):
+    """Cannot have quantum data inside classical data type. The opposite is valid."""
+
+    def __init__(self):
+        super().__init__(ErrorCodes.TYPE_MEMBER_OVERFLOW_ERROR)
+
+    def __call__(self, type_name: Any, type_type: Any) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: too many members for "
+            f"type {type_name} ({type_type})."
+        )
 
 
 class TypeQuantumOnClassicalError(ErrorHandler):
@@ -203,7 +238,7 @@ class TypeEnumError(ErrorHandler):
 
 class TypeMemberNotResolvedError(ErrorHandler):
     def __init__(self, type_name: Any, type_member: Any):
-        super().__init__(ErrorCodes.TYPE_MEMBER_NOT_RESOLVED)
+        super().__init__(ErrorCodes.TYPE_MEMBER_NOT_RESOLVED_ERROR)
         self._type_name = type_name
         self._type_member = type_member
 
@@ -211,6 +246,17 @@ class TypeMemberNotResolvedError(ErrorHandler):
         return (
             f"[[{self.__class__.__name__}]]: member {self._type_member} cannot"
             f" be resolved for type '{self._type_name}'."
+        )
+
+
+class TypeMemberAlreadyExistsError(ErrorHandler):
+    def __init__(self):
+        super().__init__(ErrorCodes.TYPE_MEMBER_ALREADY_EXISTS_ERROR)
+
+    def __call__(self, name: Any, member_name: Any) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: member {member_name}"
+            f" already exists on type {name}."
         )
 
 

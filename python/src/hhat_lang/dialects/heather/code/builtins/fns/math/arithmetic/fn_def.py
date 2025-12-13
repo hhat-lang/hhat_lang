@@ -6,7 +6,7 @@ from typing import Any
 
 from hhat_lang.core.code.base import BaseFnKey
 from hhat_lang.core.data.core import (
-    CoreLiteral,
+    Literal,
     Symbol,
 )
 from hhat_lang.core.error_handlers.errors import FunctionExecutionError
@@ -23,7 +23,7 @@ from hhat_lang.dialects.heather.code.builtins.fns.math.arithmetic import (
 ####################
 
 
-def _add_res(*args: CoreLiteral, mem: MemoryManager) -> str:
+def _add_res(*args: Literal, mem: MemoryManager) -> str:
     if len(args) >= 2:
         return str(
             reduce(lambda x, y: x + float(y.value), args[1:], float(args[0].value))
@@ -45,9 +45,9 @@ def _add_res(*args: CoreLiteral, mem: MemoryManager) -> str:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_int_add(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
+def builtin_fn_int_add(*args: Literal, mem: MemoryManager) -> Literal:
     """Add two integer numbers `a+b` and return an integer `c`."""
-    return CoreLiteral(
+    return Literal(
         str(reduce(lambda x, y: x + int(y.value), args[1:], int(args[0].value))),
         lit_type="int",
     )
@@ -62,8 +62,8 @@ def builtin_fn_int_add(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_float_add(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
-    return CoreLiteral(_add_res(*args, mem=mem), lit_type="float")
+def builtin_fn_float_add(*args: Literal, mem: MemoryManager) -> Literal:
+    return Literal(_add_res(*args, mem=mem), lit_type="float")
 
 
 @include_builtin_fn(
@@ -75,8 +75,8 @@ def builtin_fn_float_add(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_int_float_add(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
-    return CoreLiteral(_add_res(*args, mem=mem), lit_type="float")
+def builtin_fn_int_float_add(*args: Literal, mem: MemoryManager) -> Literal:
+    return Literal(_add_res(*args, mem=mem), lit_type="float")
 
 
 #######################
@@ -84,7 +84,7 @@ def builtin_fn_int_float_add(*args: CoreLiteral, mem: MemoryManager) -> CoreLite
 #######################
 
 
-def _sub_res(*args: CoreLiteral, mem: MemoryManager) -> str:
+def _sub_res(*args: Literal, mem: MemoryManager) -> str:
     if len(args) >= 2:
         return str(
             reduce(lambda x, y: x - float(y.value), args[1:], float(args[0].value))
@@ -106,8 +106,8 @@ def _sub_res(*args: CoreLiteral, mem: MemoryManager) -> str:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_int_sub(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
-    return CoreLiteral(
+def builtin_fn_int_sub(*args: Literal, mem: MemoryManager) -> Literal:
+    return Literal(
         str(reduce(lambda x, y: x - int(y.value), args[1:], int(args[0].value))),
         lit_type="int",
     )
@@ -122,8 +122,8 @@ def builtin_fn_int_sub(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_float_sub(*args: CoreLiteral, mem: MemoryManager) -> Any:
-    return CoreLiteral(_sub_res(*args, mem=mem), lit_type="float")
+def builtin_fn_float_sub(*args: Literal, mem: MemoryManager) -> Any:
+    return Literal(_sub_res(*args, mem=mem), lit_type="float")
 
 
 @include_builtin_fn(
@@ -135,8 +135,8 @@ def builtin_fn_float_sub(*args: CoreLiteral, mem: MemoryManager) -> Any:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_int_float_sub(*args: CoreLiteral, mem: MemoryManager) -> Any:
-    return CoreLiteral(_sub_res(*args, mem=mem), lit_type="float")
+def builtin_fn_int_float_sub(*args: Literal, mem: MemoryManager) -> Any:
+    return Literal(_sub_res(*args, mem=mem), lit_type="float")
 
 
 ##########################
@@ -144,7 +144,7 @@ def builtin_fn_int_float_sub(*args: CoreLiteral, mem: MemoryManager) -> Any:
 ##########################
 
 
-def _mul_res(*args: CoreLiteral, mem: MemoryManager) -> str:
+def _mul_res(*args: Literal, mem: MemoryManager) -> str:
     if len(args) >= 2:
         return str(
             reduce(lambda x, y: x * float(y.value), args[1:], float(args[0].value))
@@ -166,8 +166,8 @@ def _mul_res(*args: CoreLiteral, mem: MemoryManager) -> str:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_int_mul(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
-    return CoreLiteral(
+def builtin_fn_int_mul(*args: Literal, mem: MemoryManager) -> Literal:
+    return Literal(
         str(reduce(lambda x, y: x * int(y.value), args[1:], int(args[0].value))),
         lit_type="int",
     )
@@ -182,8 +182,8 @@ def builtin_fn_int_mul(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_float_mul(*args: Any, mem: MemoryManager) -> CoreLiteral:
-    return CoreLiteral(_mul_res(*args, mem=mem), lit_type="float")
+def builtin_fn_float_mul(*args: Any, mem: MemoryManager) -> Literal:
+    return Literal(_mul_res(*args, mem=mem), lit_type="float")
 
 
 @include_builtin_fn(
@@ -195,8 +195,8 @@ def builtin_fn_float_mul(*args: Any, mem: MemoryManager) -> CoreLiteral:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_int_float_mul(*args: Any, mem: MemoryManager) -> CoreLiteral:
-    return CoreLiteral(_mul_res(*args, mem=mem), lit_type="float")
+def builtin_fn_int_float_mul(*args: Any, mem: MemoryManager) -> Literal:
+    return Literal(_mul_res(*args, mem=mem), lit_type="float")
 
 
 ####################
@@ -204,7 +204,7 @@ def builtin_fn_int_float_mul(*args: Any, mem: MemoryManager) -> CoreLiteral:
 ####################
 
 
-def _div_res(*args: CoreLiteral, mem: MemoryManager) -> str:
+def _div_res(*args: Literal, mem: MemoryManager) -> str:
     if len(args) >= 2:
         return str(
             reduce(lambda x, y: x / float(y.value), args[1:], float(args[0].value))
@@ -226,8 +226,8 @@ def _div_res(*args: CoreLiteral, mem: MemoryManager) -> str:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_int_div(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
-    return CoreLiteral(
+def builtin_fn_int_div(*args: Literal, mem: MemoryManager) -> Literal:
+    return Literal(
         str(reduce(lambda x, y: x // int(y.value), args[1:], int(args[0].value))),
         lit_type="int",
     )
@@ -242,8 +242,8 @@ def builtin_fn_int_div(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_float_div(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
-    return CoreLiteral(_div_res(*args, mem=mem), lit_type="float")
+def builtin_fn_float_div(*args: Literal, mem: MemoryManager) -> Literal:
+    return Literal(_div_res(*args, mem=mem), lit_type="float")
 
 
 @include_builtin_fn(
@@ -255,8 +255,8 @@ def builtin_fn_float_div(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_int_float_div(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
-    return CoreLiteral(_div_res(*args, mem=mem), lit_type="float")
+def builtin_fn_int_float_div(*args: Literal, mem: MemoryManager) -> Literal:
+    return Literal(_div_res(*args, mem=mem), lit_type="float")
 
 
 @include_builtin_fn(
@@ -268,8 +268,8 @@ def builtin_fn_int_float_div(*args: CoreLiteral, mem: MemoryManager) -> CoreLite
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_float_int_div(*args: CoreLiteral, mem: MemoryManager) -> CoreLiteral:
-    return CoreLiteral(_div_res(*args, mem=mem), lit_type="float")
+def builtin_fn_float_int_div(*args: Literal, mem: MemoryManager) -> Literal:
+    return Literal(_div_res(*args, mem=mem), lit_type="float")
 
 
 #################
@@ -286,10 +286,8 @@ def builtin_fn_float_int_div(*args: CoreLiteral, mem: MemoryManager) -> CoreLite
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_int_pow(
-    base: CoreLiteral, power: CoreLiteral, mem: MemoryManager
-) -> CoreLiteral:
-    return CoreLiteral(str(int(base.value) ** int(power.value)), lit_type="int")
+def builtin_fn_int_pow(base: Literal, power: Literal, mem: MemoryManager) -> Literal:
+    return Literal(str(int(base.value) ** int(power.value)), lit_type="int")
 
 
 @include_builtin_fn(
@@ -301,10 +299,8 @@ def builtin_fn_int_pow(
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_float_pow(
-    base: CoreLiteral, power: CoreLiteral, mem: MemoryManager
-) -> CoreLiteral:
-    return CoreLiteral(str(float(base.value) ** float(power.value)), lit_type="float")
+def builtin_fn_float_pow(base: Literal, power: Literal, mem: MemoryManager) -> Literal:
+    return Literal(str(float(base.value) ** float(power.value)), lit_type="float")
 
 
 @include_builtin_fn(
@@ -317,9 +313,9 @@ def builtin_fn_float_pow(
     fn_path=ARITHMETIC_MODULE_PATH,
 )
 def builtin_fn_int_float_pow(
-    base: CoreLiteral, power: CoreLiteral, mem: MemoryManager
-) -> CoreLiteral:
-    return CoreLiteral(str(int(base.value) ** float(power.value)), lit_type="float")
+    base: Literal, power: Literal, mem: MemoryManager
+) -> Literal:
+    return Literal(str(int(base.value) ** float(power.value)), lit_type="float")
 
 
 @include_builtin_fn(
@@ -332,6 +328,6 @@ def builtin_fn_int_float_pow(
     fn_path=ARITHMETIC_MODULE_PATH,
 )
 def builtin_fn_float_int_pow(
-    base: CoreLiteral, power: CoreLiteral, mem: MemoryManager
-) -> CoreLiteral:
-    return CoreLiteral(str(float(base.value) ** int(power.value)), lit_type="float")
+    base: Literal, power: Literal, mem: MemoryManager
+) -> Literal:
+    return Literal(str(float(base.value) ** int(power.value)), lit_type="float")

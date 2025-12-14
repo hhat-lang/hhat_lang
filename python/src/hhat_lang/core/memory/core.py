@@ -10,13 +10,13 @@ from uuid import UUID
 
 from hhat_lang.core.code.base import BaseFnCheck, BaseIRBlock
 from hhat_lang.core.data.core import (
-    CompositeLiteral,
-    CompositeTuple,
+    LiteralArray,
+    ObjTuple,
     CompositeSymbol,
-    CompositeWorkingObj,
+    ObjArray,
     Literal,
     Symbol,
-    WorkingObj,
+    SimpleObj,
 )
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import (
@@ -76,8 +76,8 @@ class IndexManager:
     _num_allocated: int
     _available: deque
     _allocated: deque
-    _resources: dict[WorkingObj | CompositeWorkingObj, int]
-    _in_use_by: dict[WorkingObj | CompositeWorkingObj, deque]
+    _resources: dict[SimpleObj | ObjArray, int]
+    _in_use_by: dict[SimpleObj | ObjArray, deque]
 
     def __init__(self, max_num_index: int):
         self._max_num_index = max_num_index
@@ -103,7 +103,7 @@ class IndexManager:
         return self._allocated
 
     @property
-    def resources(self) -> dict[WorkingObj | CompositeWorkingObj, int]:
+    def resources(self) -> dict[SimpleObj | ObjArray, int]:
         """
         Dictionary containing the variable members/literal(s) and
         the index amount requested.
@@ -112,7 +112,7 @@ class IndexManager:
         return self._resources
 
     @property
-    def in_use_by(self) -> dict[WorkingObj | CompositeWorkingObj, deque]:
+    def in_use_by(self) -> dict[SimpleObj | ObjArray, deque]:
         """
         Dictionary containing the variable members/literal(s) with
         the deque of indexes provided.
@@ -120,7 +120,7 @@ class IndexManager:
 
         return self._in_use_by
 
-    def __getitem__(self, item: WorkingObj | CompositeWorkingObj) -> deque | IndexInvalidVarError:
+    def __getitem__(self, item: SimpleObj | ObjArray) -> deque | IndexInvalidVarError:
         """Return the deque of indexes from a quantum data."""
 
         if res := self._in_use_by.get(item, False):
@@ -128,7 +128,7 @@ class IndexManager:
 
         return IndexInvalidVarError(var_name=item)
 
-    def __contains__(self, item: WorkingObj | CompositeWorkingObj) -> bool:
+    def __contains__(self, item: SimpleObj | ObjArray) -> bool:
         """Checks whether there is item in the IndexManager."""
 
         return item in self._in_use_by
@@ -150,14 +150,14 @@ class IndexManager:
 
         return IndexAllocationError(requested_idxs=num_idxs, max_idxs=available)
 
-    def _alloc_var(self, member_name: WorkingObj | CompositeWorkingObj, idxs_deque: deque) -> None:
+    def _alloc_var(self, member_name: SimpleObj | ObjArray, idxs_deque: deque) -> None:
         self._in_use_by[member_name] = idxs_deque
         self._allocated.extend(idxs_deque)
 
-    def _has_var(self, member_name: WorkingObj | CompositeWorkingObj) -> bool:
+    def _has_var(self, member_name: SimpleObj | ObjArray) -> bool:
         return member_name in self._resources
 
-    def _free_var(self, member_name: WorkingObj | CompositeWorkingObj) -> deque:
+    def _free_var(self, member_name: SimpleObj | ObjArray) -> deque:
         """
         Free variable member's indexes and allocated deque with those indexes.
         """
@@ -169,9 +169,7 @@ class IndexManager:
 
         return idxs
 
-    def add(
-        self, member_name: WorkingObj | CompositeWorkingObj, num_idxs: int
-    ) -> None | ErrorHandler:
+    def add(self, member_name: SimpleObj | ObjArray, num_idxs: int) -> None | ErrorHandler:
         """
         Add a variable member/literal with a given number of indexes required for it.
         The amount will be used upon request through the `request` method.
@@ -186,7 +184,7 @@ class IndexManager:
 
         return IndexAllocationError(requested_idxs=num_idxs, max_idxs=self._num_allocated)
 
-    def request(self, member_name: WorkingObj | CompositeWorkingObj) -> deque | ErrorHandler:
+    def request(self, member_name: SimpleObj | ObjArray) -> deque | ErrorHandler:
         """
         Request a number of indexes given by the `resources` property for
         a variable member `var_name`.
@@ -208,7 +206,7 @@ class IndexManager:
 
         return IndexUnknownError()
 
-    def free(self, member_name: WorkingObj | CompositeWorkingObj) -> None:
+    def free(self, member_name: SimpleObj | ObjArray) -> None:
         """
         Free indexes from a given variable member `var_name`.
         """
@@ -227,7 +225,7 @@ class StackFrame:
     """Stack memory frame. To be used inside ``Stack`` instance whenever a new scope is needed"""
 
     _data: OrderedDict[
-        WorkingObj | CompositeSymbol | BaseFnCheck,
+        SimpleObj | CompositeSymbol | BaseFnCheck,
         BaseDataContainer | Literal | None,
     ]
     _fn_header: BaseFnCheck | None
@@ -240,7 +238,7 @@ class StackFrame:
     @property
     def keys(
         self,
-    ) -> tuple[WorkingObj | CompositeWorkingObj | BaseFnCheck, ...] | tuple:
+    ) -> tuple[SimpleObj | ObjArray | BaseFnCheck, ...] | tuple:
         return tuple(self._data.keys())
 
     @property
@@ -248,7 +246,7 @@ class StackFrame:
         return self._for_fn_use
 
     def add_no_assign(self, key: Symbol | CompositeSymbol) -> None:
-        if key not in self._data and isinstance(key, WorkingObj):
+        if key not in self._data and isinstance(key, SimpleObj):
             self._data[key] = None
 
     def add(
@@ -308,7 +306,7 @@ class StackFrame:
         sys.exit(StackFrameNotFnError()())
 
     def get(
-        self, item: WorkingObj | CompositeSymbol | BaseFnCheck
+        self, item: SimpleObj | CompositeSymbol | BaseFnCheck
     ) -> BaseDataContainer | Literal | ErrorHandler:
         return self._data.get(item) or StackFrameGetError(item)
 
@@ -356,7 +354,7 @@ class Stack:
         else:
             self._data[-1].add(data, data)
 
-    def get(self, item: WorkingObj | CompositeSymbol) -> BaseDataContainer | Literal:
+    def get(self, item: SimpleObj | CompositeSymbol) -> BaseDataContainer | Literal:
         """Retrieves data from the current stack frame"""
 
         match res := self._data[-1].get(item):
@@ -714,7 +712,7 @@ class QuantumMemoryManager(MemoryManager):
         return self._idx
 
 
-MemoryDataTypes = BaseDataContainer | Literal | CompositeLiteral | Symbol | CompositeTuple
+MemoryDataTypes = BaseDataContainer | Literal | LiteralArray | Symbol | ObjTuple
 """
 - BaseDataContainer
 - CoreLiteral

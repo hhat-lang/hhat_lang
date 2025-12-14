@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from hhat_lang.core.data.core import Literal, Symbol, WorkingObj
+from hhat_lang.core.data.core import Literal, Symbol, SimpleObj
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import (
     CastError,

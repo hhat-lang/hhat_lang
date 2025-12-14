@@ -5,7 +5,7 @@ from typing import Any, Iterable
 
 from hhat_lang.core.code.base import BaseIRBlock, BaseIRInstr
 from hhat_lang.core.code.ir_custom import BodyBlock
-from hhat_lang.core.data.core import CompositeSymbol, Literal, Symbol, WorkingObj
+from hhat_lang.core.data.core import CompositeSymbol, Literal, Symbol, SimpleObj
 from hhat_lang.core.data.utils import AbstractDataContainer, VariableKind, isquantum
 from hhat_lang.core.error_handlers.errors import (
     ContainerVarError,
@@ -132,7 +132,7 @@ class BaseDataContainer(AbstractDataContainer):
 
         raise NotImplementedError()
 
-    def _get_data_type(self, data: WorkingObj) -> Symbol | CompositeSymbol:
+    def _get_data_type(self, data: SimpleObj) -> Symbol | CompositeSymbol:
         match data:
             case Symbol():
                 return data
@@ -514,7 +514,7 @@ class MutableVariable(BaseDataContainer):
         self._instr_counter = 0
 
     def assign(
-        self, *args: Any, **kwargs: dict[WorkingObj, WorkingObj | BaseDataContainer]
+        self, *args: Any, **kwargs: dict[SimpleObj, SimpleObj | BaseDataContainer]
     ) -> MutableVariable | ErrorHandler:
         if self._ds_type == BaseTypeEnum.ENUM:
             self._check_and_assign_enum_val(args[0])

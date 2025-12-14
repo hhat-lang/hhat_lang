@@ -17,4 +17,3 @@ On `execution` folder:
 
 On `grammar` folder:
 - grammar and syntax definitions for the dialect, considering at least the minimum requirements set by the core rules
-

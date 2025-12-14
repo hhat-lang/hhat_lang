@@ -72,9 +72,7 @@ class FnTable:
     the base for an IR object picturing the full code.
     """
 
-    _table: OrderedDict[
-        Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef | BuiltinFnDef]
-    ]
+    _table: OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef | BuiltinFnDef]]
     __slots__ = ("_table",)
 
     def __init__(self):
@@ -96,9 +94,7 @@ class FnTable:
                     self.table[fn_entry.name] = {fn_entry: data}
 
             elif isinstance(fn_entry, BaseFnKey):
-                new_fn_entry = BaseFnCheck(
-                    fn_name=fn_entry.name, args_types=fn_entry.args_types
-                )
+                new_fn_entry = BaseFnCheck(fn_name=fn_entry.name, args_types=fn_entry.args_types)
                 if fn_entry.name in self.table:
                     self.table[fn_entry.name].update({new_fn_entry: data})
 
@@ -184,9 +180,7 @@ class ConstTable:
     ) -> BaseDataContainer | Any | None:
         return self._table.get(item, default)
 
-    def __getitem__(
-        self, item: Symbol | CompositeSymbol
-    ) -> BaseDataContainer | Any | Any:
+    def __getitem__(self, item: Symbol | CompositeSymbol) -> BaseDataContainer | Any | Any:
         return self.get(item)
 
     def __hash__(self) -> int:
@@ -235,9 +229,7 @@ class MetaModTable:
                     self.table[fn_entry.name] = {fn_entry: data}
 
             elif isinstance(fn_entry, BaseFnKey):
-                new_fn_entry = BaseFnCheck(
-                    fn_name=fn_entry.name, args_types=fn_entry.args_types
-                )
+                new_fn_entry = BaseFnCheck(fn_name=fn_entry.name, args_types=fn_entry.args_types)
                 if fn_entry.name in self.table:
                     self.table[fn_entry.name].update({new_fn_entry: data})
 
@@ -394,9 +386,7 @@ class SymbolTable:
         return self._modifiers
 
     def __hash__(self) -> int:
-        return hash(
-            (self._types, self._fns, self._consts, self._metamods, self._modifiers)
-        )
+        return hash((self._types, self._fns, self._consts, self._metamods, self._modifiers))
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, SymbolTable):

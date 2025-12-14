@@ -155,5 +155,3 @@ If that depends only on me, I will try to use whatever uses less C++ for now.
 I hope this post can bring some light on what is in progress and what is planned for the coming months. Hopefully more people can join the effort! Feedback, reviews, discussions, beta testing, coding, designing, emotional support. Anything helps!
 
 Well, that is it. Until the next post.
-
-

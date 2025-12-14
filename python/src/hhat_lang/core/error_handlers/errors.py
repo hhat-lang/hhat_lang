@@ -7,6 +7,8 @@ from typing import Any
 
 class ErrorCodes(Enum):
     LITERAL_TYPE_MISMATCH_ERROR = auto()
+    ARRAY_QUANTUM_CLASSICAL_MIXED_ERROR = auto()
+    ARRAY_ELEMS_NOT_SAME_ERROR = auto()
 
     INDEX_UNKNOWN_ERROR = auto()
     INDEX_ALLOC_ERROR = auto()
@@ -100,6 +102,29 @@ class LiteralTypeMismatchError(ErrorHandler):
         )
 
 
+class ArrayQuantumClassicalMixedError(ErrorHandler):
+    def __init__(self, array: Any):
+        self._array = array
+        super().__init__(ErrorCodes.ARRAY_QUANTUM_CLASSICAL_MIXED_ERROR)
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self}]]: array {self._array} has quantum "
+            f"and classical data, which is invalid behavior."
+        )
+
+
+class ArrayElemsNotSameError(ErrorHandler):
+    def __init__(self, array: Any):
+        self._array = array
+        super().__init__(ErrorCodes.ARRAY_ELEMS_NOT_SAME_ERROR)
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self}]]: array {self._array} has not the" f" same type, which is invalid behavior."
+        )
+
+
 class IndexUnknownError(ErrorHandler):
     def __init__(self):
         super().__init__(ErrorCodes.INDEX_UNKNOWN_ERROR)
@@ -147,8 +172,7 @@ class TypeMemberOverflowError(ErrorHandler):
 
     def __call__(self, type_name: Any, type_type: Any) -> str:
         return (
-            f"[[{self.__class__.__name__}]]: too many members for "
-            f"type {type_name} ({type_type})."
+            f"[[{self.__class__.__name__}]]: too many members for type {type_name} ({type_type})."
         )
 
 
@@ -161,9 +185,7 @@ class TypeQuantumOnClassicalError(ErrorHandler):
         self._c = c
 
     def __call__(self) -> str:
-        return (
-            f"[[{self.__class__.__name__}]]: '{self._q}' cannot be inside '{self._c}'."
-        )
+        return f"[[{self.__class__.__name__}]]: '{self._q}' cannot be inside '{self._c}'."
 
 
 class TypeAndMemberNoMatchError(ErrorHandler):
@@ -254,10 +276,7 @@ class TypeMemberAlreadyExistsError(ErrorHandler):
         super().__init__(ErrorCodes.TYPE_MEMBER_ALREADY_EXISTS_ERROR)
 
     def __call__(self, name: Any, member_name: Any) -> str:
-        return (
-            f"[[{self.__class__.__name__}]]: member {member_name}"
-            f" already exists on type {name}."
-        )
+        return f"[[{self.__class__.__name__}]]: member {member_name} already exists on type {name}."
 
 
 class TypeSymbolConversionError(ErrorHandler):
@@ -288,9 +307,7 @@ class ContainerVarIsImmutableError(ErrorHandler):
         self._var_name = var_name
 
     def __call__(self) -> str:
-        return (
-            f"[[{self.__class__.__name__}]]: Variable '{self._var_name}' is immutable."
-        )
+        return f"[[{self.__class__.__name__}]]: Variable '{self._var_name}' is immutable."
 
 
 class VariableWrongMemberError(ErrorHandler):

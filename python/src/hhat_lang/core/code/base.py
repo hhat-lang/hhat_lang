@@ -6,10 +6,10 @@ from typing import Any, Iterable, Iterator
 
 from hhat_lang.core.data.core import (
     CompositeSymbol,
-    CompositeWorkingObj,
+    ObjArray,
     Symbol,
     Tmp,
-    WorkingObj,
+    SimpleObj,
 )
 
 
@@ -210,7 +210,7 @@ class BaseIRBlock(ABC):
     """
 
     _name: BaseIRBlockFlag
-    args: tuple[WorkingObj | CompositeWorkingObj | BaseIRBlock | BaseIRInstr, ...]
+    args: tuple[SimpleObj | ObjArray | BaseIRBlock | BaseIRInstr, ...]
 
     @property
     def name(self) -> BaseIRBlockFlag:
@@ -262,7 +262,7 @@ class BaseIRInstr(ABC):
     """
 
     _name: BaseIRFlag
-    args: tuple[BaseIRBlock | WorkingObj | CompositeWorkingObj, ...] | tuple
+    args: tuple[BaseIRBlock | SimpleObj | ObjArray, ...] | tuple
     _hash_value: int
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -271,10 +271,6 @@ class BaseIRInstr(ABC):
     @property
     def name(self) -> Any:
         return self._name
-
-    @abstractmethod
-    def resolve(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError()
 
     def __hash__(self) -> int:
         return self._hash_value

@@ -22,6 +22,7 @@ def imports() -> Any:
 
 
 def typeimport() -> Any:
+    print("type import")
     return Kwd("type"), ":", [single_import, many_import]
 
 

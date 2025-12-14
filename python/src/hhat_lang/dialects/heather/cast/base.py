@@ -26,9 +26,7 @@ class CastC2C(BaseCastC2C):
         node: IRNode,
         ir_graph: IRGraph,
     ):
-        d_type: str = (
-            data.type.value if isinstance(data, BaseDataContainer) else data.type
-        )
+        d_type: str = data.type.value if isinstance(data, BaseDataContainer) else data.type
         cast_fn: CastFnType = cast_fns_dict[(d_type, to_type.name.value)]
 
         super().__init__(
@@ -66,9 +64,7 @@ class CastQ2C(BaseCastQ2C):
             ir_graph: the program's ir graph (``IRGraph``)
         """
 
-        d_type: str = (
-            data.type.value if isinstance(data, BaseDataContainer) else data.type
-        )
+        d_type: str = data.type.value if isinstance(data, BaseDataContainer) else data.type
         cast_fn: CastFnType = cast_fns_dict[(d_type, to_type.name.value)]
 
         super().__init__(
@@ -95,9 +91,7 @@ class CastQ2Q(BaseCastQ2Q):
         node: IRNode,
         ir_graph: IRGraph,
     ):
-        d_type: str = (
-            data.type.value if isinstance(data, BaseDataContainer) else data.type
-        )
+        d_type: str = data.type.value if isinstance(data, BaseDataContainer) else data.type
         cast_fn: CastFnType = cast_fns_dict[(d_type, to_type.name.value)]
 
         super().__init__(
@@ -122,9 +116,7 @@ class CastC2Q(BaseCastC2Q):
         node: IRNode,
         ir_graph: IRGraph,
     ):
-        d_type: str = (
-            data.type.value if isinstance(data, BaseDataContainer) else data.type
-        )
+        d_type: str = data.type.value if isinstance(data, BaseDataContainer) else data.type
         cast_fn: CastFnType = cast_fns_dict[(d_type, to_type.name.value)]
         super().__init__(data=data, to_type=to_type, cast_fn=cast_fn)
 

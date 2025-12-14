@@ -334,9 +334,7 @@ def int_to_u32(data: BaseDataContainer | Literal | Any) -> Literal:
         Literal as u32
     """
 
-    return _cast_to_smaller_bitsize(
-        data, int, ctypes.c_uint32, U32_MIN, U32_MAX, "int", "u32"
-    )
+    return _cast_to_smaller_bitsize(data, int, ctypes.c_uint32, U32_MIN, U32_MAX, "int", "u32")
 
 
 @insert_cast_fns(("int", "i32"))
@@ -351,9 +349,7 @@ def int_to_i32(data: BaseDataContainer | Literal | Any) -> Literal:
         Literal as i32
     """
 
-    return _cast_to_smaller_bitsize(
-        data, int, ctypes.c_int32, I32_MIN, I32_MAX, "int", "i32"
-    )
+    return _cast_to_smaller_bitsize(data, int, ctypes.c_int32, I32_MIN, I32_MAX, "int", "i32")
 
 
 @insert_cast_fns(("int", "u64"))
@@ -368,9 +364,7 @@ def int_to_u64(data: BaseDataContainer | Literal | Any) -> Literal:
         Literal as u64
     """
 
-    return _cast_to_smaller_bitsize(
-        data, int, ctypes.c_uint64, U64_MIN, U64_MAX, "int", "u64"
-    )
+    return _cast_to_smaller_bitsize(data, int, ctypes.c_uint64, U64_MIN, U64_MAX, "int", "u64")
 
 
 @insert_cast_fns(("int", "i64"))
@@ -385,9 +379,7 @@ def int_to_i64(data: BaseDataContainer | Literal | Any) -> Literal:
         Literal as i64
     """
 
-    return _cast_to_smaller_bitsize(
-        data, int, ctypes.c_int64, I64_MIN, I64_MAX, "int", "i64"
-    )
+    return _cast_to_smaller_bitsize(data, int, ctypes.c_int64, I64_MIN, I64_MAX, "int", "i64")
 
 
 @insert_cast_fns(("u32", "float"))
@@ -447,9 +439,7 @@ def u64_to_f32(data: BaseDataContainer | Literal | Any) -> Literal:
         Literal as f32
     """
 
-    return _cast_to_smaller_bitsize(
-        data, float, ctypes.c_float, F32_MIN, F32_MAX, "u64", "f32"
-    )
+    return _cast_to_smaller_bitsize(data, float, ctypes.c_float, F32_MIN, F32_MAX, "u64", "f32")
 
 
 @insert_cast_fns(("u64", "f64"))
@@ -509,9 +499,7 @@ def i64_to_f32(data: BaseDataContainer | Literal | Any) -> Literal:
         Literal as f32
     """
 
-    return _cast_to_smaller_bitsize(
-        data, float, ctypes.c_float, F32_MIN, F32_MAX, "i64", "f32"
-    )
+    return _cast_to_smaller_bitsize(data, float, ctypes.c_float, F32_MIN, F32_MAX, "i64", "f32")
 
 
 @insert_cast_fns(("i64", "f64"))

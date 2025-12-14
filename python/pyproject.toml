@@ -32,7 +32,7 @@ dependencies = [
 
 [project.optional-dependencies]
 heather = [
-    "arpeggio",
+    "arpeggio==2.0.0",
     "pygments",
 ]
 

@@ -8,11 +8,26 @@ from __future__ import annotations
 import struct
 import sys
 from enum import Enum, auto
-from functools import lru_cache
+from functools import lru_cache, reduce
 from typing import Any, Iterable
 
 from hhat_lang.core.data.utils import has_same_paradigm, isquantum
-from hhat_lang.core.error_handlers.errors import LiteralTypeMismatchError
+from hhat_lang.core.error_handlers.errors import (
+    ArrayElemsNotSameError,
+    ArrayQuantumClassicalMixedError,
+    LiteralTypeMismatchError,
+)
+
+
+class AllNoneQuantum(Enum):
+    """
+    Class to be used when checking whether an array is either fully quantum or classical, or mixed.
+    """
+
+    AllQuantum = auto()
+    NoneQuantum = auto()
+    Mixed = auto()
+
 
 ACCEPTABLE_TYPE_VALUES: dict = {
     "int": (int,),
@@ -29,14 +44,16 @@ ACCEPTABLE_TYPE_VALUES: dict = {
 
 
 class InvalidType:
-    """It just exists to be used as 'default' instance for the ``ACCEPTABLE_VALUES`` above."""
+    """
+    It just exists to be used as 'default' class check for the ``ACCEPTABLE_TYPE_VALUES`` dict.
+    """
 
     pass
 
 
 class CompositeGroup(Enum):
     SymbolAttrs = auto()
-    Array = auto()
+    LiteralArray = auto()
 
 
 ##################
@@ -210,6 +227,18 @@ class Atomic(Symbol):
     pass
 
 
+class Pointer(Symbol):
+    """A pointer representation."""
+
+    pass
+
+
+class Reference(Symbol):
+    """A reference representation"""
+
+    pass
+
+
 ###################
 # LITERAL SECTION #
 ###################
@@ -320,12 +349,67 @@ class Literal:
         return f"{self._value}:{self._type}"
 
 
-class CompositeLiteral:
+class LiteralArray:
     """
-    Mostly to represent array of literals.
+    Represent an array of literals of the same type::
+
+        [1 2 3]
+        [0.2 2.0 200.2 2020.2]
+        ["h" "o" "i"]
     """
 
-    pass
+    _value: tuple[Literal, ...]
+    _type: Symbol | CompositeSymbol
+    _is_quantum: bool
+    _hash_value: int
+    __slots__ = ("_value", "_type", "_is_quantum", "_hash_value")
+
+    def __init__(self, value: tuple[Literal, ...]):
+        if has_same_type(value):
+
+            match all_or_none_quantum(value):
+                case AllNoneQuantum.AllQuantum:
+                    self._is_quantum = True
+
+                case AllNoneQuantum.NoneQuantum:
+                    self._is_quantum = False
+
+                case AllNoneQuantum.Mixed:
+                    sys.exit(ArrayQuantumClassicalMixedError(value)())
+
+            self._value = value
+            self._type = value[0].type
+            self._hash_value = hash(value)
+
+        else:
+            sys.exit(ArrayElemsNotSameError(value)())
+
+    @property
+    def value(self) -> tuple[Literal, ...]:
+        return self._value
+
+    @property
+    def type(self) -> Symbol | CompositeSymbol:
+        return self._type
+
+    @property
+    def is_quantum(self) -> bool:
+        return self._is_quantum
+
+    def __hash__(self) -> int:
+        return self._hash_value
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return hash(self) == hash(other)
+
+        return False
+
+    def __iter__(self) -> Iterable:
+        return iter(self._value)
+
+    def __repr__(self) -> str:
+        return f"[{' '.join(str(k) for k in self._value)}]"
 
 
 ######################################
@@ -333,7 +417,7 @@ class CompositeLiteral:
 ######################################
 
 
-class CompositeTuple:
+class ObjTuple:
     """
     Aggregate multiple data into a tuple. Data can be ``Symbol``, ``Literal``,
     ``CompositeSymbol`` and ``CompositeLiteral``. Example::
@@ -346,7 +430,7 @@ class CompositeTuple:
     as an aggregate of heterogeneous objects.
     """
 
-    pass
+    # TODO: implement it
 
 
 ##############
@@ -354,12 +438,12 @@ class CompositeTuple:
 ##############
 
 SymbolObj = Symbol | CompositeSymbol | AsArray
-LiteralObj = Literal | CompositeLiteral
-WorkingObj = Symbol | Literal
-CompositeWorkingObj = CompositeSymbol | CompositeLiteral | AsArray
+LiteralObj = Literal | LiteralArray
+SimpleObj = Symbol | Literal
+ObjArray = LiteralArray | AsArray
 
 
-def has_correct_paradigm_ordering(*obj_list: WorkingObj | CompositeWorkingObj) -> bool:
+def has_correct_paradigm_ordering(*obj_list: SimpleObj | ObjArray) -> bool:
     """
     Checks whether a tuple of ``Symbol`` or ``Literal`` has the correct paradigm ordering,
     that is: quantum can contain classical but classical cannot contain quantum. Examples::
@@ -383,3 +467,30 @@ def has_correct_paradigm_ordering(*obj_list: WorkingObj | CompositeWorkingObj) -
         _is_quantum = obj.is_quantum and _is_quantum
 
     return True
+
+
+def all_or_none_quantum(value: tuple[Symbol | Literal, ...]) -> AllNoneQuantum:
+    """
+    Check whether all elements are quantum (``AllNoneQuantum.AllQuantum``),
+    none are quantum (``AllNoneQuantum.NoneQuantum``), or mixed (``AllNoneQuantum.Mixed``).
+    """
+
+    if all(k.is_quantum for k in value):
+        return AllNoneQuantum.AllQuantum
+
+    if any(k.is_quantum for k in value):
+        return AllNoneQuantum.Mixed
+
+    return AllNoneQuantum.NoneQuantum
+
+
+def has_same_type(value: tuple[Literal, ...]) -> bool:
+    """Check elements have the same type inside a literal tuple."""
+
+    def _check_type(_new: Literal | bool, _acc: Literal | bool) -> bool:
+        if isinstance(_new, Literal) and isinstance(_acc, Literal):
+            return _acc if _new.type == _acc.type else False
+
+        return False
+
+    return reduce(_check_type, value)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from types import NoneType
 from typing import Any, Iterable
 
 from hhat_lang.core.data.core import (
@@ -40,7 +41,7 @@ def is_valid_member(datatype: BaseTypeDef, member: str | Symbol | CompositeSymbo
 # types annotation for SingleDataBin
 SingleT = Symbol | CompositeSymbol
 SingleC = tuple[Symbol | CompositeSymbol] | tuple
-SingleM = None
+SingleM = NoneType
 
 
 class SingleDataBin(BaseTypeDataBin[SingleT, SingleC, SingleM]):
@@ -49,7 +50,7 @@ class SingleDataBin(BaseTypeDataBin[SingleT, SingleC, SingleM]):
 
     def __init__(self):
         self._container = ()
-        self._lock = False
+        self._locked = False
 
     def add_member(self, type_name: SingleT, **kwargs: Any) -> SingleDataBin | ErrorHandler:
         if not self._locked:
@@ -137,7 +138,6 @@ class StructTypeDef(BaseTypeDef[StructT, StructM]):
 
     def add_member(self, type_name: StructT, member_name: StructM, **kwargs: Any) -> StructTypeDef:
         if self._num_members > 0:
-
             match res := self._container.add_member(type_name=type_name, member_name=member_name):
                 case TypeMemberAlreadyExistsError():
                     sys.exit(res(self._name, member_name))
@@ -177,7 +177,6 @@ class EnumDataBin(BaseTypeDataBin[EnumT, EnumC, EnumM]):
         self, member_name: EnumM | None, **kwargs: Any
     ) -> BaseTypeDataBin | ErrorHandler:
         if member_name not in self._container:
-
             match member_name:
                 case Symbol():
                     self._counter *= 2
@@ -210,7 +209,6 @@ class EnumTypeDef(BaseTypeDef[EnumT, StructM]):
 
     def add_member(self, member_name: M | None, **kwargs: Any) -> BaseTypeDef:
         if self._num_members > 0:
-
             match res := self._container.add_member(member_name):
                 case TypeMemberAlreadyExistsError():
                     sys.exit(res(self._name, member_name))

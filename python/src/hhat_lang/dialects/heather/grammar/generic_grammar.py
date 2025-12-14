@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from arpeggio import Kwd, OneOrMore, Optional, ZeroOrMore, RegExMatch as _
+from arpeggio import Kwd, OneOrMore, Optional, ZeroOrMore
+from arpeggio import RegExMatch as _
 
 
 def id_composite_value() -> Any:
@@ -42,10 +43,12 @@ def trait_id() -> Any:
 
 
 def composite_id() -> Any:
+    print("composite id")
     return full_id, OneOrMore(".", full_id)
 
 
 def composite_id_with_closure() -> Any:
+    print("composite id with closure")
     return (
         [full_id],
         ".",
@@ -79,6 +82,7 @@ def modifier() -> Any:
 
 
 def full_id() -> Any:
+    print("full id")
     return [composite_id, simple_id], Optional(modifier)
 
 
@@ -138,6 +142,7 @@ def comment() -> Any:
 
 
 def single_import() -> Any:
+    print("single import")
     return [composite_id_with_closure, full_id]
 
 

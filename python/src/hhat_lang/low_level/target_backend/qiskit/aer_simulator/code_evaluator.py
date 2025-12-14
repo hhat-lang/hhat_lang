@@ -10,7 +10,7 @@ from qiskit.primitives.containers.bit_array import BitArray
 from qiskit_aer import AerSimulator
 from qiskit_aer.primitives import SamplerV2 as Sampler
 
-from hhat_lang.core.data.core import Symbol, WorkingObj
+from hhat_lang.core.data.core import Symbol, SimpleObj
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
     InvalidQuantumComputedResult,
@@ -23,7 +23,7 @@ def load_qasm(code: str) -> QuantumCircuit:
 
 def sample_circuit(
     circuit: QuantumCircuit,
-    qdata: str | WorkingObj,
+    qdata: str | SimpleObj,
     metadata: dict[str, Any] | None = None,
 ) -> Any | ErrorHandler:
     """
@@ -55,7 +55,7 @@ def sample_circuit(
     return InvalidQuantumComputedResult(qdata)
 
 
-def execute_program(code: str, qdata: str | WorkingObj, debug: bool = False) -> Any | ErrorHandler:
+def execute_program(code: str, qdata: str | SimpleObj, debug: bool = False) -> Any | ErrorHandler:
     """
     Execute the quantum program from a quantum data `qdata`. First, it is passed as a
     string of code as a plain OpenQASM v2.0 code, then transformed into a qiskit's

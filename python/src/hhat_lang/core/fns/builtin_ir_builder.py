@@ -39,9 +39,7 @@ def build_ir(
     # TODO: if there is some function that depends on other references, place
     #   it in the reftable arguments below:
     ref_table = build_reftable()
-    ir_module = build_ir_module(
-        builtin_path=builtin_path, ir_module=ir_module, **kwargs
-    )
+    ir_module = build_ir_module(builtin_path=builtin_path, ir_module=ir_module, **kwargs)
     return ir(ref_table, ir_module, **kwargs)
 
 
@@ -89,6 +87,4 @@ def gen_all_builtin_modules(
     """
 
     for _path, _fn in builtin_fns_path.items():
-        gen_builtin_ir(
-            builtin_path=_path, ir_graph=ir_graph, ir_module=ir_module, ir=ir, **kwargs
-        )
+        gen_builtin_ir(builtin_path=_path, ir_graph=ir_graph, ir_module=ir_module, ir=ir, **kwargs)

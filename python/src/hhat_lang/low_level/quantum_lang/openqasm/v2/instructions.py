@@ -5,8 +5,8 @@ from typing import Any
 from hhat_lang.core.code.instructions import CInstr, QInstr, QInstrFlag
 from hhat_lang.core.code.utils import InstrStatus
 from hhat_lang.core.data.core import (
-    CompositeLiteral,
-    CompositeTuple,
+    LiteralArray,
+    ObjTuple,
     Literal,
     Symbol,
 )
@@ -54,7 +54,7 @@ class If(CInstr):
                 case Literal() | Symbol():
                     c_value = c.value
 
-                case CompositeLiteral() | CompositeTuple():
+                case LiteralArray() | ObjTuple():
                     raise NotImplementedError()
 
                 case _:
@@ -69,7 +69,7 @@ class If(CInstr):
                 case Literal() | Symbol():
                     i_value = i.value
 
-                case CompositeLiteral() | CompositeTuple():
+                case LiteralArray() | ObjTuple():
                     raise NotImplementedError()
 
                 case _:

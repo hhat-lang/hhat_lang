@@ -7,10 +7,10 @@ from hhat_lang.core.code.base import BaseFnCheck, BaseIRBlock
 from hhat_lang.core.code.ir_custom import ArgsValuesBlock
 from hhat_lang.core.data.core import (
     CompositeSymbol,
-    CompositeWorkingObj,
+    ObjArray,
     Literal,
     Symbol,
-    WorkingObj,
+    SimpleObj,
 )
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.memory.core import MemoryManager
@@ -76,7 +76,7 @@ class FnDef:
 
     @property
     @lru_cache
-    def arg_names(self) -> tuple[WorkingObj | CompositeWorkingObj, ...]:
+    def arg_names(self) -> tuple[SimpleObj | ObjArray, ...]:
         if hasattr(self._args, "args"):
             return self._args.args  # type: ignore [return-value]
 
@@ -165,7 +165,7 @@ class BuiltinFnDef:
 
     @property
     @lru_cache
-    def arg_names(self) -> tuple[WorkingObj | CompositeWorkingObj, ...]:
+    def arg_names(self) -> tuple[SimpleObj | ObjArray, ...]:
         if hasattr(self._args, "args"):
             return self._args.args  # type: ignore [return-value]
 

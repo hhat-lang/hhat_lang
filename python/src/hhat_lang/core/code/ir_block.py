@@ -11,9 +11,9 @@ from hhat_lang.core.code.base import (
     BaseIRInstr,
 )
 from hhat_lang.core.data.core import (
-    CompositeWorkingObj,
+    ObjArray,
     Literal,
-    WorkingObj,
+    SimpleObj,
 )
 
 ####################
@@ -121,15 +121,15 @@ class IRInstr(BaseIRInstr):
     """
 
     _name: IRFlag
-    args: tuple[IRBlock | WorkingObj | CompositeWorkingObj, ...] | tuple
+    args: tuple[IRBlock | SimpleObj | ObjArray, ...] | tuple
 
     def __init__(
         self,
-        *args: IRBlock | BaseIRInstr | WorkingObj | CompositeWorkingObj,
+        *args: IRBlock | BaseIRInstr | SimpleObj | ObjArray,
         name: IRFlag,
     ):
         if all(
-            isinstance(k, IRBlock | BaseIRInstr | WorkingObj | CompositeWorkingObj) for k in args
+            isinstance(k, IRBlock | BaseIRInstr | SimpleObj | ObjArray) for k in args
         ) and isinstance(name, IRFlag):
             self._name = name
             self.args = args

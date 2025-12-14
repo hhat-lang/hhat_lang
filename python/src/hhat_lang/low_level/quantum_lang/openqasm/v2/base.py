@@ -10,8 +10,8 @@ from hhat_lang.core.code.instructions import (
 )
 from hhat_lang.core.code.utils import InstrStatus
 from hhat_lang.core.data.core import (
-    CompositeLiteral,
-    CompositeTuple,
+    LiteralArray,
+    ObjTuple,
     CompositeSymbol,
     Literal,
     Symbol,
@@ -138,11 +138,11 @@ class LowLeveQLang:
                     # TODO: implement it
                     raise NotImplementedError()
 
-                case CompositeLiteral():
+                case LiteralArray():
                     # TODO: implement it
                     raise NotImplementedError()
 
-                case CompositeTuple():
+                case ObjTuple():
                     # TODO: implement it
                     raise NotImplementedError()
 
@@ -186,11 +186,11 @@ class LowLeveQLang:
                     # TODO: implement it
                     raise NotImplementedError()
 
-                case CompositeLiteral():
+                case LiteralArray():
                     # TODO: implement it
                     raise NotImplementedError()
 
-                case CompositeTuple():
+                case ObjTuple():
                     # TODO: implement it
                     raise NotImplementedError()
 

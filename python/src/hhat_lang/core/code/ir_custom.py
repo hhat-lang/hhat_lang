@@ -7,9 +7,9 @@ from hhat_lang.core.code.ir_block import (
 )
 from hhat_lang.core.data.core import (
     CompositeSymbol,
-    CompositeWorkingObj,
+    ObjArray,
     Symbol,
-    WorkingObj,
+    SimpleObj,
 )
 
 
@@ -23,13 +23,13 @@ class ArgsValuesBlock(IRBlock):
         ]
         | tuple
     )
-    values: tuple[WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr, ...] | tuple
+    values: tuple[SimpleObj | ObjArray | IRBlock | BaseIRInstr, ...] | tuple
 
     def __init__(
         self,
         *args: tuple[
             Symbol | ModifierBlock,
-            WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr,
+            SimpleObj | ObjArray | IRBlock | BaseIRInstr,
         ],
     ):
         self.args = ()
@@ -47,7 +47,7 @@ class ArgsValuesBlock(IRBlock):
                     raise ValueError("args values block's args must be symbol or modifier block ")
 
             match k[1]:
-                case WorkingObj() | CompositeWorkingObj() | IRBlock() | BaseIRInstr():
+                case SimpleObj() | ObjArray() | IRBlock() | BaseIRInstr():
                     self.values += (k[1],)
 
                 case _:
@@ -82,12 +82,10 @@ class BodyBlock(IRBlock):
 class ReturnBlock(IRBlock):
     _name = IRBlockFlag.RETURN
 
-    args: tuple[WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr, ...]
+    args: tuple[SimpleObj | ObjArray | IRBlock | BaseIRInstr, ...]
 
-    def __init__(self, *args: WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr):
-        if all(
-            isinstance(k, WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr) for k in args
-        ):
+    def __init__(self, *args: SimpleObj | ObjArray | IRBlock | BaseIRInstr):
+        if all(isinstance(k, SimpleObj | ObjArray | IRBlock | BaseIRInstr) for k in args):
             self.args = args
 
         else:
@@ -147,12 +145,10 @@ class ModifierArgsBlock(IRBlock):
 class ArgsBlock(IRBlock):
     _name = IRBlockFlag.ARGS
 
-    args: tuple[WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr, ...] | tuple
+    args: tuple[SimpleObj | ObjArray | IRBlock | BaseIRInstr, ...] | tuple
 
-    def __init__(self, *args: WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr):
-        if all(
-            isinstance(k, WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr) for k in args
-        ):
+    def __init__(self, *args: SimpleObj | ObjArray | IRBlock | BaseIRInstr):
+        if all(isinstance(k, SimpleObj | ObjArray | IRBlock | BaseIRInstr) for k in args):
             self.args = args
 
         else:
@@ -169,7 +165,7 @@ class OptionBlock(IRBlock):
 
     args: (  # type: ignore [assignment]
         tuple[
-            tuple[WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr, ...],
+            tuple[SimpleObj | ObjArray | IRBlock | BaseIRInstr, ...],
             IRBlock | BaseIRInstr,
         ]
         | tuple
@@ -177,23 +173,23 @@ class OptionBlock(IRBlock):
 
     def __init__(
         self,
-        option: WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr,
+        option: SimpleObj | ObjArray | IRBlock | BaseIRInstr,
         block: IRBlock | BaseIRInstr,
     ):
-        if isinstance(
-            option, WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr
-        ) and isinstance(block, WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr):
+        if isinstance(option, SimpleObj | ObjArray | IRBlock | BaseIRInstr) and isinstance(
+            block, SimpleObj | ObjArray | IRBlock | BaseIRInstr
+        ):
             self.args = (option, block)
 
         else:
             raise ValueError(f"option ({type(option)}) or block ({type(block)}) is of wrong type.")
 
     @property
-    def option(self) -> WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr:
+    def option(self) -> SimpleObj | ObjArray | IRBlock | BaseIRInstr:
         return self.args[0]
 
     @property
-    def block(self) -> WorkingObj | CompositeWorkingObj | IRBlock | BaseIRInstr:
+    def block(self) -> SimpleObj | ObjArray | IRBlock | BaseIRInstr:
         return self.args[1]
 
     def __repr__(self) -> str:

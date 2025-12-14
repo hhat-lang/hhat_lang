@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from typing import Any, Hashable, Iterator, TypeVar
 from uuid import NAMESPACE_OID
 
-from hhat_lang.core.data.core import CompositeSymbol, Symbol, WorkingObj
+from hhat_lang.core.data.core import CompositeSymbol, Symbol, SimpleObj
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 
 
@@ -26,13 +26,13 @@ class SymbolOrdered[Key, Value](Mapping):
     as ``SingleTypeDef``, ``StructTypeDef``, etc.
     """
 
-    _data: OrderedDict[WorkingObj | Symbol | CompositeSymbol | int, Any]
+    _data: OrderedDict[SimpleObj | Symbol | CompositeSymbol | int, Any]
 
     def __init__(self, data: dict | OrderedDict | None = None):
         self._data = OrderedDict() if data is None else OrderedDict(data)
 
     def __setitem__(
-        self, key: int | str | WorkingObj | Symbol | CompositeSymbol, value: Any
+        self, key: int | str | SimpleObj | Symbol | CompositeSymbol, value: Any
     ) -> None:
         if isinstance(key, str):
             self._data[Symbol(key)] = value
@@ -40,7 +40,7 @@ class SymbolOrdered[Key, Value](Mapping):
         elif isinstance(key, (Symbol, CompositeSymbol)):
             self._data[key] = value
 
-        elif isinstance(key, WorkingObj):
+        elif isinstance(key, SimpleObj):
             self._data[key] = value
 
         elif isinstance(key, int):
@@ -49,14 +49,14 @@ class SymbolOrdered[Key, Value](Mapping):
         else:
             raise ValueError(f"{key} ({type(key)}) is not valid key for data structures.")
 
-    def __getitem__(self, key: int | str | WorkingObj | Symbol | CompositeSymbol) -> Any:
+    def __getitem__(self, key: int | str | SimpleObj | Symbol | CompositeSymbol) -> Any:
         if isinstance(key, str):
             return self._data[Symbol(key)]
 
         if isinstance(key, (Symbol, CompositeSymbol)):
             return self._data[key]
 
-        if isinstance(key, WorkingObj):
+        if isinstance(key, SimpleObj):
             return self._data[key]
 
         if isinstance(key, int):

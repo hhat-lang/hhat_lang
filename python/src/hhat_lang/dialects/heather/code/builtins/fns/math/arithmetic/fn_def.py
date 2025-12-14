@@ -25,9 +25,7 @@ from hhat_lang.dialects.heather.code.builtins.fns.math.arithmetic import (
 
 def _add_res(*args: Literal, mem: MemoryManager) -> str:
     if len(args) >= 2:
-        return str(
-            reduce(lambda x, y: x + float(y.value), args[1:], float(args[0].value))
-        )
+        return str(reduce(lambda x, y: x + float(y.value), args[1:], float(args[0].value)))
 
     sys.exit(
         FunctionExecutionError(
@@ -86,9 +84,7 @@ def builtin_fn_int_float_add(*args: Literal, mem: MemoryManager) -> Literal:
 
 def _sub_res(*args: Literal, mem: MemoryManager) -> str:
     if len(args) >= 2:
-        return str(
-            reduce(lambda x, y: x - float(y.value), args[1:], float(args[0].value))
-        )
+        return str(reduce(lambda x, y: x - float(y.value), args[1:], float(args[0].value)))
 
     sys.exit(
         FunctionExecutionError(
@@ -146,9 +142,7 @@ def builtin_fn_int_float_sub(*args: Literal, mem: MemoryManager) -> Any:
 
 def _mul_res(*args: Literal, mem: MemoryManager) -> str:
     if len(args) >= 2:
-        return str(
-            reduce(lambda x, y: x * float(y.value), args[1:], float(args[0].value))
-        )
+        return str(reduce(lambda x, y: x * float(y.value), args[1:], float(args[0].value)))
 
     sys.exit(
         FunctionExecutionError(
@@ -206,9 +200,7 @@ def builtin_fn_int_float_mul(*args: Any, mem: MemoryManager) -> Literal:
 
 def _div_res(*args: Literal, mem: MemoryManager) -> str:
     if len(args) >= 2:
-        return str(
-            reduce(lambda x, y: x / float(y.value), args[1:], float(args[0].value))
-        )
+        return str(reduce(lambda x, y: x / float(y.value), args[1:], float(args[0].value)))
 
     sys.exit(
         FunctionExecutionError(
@@ -312,9 +304,7 @@ def builtin_fn_float_pow(base: Literal, power: Literal, mem: MemoryManager) -> L
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_int_float_pow(
-    base: Literal, power: Literal, mem: MemoryManager
-) -> Literal:
+def builtin_fn_int_float_pow(base: Literal, power: Literal, mem: MemoryManager) -> Literal:
     return Literal(str(int(base.value) ** float(power.value)), lit_type="float")
 
 
@@ -327,7 +317,5 @@ def builtin_fn_int_float_pow(
     ),
     fn_path=ARITHMETIC_MODULE_PATH,
 )
-def builtin_fn_float_int_pow(
-    base: Literal, power: Literal, mem: MemoryManager
-) -> Literal:
+def builtin_fn_float_int_pow(base: Literal, power: Literal, mem: MemoryManager) -> Literal:
     return Literal(str(float(base.value) ** int(power.value)), lit_type="float")

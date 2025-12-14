@@ -81,9 +81,7 @@ class BuiltinStructTypeDef(BaseTypeDef[StructT, StructM]):
         self._container = StructDataBin()
         self.set_sizes(size, qsize)
 
-    def add_member(
-        self, type_name: StructT, member_name: StructM, **kwargs: Any
-    ) -> BaseTypeDef:
+    def add_member(self, type_name: StructT, member_name: StructM, **kwargs: Any) -> BaseTypeDef:
         self._container.add_member(type_name=type_name, member_name=member_name)
         return self
 

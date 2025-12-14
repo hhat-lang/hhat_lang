@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 from pathlib import Path
-from typing import Callable, Iterable, cast
+from typing import Callable, Iterable
 
 from arpeggio import ParserPython
 from arpeggio.cleanpeg import ParserPEG
@@ -226,9 +226,7 @@ class FnImporter(BaseImporter):
 
         module_path = Path(*dir_name) / (file_name + ".hat")
         if module_path in builtin_fns_path:
-            return tuple(
-                (fn.fn_check, module_path) for fn in builtin_fns_path[module_path]
-            )
+            return tuple((fn.fn_check, module_path) for fn in builtin_fns_path[module_path])
 
         module_path = self._get_module_path(*dir_name, file_name)
         if module_path not in ir_graph:

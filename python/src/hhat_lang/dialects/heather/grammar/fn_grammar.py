@@ -27,10 +27,12 @@ from hhat_lang.dialects.heather.grammar.type_grammar import typeimport
 
 
 def fn_program() -> Any:
+    print("start fn program")
     return ZeroOrMore(imports), ZeroOrMore(fns), Optional(main), EOF
 
 
 def imports() -> Any:
+    print("importing")
     return (
         Kwd("use"),
         "(",

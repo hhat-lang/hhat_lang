@@ -12,6 +12,7 @@ import pytest
 
 from hhat_lang.core.code.abstract import IRHash
 from hhat_lang.core.code.ir_graph import IRGraph
+from hhat_lang.core.code.utils import get_hash
 from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
 from hhat_lang.dialects.heather.parsing.ir_visitor import parse, parser_grammar_code
 from hhat_lang.toolchain.project.new import (
@@ -177,19 +178,31 @@ def test_parse_type_ir(
             main_node = ir_graph.nodes[IRHash(project_main_file)]
             assert ir_graph.nodes[ir_graph.main_node] == main_node
 
-            # # uncomment below for prints of the raw code and the IR graph
-            # print(f"\nnum nodes in the graph: {len(ir_graph.nodes)}")
-            # print(
-            #     f"main node has hash {ir_graph.main_node} and is on position"
-            #     f"{get_hash(hash(ir_graph.main_node), ir_graph.nodes.phf)}"
-            # )
-            # print(f"[!] code:\n{code}\n")
-            # print(f"\nir graph:\n{ir_graph}")
+            # uncomment below for prints of the raw code and the IR graph
+            print(f"\nnum nodes in the graph: {len(ir_graph.nodes)}")
+            print(
+                f"main node has hash {ir_graph.main_node} and is on position"
+                f"{get_hash(hash(ir_graph.main_node), ir_graph.nodes.phf)}"
+            )
+            print(f"[!] code:\n{code}\n")
+            print(f"\nir graph:\n{ir_graph}")
+            1 / 0
 
-        finally:
+        except Exception as e:
+            print(e)
+            raise Exception(e)
+
+        else:
             pass
 
-    finally:
+    except FileExistsError:
+        shutil.rmtree(project_root)
+
+    except Exception as e:
+        print(e)
+        raise Exception(e)
+
+    else:
         # # comment the line below to avoid deleting the folder with the project;
         # # useful for debugging possible project toolchain-related errors
         # shutil.rmtree(project_root)

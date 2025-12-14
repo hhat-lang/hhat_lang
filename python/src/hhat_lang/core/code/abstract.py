@@ -101,9 +101,7 @@ class BaseIRModule(ABC):
 
         return False
 
-    def __contains__(
-        self, item: Symbol | CompositeSymbol | BaseFnCheck | Path | Any
-    ) -> bool:
+    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck | Path | Any) -> bool:
         return item in self._symbol_table.type or item in self._symbol_table.fn
 
     @abstractmethod
@@ -151,9 +149,7 @@ class RefTypeTable:
         self._table = dict()
 
     def add_ref(self, type_name: Symbol | CompositeSymbol, ir_path: Path) -> None:
-        if isinstance(type_name, Symbol | CompositeSymbol) and isinstance(
-            ir_path, Path
-        ):
+        if isinstance(type_name, Symbol | CompositeSymbol) and isinstance(ir_path, Path):
             self._table[type_name] = IRHash(ir_path)
 
         else:
@@ -244,9 +240,7 @@ class RefTable:
     _fns: RefFnTable
     __slots__ = ("_types", "_fns")
 
-    def __init__(
-        self, *, type_ref: RefTypeTable | None = None, fn_ref: RefFnTable | None = None
-    ):
+    def __init__(self, *, type_ref: RefTypeTable | None = None, fn_ref: RefFnTable | None = None):
         self._types = type_ref or RefTypeTable()
         self._fns = fn_ref or RefFnTable()
 

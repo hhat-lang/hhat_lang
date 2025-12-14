@@ -62,9 +62,7 @@ class IRNode:
 
         return False
 
-    def __contains__(
-        self, item: Symbol | CompositeSymbol | BaseFnCheck | Path | Any
-    ) -> bool:
+    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck | Path | Any) -> bool:
         return item in self._ir.module or item == self._path
 
     def __repr__(self) -> str:
@@ -81,11 +79,7 @@ class NodeSet:
     _phf: ResultPHF | None
 
     def __init__(self, *data: IRNode, phf: ResultPHF | None = None):
-        if (
-            all(isinstance(k, IRNode) for k in data)
-            and isinstance(phf, ResultPHF)
-            or phf is None
-        ):
+        if all(isinstance(k, IRNode) for k in data) and isinstance(phf, ResultPHF) or phf is None:
             self._data = data
             self._phf = phf
 
@@ -105,9 +99,7 @@ class NodeSet:
 
     def __contains__(
         self,
-        item: (
-            IRHash | IRNode | Path | tuple[Path, Symbol | CompositeSymbol | BaseFnCheck]
-        ),
+        item: (IRHash | IRNode | Path | tuple[Path, Symbol | CompositeSymbol | BaseFnCheck]),
     ) -> bool:
         match item:
             case IRNode():
@@ -280,7 +272,6 @@ class IRGraph:
     def __repr__(self) -> str:
         max_n = str(len(self.nodes))
         txt = "".join(
-            f"\nN#{'0' * (len(max_n) - len(str(n)))}{n}{k.ir}"
-            for n, k in enumerate(self.nodes)
+            f"\nN#{'0' * (len(max_n) - len(str(n)))}{n}{k.ir}" for n, k in enumerate(self.nodes)
         )
         return f"==============\n=*=IR GRAPH=*=\n==============\n{txt}\n"

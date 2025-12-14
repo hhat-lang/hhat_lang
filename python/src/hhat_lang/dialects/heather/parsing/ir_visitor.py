@@ -16,16 +16,31 @@ from arpeggio import (
 )
 
 from hhat_lang.core.code.base import BaseFnCheck
+from hhat_lang.core.code.ir_block import (
+    IRBlock,
+    IRInstr,
+)
+from hhat_lang.core.code.ir_custom import (
+    ArgsBlock,
+    ArgsValuesBlock,
+    BodyBlock,
+    ModifierArgsBlock,
+    ModifierBlock,
+    OptionBlock,
+    ReturnBlock,
+)
 from hhat_lang.core.code.ir_graph import IRGraph
 from hhat_lang.core.data.core import (
-    CompositeLiteral,
     CompositeSymbol,
-    CompositeWorkingObj,
     Literal,
+    LiteralArray,
+    ObjArray,
+    Pointer,
+    Reference,
+    SimpleObj,
     Symbol,
-    WorkingObj,
 )
-from hhat_lang.core.data.fn_def import FnDef, BuiltinFnDef
+from hhat_lang.core.data.fn_def import BuiltinFnDef, FnDef
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.core.imports import TypeImporter
 from hhat_lang.core.imports.importer import FnImporter
@@ -40,19 +55,6 @@ from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
     DeclareAssignInstr,
     DeclareInstr,
 )
-from hhat_lang.core.code.ir_block import (
-    IRBlock,
-    IRInstr,
-)
-from hhat_lang.core.code.ir_custom import (
-    ArgsValuesBlock,
-    BodyBlock,
-    ReturnBlock,
-    ModifierBlock,
-    ModifierArgsBlock,
-    ArgsBlock,
-    OptionBlock,
-)
 from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir_builder import build_ir
 from hhat_lang.dialects.heather.grammar import WHITESPACE
 from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
@@ -60,8 +62,6 @@ from hhat_lang.dialects.heather.grammar.generic_grammar import comment
 from hhat_lang.dialects.heather.grammar.type_grammar import type_program
 from hhat_lang.dialects.heather.parsing.utils import FnsDict, ImportDicts, TypesDict
 
-#########################
-# PARSING WITH PEG FILE #
 #########################
 
 
@@ -436,7 +436,7 @@ class ParserIRVisitor(PTNodeVisitor):
         self, _: NonTerminal, child: SemanticActionResults
     ) -> ArgsBlock | ArgsValuesBlock:
         argsvalues: tuple[ArgsValuesBlock, ...] | tuple = ()
-        args: tuple[WorkingObj | CompositeWorkingObj | IRInstr | ModifierBlock] | tuple = ()
+        args: tuple[SimpleObj | ObjArray | IRInstr | ModifierBlock] | tuple = ()
 
         for k in child:
             match k:
@@ -446,7 +446,7 @@ class ParserIRVisitor(PTNodeVisitor):
                 case IRInstr() | ModifierBlock():
                     args += (k,)
 
-                case WorkingObj() | CompositeWorkingObj():
+                case SimpleObj() | ObjArray():
                     args += (k,)
 
                 case _:
@@ -471,9 +471,7 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_callargs(self, _: NonTerminal, child: SemanticActionResults) -> ArgsValuesBlock:
         return ArgsValuesBlock((child[0], child[1]))
 
-    def visit_valonly(
-        self, _: NonTerminal, child: SemanticActionResults
-    ) -> WorkingObj | CompositeWorkingObj:
+    def visit_valonly(self, _: NonTerminal, child: SemanticActionResults) -> SimpleObj | ObjArray:
         return child[0]
 
     def visit_option(self, _: NonTerminal, child: SemanticActionResults) -> OptionBlock:
@@ -592,125 +590,122 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_modifier(self, _: NonTerminal, child: SemanticActionResults) -> ModifierArgsBlock:
         return ModifierArgsBlock(tuple(k for k in child))
 
-    def visit_array(self, _: NonTerminal, child: SemanticActionResults) -> CompositeWorkingObj:
+    def visit_array(self, _: NonTerminal, child: SemanticActionResults) -> ObjArray:
         raise NotImplementedError("array not implemented yet")
 
     def visit_composite_id(self, _: NonTerminal, child: SemanticActionResults) -> CompositeSymbol:
-        print(f"{type(child)} | {child}")
-        return CompositeSymbol(value=_resolve_data_to_str(child))
+        return CompositeSymbol(value=_resolve_data_to_symbol(child))
 
     def visit_simple_id(self, node: Terminal, _: None) -> Symbol:
         return Symbol(value=node.value)
 
     def visit_ref(self, node: Terminal, _: None) -> Symbol:
-        return Symbol(value=node.value, symbol_type="`ref")
+        return Reference(value=node.value)
 
     def visit_pointer(self, node: Terminal, _: None) -> Symbol:
-        return Symbol(value=node.value, symbol_type="`pointer")
+        return Pointer(value=node.value)
 
-    def visit_literal(
-        self, _: NonTerminal, child: SemanticActionResults
-    ) -> Literal | CompositeLiteral:
+    def visit_literal(self, _: NonTerminal, child: SemanticActionResults) -> Literal | LiteralArray:
         if len(child) == 1:
             return child[0]
 
         if len(child) == 2:
             if isinstance(child[0], Literal) and isinstance(child[1], Symbol | CompositeSymbol):
-                return Literal(value=child[0].value, lit_type=child[1].value)
+                return Literal(value=child[0].value, lit_type=child[1])
 
         raise ValueError(f"unknown literal {child}")
 
-    def visit_complex(self, _: NonTerminal, child: SemanticActionResults) -> CompositeLiteral:
+    def visit_complex(self, _: NonTerminal, child: SemanticActionResults) -> LiteralArray:
         raise NotImplementedError("complex type not implemented yet")
 
     def visit_t_null(self, node: Terminal, _: None) -> Literal:
-        return Literal(value=node.value, lit_type="null")
+        return Literal(value=node.value, lit_type=Symbol("null"))
 
     def visit_t_bool(self, node: Terminal, _: None) -> Literal:
-        return Literal(value=node.value, lit_type="bool")
+        return Literal(value=node.value, lit_type=Symbol("bool"))
 
     def visit_t_str(self, node: NonTerminal, _: None) -> Literal:
-        return Literal(value=node.value, lit_type="str")
+        return Literal(value=node.value, lit_type=Symbol("str"))
 
     def visit_t_int(self, node: Terminal, _: None) -> Literal:
-        return Literal(value=node.value, lit_type="int")
+        return Literal(value=node.value, lit_type=Symbol("int"))
 
     def visit_t_float(self, node: Terminal, _: None) -> Literal:
-        return Literal(value=node.value, lit_type="float")
+        return Literal(value=node.value, lit_type=Symbol("float"))
 
     def visit_t_imag(self, node: Terminal, _: None) -> Literal:
-        return Literal(value=node.value, lit_type="imag")
+        return Literal(value=node.value, lit_type=Symbol("imag"))
 
     def visit_qt_bool(self, node: Terminal, _: None) -> Literal:
-        return Literal(value=node.value, lit_type="@bool")
+        return Literal(value=node.value, lit_type=Symbol("@bool"))
 
     def visit_qt_int(self, node: Terminal, _: None) -> Literal:
-        return Literal(value=node.value, lit_type="@int")
+        return Literal(value=node.value, lit_type=Symbol("@int"))
 
 
-def _resolve_data_to_str(
-    data: SemanticActionResults | tuple | WorkingObj | ModifierBlock | CompositeWorkingObj | str,
+def _resolve_data_to_symbol(
+    data: SemanticActionResults | tuple | SimpleObj | ModifierBlock | ObjArray | str,
 ) -> tuple | tuple[str, ...]:
     match data:
-        case WorkingObj():
-            return (data.value,)
+        case SimpleObj():
+            return (data,)
 
-        case CompositeWorkingObj():
-            return _resolve_data_to_str(data.value)
+        case ObjArray():
+            return _resolve_data_to_symbol(data.value)
 
         case ModifierBlock():
             return (data,)
 
         case SemanticActionResults() | tuple():
-            pure_data: tuple | tuple[str, ...] = ()
+            pure_data: tuple | tuple[Symbol, ...] = ()
 
             for k in data:
                 match k:
-                    case WorkingObj():
-                        pure_data += (k.value,)
-
-                    case str():
+                    case SimpleObj():
                         pure_data += (k,)
 
-                    case CompositeWorkingObj():
+                    # case str():
+                    #     pure_data += (k,)
+
+                    case ObjArray():
                         pure_data += k.value
 
             return pure_data
 
-        case str():
-            return (data,)
+        # case str():
+        #     return (data,)
 
         case _:
             raise NotImplementedError()
 
 
 def _flatten_recursive_closure(
-    data: SemanticActionResults | tuple[str | Symbol | CompositeSymbol | list | tuple, ...],
+    data: SemanticActionResults | tuple[Symbol | CompositeSymbol | list | tuple, ...],
 ) -> tuple | tuple[CompositeSymbol, ...]:
     members: tuple | tuple[CompositeSymbol, ...] = ()
-    parent: str | WorkingObj | CompositeWorkingObj | None = None
+    parent: SimpleObj | ObjArray | None = None
     composite_members: tuple[CompositeSymbol, ...] | tuple = ()
 
     for n, k in enumerate(data):
         if n == 0:
             if isinstance(k, Symbol):
-                parent = k.value
-                continue
-            elif isinstance(k, str):
                 parent = k
                 continue
+            # elif isinstance(k, str):
+            #     parent = k
+            #     continue
 
         if isinstance(k, SemanticActionResults | tuple):
             members += _flatten_recursive_closure(k)
 
         else:
-            members += (_resolve_data_to_str(k),)
+            members += (_resolve_data_to_symbol(k),)
 
     if parent is None:
         return members
 
     for k in members:
-        composite_members += (CompositeSymbol(_resolve_data_to_str(parent) + k),)  # type: ignore [operator]
+        composite_members += (CompositeSymbol(_resolve_data_to_symbol(parent) + k),)  # type: ignore [operator]
 
     return composite_members
 

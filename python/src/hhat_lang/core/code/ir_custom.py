@@ -7,9 +7,11 @@ from hhat_lang.core.code.ir_block import (
 )
 from hhat_lang.core.data.core import (
     CompositeSymbol,
+    Literal,
+    LiteralArray,
     ObjArray,
-    Symbol,
     SimpleObj,
+    Symbol,
 )
 
 
@@ -29,7 +31,7 @@ class ArgsValuesBlock(IRBlock):
         self,
         *args: tuple[
             Symbol | ModifierBlock,
-            SimpleObj | ObjArray | IRBlock | BaseIRInstr,
+            CompositeSymbol | Literal | LiteralArray | IRBlock | BaseIRInstr,
         ],
     ):
         self.args = ()
@@ -47,12 +49,19 @@ class ArgsValuesBlock(IRBlock):
                     raise ValueError("args values block's args must be symbol or modifier block ")
 
             match k[1]:
-                case SimpleObj() | ObjArray() | IRBlock() | BaseIRInstr():
+                case (
+                    Symbol()
+                    | CompositeSymbol()
+                    | Literal()
+                    | LiteralArray()
+                    | IRBlock()
+                    | BaseIRInstr()
+                ):
                     self.values += (k[1],)
 
                 case _:
                     raise ValueError(
-                        "args values block's values must be symbol, literal, ir block or ir instr"
+                        f"args values block's values must be symbol, literal, ir block or ir instr {k[1]} {type(k[1])}"
                     )
 
     def __repr__(self) -> str:
@@ -145,9 +154,9 @@ class ModifierArgsBlock(IRBlock):
 class ArgsBlock(IRBlock):
     _name = IRBlockFlag.ARGS
 
-    args: tuple[SimpleObj | ObjArray | IRBlock | BaseIRInstr, ...] | tuple
+    args: tuple[SimpleObj | ObjArray | ArgsValuesBlock | IRBlock | BaseIRInstr, ...] | tuple
 
-    def __init__(self, *args: SimpleObj | ObjArray | IRBlock | BaseIRInstr):
+    def __init__(self, *args: SimpleObj | ObjArray | ArgsValuesBlock | IRBlock | BaseIRInstr):
         if all(isinstance(k, SimpleObj | ObjArray | IRBlock | BaseIRInstr) for k in args):
             self.args = args
 

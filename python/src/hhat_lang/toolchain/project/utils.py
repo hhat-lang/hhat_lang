@@ -7,8 +7,8 @@ def str_to_path(obj: str | Path) -> Path:
     return obj if isinstance(obj, Path) else Path(obj).resolve()
 
 
-def get_proj_dir() -> Path:
-    current = Path().absolute()
+def get_proj_dir(path: Path | None = None) -> Path:
+    current = path or Path().absolute()
     while current != current.parent:
         if (current / "src" / "main.hat").exists():
             return current

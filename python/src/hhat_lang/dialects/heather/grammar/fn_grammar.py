@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from arpeggio import Kwd, EOF, OneOrMore, Optional, ZeroOrMore
+from arpeggio import EOF, Kwd, OneOrMore, Optional, ZeroOrMore
 
 from hhat_lang.dialects.heather.grammar.generic_grammar import (
     assign,
     assign_ds,
     assignargs,
     body,
+    const_import,
     declare,
     declareassign,
     declareassign_ds,
@@ -16,23 +17,20 @@ from hhat_lang.dialects.heather.grammar.generic_grammar import (
     full_id,
     id_composite_value,
     many_import,
-    simple_id,
-    single_import,
-    const_import,
     metafn_import,
     metamod_import,
     option,
+    simple_id,
+    single_import,
 )
 from hhat_lang.dialects.heather.grammar.type_grammar import typeimport
 
 
 def fn_program() -> Any:
-    print("start fn program")
     return ZeroOrMore(imports), ZeroOrMore(fns), Optional(main), EOF
 
 
 def imports() -> Any:
-    print("importing")
     return (
         Kwd("use"),
         "(",

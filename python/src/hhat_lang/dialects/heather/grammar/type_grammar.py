@@ -14,7 +14,7 @@ from hhat_lang.dialects.heather.grammar.generic_grammar import (
 
 
 def type_program() -> Any:
-    return (ZeroOrMore(imports), ZeroOrMore(type_file), EOF)
+    return ZeroOrMore(imports), ZeroOrMore(type_file), EOF
 
 
 def imports() -> Any:
@@ -22,7 +22,6 @@ def imports() -> Any:
 
 
 def typeimport() -> Any:
-    print("type import")
     return Kwd("type"), ":", [single_import, many_import]
 
 

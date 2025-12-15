@@ -93,11 +93,11 @@ class BaseImporter(ABC):
             importer_name = parts[0]
 
         else:
-            dirs = parts[:-2]
-            file_name = parts[-2]
+            dirs = tuple(k.value for k in parts[:-2])
+            file_name = parts[-2].value
             importer_name = parts[-1]
 
-        return dirs, file_name, Symbol(importer_name)
+        return dirs, file_name, importer_name
 
     def _get_module_path(self, *path: Path | str) -> Path:
         if len(path) == 1 and path == Path("core.hat"):
@@ -220,6 +220,8 @@ class FnImporter(BaseImporter):
         #   - for external functions:
         #       - core functions should be at "project/src/.hat_core/core.hat"
         #       - other modules, such as 'math', like "project/stc/.hat_std/math/other_file.hat"
+        #   - built-in functions, types, etc should be only imported as the last step when
+        #       building the ir graph
 
         module_path: Path
         dir_name, file_name, fn_name = self._path_parts(name)

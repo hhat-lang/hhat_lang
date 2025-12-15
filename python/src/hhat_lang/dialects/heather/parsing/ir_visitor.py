@@ -14,6 +14,7 @@ from arpeggio import (
     Terminal,
     visit_parse_tree,
 )
+from typing_extensions import deprecated
 
 from hhat_lang.core.code.base import BaseFnCheck
 from hhat_lang.core.code.ir_block import (
@@ -260,7 +261,7 @@ class ParserIRVisitor(PTNodeVisitor):
         #  for now, just check if it's built-in.
 
         btype = builtins_types[child[1]]
-        single = SingleTypeDef(name=child[0], size=btype.size, qsize=btype.qsize)
+        single = SingleTypeDef(name=child[0])
         return single.add_member(btype)
 
     def visit_typemember(
@@ -273,16 +274,11 @@ class ParserIRVisitor(PTNodeVisitor):
         return member_type, member_name
 
     def visit_typestruct(self, _: NonTerminal, child: SemanticActionResults) -> BaseTypeDef:
-        size, qsize = _fetch_struct_size_qsize(child[1:])
-        struct = StructTypeDef(name=child[0], size=size, qsize=qsize)
+        struct = StructTypeDef(name=child[0], num_members=len(child[1:]))
 
         # second, populate struct
         for t, m in child[1:]:
-            if isinstance(t, BaseTypeDef):
-                struct.add_member(t, m)
-
-            else:
-                struct.add_tmp_member(t, m)
+            struct.add_member(t, m)
 
         return struct
 
@@ -296,8 +292,7 @@ class ParserIRVisitor(PTNodeVisitor):
         return child[0]
 
     def visit_typeenum(self, _: NonTerminal, child: SemanticActionResults) -> BaseTypeDef:
-        size, qsize = _fetch_enum_size_qsize(child[1:])
-        enum_ds = EnumTypeDef(name=child[0], size=size, qsize=qsize)
+        enum_ds = EnumTypeDef(name=child[0], num_members=len(child[1:]))
 
         for member in child[1:]:
             enum_ds.add_member(member)
@@ -446,7 +441,7 @@ class ParserIRVisitor(PTNodeVisitor):
                 case IRInstr() | ModifierBlock():
                     args += (k,)
 
-                case SimpleObj() | ObjArray():
+                case Symbol() | CompositeSymbol() | Literal() | LiteralArray():
                     args += (k,)
 
                 case _:
@@ -574,7 +569,45 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_composite_id_with_closure(
         self, _: NonTerminal, child: SemanticActionResults
     ) -> tuple[CompositeSymbol, ...] | tuple:
-        return _flatten_recursive_closure(child)
+        _root: tuple[Symbol, ...] = ()
+
+        match parent_id := child[0]:
+            case Symbol():
+                _root = (parent_id,)
+
+            case CompositeSymbol():
+                _root = parent_id.value
+
+            case _:
+                raise ValueError(
+                    f"something went wrong on composite id with closure {parent_id} ({type(parent_id)})"
+                )
+
+        def _compose_id_group(
+            data: Symbol | tuple | list | CompositeSymbol,
+        ) -> tuple[tuple[Symbol, ...], ...]:
+            ids = ()
+
+            for p in data:
+
+                match p:
+                    case Symbol():
+                        ids += ((p,),)
+
+                    case CompositeSymbol():
+                        ids += (p.value,)
+
+                    case tuple() | list():
+                        ids += _compose_id_group(p)
+
+                    case _:
+                        raise ValueError(f"unexpected composite id children {p} ({type(p)})")
+
+            return ids
+
+        res: tuple[tuple[Symbol, ...], ...] = _compose_id_group(child[1:])
+        final_ids: tuple[CompositeSymbol, ...] = tuple(CompositeSymbol(_root + k) for k in res)
+        return final_ids
 
     def visit_full_id(
         self, _: NonTerminal, child: SemanticActionResults
@@ -644,13 +677,18 @@ class ParserIRVisitor(PTNodeVisitor):
 
 
 def _resolve_data_to_symbol(
-    data: SemanticActionResults | tuple | SimpleObj | ModifierBlock | ObjArray | str,
-) -> tuple | tuple[str, ...]:
+    data: (
+        SemanticActionResults | tuple | SimpleObj | CompositeSymbol | ModifierBlock | ObjArray | str
+    ),
+) -> tuple | tuple[Symbol | CompositeSymbol, ...]:
     match data:
-        case SimpleObj():
+        case Symbol() | CompositeSymbol():
             return (data,)
 
-        case ObjArray():
+        case Literal():
+            return (data.type,)
+
+        case LiteralArray():
             return _resolve_data_to_symbol(data.value)
 
         case ModifierBlock():
@@ -661,13 +699,13 @@ def _resolve_data_to_symbol(
 
             for k in data:
                 match k:
-                    case SimpleObj():
+                    case Symbol() | CompositeSymbol():
                         pure_data += (k,)
 
                     # case str():
                     #     pure_data += (k,)
 
-                    case ObjArray():
+                    case LiteralArray():
                         pure_data += k.value
 
             return pure_data
@@ -679,37 +717,7 @@ def _resolve_data_to_symbol(
             raise NotImplementedError()
 
 
-def _flatten_recursive_closure(
-    data: SemanticActionResults | tuple[Symbol | CompositeSymbol | list | tuple, ...],
-) -> tuple | tuple[CompositeSymbol, ...]:
-    members: tuple | tuple[CompositeSymbol, ...] = ()
-    parent: SimpleObj | ObjArray | None = None
-    composite_members: tuple[CompositeSymbol, ...] | tuple = ()
-
-    for n, k in enumerate(data):
-        if n == 0:
-            if isinstance(k, Symbol):
-                parent = k
-                continue
-            # elif isinstance(k, str):
-            #     parent = k
-            #     continue
-
-        if isinstance(k, SemanticActionResults | tuple):
-            members += _flatten_recursive_closure(k)
-
-        else:
-            members += (_resolve_data_to_symbol(k),)
-
-    if parent is None:
-        return members
-
-    for k in members:
-        composite_members += (CompositeSymbol(_resolve_data_to_symbol(parent) + k),)  # type: ignore [operator]
-
-    return composite_members
-
-
+@deprecated("'_fetch_struct_size_qsize' function will be deprecated, don't use it")
 def _fetch_struct_size_qsize(
     obj: SemanticActionResults | tuple[Symbol | CompositeSymbol | BaseTypeDef],
 ) -> tuple[Size | None, QSize | None]:
@@ -745,6 +753,7 @@ def _fetch_struct_size_qsize(
     return size, qsize
 
 
+@deprecated("'_fetch_enum_size_qsize' function will be deprecated soon, don't use it")
 def _fetch_enum_size_qsize(
     obj: SemanticActionResults | tuple[Symbol | CompositeSymbol | BaseTypeDef],
 ) -> tuple[Size | None, QSize | None]:

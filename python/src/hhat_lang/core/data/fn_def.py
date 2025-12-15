@@ -4,13 +4,13 @@ from functools import lru_cache
 from typing import Any, Callable
 
 from hhat_lang.core.code.base import BaseFnCheck, BaseIRBlock
-from hhat_lang.core.code.ir_custom import ArgsValuesBlock
+from hhat_lang.core.code.ir_custom import ArgsBlock, ArgsValuesBlock
 from hhat_lang.core.data.core import (
     CompositeSymbol,
-    ObjArray,
     Literal,
-    Symbol,
+    ObjArray,
     SimpleObj,
+    Symbol,
 )
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.memory.core import MemoryManager
@@ -25,7 +25,7 @@ class FnDef:
     _type: Symbol | CompositeSymbol
     _body: BaseIRBlock
     _fn_check: BaseFnCheck
-    _args: ArgsValuesBlock
+    _args: ArgsBlock
     """
     function definition arguments must be a special kind of IRBlock
     that has ``arg`` and ``value`` attributes and is iterable through
@@ -35,13 +35,13 @@ class FnDef:
     def __init__(
         self,
         fn_name: Symbol | CompositeSymbol,
-        fn_args: ArgsValuesBlock,
+        fn_args: ArgsBlock,
         fn_body: BaseIRBlock,
         fn_type: Symbol | CompositeSymbol | None = None,
     ):
         if (
             isinstance(fn_name, Symbol | CompositeSymbol)
-            and isinstance(fn_args, ArgsValuesBlock)
+            and isinstance(fn_args, ArgsBlock)
             and isinstance(fn_body, BaseIRBlock)
             and isinstance(fn_type, Symbol | CompositeSymbol)
             or fn_type is None
@@ -55,7 +55,7 @@ class FnDef:
         else:
             raise ValueError(
                 f"some fn definition type is wrong: "
-                f"{type(fn_name)} {type(fn_args)} {type(fn_body)} {type(fn_body)}"
+                f"{type(fn_name)} {type(fn_args)} {type(fn_type)} {type(fn_body)}"
             )
 
     @property
@@ -67,7 +67,7 @@ class FnDef:
         return self._type
 
     @property
-    def args(self) -> ArgsValuesBlock:
+    def args(self) -> ArgsBlock:
         return self._args
 
     @property
@@ -86,9 +86,9 @@ class FnDef:
     @lru_cache
     def arg_values(self) -> tuple[Symbol | CompositeSymbol | BaseIRBlock, ...]:
         if hasattr(self._args, "values"):
-            return self._args.values
+            return self._args.values[0]
 
-        raise ValueError(f"wrong arg values from function definition {self._name}")
+        return tuple(v.values[0] for v in self._args.args)
 
     @property
     def fn_check(self) -> BaseFnCheck:

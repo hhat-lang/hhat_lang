@@ -5,6 +5,15 @@ from typing import Any
 from arpeggio import Kwd, OneOrMore, Optional, ZeroOrMore
 from arpeggio import RegExMatch as _
 
+from hhat_lang.dialects.heather.grammar import (
+    FLOAT,
+    INT,
+    MULTILINE_COMMENT,
+    QINT,
+    SINGLE_COMMENT,
+    STRING,
+)
+
 
 def id_composite_value() -> Any:
     return [("[", full_id, "]"), full_id]
@@ -43,12 +52,10 @@ def trait_id() -> Any:
 
 
 def composite_id() -> Any:
-    print("composite id")
-    return full_id, OneOrMore(".", full_id)
+    return simple_id, OneOrMore(".", simple_id)
 
 
 def composite_id_with_closure() -> Any:
-    print("composite id with closure")
     return (
         [full_id],
         ".",
@@ -82,7 +89,6 @@ def modifier() -> Any:
 
 
 def full_id() -> Any:
-    print("full id")
     return [composite_id, simple_id], Optional(modifier)
 
 
@@ -118,15 +124,15 @@ def t_bool() -> Any:
 
 
 def t_str() -> Any:
-    return _(r'"([^"]*)"')
+    return _(STRING)
 
 
 def t_int() -> Any:
-    return _(r"-?([1-9]\d*|0)")
+    return _(INT)
 
 
 def t_float() -> Any:
-    return _(r"-?\d+\.\d+")
+    return _(FLOAT)
 
 
 def qt_bool() -> Any:
@@ -134,15 +140,14 @@ def qt_bool() -> Any:
 
 
 def qt_int() -> Any:
-    return _(r"-?\@([1-9]\d*|0)")
+    return _(QINT)
 
 
 def comment() -> Any:
-    return [_(r"\/\/([^\n]*)\n"), _(r"\/\-.*?\-\/")]
+    return [_(SINGLE_COMMENT), _(MULTILINE_COMMENT)]
 
 
 def single_import() -> Any:
-    print("single import")
     return [composite_id_with_closure, full_id]
 
 

@@ -5,13 +5,15 @@ import inspect
 from functools import lru_cache
 from typing import Any, Callable, Iterable, cast
 
-from hhat_lang.core.code.instructions import QInstrFlag
+from hhat_lang.core.code.instructions import (
+    QInstrFlag,
+)
 from hhat_lang.core.code.utils import InstrStatus
 from hhat_lang.core.data.core import (
-    CompositeLiteral,
-    CompositeMixData,
+    LiteralArray,
+    ObjTuple,
     CompositeSymbol,
-    CoreLiteral,
+    Literal,
     Symbol,
 )
 from hhat_lang.core.data.variable import BaseDataContainer
@@ -23,7 +25,10 @@ from hhat_lang.core.error_handlers.errors import (
 from hhat_lang.core.execution.abstract_base import BaseExecutor
 from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager, BaseLLQ
 from hhat_lang.core.utils import Error, Ok, Result
-from hhat_lang.core.code.ir_block import IRInstr, IRBlock
+from hhat_lang.core.code.ir_block import (
+    IRBlock,
+    IRInstr,
+)
 
 
 class LLQManager(BaseLLQManager):
@@ -76,19 +81,17 @@ class LowLeveQLang:
 
         return ("measure q -> c;",)
 
-    def _gen_literal_int(self, literal: CoreLiteral) -> tuple[str, ...]:
+    def _gen_literal_int(self, literal: Literal) -> tuple[str, ...]:
         if literal in self._idx:
             (literal.type)
             return tuple(f"x q[{n}];" for n, k in enumerate(literal.bin) if k == "1")
 
         return ("",)
 
-    def _gen_literal_bool(self, literal: CoreLiteral) -> tuple[str, ...]:
+    def _gen_literal_bool(self, literal: Literal) -> tuple[str, ...]:
         return tuple("x q[")
 
-    def gen_literal(
-        self, literal: CoreLiteral, **_kwargs: Any
-    ) -> tuple[str, ...] | ErrorHandler:
+    def gen_literal(self, literal: Literal, **_kwargs: Any) -> tuple[str, ...] | ErrorHandler:
         """Generate QASM code from literal data"""
 
         match literal.type:
@@ -99,9 +102,7 @@ class LowLeveQLang:
                 return self._gen_literal_bool(literal)
 
             case _:
-                raise NotImplementedError(
-                    "Generating quantum literal not implemented yet."
-                )
+                raise NotImplementedError("Generating quantum literal not implemented yet.")
 
         return tuple(f"x q[{n}];" for n, k in enumerate(literal.bin) if k == "1")
 
@@ -124,7 +125,7 @@ class LowLeveQLang:
                     else:
                         return d_res
 
-                case CoreLiteral():
+                case Literal():
                     d_res = self.gen_literal(data)
 
                     if isinstance(d_res, tuple):
@@ -137,11 +138,11 @@ class LowLeveQLang:
                     # TODO: implement it
                     raise NotImplementedError()
 
-                case CompositeLiteral():
+                case LiteralArray():
                     # TODO: implement it
                     raise NotImplementedError()
 
-                case CompositeMixData():
+                case ObjTuple():
                     # TODO: implement it
                     raise NotImplementedError()
 
@@ -172,7 +173,7 @@ class LowLeveQLang:
                     else:
                         return res
 
-                case CoreLiteral():
+                case Literal():
                     res = self.gen_literal(k)
 
                     if isinstance(res, tuple):
@@ -185,11 +186,11 @@ class LowLeveQLang:
                     # TODO: implement it
                     raise NotImplementedError()
 
-                case CompositeLiteral():
+                case LiteralArray():
                     # TODO: implement it
                     raise NotImplementedError()
 
-                case CompositeMixData():
+                case ObjTuple():
                     # TODO: implement it
                     raise NotImplementedError()
 
@@ -210,9 +211,7 @@ class LowLeveQLang:
 
         return Ok(code_tuple)
 
-    def gen_instrs(
-        self, *, instr: IRInstr | IRBlock, **kwargs: Any
-    ) -> Result | ErrorHandler:
+    def gen_instrs(self, *, instr: IRInstr | IRBlock, **kwargs: Any) -> Result | ErrorHandler:
         """
         Transforms each of the instructions into an OpenQASM v2 code or
         evaluate the code using the `executor` (H-hat dialect native
@@ -235,9 +234,7 @@ class LowLeveQLang:
 
         for name, obj in inspect.getmembers(instr_module, inspect.isclass):
             if (x := getattr(obj, "name", False)) and x == instr.name:
-                skip_gen = (
-                    getattr(obj, "flag", QInstrFlag.NONE) == QInstrFlag.SKIP_GEN_ARGS
-                )
+                skip_gen = getattr(obj, "flag", QInstrFlag.NONE) == QInstrFlag.SKIP_GEN_ARGS
 
                 if skip_gen:
                     args: tuple[Any, ...] = tuple(cast(Iterable[Any], instr.args))
@@ -276,9 +273,7 @@ class LowLeveQLang:
             # back to H-hat dialect to execute it
             else:
                 # TODO: falls back to dialect execution
-                raise NotImplementedError(
-                    f"low-level qlang instr error: {x} ({type(x)})"
-                )
+                raise NotImplementedError(f"low-level qlang instr error: {x} ({type(x)})")
 
         return InstrNotFoundError(instr.name)
 
@@ -308,10 +303,7 @@ class LowLeveQLang:
 
             skip_gen = False
             if instr_cls is not None:
-                skip_gen = (
-                    getattr(instr_cls, "flag", QInstrFlag.NONE)
-                    == QInstrFlag.SKIP_GEN_ARGS
-                )
+                skip_gen = getattr(instr_cls, "flag", QInstrFlag.NONE) == QInstrFlag.SKIP_GEN_ARGS
 
             if instr.args and not skip_gen:
                 match gen_args := self.gen_args(instr.args):
@@ -326,9 +318,7 @@ class LowLeveQLang:
                     case ErrorHandler():
                         raise gen_args
 
-            match gen_instr := self.gen_instrs(
-                instr=instr, idx=self._idx, executor=self._executor
-            ):
+            match gen_instr := self.gen_instrs(instr=instr, idx=self._idx, executor=self._executor):
                 case Ok():
                     body_code += "\n".join(gen_instr.result())
 

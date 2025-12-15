@@ -1,19 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Iterator, Mapping
+from typing import Any, Iterator
 
-from hhat_lang.core.code.abstract import BaseIR, IRHash, RefTable
+from hhat_lang.core.code.abstract import BaseIR, IRHash
 from hhat_lang.core.code.base import BaseFnCheck
 from hhat_lang.core.code.utils import ResultPHF, gen_phf, get_hash
 from hhat_lang.core.data.core import (
     CompositeSymbol,
     Symbol,
 )
-from hhat_lang.core.data.fn_def import FnDef, BuiltinFnDef
-from hhat_lang.core.data.variable import BaseDataContainer
-from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
-
 
 ####################
 # IR GRAPH CLASSES #
@@ -66,9 +62,7 @@ class IRNode:
 
         return False
 
-    def __contains__(
-        self, item: Symbol | CompositeSymbol | BaseFnCheck | Path | Any
-    ) -> bool:
+    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck | Path | Any) -> bool:
         return item in self._ir.module or item == self._path
 
     def __repr__(self) -> str:
@@ -85,11 +79,7 @@ class NodeSet:
     _phf: ResultPHF | None
 
     def __init__(self, *data: IRNode, phf: ResultPHF | None = None):
-        if (
-            all(isinstance(k, IRNode) for k in data)
-            and isinstance(phf, ResultPHF)
-            or phf is None
-        ):
+        if all(isinstance(k, IRNode) for k in data) and isinstance(phf, ResultPHF) or phf is None:
             self._data = data
             self._phf = phf
 
@@ -109,9 +99,7 @@ class NodeSet:
 
     def __contains__(
         self,
-        item: (
-            IRHash | IRNode | Path | tuple[Path, Symbol | CompositeSymbol | BaseFnCheck]
-        ),
+        item: (IRHash | IRNode | Path | tuple[Path, Symbol | CompositeSymbol | BaseFnCheck]),
     ) -> bool:
         match item:
             case IRNode():
@@ -284,73 +272,6 @@ class IRGraph:
     def __repr__(self) -> str:
         max_n = str(len(self.nodes))
         txt = "".join(
-            f"\nN#{'0' * (len(max_n) - len(str(n)))}{n}{k.ir}"
-            for n, k in enumerate(self.nodes)
+            f"\nN#{'0' * (len(max_n) - len(str(n)))}{n}{k.ir}" for n, k in enumerate(self.nodes)
         )
         return f"==============\n=*=IR GRAPH=*=\n==============\n{txt}\n"
-
-
-####################################
-# BUILDING REFERENCE TABLE SECTION #
-####################################
-
-
-def build_reftable(
-    types: Mapping[Symbol | CompositeSymbol, Path] | None = None,
-    fns: Mapping[BaseFnCheck, Path] | None = None,
-) -> RefTable:
-    types = types or dict()
-    fns = fns or dict()
-    ref_table = RefTable()
-
-    for type_name, ir_ref in types.items():
-        ref_table.types.add_ref(type_name, ir_ref)
-
-    for f_name, ir_ref in fns.items():
-        ref_table.fns.add_ref(f_name, ir_ref)
-
-    return ref_table
-
-
-################################
-# RETRIEVING FUNCTIONS SECTION #
-################################
-
-
-def get_type(
-    node_key: IRHash, importing: Symbol | CompositeSymbol, ir_graph: IRGraph
-) -> BaseTypeDataStructure | None:
-    """
-    Import a type ``importing`` from an IR module's hash value ``node_key``. Return
-    the type instance or ``None`` if not found.
-    """
-
-    node: IRNode | None = ir_graph.nodes[node_key]
-
-    if node is not None:
-        return node.ir.module.symbol_table.type.get(importing)
-
-    return None
-
-
-def get_fn(
-    node_key: IRHash, importing: BaseFnCheck, ir_graph: IRGraph
-) -> FnDef | BuiltinFnDef | dict[BaseFnCheck, FnDef | BuiltinFnDef] | None:
-    """
-    Import a function check instance ``importing`` from an IR module's hash value ``node_key``.
-
-    Args:
-        node_key: the ``IRHash`` instance
-        importing: the function ``BaseFnCheck`` instance
-        ir_graph: the program's ``IRGraph``
-
-    Returns:
-        A ``FnDef`` instance or ``None``, if no function is found.
-    """
-
-    node: IRNode | None = ir_graph.nodes[node_key]
-
-    if node is not None:
-        return node.ir.module.symbol_table.fn.get(importing)
-
-    return None

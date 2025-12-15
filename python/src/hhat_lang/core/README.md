@@ -39,5 +39,3 @@ The cast protocol is especially relevant and unique for the case where a quantum
 2. The translated code is then executed by the target backend (and by the dialect when fall back instructions are requested), producing a data sampling out of the quantum computation; any classical computation will follow the regular workflow inside the dialect (bridging the dialect and target backend whenever requested)
 3. The data sampling result is then interpreted according to some criteria (how to post-process the sampling into reasonable result), and the output is cast into the classical type
 4. The final result is then returned back to the code evaluation
-
-

@@ -21,9 +21,7 @@ class BitString(BaseBitString):
         if hasattr(data, "data"):
             return self._get_res(data.data)
 
-        raise NotImplementedError(
-            f"could not get bit string counts for data of type {type(data)}"
-        )
+        raise NotImplementedError(f"could not get bit string counts for data of type {type(data)}")
 
     def get_counts(self) -> dict:
         return self._get_res(self._sample)

@@ -37,7 +37,7 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from hhat_lang.core.code.ir_graph import IRNode, IRGraph
-from hhat_lang.core.data.core import CoreLiteral
+from hhat_lang.core.data.core import Literal
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.core.execution.abstract_base import BaseExecutor
@@ -57,7 +57,7 @@ class QuantumProgram(CoreQuantumProgram):
     def __init__(
         self,
         *,
-        qdata: BaseDataContainer | CoreLiteral,
+        qdata: BaseDataContainer | Literal,
         mem: MemoryManager,
         node: IRNode,
         ir_graph: IRGraph,

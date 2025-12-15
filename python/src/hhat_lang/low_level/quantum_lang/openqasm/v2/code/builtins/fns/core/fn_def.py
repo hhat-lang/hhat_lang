@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import sys
-from typing import Any
 
 from hhat_lang.core.code.base import BaseFnKey
-from hhat_lang.core.data.core import Symbol, Tmp, CoreLiteral, TypeSymbolSetter
-from hhat_lang.core.data.variable import BaseDataContainer, VariableTemplate
+from hhat_lang.core.data.core import Literal, Symbol, Tmp
+from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import FnWrongDataError
 from hhat_lang.core.fns.core import include_builtin_fn
 from hhat_lang.core.memory.core import MemoryManager
@@ -24,12 +23,11 @@ from hhat_lang.low_level.quantum_lang.openqasm.v2.code.builtins.fns.core import 
     fn_path=LLQ_MODULE_PATH,
 )
 def builtin_fn_qbool_qredim(
-    *args: CoreLiteral | BaseDataContainer, mem: MemoryManager
+    *args: Literal | BaseDataContainer, mem: MemoryManager
 ) -> BaseDataContainer:
     # can only accept one argument
     match arg := args[0]:
-        case CoreLiteral():
-            # VariableTemplate(var_name=Tmp("@redim").complement_name(arg.value),type_name=TypeSymbolSetter(arg.type),ds_data)
+        case Literal():
             pass
 
         case BaseDataContainer():
@@ -49,7 +47,7 @@ def builtin_fn_qbool_qredim(
     fn_path=LLQ_MODULE_PATH,
 )
 def builtin_fn_qint_qredim(
-    *args: CoreLiteral | BaseDataContainer, mem: MemoryManager
+    *args: Literal | BaseDataContainer, mem: MemoryManager
 ) -> BaseDataContainer:
     pass
 
@@ -64,7 +62,7 @@ def builtin_fn_qint_qredim(
     fn_path=LLQ_MODULE_PATH,
 )
 def builtin_fn_qu2_qredim(
-    *args: CoreLiteral | BaseDataContainer, mem: MemoryManager
+    *args: Literal | BaseDataContainer, mem: MemoryManager
 ) -> BaseDataContainer:
     pass
 
@@ -79,7 +77,7 @@ def builtin_fn_qu2_qredim(
     fn_path=LLQ_MODULE_PATH,
 )
 def builtin_fn_qu3_qredim(
-    *args: CoreLiteral | BaseDataContainer, mem: MemoryManager
+    *args: Literal | BaseDataContainer, mem: MemoryManager
 ) -> BaseDataContainer:
     pass
 
@@ -94,7 +92,7 @@ def builtin_fn_qu3_qredim(
     fn_path=LLQ_MODULE_PATH,
 )
 def builtin_fn_qu4_qredim(
-    *args: CoreLiteral | BaseDataContainer, mem: MemoryManager
+    *args: Literal | BaseDataContainer, mem: MemoryManager
 ) -> BaseDataContainer:
     pass
 
@@ -109,7 +107,7 @@ def builtin_fn_qu4_qredim(
     fn_path=LLQ_MODULE_PATH,
 )
 def builtin_fn_qbool_qsync(
-    *args: CoreLiteral | BaseDataContainer, mem: MemoryManager
+    *args: Literal | BaseDataContainer, mem: MemoryManager
 ) -> BaseDataContainer:
     pass
 
@@ -124,7 +122,7 @@ def builtin_fn_qbool_qsync(
     fn_path=LLQ_MODULE_PATH,
 )
 def builtin_fn_qu2_qsync(
-    *args: CoreLiteral | BaseDataContainer, mem: MemoryManager
+    *args: Literal | BaseDataContainer, mem: MemoryManager
 ) -> BaseDataContainer:
     pass
 
@@ -139,7 +137,7 @@ def builtin_fn_qu2_qsync(
     fn_path=LLQ_MODULE_PATH,
 )
 def builtin_fn_qu3_qsync(
-    *args: CoreLiteral | BaseDataContainer, mem: MemoryManager
+    *args: Literal | BaseDataContainer, mem: MemoryManager
 ) -> BaseDataContainer:
     pass
 
@@ -154,6 +152,6 @@ def builtin_fn_qu3_qsync(
     fn_path=LLQ_MODULE_PATH,
 )
 def builtin_fn_qu4_qsync(
-    *args: CoreLiteral | BaseDataContainer, mem: MemoryManager
+    *args: Literal | BaseDataContainer, mem: MemoryManager
 ) -> BaseDataContainer:
     pass

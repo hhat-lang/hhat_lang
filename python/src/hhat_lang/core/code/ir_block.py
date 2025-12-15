@@ -1,25 +1,20 @@
 from __future__ import annotations
 
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from enum import auto
 from typing import Any
 
 from hhat_lang.core.code.base import (
+    BaseIRBlock,
+    BaseIRBlockFlag,
     BaseIRFlag,
     BaseIRInstr,
-    BaseIRBlockFlag,
-    BaseIRBlock,
 )
-from hhat_lang.core.code.ir_graph import IRNode, IRGraph
 from hhat_lang.core.data.core import (
-    WorkingData,
-    CompositeWorkingData,
-    CoreLiteral,
-    Symbol,
+    ObjArray,
+    Literal,
+    SimpleObj,
 )
-from hhat_lang.core.memory.core import MemoryManager
-from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import ModifierBlock
-
 
 ####################
 # IR INSTR SECTION #
@@ -80,54 +75,6 @@ class IRFlag(BaseIRFlag):
     """returning something (variable, literal, expr) from a function, defined as ``::expr``"""
 
 
-class IRInstr(BaseIRInstr):
-    """
-    Base class for IR instructions. Custom IR instructions names must adhere to
-    IRFlag enum attributes. For example::
-
-
-        class DeclareInstr(IRInstr):
-            def __init__(self, ...):
-                ...
-                super().__init__(..., name=IRFlag.DECLARE)
-    """
-
-    _name: IRFlag
-    args: tuple[IRBlock | WorkingData | CompositeWorkingData, ...] | tuple
-
-    def __init__(
-        self,
-        *args: IRBlock | BaseIRInstr | WorkingData | CompositeWorkingData,
-        name: IRFlag,
-    ):
-        if all(
-            isinstance(k, IRBlock | BaseIRInstr | WorkingData | CompositeWorkingData)
-            for k in args
-        ) and isinstance(name, IRFlag):
-            self._name = name
-            self.args = args
-            super().__init__()
-
-        else:
-            raise ValueError(
-                f"IR instr {self.__class__.__name__} must received name as {type(name)},"
-                f" args as {[type(k) for k in args]}. Check for correct types."
-            )
-
-    @abstractmethod
-    def resolve(
-        self, mem: MemoryManager, node: IRNode, ir_graph: IRGraph, **kwargs: Any
-    ) -> Any:
-        """
-        To resolve instructions during code execution.
-        """
-
-        raise NotImplementedError()
-
-    def __repr__(self) -> str:
-        return f"{self.name}({', '.join(str(k) for k in self.args)})"
-
-
 ####################
 # IR BLOCK SECTION #
 ####################
@@ -154,78 +101,45 @@ class IRBlock(BaseIRBlock, ABC):
 
     def append(self, data: Any, *args: Any, **kwargs: Any) -> None:
         match data:
-            case IRBlock() | IRInstr() | CoreLiteral():
+            case IRBlock() | IRInstr() | Literal():
                 self.args += (data,)
 
             case _:
                 raise NotImplementedError(f"data of type {type(data)} not imeplemented")
 
 
-class BodyBlock(IRBlock):
-    _name = IRBlockFlag.BODY
-
-    def __init__(self, *args: IRBlock | BaseIRInstr):
-        if all(isinstance(k, IRBlock | BaseIRInstr) for k in args):
-            if len(args) == 1 and isinstance(args[0], BodyBlock):
-                self.args = args[0].args
-
-            else:
-                self.args = args
-
-        else:
-            raise ValueError(
-                f"args must be block or instruction, but got {tuple(type(k) for k in args)}"
-            )
-
-    def __repr__(self) -> str:
-        return "\n".join(str(k) for k in self.args)
+class IRInstr(BaseIRInstr):
+    """
+    Base class for IR instructions. Custom IR instructions names must adhere to
+    IRFlag enum attributes. For example::
 
 
-class ArgsValuesBlock(IRBlock):
-    _name = IRBlockFlag.ARGS_VALUES
+        class DeclareInstr(IRInstr):
+            def __init__(self, ...):
+                ...
+                super().__init__(..., name=IRFlag.DECLARE)
+    """
 
-    args: (
-        tuple[
-            Symbol,
-            ...,
-        ]
-        | tuple
-    )
-    values: (
-        tuple[WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr, ...] | tuple
-    )
+    _name: IRFlag
+    args: tuple[IRBlock | SimpleObj | ObjArray, ...] | tuple
 
     def __init__(
         self,
-        *args: tuple[
-            Symbol | ModifierBlock,
-            WorkingData | CompositeWorkingData | IRBlock | BaseIRInstr,
-        ],
+        *args: IRBlock | BaseIRInstr | SimpleObj | ObjArray,
+        name: IRFlag,
     ):
-        self.args = ()
-        self.values = ()
+        if all(
+            isinstance(k, IRBlock | BaseIRInstr | SimpleObj | ObjArray) for k in args
+        ) and isinstance(name, IRFlag):
+            self._name = name
+            self.args = args
+            super().__init__()
 
-        for k in args:
-            match k[0]:
-                case Symbol():
-                    self.args += (k[0],)
-
-                case ModifierBlock():
-                    self.args += (k[0],)
-
-                case _:
-                    raise ValueError(
-                        "args values block's args must be symbol or modifier block "
-                    )
-
-            match k[1]:
-                case WorkingData() | CompositeWorkingData() | IRBlock() | BaseIRInstr():
-                    self.values += (k[1],)
-
-                case _:
-                    raise ValueError(
-                        "args values block's values must be symbol, literal, ir block or ir instr"
-                    )
+        else:
+            raise ValueError(
+                f"IR instr {self.__class__.__name__} must received name as {type(name)},"
+                f" args as {[type(k) for k in args]}. Check for correct types."
+            )
 
     def __repr__(self) -> str:
-        return f"ARG-VALUE#[{' '.join(f'{a}:{v}' for a, v in zip(self.args, self.values))}]"
+        return f"{self.name}({', '.join(str(k) for k in self.args)})"

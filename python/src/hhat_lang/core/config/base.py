@@ -90,9 +90,7 @@ def _retrieve_current_settings_data(settings: dict) -> tuple[dict, dict, dict]:
     current: dict | None = settings.get("current_settings", None)
 
     if current is None:
-        raise ValueError(
-            "could not find 'current_settings' key on the project configuration file."
-        )
+        raise ValueError("could not find 'current_settings' key on the project configuration file.")
 
     dialect_list: list[str] = current["dialect"]["dir"]
     llq_list: list[list[str]] = list(k["dir"] for k in current["llq"])
@@ -204,11 +202,8 @@ def _build_llq_obj(llqs: dict) -> LLQSettings:
 
 @insert_setting_class("backend")
 def _build_backend_obj(backends: dict) -> TargetBackendSettings:
-
     def _get_executor(executor: dict) -> ExecutorOptions:
-        shots = ShotsSettings(
-            *tuple(ShotsOptions(**shots_opt) for shots_opt in executor["shots"])
-        )
+        shots = ShotsSettings(*tuple(ShotsOptions(**shots_opt) for shots_opt in executor["shots"]))
         # implement pass
         # passes = PassSettings(*tuple(PassOptions(**pass_opt) for pass_opt in executor["pass"]))
         passes = PassSettings()
@@ -220,9 +215,7 @@ def _build_backend_obj(backends: dict) -> TargetBackendSettings:
 
     def _get_device(device: dict) -> DeviceSettings:
         _res = tuple(
-            DeviceOptions(
-                name=name, max_num_qubits=dv["max_num_qubits"], metadata=dict()
-            )
+            DeviceOptions(name=name, max_num_qubits=dv["max_num_qubits"], metadata=dict())
             for name, dv in device.items()
         )
 
@@ -232,7 +225,6 @@ def _build_backend_obj(backends: dict) -> TargetBackendSettings:
 
     for backend_folder, data in backends.items():
         for name_folder, content in data.items():
-
             _opts += BackendOptions(
                 name=content["name"],
                 package_name=content["package_name"],
@@ -292,9 +284,7 @@ class HhatProjectSettings:
     _current: CurrentSettings
     _available: AvailableSettings
 
-    def __init__(
-        self, project_root: Path, current: CurrentSettings, available: AvailableSettings
-    ):
+    def __init__(self, project_root: Path, current: CurrentSettings, available: AvailableSettings):
         self._project_root = project_root
         self._current = current
         self._available = available

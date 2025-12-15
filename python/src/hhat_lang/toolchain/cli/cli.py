@@ -30,10 +30,7 @@ console = Console()
 
 def version_callback(value: bool) -> None:
     if value:
-        print(
-            "[bold royal_blue1]H-hat Language Toolchain[/] "
-            "version [bold royal_blue1]0.1.0[/]"
-        )
+        print("[bold royal_blue1]H-hat Language Toolchain[/] version [bold royal_blue1]0.1.0[/]")
         raise typer.Exit()
 
 
@@ -57,9 +54,7 @@ def common(
 
 
 @app.command()
-def help(
-    command: Optional[str] = typer.Argument(None, help="Command to get help for")
-) -> None:
+def help(command: Optional[str] = typer.Argument(None, help="Command to get help for")) -> None:
     """
     Show help about commands.
 
@@ -92,14 +87,10 @@ def help(
 
 @app.command()
 def new(
-    project_name: Optional[str] = typer.Argument(
-        None, help="Name of the project to create"
-    ),
+    project_name: Optional[str] = typer.Argument(None, help="Name of the project to create"),
     file_name: str = typer.Option(None, "--file", "-f", help="Create a new file"),
     type_file: str = typer.Option(None, "--type", "-t", help="Create a new type file"),
-    const_file: str = typer.Option(
-        None, "--const", "-c", help="Create a new constant file"
-    ),
+    const_file: str = typer.Option(None, "--const", "-c", help="Create a new constant file"),
 ) -> None:
     """
     Create a new project, file, constant or type file.
@@ -141,8 +132,7 @@ def new(
             except ValueError as e:
                 console.print(
                     Panel(
-                        str(e)
-                        + "\n\nPlease make sure you're inside a H-hat project directory.",
+                        str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
                         title="⚠ Error",
                         border_style="red",
                     )
@@ -172,8 +162,7 @@ def new(
             except ValueError as e:
                 console.print(
                     Panel(
-                        str(e)
-                        + "\n\nPlease make sure you're inside a H-hat project directory.",
+                        str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
                         title="⚠ Error",
                         border_style="red",
                     )
@@ -194,8 +183,7 @@ def new(
             except ValueError as e:
                 console.print(
                     Panel(
-                        str(e)
-                        + "\n\nPlease make sure you're inside a H-hat project directory.",
+                        str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
                         title="⚠ Error",
                         border_style="red",
                     )

@@ -4,10 +4,6 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: check-added-large-files
-  - repo: https://github.com/psf/black
-    rev: 24.10.0
-    hooks:
-      - id: black
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.18.1
     hooks:
@@ -21,10 +17,12 @@ repos:
         exclude: tests
         additional_dependencies: [tokenize-rt==3.2.0]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.13.2"
+    rev: "v0.14.9"
     hooks:
       - id: ruff-check
         args: [--fix, --show-fixes, --show-files]
+      - id: ruff-format
+        args: [--line-length=100]
 
 default_language_version:
   python: python3.12

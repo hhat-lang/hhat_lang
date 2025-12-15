@@ -1,30 +1,28 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any, Iterable, Callable
+from typing import Any, Iterable
 
 from hhat_lang.core.code.base import BaseFnCheck, BaseFnKey
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
-from hhat_lang.core.data.fn_def import FnDef, ModifierDef, BuiltinFnDef
+from hhat_lang.core.data.fn_def import BuiltinFnDef, FnDef, ModifierDef
 from hhat_lang.core.data.variable import BaseDataContainer
-from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
+from hhat_lang.core.types.abstract_base import BaseTypeDef
 
 
 class TypeTable:
-    _table: OrderedDict[Symbol | CompositeSymbol, BaseTypeDataStructure]
+    _table: OrderedDict[Symbol | CompositeSymbol, BaseTypeDef]
     __slots__ = ("_table",)
 
     def __init__(self):
         self._table = OrderedDict()
 
     @property
-    def table(self) -> OrderedDict[Symbol | CompositeSymbol, BaseTypeDataStructure]:
+    def table(self) -> OrderedDict[Symbol | CompositeSymbol, BaseTypeDef]:
         return self._table
 
-    def add(self, name: Symbol | CompositeSymbol, data: BaseTypeDataStructure) -> None:
-        if isinstance(name, Symbol | CompositeSymbol) and isinstance(
-            data, BaseTypeDataStructure
-        ):
+    def add(self, name: Symbol | CompositeSymbol, data: BaseTypeDef) -> None:
+        if isinstance(name, Symbol | CompositeSymbol) and isinstance(data, BaseTypeDef):
             if name not in self.table:
                 self.table[name] = data
 
@@ -36,7 +34,7 @@ class TypeTable:
 
     def get(
         self, name: Symbol | CompositeSymbol, default: Any | None = None
-    ) -> BaseTypeDataStructure | Any | None:
+    ) -> BaseTypeDef | Any | None:
         return self.table.get(name, default)
 
     def __hash__(self) -> int:
@@ -48,9 +46,7 @@ class TypeTable:
 
         return False
 
-    def __getitem__(
-        self, item: Symbol | CompositeSymbol
-    ) -> BaseTypeDataStructure | Any | None:
+    def __getitem__(self, item: Symbol | CompositeSymbol) -> BaseTypeDef | Any | None:
         return self.get(item)
 
     def __contains__(self, item: Any) -> bool:
@@ -76,9 +72,7 @@ class FnTable:
     the base for an IR object picturing the full code.
     """
 
-    _table: OrderedDict[
-        Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef | BuiltinFnDef]
-    ]
+    _table: OrderedDict[Symbol | CompositeSymbol, dict[BaseFnCheck, FnDef | BuiltinFnDef]]
     __slots__ = ("_table",)
 
     def __init__(self):
@@ -100,9 +94,7 @@ class FnTable:
                     self.table[fn_entry.name] = {fn_entry: data}
 
             elif isinstance(fn_entry, BaseFnKey):
-                new_fn_entry = BaseFnCheck(
-                    fn_name=fn_entry.name, args_types=fn_entry.args_types
-                )
+                new_fn_entry = BaseFnCheck(fn_name=fn_entry.name, args_types=fn_entry.args_types)
                 if fn_entry.name in self.table:
                     self.table[fn_entry.name].update({new_fn_entry: data})
 
@@ -188,9 +180,7 @@ class ConstTable:
     ) -> BaseDataContainer | Any | None:
         return self._table.get(item, default)
 
-    def __getitem__(
-        self, item: Symbol | CompositeSymbol
-    ) -> BaseDataContainer | Any | Any:
+    def __getitem__(self, item: Symbol | CompositeSymbol) -> BaseDataContainer | Any | Any:
         return self.get(item)
 
     def __hash__(self) -> int:
@@ -239,9 +229,7 @@ class MetaModTable:
                     self.table[fn_entry.name] = {fn_entry: data}
 
             elif isinstance(fn_entry, BaseFnKey):
-                new_fn_entry = BaseFnCheck(
-                    fn_name=fn_entry.name, args_types=fn_entry.args_types
-                )
+                new_fn_entry = BaseFnCheck(fn_name=fn_entry.name, args_types=fn_entry.args_types)
                 if fn_entry.name in self.table:
                     self.table[fn_entry.name].update({new_fn_entry: data})
 
@@ -398,9 +386,7 @@ class SymbolTable:
         return self._modifiers
 
     def __hash__(self) -> int:
-        return hash(
-            (self._types, self._fns, self._consts, self._metamods, self._modifiers)
-        )
+        return hash((self._types, self._fns, self._consts, self._metamods, self._modifiers))
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, SymbolTable):

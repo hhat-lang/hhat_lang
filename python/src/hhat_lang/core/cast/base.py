@@ -5,15 +5,15 @@ from typing import Any, Mapping, Protocol, runtime_checkable, Callable
 from collections import Counter
 
 from hhat_lang.core.code.ir_graph import IRNode, IRGraph
-from hhat_lang.core.data.core import CoreLiteral
+from hhat_lang.core.data.core import Literal
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import InterpreterEvaluationError
 from hhat_lang.core.execution.abstract_program import QuantumProgram
 from hhat_lang.core.memory.core import MemoryManager
-from hhat_lang.core.types.abstract_base import BaseTypeDataStructure
+from hhat_lang.core.types.abstract_base import BaseTypeDef
 
 
-CastFnType = Callable[[BaseDataContainer | CoreLiteral | Any], CoreLiteral]
+CastFnType = Callable[[BaseDataContainer | Literal | Any], Literal]
 """cast function type annotation"""
 
 
@@ -99,19 +99,19 @@ class BaseBitString(ABC):
 class BaseCastOperator(ABC):
     """Cast base class to handle the casting workflow"""
 
-    _data: BaseDataContainer | CoreLiteral
-    _to_type: BaseTypeDataStructure
+    _data: BaseDataContainer | Literal
+    _to_type: BaseTypeDef
     _cast_fn: CastFnType
 
     def __init__(
         self,
-        data: BaseDataContainer | CoreLiteral,
-        to_type: BaseTypeDataStructure,
+        data: BaseDataContainer | Literal,
+        to_type: BaseTypeDef,
         cast_fn: CastFnType,
     ):
         if (
-            isinstance(data, BaseDataContainer | CoreLiteral)
-            and isinstance(to_type, BaseTypeDataStructure)
+            isinstance(data, BaseDataContainer | Literal)
+            and isinstance(to_type, BaseTypeDef)
             and isinstance(cast_fn, Callable)
         ):
             self._data = data
@@ -139,7 +139,7 @@ class BaseCastOperator(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def retrieve_cast_data(self) -> BaseDataContainer | CoreLiteral:
+    def retrieve_cast_data(self) -> BaseDataContainer | Literal:
         """
         Retrieve the cast data with the correct type. Must be used after
         ``flush`` and ``cast`` methods.
@@ -157,8 +157,8 @@ class BaseCastC2C(BaseCastOperator):
 
     def __init__(
         self,
-        data: BaseDataContainer | CoreLiteral,
-        to_type: BaseTypeDataStructure,
+        data: BaseDataContainer | Literal,
+        to_type: BaseTypeDef,
         cast_fn: CastFnType,
         mem: MemoryManager,
         node: IRNode,
@@ -181,7 +181,7 @@ class BaseCastC2C(BaseCastOperator):
     def cast(self) -> BaseCastC2C:
         raise NotImplementedError()
 
-    def retrieve_cast_data(self) -> BaseDataContainer | CoreLiteral:
+    def retrieve_cast_data(self) -> BaseDataContainer | Literal:
         pass
 
 
@@ -192,8 +192,8 @@ class BaseCastQ2C(BaseCastOperator):
 
     def __init__(
         self,
-        data: BaseDataContainer | CoreLiteral,
-        to_type: BaseTypeDataStructure,
+        data: BaseDataContainer | Literal,
+        to_type: BaseTypeDef,
         cast_fn: CastFnType,
         mem: MemoryManager,
         node: IRNode,
@@ -217,7 +217,7 @@ class BaseCastQ2C(BaseCastOperator):
     def cast(self) -> BaseCastQ2C:
         raise NotImplementedError()
 
-    def retrieve_cast_data(self) -> BaseDataContainer | CoreLiteral:
+    def retrieve_cast_data(self) -> BaseDataContainer | Literal:
         return self._cast_fn(self._data)
 
 
@@ -231,7 +231,7 @@ class BaseCastC2Q(BaseCastOperator):
     def cast(self) -> BaseCastC2Q:
         raise NotImplementedError()
 
-    def retrieve_cast_data(self) -> BaseDataContainer | CoreLiteral:
+    def retrieve_cast_data(self) -> BaseDataContainer | Literal:
         raise NotImplementedError()
 
 
@@ -245,5 +245,5 @@ class BaseCastQ2Q(BaseCastOperator):
     def cast(self) -> BaseCastQ2Q:
         raise NotImplementedError()
 
-    def retrieve_cast_data(self) -> BaseDataContainer | CoreLiteral:
+    def retrieve_cast_data(self) -> BaseDataContainer | Literal:
         raise NotImplementedError()

@@ -19,11 +19,11 @@ class BaseTypeEnum(Enum):
     """
 
 
-class AbstractDataTypeStructure(ABC):
+class AbstractTypeDef(ABC):
     """Abstract data type structure. To avoid circular imports."""
 
-    _ds_type: BaseTypeEnum
+    _t_type: BaseTypeEnum
 
     @property
     def type(self) -> BaseTypeEnum:
-        return self._ds_type
+        return self._t_type

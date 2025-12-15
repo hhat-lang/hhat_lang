@@ -1,13 +1,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Iterable
+from typing import Any, Generic, Iterable, TypeVar
 
-from hhat_lang.core.data.core import WorkingData, Symbol, CompositeSymbol
-from hhat_lang.core.data.utils import VariableKind
-from hhat_lang.core.data.variable import BaseDataContainer, VariableTemplate
-from hhat_lang.core.error_handlers.errors import ErrorHandler
-from hhat_lang.core.utils import SymbolOrdered
+from hhat_lang.core.data.core import Symbol
+from hhat_lang.core.types.utils import AbstractTypeDef, BaseTypeEnum
 
 
 class Size:
@@ -21,6 +18,9 @@ class Size:
     @property
     def size(self) -> int:
         return self._size
+
+    def __repr__(self) -> str:
+        return f"Size({self.size})"
 
 
 class QSize:
@@ -52,25 +52,35 @@ class QSize:
         if isinstance(max_num, int) and self._max is None:
             self._max = max_num
 
+    def __repr__(self) -> str:
+        return f"QSize(min={self.min}{f'|max={self.max}' if self.max else ''})"
 
-class BaseTypeDataStructure(ABC):
-    """Base type class for data structures, such as single, struct, enum and union."""
 
-    _name: Symbol | CompositeSymbol
-    _type_container: SymbolOrdered
+#########################################
+# TYPES MEMBERS AND CONTAINERS SECTIONS #
+#########################################
+
+
+# To facilitate type annotation checks, some generic type values are defined
+T = TypeVar("T")  # type name
+C = TypeVar("C")  # container type
+M = TypeVar("M")  # member name
+
+
+class BaseTypeDef(AbstractTypeDef, Generic[T, M]):
+    """
+    Base data type class to be used by single, struct, enum, etc. type definitions
+    """
+
+    _name: Symbol
+    _t_type: BaseTypeEnum
+    _container: BaseTypeDataBin
     _is_quantum: bool
     _is_builtin: bool
-    _size: Size | None
-    _qsize: QSize | None
-    _array_type: bool
-
-    def __init__(
-        self, name: Symbol | CompositeSymbol, is_builtin: bool = False, array_type: bool = False
-    ):
-        self._name = name
-        self._is_quantum = name.is_quantum
-        self._is_builtin = is_builtin
-        self._array_type = array_type
+    _size: Size
+    _qsize: QSize
+    _is_array: bool
+    _is_size_set: bool = False
 
     @property
     def name(self) -> Symbol:
@@ -81,39 +91,70 @@ class BaseTypeDataStructure(ABC):
         return self._is_quantum
 
     @property
+    def is_array(self) -> bool:
+        return self._is_array
+
+    @property
     def is_builtin(self) -> bool:
         return self._is_builtin
 
     @property
-    def size(self) -> Size | None:
+    def size(self) -> Size:
         return self._size
 
     @property
-    def qsize(self) -> QSize | None:
+    def qsize(self) -> QSize:
         return self._qsize
 
-    @property
-    def is_array(self) -> bool:
-        return self._array_type
-
-    @property
-    def members(self) -> tuple:
-        return tuple(k for k in self)
-
     @abstractmethod
-    def add_member(self, member_type: Any, member_name: Any) -> Any | ErrorHandler: ...
+    def add_member(self, type_name: T | None, member_name: M | None, **kwargs: Any) -> BaseTypeDef:
+        raise NotImplementedError()
 
-    @abstractmethod
-    def __call__(
-        self,
-        *args: Any,
-        var_name: str,
-        flag: VariableKind,
-        **kwargs: dict[WorkingData, WorkingData | VariableTemplate],
-    ) -> BaseDataContainer | ErrorHandler: ...
+    def set_sizes(self, size: Size, qsize: QSize | None = None) -> BaseTypeDef:
+        self._size = size
+        self._qsize = qsize or QSize(0, 0)
+        self._is_size_set = True
+        return self
+
+    def is_size_set(self) -> bool:
+        return self._is_size_set
 
     def __contains__(self, item: Any) -> bool:
-        return item in self._type_container
+        return item in self._container
 
+    @abstractmethod
     def __iter__(self) -> Iterable:
-        yield from self._type_container.items()
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __repr__(self) -> str:
+        raise NotImplementedError()
+
+
+class BaseTypeDataBin(ABC, Generic[T, C, M]):
+    """
+    Base type data bin class to be used by single, struct, enum, etc.
+    member/type information storage.
+    """
+
+    _container: C
+
+    @property
+    def container(self) -> C:
+        return self._container
+
+    @abstractmethod
+    def add_member(self, **kwargs: Any) -> BaseTypeDataBin:
+        """
+        Add a new member to the data bin. It can contain ``type_name`` (of type ``T``),
+        ``member_name`` (of type ``M``), or only one of them.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __getitem__(self, item: Symbol | int) -> T:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __iter__(self) -> Iterable:
+        raise NotImplementedError()

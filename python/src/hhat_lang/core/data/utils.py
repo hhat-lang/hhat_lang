@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC
 from enum import Enum, auto
 from typing import Any
 
@@ -12,8 +13,10 @@ class VariableKind(Enum):
 
 
 def isquantum(data: Any) -> bool:
+    """Check if a given object is quantum"""
+
     if isinstance(data, str):
-        return True if data.startswith("@") else False
+        return data.startswith("@")
 
     if hasattr(data, "is_quantum"):
         return data.is_quantum
@@ -29,3 +32,7 @@ def has_same_paradigm(data1: Any, data2: Any) -> bool:
         return True
 
     return False
+
+
+class AbstractDataContainer(ABC):
+    """Abstract data container. To prevent circular imports"""

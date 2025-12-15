@@ -18,7 +18,7 @@ For more information on commands available.
 ## With Python <small>currently available</small> :gear:
 
 !!! info "In progress"
-    This step is in progress, so you may experience some breaking or incomplete parts. 
+    This step is in progress, so you may experience some breaking or incomplete parts.
 
 The project file organization is created as follows:
 
@@ -54,7 +54,7 @@ A new file can be created through:
 
 ```python
 
-new.create_new_file("new_project", "file_name")
+new.create_new_fn_file("new_project", "file_name")
 ```
 
 This will create a `file_name.hat` file into the `new_project` project, as well as a `file_name.hat.md` file at `hat_docs/`. For every file, there will be a documentation file.
@@ -73,4 +73,3 @@ It will create a `file_type.hat` at `hat_types/`, as well as its documentation c
 
 !!! failure "Unavailable"
     This step is currently unavailable. May be implemented in the future.
-

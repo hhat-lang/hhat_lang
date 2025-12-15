@@ -98,15 +98,8 @@ MIT
 
 ## How to Contribute
 
-!!! info "Important"
+Check the [How to Contribute](how_contribute.md) page.
 
-    Please read this documentation before to understand how the repository is organized and how the language structure works.
-
-You can check the [TODOs.md](TODOs.md) page to see what is listed to be done. There (probably) are issues in the [H-hat issue's page](https://github.com/hhat-lang/hhat_lang/issues) that you may want to check and try to solve/implement as well. 
-
-
-At last, reach us out at the [Discord](http://discord.unitary.foundation)'s `#h-hat` channel to
-learn more on how to contribute and chat, if you feel like doing so.
 
 ## Code of Conduct
 

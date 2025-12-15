@@ -6,13 +6,19 @@ repo_url: "https://github.com/hhat-lang/hhat_lang/"
 repo_name: hhat-lang/hhat_lang
 
 nav:
-  - Home: index.md
+  - Home:
+      - H-hat language: index.md
+      - How to Contribute: how_contribute.md
   - Getting Started:
       - Getting Started: getting_started.md
       - Guides:
           - Python: python/python_guide.md
           - Rust: rust/rust_guide.md
       - Understanding H-hat:
+          - Built-in Instructions:
+            - core/builtin_instr.md
+            - Classical: core/classical_instr.md
+            - Quantum: core/quantum_instr.md
           - Rule System: rule_system.md
           - Core Features: core/index.md
       - Tools:
@@ -32,6 +38,8 @@ nav:
             - Calling a function: dialects/heather/examples/calling_fn.md
             - Defining a new type: dialects/heather/examples/new_type.md
             - Casting quantum data: dialects/heather/examples/casting_quantum.md
+  - Blog:
+      - blog/index.md
   - TODOs: TODOs.md
 
 markdown_extensions:
@@ -74,6 +82,43 @@ markdown_extensions:
   - toc:
       permalink: true
 
+plugins:
+  - privacy
+  - search
+  - blog:
+      blog_toc: true
+      post_date_format: full
+      authors_profiles: true
+      post_excerpt: required
+      categories_allowed:
+        - Roadmap
+        - Technical
+        - Demo
+        - Use-cases
+        - Deepdive
+        - Special
+        - Announcement
+        - News
+        - Thoughts
+  - meta
+  - tags
+#  - search
+#  - mkdocstrings:
+#  - api-autonav:
+#      modules: ['python/src/hhat_lang', 'rust/hhat_lang']
+#      nav_section_title: "Python API Reference"
+#      show_full_namespace: false
+#      on_implicit_namespace_package: "skip"
+#      module_options:
+#        package.submodule:
+#          docstring_section_style: "table"
+#          docstring_style: google
+#          merge_init_into_class: true
+#          parameter_headings: true
+#          show_signature_annotations: true
+#          show_symbol_type_heading: true
+#          show_symbol_type_toc: true
+#          summary: true
 
 
 extra_javascript:
@@ -87,9 +132,13 @@ theme:
   font:
     text: Lato
     code: JetBrains Mono
+  logo: hhat_logo.svg
+  favicon: hhat_logo.ico
   features:
     - navigation.sections
     - navigation.tabs
+    - navigation.top
+    - navigation.indexes
     - navigation.tabs.sticky
     - content.tooltips
     - content.code.annotate

@@ -1,0 +1,13 @@
+[package]
+name = "hhat_core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[dependencies.uuid]
+version = "1.15.1"
+# Lets you generate random UUIDs
+features = [
+    "v4",
+]

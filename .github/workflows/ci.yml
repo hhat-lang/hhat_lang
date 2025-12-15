@@ -2,7 +2,7 @@ name: ci_gh-pages
 on:
   push:
     branches:
-      - dev/python_impl/minimal_lang
+      - main
 permissions:
   contents: write
 jobs:

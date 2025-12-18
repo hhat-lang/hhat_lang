@@ -7,9 +7,9 @@ from arpeggio import ParserPython
 from hhat_lang.core.code.ir_graph import IRGraph
 from hhat_lang.core.config.base import HhatProjectSettings
 from hhat_lang.core.fns.builtin_ir_builder import gen_all_builtin_modules
-from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import IRModule, IR
+from hhat_lang.dialects.heather.code.simple_ir_builder.ir import IR, IRModule
 from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
-from hhat_lang.dialects.heather.parsing.ir_visitor import parser_grammar_code, parse
+from hhat_lang.dialects.heather.parsing.ir_visitor import parse, parser_grammar_code
 
 
 def compile_project_ir(

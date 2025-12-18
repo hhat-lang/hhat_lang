@@ -6,7 +6,7 @@ from typing import Any, Iterable
 from hhat_lang.core.code.base import BaseIRBlock, BaseIRInstr
 from hhat_lang.core.code.ir_custom import BodyBlock
 from hhat_lang.core.data.core import CompositeSymbol, Literal, Symbol, SimpleObj
-from hhat_lang.core.data.utils import AbstractDataContainer, VariableKind, isquantum
+from hhat_lang.core.data.utils import AbstractDataContainer, DataKind, isquantum
 from hhat_lang.core.error_handlers.errors import (
     ContainerVarError,
     ContainerVarIsImmutableError,
@@ -353,7 +353,7 @@ class VariableTemplate:
         type_name: Symbol | CompositeSymbol,
         ds_data: SymbolOrdered,
         ds_type: BaseTypeEnum,
-        flag: VariableKind = VariableKind.IMMUTABLE,
+        flag: DataKind = DataKind.IMMUTABLE,
     ) -> BaseDataContainer | ErrorHandler:
         # quantum variables are, at least for now, always appendable and thus mutable
         if isquantum(var_name) and isquantum(type_name):
@@ -362,16 +362,16 @@ class VariableTemplate:
         if not isquantum(var_name) and not isquantum(type_name):
             match flag:
                 # constant, at least for now, cannot be quantum
-                case VariableKind.CONSTANT:
+                case DataKind.CONSTANT:
                     return ConstantData(var_name, type_name, ds_data, ds_type)
 
-                case VariableKind.APPENDABLE:
+                case DataKind.APPENDABLE:
                     return AppendableVariable(var_name, type_name, ds_data, ds_type, False)
 
-                case VariableKind.MUTABLE:
+                case DataKind.MUTABLE:
                     return MutableVariable(var_name, type_name, ds_data, ds_type)
 
-                case VariableKind.IMMUTABLE:
+                case DataKind.IMMUTABLE:
                     return ImmutableVariable(var_name, type_name, ds_data, ds_type)
 
                 # default for now is immutable

@@ -5,7 +5,7 @@ from enum import Enum, auto
 from typing import Any
 
 
-class VariableKind(Enum):
+class DataKind(Enum):
     CONSTANT = auto()
     IMMUTABLE = auto()
     MUTABLE = auto()

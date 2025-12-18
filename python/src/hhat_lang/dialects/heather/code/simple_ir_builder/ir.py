@@ -40,7 +40,7 @@ from hhat_lang.core.data.core import (
     SimpleObj,
 )
 from hhat_lang.core.data.fn_def import FnDef
-from hhat_lang.core.data.utils import VariableKind
+from hhat_lang.core.data.utils import DataKind
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import HeapInvalidKeyError
 from hhat_lang.core.memory.core import MemoryManager
@@ -344,13 +344,12 @@ class IR(BaseIR):
 
     def __init__(
         self,
-        *,
         ref_table: RefTable,
         ir_module: IRModule,
+        **_kwargs: Any,
     ):
         if isinstance(ir_module, IRModule) and isinstance(ref_table, RefTable):
-            self._module = ir_module
-            self._ref_table = ref_table
+            super().__init__(ref_table, ir_module)
 
         else:
             raise ValueError("cannot have main IR block and symbol table in the same IR")

@@ -1,4 +1,0 @@
-main {
-    // add numbers
-    print(add(1 2))
-}

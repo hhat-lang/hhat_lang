@@ -7,6 +7,7 @@ from arpeggio import RegExMatch as _
 
 from hhat_lang.dialects.heather.grammar import (
     FLOAT,
+    ID,
     INT,
     MULTILINE_COMMENT,
     QINT,
@@ -32,7 +33,7 @@ def array() -> Any:
 
 
 def simple_id() -> Any:
-    return _(r"@?[a-zA-Z][a-zA-Z0-9\-_]*")
+    return _(ID)
 
 
 def trait_name_id() -> Any:

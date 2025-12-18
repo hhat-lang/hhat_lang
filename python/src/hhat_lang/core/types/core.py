@@ -118,7 +118,10 @@ class StructDataBin(BaseTypeDataBin[StructT, StructC, StructM]):
 
         return TypeMemberAlreadyExistsError()
 
-    def __getitem__(self, item: Symbol) -> StructT:
+    def __getitem__(self, item: int | Symbol) -> StructT | tuple[StructM, StructT]:
+        if isinstance(item, int):
+            return tuple(self._container.items())[item]
+
         return self._container[item]
 
     def __iter__(self) -> Iterable:

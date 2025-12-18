@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import sys
 from abc import ABC, abstractmethod
+from collections import deque
 from enum import auto
-from typing import Any
+from typing import Any, Iterable
 
 from hhat_lang.core.code.base import (
     BaseIRBlock,
@@ -11,12 +13,14 @@ from hhat_lang.core.code.base import (
     BaseIRInstr,
 )
 from hhat_lang.core.data.core import (
-    ObjArray,
     Literal,
+    LiteralArray,
+    ObjArray,
     SimpleObj,
 )
+from hhat_lang.core.error_handlers.errors import RetrieveAppendableDataError
 
-####################
+
 # IR INSTR SECTION #
 ####################
 
@@ -84,6 +88,7 @@ class IRBlockFlag(BaseIRBlockFlag):
     """Define all valid IR block flags for IR blocks"""
 
     BODY = auto()
+    EXPRESSION = auto()
     ARGS = auto()
     ARGS_VALUES = auto()
     OPTION = auto()
@@ -143,3 +148,51 @@ class IRInstr(BaseIRInstr):
 
     def __repr__(self) -> str:
         return f"{self.name}({', '.join(str(k) for k in self.args)})"
+
+
+##############################
+# APPENDABLE OBJECTS SECTION #
+##############################
+
+
+class AppendableData:
+    """
+    Appendable data, to be used on appendable data kind, such as quantum data.
+    All quantum data (variables, expressions) are appendable. Ex::
+
+        // appendable variable @q
+        @q:@bool = @false
+
+        // appendable expression '@redim(@0)'
+        @redim(@0)
+
+        // appendable expression '@redim(@3)' inside appendable variable @v
+        @v:@u3 = @redim(@3)
+
+    Any other combination, for instance applying a functions to a variable, will
+    be incorporated as appendable as well. Under the hood, it considers everything
+    as ir blocks or ir instructions.
+
+    Note: this object is not hashable.
+    """
+
+    # use Queue in the future for threading/asynchronous queueing
+    _value: deque[IRBlock | IRInstr | LiteralArray | Literal]
+
+    def __init__(self, *values: Any):
+        self._value = deque(*values)
+
+    def insert(self, value: IRBlock | IRInstr | Literal | LiteralArray) -> None:
+        self._value.append(value)
+
+    def get(self, item: int | Any) -> IRBlock | IRInstr | Literal | LiteralArray:
+        return self.__getitem__(item)
+
+    def __getitem__(self, item: int | Any) -> IRBlock | IRInstr | Literal | LiteralArray:
+        if isinstance(item, int):
+            return self._value[item]
+
+        sys.exit(RetrieveAppendableDataError(item)())
+
+    def __iter__(self) -> Iterable:
+        return iter(self._value)

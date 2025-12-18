@@ -2,18 +2,21 @@ from __future__ import annotations
 
 import importlib
 import inspect
-from functools import lru_cache
-from typing import Any, Callable, Iterable, cast
+from typing import Any, Iterable, cast
 
 from hhat_lang.core.code.instructions import (
     QInstrFlag,
 )
+from hhat_lang.core.code.ir_block import (
+    IRBlock,
+    IRInstr,
+)
 from hhat_lang.core.code.utils import InstrStatus
 from hhat_lang.core.data.core import (
-    LiteralArray,
-    ObjTuple,
     CompositeSymbol,
     Literal,
+    LiteralArray,
+    ObjTuple,
     Symbol,
 )
 from hhat_lang.core.data.variable import BaseDataContainer
@@ -23,12 +26,8 @@ from hhat_lang.core.error_handlers.errors import (
     InstrStatusError,
 )
 from hhat_lang.core.execution.abstract_base import BaseExecutor
-from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager, BaseLLQ
+from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQ, BaseLLQManager
 from hhat_lang.core.utils import Error, Ok, Result
-from hhat_lang.core.code.ir_block import (
-    IRBlock,
-    IRInstr,
-)
 
 
 class LLQManager(BaseLLQManager):
@@ -55,7 +54,6 @@ class LLQ(BaseLLQ):
     def __init__(self):
         super().__init__()
 
-    @lru_cache
     def code(self) -> Any:
         pass
 

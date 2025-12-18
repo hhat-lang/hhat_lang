@@ -5,18 +5,18 @@ from abc import ABC
 from collections import OrderedDict, deque
 from copy import deepcopy
 from enum import Enum, auto
-from typing import Any, Hashable, cast
+from typing import Any, cast
 from uuid import UUID
 
 from hhat_lang.core.code.base import BaseFnCheck, BaseIRBlock
 from hhat_lang.core.data.core import (
-    LiteralArray,
-    ObjTuple,
     CompositeSymbol,
-    ObjArray,
     Literal,
-    Symbol,
+    LiteralArray,
+    ObjArray,
+    ObjTuple,
     SimpleObj,
+    Symbol,
 )
 from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import (
@@ -30,7 +30,7 @@ from hhat_lang.core.error_handlers.errors import (
     StackFrameGetError,
     StackFrameNotFnError,
 )
-from hhat_lang.core.utils import gen_uuid
+from hhat_lang.core.memory.utils import ScopeValue
 
 
 class PIDManager:
@@ -517,48 +517,6 @@ class Heap:
 
             case _:
                 raise ValueError("could not get heap value")
-
-
-class ScopeValue:
-    """Holds a value for scopes"""
-
-    _value: int
-    _counter: int
-
-    def __init__(self, obj: Hashable, *, counter: int):
-        """
-        Hold a value for scope.
-
-         Args:
-             obj: object must be hashable
-             counter: from the execution counter, to keep track of scope nesting
-        """
-
-        self._value = gen_uuid(gen_uuid(obj) + counter)
-        self._counter = counter
-
-    @property
-    def value(self) -> int:
-        return self._value
-
-    @property
-    def counter(self) -> int:
-        return self._counter
-
-    def __hash__(self) -> int:
-        return self._value
-
-    def __eq__(self, other: Any) -> bool:
-        if isinstance(other, ScopeValue):
-            return self._value == other._value
-
-        if isinstance(other, int):
-            return self._value == other
-
-        return False
-
-    def __repr__(self) -> str:
-        return f"S#{self._value}"
 
 
 class Scope:

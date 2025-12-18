@@ -4,10 +4,9 @@ import uuid
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import Mapping
-from typing import Any, Hashable, Iterator, TypeVar
+from typing import Any, Generic, Hashable, Iterator, Protocol, TypeVar, runtime_checkable
 from uuid import NAMESPACE_OID
 
-from hhat_lang.core.data.core import CompositeSymbol, Symbol, SimpleObj
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 
 
@@ -15,54 +14,58 @@ def gen_uuid(obj: Hashable) -> int:
     return int(uuid.uuid5(NAMESPACE_OID, f"{obj}").hex, 16)
 
 
-Key = TypeVar("Key")
-Value = TypeVar("Value")
+@runtime_checkable
+class KeyObj(Protocol):
+    """A generic key object to bound as key to ``SymbolOrdered`` instance."""
+
+    @property
+    def value(self) -> Any:
+        pass
+
+    def __hash__(self) -> int:
+        pass
+
+    def __eq__(self, other: Any) -> bool:
+        pass
 
 
-class SymbolOrdered[Key, Value](Mapping):
+@runtime_checkable
+class ValueObj(Protocol):
+    """A generic value object to bound as value to ``SymbolOrdered`` instance."""
+
+    @property
+    def value(self) -> Any:
+        pass
+
+
+Key = TypeVar("Key", bound=KeyObj)
+Value = TypeVar("Value", bound=ValueObj)
+
+
+class SymbolOrdered(Mapping, Generic[Key, Value]):
     """
     A special OrderedDict that accepts Symbol as keys but transforms them
     as str to unpack the class. Useful for building data structures such
     as ``SingleTypeDef``, ``StructTypeDef``, etc.
     """
 
-    _data: OrderedDict[SimpleObj | Symbol | CompositeSymbol | int, Any]
+    _data: OrderedDict[Key, Value]
 
     def __init__(self, data: dict | OrderedDict | None = None):
         self._data = OrderedDict() if data is None else OrderedDict(data)
 
-    def __setitem__(
-        self, key: int | str | SimpleObj | Symbol | CompositeSymbol, value: Any
-    ) -> None:
-        if isinstance(key, str):
-            self._data[Symbol(key)] = value
-
-        elif isinstance(key, (Symbol, CompositeSymbol)):
-            self._data[key] = value
-
-        elif isinstance(key, SimpleObj):
-            self._data[key] = value
-
-        elif isinstance(key, int):
+    def __setitem__(self, key: Key, value: Value) -> None:
+        if isinstance(key, KeyObj):
             self._data[key] = value
 
         else:
-            raise ValueError(f"{key} ({type(key)}) is not valid key for data structures.")
+            raise ValueError(f"{key} ({type(key)}) is not valid key for data collection.")
 
-    def __getitem__(self, key: int | str | SimpleObj | Symbol | CompositeSymbol) -> Any:
-        if isinstance(key, str):
-            return self._data[Symbol(key)]
-
-        if isinstance(key, (Symbol, CompositeSymbol)):
+    def __getitem__(self, key: Key) -> Any:
+        if isinstance(key, KeyObj):
             return self._data[key]
 
-        if isinstance(key, SimpleObj):
-            return self._data[key]
-
-        if isinstance(key, int):
-            return self._data[key]
-
-        raise KeyError(key)
+        raise KeyError(f"'{key}' is not found in data collection.")
 
     def __len__(self) -> int:
         return len(self._data)

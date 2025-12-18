@@ -17,7 +17,7 @@ from hhat_lang.core.types.utils import BaseTypeEnum
 
 
 def test_single_ds() -> None:
-    lit_108 = Literal("108", "u32")
+    lit_108 = Literal("108", Symbol("u32"))
 
     user_type1 = SingleTypeDef(name=Symbol("user_type1"))
     user_type1.add_member(U32)
@@ -34,7 +34,7 @@ def test_single_ds() -> None:
 
 
 def test_single_ds_quantum() -> None:
-    lit_q2 = Literal("@2", "@u3")
+    lit_q2 = Literal("@2", Symbol("@u3"))
 
     # type @type1:@u3
     qtype1 = SingleTypeDef(name=Symbol("@type1"))

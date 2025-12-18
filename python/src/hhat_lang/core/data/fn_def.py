@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import lru_cache
 from typing import Any, Callable
 
 from hhat_lang.core.code.base import BaseFnCheck, BaseIRBlock
@@ -75,7 +74,6 @@ class FnDef:
         return self._body
 
     @property
-    @lru_cache
     def arg_names(self) -> tuple[SimpleObj | ObjArray, ...]:
         if hasattr(self._args, "args"):
             return self._args.args  # type: ignore [return-value]
@@ -83,7 +81,6 @@ class FnDef:
         raise ValueError(f"wrong arg names from function definition {self._name}")
 
     @property
-    @lru_cache
     def arg_values(self) -> tuple[Symbol | CompositeSymbol | BaseIRBlock, ...]:
         if hasattr(self._args, "values"):
             return self._args.values[0]
@@ -164,7 +161,6 @@ class BuiltinFnDef:
         return self._body
 
     @property
-    @lru_cache
     def arg_names(self) -> tuple[SimpleObj | ObjArray, ...]:
         if hasattr(self._args, "args"):
             return self._args.args  # type: ignore [return-value]
@@ -172,7 +168,6 @@ class BuiltinFnDef:
         raise ValueError(f"wrong arg names from function definition {self._name}")
 
     @property
-    @lru_cache
     def arg_values(self) -> tuple[Symbol | CompositeSymbol | BaseIRBlock, ...]:
         if hasattr(self._args, "values"):
             return self._args.values

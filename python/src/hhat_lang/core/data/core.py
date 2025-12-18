@@ -8,7 +8,7 @@ from __future__ import annotations
 import struct
 import sys
 from enum import Enum, auto
-from functools import lru_cache, reduce
+from functools import reduce
 from typing import Any, Iterable
 
 from hhat_lang.core.data.utils import has_same_paradigm, isquantum
@@ -266,7 +266,8 @@ class Literal:
     _type: Symbol | CompositeSymbol
     _is_quantum: bool
     _hash_value: int
-    __slots__ = ("_value", "_type", "_is_quantum", "_hash_value")
+    _bin: str
+    __slots__ = ("_value", "_type", "_is_quantum", "_hash_value", "_bin")
 
     def __init__(self, value: str, lit_type: Symbol | CompositeSymbol):
         if has_same_paradigm(value, lit_type):
@@ -274,6 +275,7 @@ class Literal:
             self._type = lit_type
             self._is_quantum = isquantum(value)
             self._hash_value = hash((self.value, self.type))
+            self._bin = self.transform_bin()
 
         else:
             sys.exit(LiteralTypeMismatchError(value, lit_type)())
@@ -290,7 +292,10 @@ class Literal:
     def is_quantum(self) -> bool:
         return self._is_quantum
 
-    @lru_cache
+    @property
+    def bin(self) -> str:
+        return self._bin
+
     def transform_bin(self) -> str:
         value: str
 
@@ -341,10 +346,6 @@ class Literal:
 
         return False
 
-    @property
-    def bin(self) -> str:
-        return self.transform_bin()
-
     def __repr__(self) -> str:
         return f"{self._value}:{self._type}"
 
@@ -366,7 +367,6 @@ class LiteralArray:
 
     def __init__(self, value: tuple[Literal, ...]):
         if has_same_type(value):
-
             match all_or_none_quantum(value):
                 case AllNoneQuantum.AllQuantum:
                     self._is_quantum = True

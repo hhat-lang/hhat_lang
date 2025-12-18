@@ -6,6 +6,8 @@ from typing import Any
 
 
 class ErrorCodes(Enum):
+    FEATURE_NOT_IMPLEMENTED_ERROR = auto()
+
     LITERAL_TYPE_MISMATCH_ERROR = auto()
     ARRAY_QUANTUM_CLASSICAL_MIXED_ERROR = auto()
     ARRAY_ELEMS_NOT_SAME_ERROR = auto()
@@ -28,12 +30,16 @@ class ErrorCodes(Enum):
 
     TYPE_SYMBOL_CONVERSION_ERROR = auto()
 
+    RETRIEVE_APPENDABLE_DATA_ERROR = auto()
+
     CONTAINER_VAR_ASSIGN_ERROR = auto()
     CONTAINER_VAR_IS_IMMUTABLE_ERROR = auto()
 
     VARIABLE_WRONG_MEMBER_ERROR = auto()
     VARIABLE_CREATION_ERROR = auto()
     VARIABLE_FREEING_BORROWED_ERROR = auto()
+
+    DATA_INITIALIZATION_WRONG_ARGUMENTS_ERROR = auto()
 
     CAST_NEG_TO_UNSIGNED_ERROR = auto()
     CAST_INT_OVERFLOW_ERROR = auto()
@@ -89,6 +95,30 @@ class ErrorHandler(BaseException, ABC):
 #################
 
 
+class FeatureNotImplementedError(ErrorHandler):
+    def __init__(self, name: Any, descr: str):
+        """
+        Class to handle feature not implemented errors. The text will appear to the user as::
+
+            [[Error<FEATURE_NOT_IMPLEMENTED_ERROR:0>]]: feature '<feature name>' which is \
+            '<feature description>' is not implemented on this H-hat version.
+
+        Args:
+            name: name of the method, function, class, obj, etc.
+            descr: text description of its functionality
+        """
+
+        self.name = name
+        self.descr = descr
+        super().__init__(ErrorCodes.FEATURE_NOT_IMPLEMENTED_ERROR)
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self}]]: feature '{self.name}' which is '{self._lit_type}'"
+            f" is not implemented on this H-hat version."
+        )
+
+
 class LiteralTypeMismatchError(ErrorHandler):
     def __init__(self, lit: Any, lit_type: Any):
         self._lit = lit
@@ -120,9 +150,7 @@ class ArrayElemsNotSameError(ErrorHandler):
         super().__init__(ErrorCodes.ARRAY_ELEMS_NOT_SAME_ERROR)
 
     def __call__(self) -> str:
-        return (
-            f"[[{self}]]: array {self._array} has not the" f" same type, which is invalid behavior."
-        )
+        return f"[[{self}]]: array {self._array} has not the same type, which is invalid behavior."
 
 
 class IndexUnknownError(ErrorHandler):
@@ -291,6 +319,16 @@ class TypeSymbolConversionError(ErrorHandler):
         )
 
 
+class RetrieveAppendableDataError(ErrorHandler):
+    def __init__(self, value: Any):
+        super().__init__(ErrorCodes.RETRIEVE_APPENDABLE_DATA_ERROR)
+        self.value = value
+
+    def __call__(self) -> str:
+        name = self.__class__.__name__
+        return f"[[{name}]]: cannot retrieve data appendable collection using '{self.value}'"
+
+
 class ContainerVarError(ErrorHandler):
     def __init__(self, var_name: Any):
         super().__init__(ErrorCodes.CONTAINER_VAR_ASSIGN_ERROR)
@@ -298,7 +336,7 @@ class ContainerVarError(ErrorHandler):
 
     def __call__(self) -> str:
         name = self.__class__.__name__
-        return f"[[{name}]]: Error assigning value to variable '{self._var_name}'"
+        return f"[[{name}]]: Error assigning value to data container '{self._var_name}'"
 
 
 class ContainerVarIsImmutableError(ErrorHandler):
@@ -341,6 +379,22 @@ class VariableFreeingBorrowedError(ErrorHandler):
         return (
             f"[[{self.__class__.__name__}]]: Could not freeing variable '{self._var_name}',"
             f" it's borrowing its data."
+        )
+
+
+class DataInitializationArgumentsError(ErrorHandler):
+    def __init__(self, var_name: Any, var_type: Any, **kwargs: Any):
+        super().__init__(ErrorCodes.DATA_INITIALIZATION_WRONG_ARGUMENTS_ERROR)
+        self.var_name = var_name
+        self.var_type = var_type
+        self.kwargs = kwargs
+
+    def __call__(self) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: could not initialize '{self.var_name}',"
+            f" wrong arguments: {
+            ', '.join(f'{k}={v} ({type(v)})' for k, v in self.kwargs.items())
+            }"
         )
 
 

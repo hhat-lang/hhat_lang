@@ -8,7 +8,7 @@ from hhat_lang.core.code.symbol_table import SymbolTable
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.data.fn_def import FnDef, BuiltinFnDef
 from hhat_lang.core.types.abstract_base import BaseTypeDef
-from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
+from hhat_lang.dialects.heather.code.simple_ir_builder.ir import (
     IR,
     IRModule,
 )

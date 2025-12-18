@@ -121,6 +121,10 @@ class BaseIR(ABC):
     _ref_table: RefTable
     _module: BaseIRModule
 
+    def __init__(self, ref_table: RefTable, module: BaseIRModule, **kwargs: Any):
+        self._ref_table = ref_table
+        self._module = module
+
     @property
     def module(self) -> BaseIRModule:
         return self._module

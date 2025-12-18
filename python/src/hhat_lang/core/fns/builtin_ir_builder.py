@@ -3,10 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable
 
-from hhat_lang.core.code.abstract import BaseIRModule, BaseIR, RefTable
+from hhat_lang.core.code.abstract import BaseIR, BaseIRModule
 from hhat_lang.core.code.ir_graph import IRGraph
-from hhat_lang.core.code.tools import build_reftable
 from hhat_lang.core.code.symbol_table import SymbolTable
+from hhat_lang.core.code.tools import build_reftable
 from hhat_lang.core.fns.core import builtin_fns_path
 
 
@@ -26,7 +26,7 @@ def build_ir_module(
 def build_ir(
     builtin_path: Path,
     ir_module: Callable[[Path, SymbolTable, ...], BaseIRModule],
-    ir: Callable[[RefTable, BaseIRModule, ...], BaseIR],
+    ir: type[BaseIR],
     **kwargs: Any,
 ) -> BaseIR:
     """
@@ -47,7 +47,7 @@ def gen_builtin_ir(
     builtin_path: Path,
     ir_graph: IRGraph,
     ir_module: Callable[[Path, SymbolTable, ...], BaseIRModule],
-    ir: Callable[[RefTable, BaseIRModule, ...], BaseIR],
+    ir: type[BaseIR],
     **kwargs: Any,
 ) -> None:
     """
@@ -71,7 +71,7 @@ def gen_builtin_ir(
 def gen_all_builtin_modules(
     ir_graph: IRGraph,
     ir_module: Callable[[Path, SymbolTable, ...], BaseIRModule],
-    ir: Callable[[RefTable, BaseIRModule, ...], BaseIR],
+    ir: type[BaseIR],
     **kwargs: Any,
 ) -> None:
     """

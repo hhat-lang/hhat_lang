@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from itertools import chain
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
 from arpeggio import (
     NonTerminal,
@@ -48,7 +48,7 @@ from hhat_lang.core.imports.importer import FnImporter
 from hhat_lang.core.types.abstract_base import BaseTypeDef, QSize, Size
 from hhat_lang.core.types.builtin_types import builtins_types
 from hhat_lang.core.types.core import EnumTypeDef, SingleTypeDef, StructTypeDef
-from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
+from hhat_lang.dialects.heather.code.simple_ir_builder.ir import (
     IR,
     AssignInstr,
     CallInstr,
@@ -56,7 +56,7 @@ from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir import (
     DeclareAssignInstr,
     DeclareInstr,
 )
-from hhat_lang.dialects.heather.code.simple_ir_builder.new_ir_builder import build_ir
+from hhat_lang.dialects.heather.code.simple_ir_builder.ir_builder import build_ir
 from hhat_lang.dialects.heather.grammar import WHITESPACE
 from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
 from hhat_lang.dialects.heather.grammar.generic_grammar import comment
@@ -584,12 +584,11 @@ class ParserIRVisitor(PTNodeVisitor):
                 )
 
         def _compose_id_group(
-            data: Symbol | tuple | list | CompositeSymbol,
+            data: Iterable[Symbol | tuple | list | CompositeSymbol],
         ) -> tuple[tuple[Symbol, ...], ...]:
             ids = ()
 
             for p in data:
-
                 match p:
                     case Symbol():
                         ids += ((p,),)

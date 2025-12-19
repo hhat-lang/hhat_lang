@@ -441,6 +441,7 @@ SymbolObj = Symbol | CompositeSymbol | AsArray
 LiteralObj = Literal | LiteralArray
 SimpleObj = Symbol | Literal
 ObjArray = LiteralArray | AsArray
+HasQuantumT = SymbolObj | LiteralObj
 
 
 def has_correct_paradigm_ordering(*obj_list: SimpleObj | ObjArray) -> bool:
@@ -484,7 +485,7 @@ def all_or_none_quantum(value: tuple[Symbol | Literal, ...]) -> AllNoneQuantum:
     return AllNoneQuantum.NoneQuantum
 
 
-def has_same_type(value: tuple[Literal, ...]) -> bool:
+def has_same_type(*value: Literal) -> bool:
     """Check elements have the same type inside a literal tuple."""
 
     def _check_type(_new: Literal | bool, _acc: Literal | bool) -> bool:

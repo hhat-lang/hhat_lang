@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Callable
 
 from pytest import fixture
-from python.tests.dialects.heather.code_samples import (
+
+from .code_samples import (
     io1_types_def,
     math1_types_def,
     math2_types_def,
@@ -18,7 +19,7 @@ from python.tests.dialects.heather.code_samples import (
     math_sin_def,
     qstd1_types_def,
 )
-from python.tests.dialects.heather.parsing.utils import start_new_project
+from .utils import start_new_project
 
 RelativePath = Path | str
 

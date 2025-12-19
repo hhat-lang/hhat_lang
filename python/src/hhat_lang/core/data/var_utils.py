@@ -10,7 +10,6 @@ from typing import (
     Generic,
     Iterable,
     TypeVar,
-    cast,
 )
 
 from hhat_lang.core.code.base import BaseIRBlock, BaseIRInstr
@@ -20,12 +19,12 @@ from hhat_lang.core.error_handlers.errors import (
     DataInitializationArgumentsError,
     ErrorHandler,
     ImmutableDataReassignmentError,
+    InvalidContentDataError,
     InvalidDataStorageError,
     InvalidDataTypeCollectionError,
     LazySequenceConsumedError,
     RetrieveAppendableDataError,
     UsingDataBeforeInitializationError,
-    InvalidContentDataError,
 )
 from hhat_lang.core.memory.utils import ScopeValue
 from hhat_lang.core.types.abstract_base import BaseTypeDef
@@ -201,7 +200,11 @@ class BaseCollection(ABC, Generic[D]):
     @abstractmethod
     def get(
         self, *args: Symbol | BaseTypeDef | Any, **kwargs: Symbol | BaseTypeDef | Any
-    ) -> ContentType:
+    ) -> ContentType | Iterable[ContentType]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __iter__(self) -> Iterable:
         raise NotImplementedError()
 
 
@@ -217,11 +220,14 @@ class SingleCollection(BaseCollection):
         super().__init__(data_kind)
         self._data = self._storage()
 
-    def insert(self, *, data: ContentType, **kwargs: Any) -> None:
+    def insert(self, data: ContentType, **kwargs: Any) -> None:
         self._data.add(data)
 
-    def get(self, **kwargs: Any) -> ContentType:
-        return self._data[0]
+    def get(self, item: Any | None, **_kwargs: Any) -> ContentType | Iterable[ContentType]:
+        return self._data.get(item)
+
+    def __iter__(self) -> Iterable:
+        return iter((self._data,))
 
 
 @store_to_dict(BaseTypeEnum.STRUCT)
@@ -250,6 +256,9 @@ class StructCollection(BaseCollection):
     def get(self, member: Symbol | BaseTypeDef, **kwargs: Any) -> T:
         pass
 
+    def __iter__(self) -> Iterable:
+        return iter(self._data.items())
+
 
 @store_to_dict(BaseTypeEnum.ENUM)
 class EnumCollection(BaseCollection):
@@ -261,6 +270,9 @@ class EnumCollection(BaseCollection):
         pass
 
     def get(self, member: Symbol | BaseTypeDef, **kwargs: Any) -> T:
+        pass
+
+    def __iter__(self) -> Iterable:
         pass
 
 
@@ -286,6 +298,10 @@ class BaseDataStorage(ABC, Generic[T]):
 
     @abstractmethod
     def add(self, value: ContentType, **kwargs: Any) -> ErrorHandler | None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get(self, item: int | Any, **kwargs: Any) -> ContentType | Iterable[ContentType]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -329,11 +345,14 @@ class ImmutableItem(BaseDataStorage[ContentType | None]):
 
         return ImmutableDataReassignmentError()
 
+    def get(self, item: int | Any, **kwargs: Any) -> ContentType | Iterable[ContentType]:
+        return self.__getitem__(None)
+
     def __iadd__(self, other: ContentType) -> ImmutableItem | ErrorHandler:
         res = self.add(other)
         return res if isinstance(res, ErrorHandler) else self
 
-    def __getitem__(self, item: int) -> ContentType:
+    def __getitem__(self, item: int | None = None) -> ContentType:
         return self._data
 
     def __iter__(self) -> Iterable:
@@ -364,11 +383,14 @@ class MutableItem(BaseDataStorage[ContentType | None]):
 
         return InvalidContentDataError()
 
+    def get(self, item: int | Any, **kwargs: Any) -> ContentType | Iterable[ContentType]:
+        return self.__getitem__(None)
+
     def __iadd__(self, other: ContentType) -> MutableItem | ErrorHandler:
         res = self.add(other)
         return res if isinstance(res, ErrorHandler) else self
 
-    def __getitem__(self, item: int) -> ContentType:
+    def __getitem__(self, item: int | None = None) -> ContentType:
         return self._data
 
     def __iter__(self) -> Iterable:
@@ -427,7 +449,10 @@ class LazySequence(BaseDataStorage[deque[ContentType]]):
 
         return LazySequenceConsumedError()
 
-    def get(self, item: int | Any) -> ContentType:
+    def get(self, item: int | Any | None) -> ContentType | list[ContentType]:
+        if item is None:
+            return list(self._data)
+
         return self.__getitem__(item)
 
     def __iadd__(self, other: ContentType) -> LazySequence:

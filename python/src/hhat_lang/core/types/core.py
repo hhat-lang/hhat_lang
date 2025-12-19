@@ -10,11 +10,13 @@ from hhat_lang.core.data.core import (
     Symbol,
     SymbolObj,
 )
-from hhat_lang.core.data.utils import isquantum
+from hhat_lang.core.data.utils import isquantum, has_same_paradigm
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
     TypeMemberAlreadyExistsError,
     TypeMemberOverflowError,
+    sys_exit,
+    TypeQuantumOnClassicalError,
 )
 from hhat_lang.core.types.abstract_base import BaseTypeDataBin, BaseTypeDef, M
 from hhat_lang.core.types.utils import BaseTypeEnum
@@ -77,12 +79,16 @@ class SingleTypeDef(BaseTypeDef[SingleT, None]):
         self._container = SingleDataBin()
 
     def add_member(self, type_name: SingleT | None, **kwargs: Any) -> SingleTypeDef:
-        match res := self._container.add_member(type_name=type_name):
-            case TypeMemberOverflowError():
-                sys.exit(res(self._name, self._t_type))
+        if has_same_paradigm(self._name, type_name):
 
-            case _:
-                return self
+            match res := self._container.add_member(type_name=type_name):
+                case TypeMemberOverflowError():
+                    sys.exit(res(self._name, self._t_type))
+
+                case _:
+                    return self
+
+        sys_exit(error=TypeQuantumOnClassicalError(self._name, type_name))
 
     def __iter__(self) -> Iterable:
         return iter(self._container)

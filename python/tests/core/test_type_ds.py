@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from collections import OrderedDict
 
+import pytest
+
 from hhat_lang.core.data.core import CompositeSymbol, Literal, Symbol
 from hhat_lang.core.error_handlers.errors import (
     TypeAndMemberNoMatchError,
@@ -11,9 +13,7 @@ from hhat_lang.core.error_handlers.errors import (
 from hhat_lang.core.types.builtin_types import QU3, U32, U64
 from hhat_lang.core.types.core import EnumTypeDef, SingleTypeDef, StructTypeDef
 from hhat_lang.core.types.utils import BaseTypeEnum
-
-# TODO: refactor the types to use `BuiltinSingleDS` or respective data
-#  types so properties can be compared and addressed properly.
+from hhat_lang.dialects.heather.code.builtins.vars.builtin_var_def import Appendable, Immutable
 
 
 def test_single_ds() -> None:
@@ -21,16 +21,13 @@ def test_single_ds() -> None:
 
     user_type1 = SingleTypeDef(name=Symbol("user_type1"))
     user_type1.add_member(U32)
-    var1 = user_type1(var_name=Symbol("var1"))
+    var1 = Immutable(name=Symbol("var1"), data_type=user_type1, counter=0)
     var1.assign(lit_108)
 
     assert var1.name == Symbol("var1")
-    assert var1.type == Symbol("user_type1")
-    assert var1.data == OrderedDict({U32.name: lit_108})
+    assert var1.type == user_type1
     assert var1.get() == lit_108
     assert var1.is_quantum is False
-
-    assert isinstance(var1.get(Symbol("x")), VariableWrongMemberError)
 
 
 def test_single_ds_quantum() -> None:
@@ -40,24 +37,28 @@ def test_single_ds_quantum() -> None:
     qtype1 = SingleTypeDef(name=Symbol("@type1"))
     qtype1.add_member(QU3)
 
+    with pytest.raises(SystemExit):
+        # quantum data cannot be anything but Appendable
+        Immutable(name=Symbol("@var1"), data_type=qtype1, counter=0)
+
     # @var1:@type1
-    qvar1 = qtype1(var_name=Symbol("@var1"))
+    qvar1 = Appendable(name=Symbol("@var1"), data_type=qtype1, counter=0)
     # @var1 = @2:@u3
     qvar1.assign(lit_q2)
 
     assert qvar1.name == Symbol("@var1")
-    assert qvar1.type == Symbol("@type1")
+    assert qvar1.type == qtype1
     assert qvar1.is_quantum
-    assert qvar1.data == OrderedDict({QU3.name: [lit_q2]})
     assert qvar1.get() == [lit_q2]
     assert qvar1.is_quantum is True
-
-    assert isinstance(qvar1.get(Symbol("x")), VariableWrongMemberError)
 
 
 def test_single_ds_quantum_wrong() -> None:
     type1 = SingleTypeDef(name=Symbol("type1"))
-    assert isinstance(type1.add_member(QU3), TypeQuantumOnClassicalError)
+    with pytest.raises(SystemExit) as e:
+        type1.add_member(QU3)
+
+    assert e.value.code == TypeQuantumOnClassicalError.error_code.value
 
 
 def test_struct_ds() -> None:

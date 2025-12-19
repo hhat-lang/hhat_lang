@@ -93,7 +93,7 @@ def new(
     const_file: str = typer.Option(None, "--const", "-c", help="Create a new constant file"),
 ) -> None:
     """
-    Create a new project, file, constant or type file.
+    Create a new project, file, constant, or type file.
 
     This command can create:
     - A new H-hat project with required structure
@@ -139,10 +139,10 @@ def new(
                 )
                 raise typer.Exit(1)
             else:
-                create_new_fn_file(proj_dir, Path(file_name))
+                full_path = create_new_fn_file(proj_dir, Path(file_name))
                 console.print(
                     Panel(
-                        f"File [bold]{file_name}.hat[/bold] created successfully!",
+                        f"File [bold]{full_path}.hat[/bold] created successfully!",
                         title="✓ Success",
                         border_style="green",
                     )

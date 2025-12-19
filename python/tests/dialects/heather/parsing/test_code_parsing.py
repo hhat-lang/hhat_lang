@@ -10,8 +10,6 @@ from hhat_lang.core.code.ir_graph import IRGraph
 from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
 from hhat_lang.dialects.heather.parsing.ir_visitor import parse, parser_grammar_code
 
-from .utils import THIS_PATH
-
 
 @pytest.mark.parametrize("project", ["project_recipe1", "project_recipe2"])
 def test_parse(project: Callable, request) -> None:

@@ -38,7 +38,7 @@ def test_help_specific_command():
     """Test help for a specific command shows detailed information"""
     result = runner.invoke(app, ["help", "new"])
     assert result.exit_code == 0
-    assert "Create a new project, file, or type file" in result.stdout
+    assert "Create a new project, file, constant, or type file" in result.stdout
     assert "--file" in result.stdout
     assert "--type" in result.stdout
 
@@ -70,7 +70,7 @@ def test_create_file_in_project(temp_dir):
     result = runner.invoke(app, ["new", "-f", "module/testfile"])
     assert result.exit_code == 0
     assert "created successfully" in result.stdout
-    assert (Path() / "module" / "testfile.hat").exists()
+    assert (Path() / "src" / "module" / "testfile.hat").exists()
 
 
 def test_create_file_outside_project(temp_dir):

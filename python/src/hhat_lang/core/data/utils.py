@@ -34,5 +34,5 @@ def has_same_paradigm(data1: Any, data2: Any) -> bool:
     return False
 
 
-class AbstractDataContainer(ABC):
+class AbstractDataDef(ABC):
     """Abstract data container. To prevent circular imports"""

@@ -2,24 +2,24 @@ from __future__ import annotations
 
 import sys
 from abc import abstractmethod
-from typing import Any, Generic, Iterable
+from typing import Any, Iterable
 
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
-from hhat_lang.core.data.utils import AbstractDataContainer
-from hhat_lang.core.data.var_utils import DataCollection, DataHeader, T
+from hhat_lang.core.data.utils import AbstractDataDef
+from hhat_lang.core.data.var_utils import BaseCollection, DataHeader
 from hhat_lang.core.error_handlers.errors import (
     VariableFreeingBorrowedError,
 )
 from hhat_lang.core.types.abstract_base import BaseTypeDef
 
 
-class DataContainer(AbstractDataContainer, Generic[T]):
+class DataDef(AbstractDataDef):
     """
     Data container for constant, variable and temporary data definitions.
     """
 
     _header: DataHeader
-    _data: DataCollection[T]
+    _data_type: BaseCollection
     _borrowed: DataHeader | None
 
     @property
@@ -43,11 +43,11 @@ class DataContainer(AbstractDataContainer, Generic[T]):
         return self._borrowed
 
     @property
-    def data(self) -> DataCollection[T]:
-        return self._data
+    def data(self) -> BaseCollection:
+        return self._data_type
 
     @abstractmethod
-    def assign(self, *args: Any, **kwargs: Any) -> DataContainer[T]:
+    def assign(self, *args: Any, **kwargs: Any) -> DataDef:
         """
         Assign some data to this data container. Should return itself.
         """
@@ -86,7 +86,7 @@ class DataContainer(AbstractDataContainer, Generic[T]):
         return self.assign(*args, **kwargs)
 
     def __iter__(self) -> Iterable:
-        return iter(self._data)
+        return iter(self._data_type)
 
     def free(self) -> None:
         if self._borrowed:

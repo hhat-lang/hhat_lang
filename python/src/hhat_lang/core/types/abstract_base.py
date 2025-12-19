@@ -87,6 +87,10 @@ class BaseTypeDef(AbstractTypeDef, Generic[T, M]):
         return self._name
 
     @property
+    def type(self) -> BaseTypeEnum:
+        return self._t_type
+
+    @property
     def is_quantum(self) -> bool:
         return self._is_quantum
 

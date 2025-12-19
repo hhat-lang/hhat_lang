@@ -6,7 +6,7 @@ from typing import Any, Iterable
 from hhat_lang.core.code.base import BaseIRBlock, BaseIRInstr
 from hhat_lang.core.code.ir_custom import BodyBlock
 from hhat_lang.core.data.core import CompositeSymbol, Literal, Symbol, SimpleObj
-from hhat_lang.core.data.utils import AbstractDataContainer, DataKind, isquantum
+from hhat_lang.core.data.utils import AbstractDataDef, DataKind, isquantum
 from hhat_lang.core.error_handlers.errors import (
     ContainerVarError,
     ContainerVarIsImmutableError,
@@ -19,7 +19,7 @@ from hhat_lang.core.types.utils import AbstractTypeDef, BaseTypeEnum
 from hhat_lang.core.utils import SymbolOrdered
 
 
-class BaseDataContainer(AbstractDataContainer):
+class BaseDataContainer(AbstractDataDef):
     """Data container for constant and variables definitions."""
 
     _name: Symbol | CompositeSymbol

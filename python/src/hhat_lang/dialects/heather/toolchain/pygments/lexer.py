@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-from pygments.lexer import RegexLexer, bygroups, words, include
+from pygments.lexer import RegexLexer, words
 from pygments.token import (
     Comment,
     Keyword,
+    Literal,
     Name,
     Number,
     Operator,
-    Punctuation,
     String,
-    Text,
     Whitespace,
-    Literal,
 )
 
 from hhat_lang.dialects.heather.grammar import (
@@ -103,13 +101,10 @@ class HhatLexer(RegexLexer):
             (words(operators), Operator),
             (words(punctuation), Operator.Punctuation),
             (ID, Name.Identifier),
-            include("literals"),
-        ],
-        "literals": [
             (STRING, String),
             (INT, Number.Integer),
             (QINT, Number.QInteger),
             (FLOAT, Number.Float),
-            (words(bool_literals), Literal.Boolean),
+            (words(bool_literals, prefix=r"\b", suffix=r"\b"), Literal.Boolean),
         ],
     }

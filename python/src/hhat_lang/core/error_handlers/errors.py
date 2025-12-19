@@ -39,6 +39,9 @@ class ErrorCodes(Enum):
     VARIABLE_CREATION_ERROR = auto()
     VARIABLE_FREEING_BORROWED_ERROR = auto()
 
+    IMMUTABLE_DATA_REASSIGNIMENT_ERROR = auto()
+    INVALID_CONTENT_DATA_ERROR = auto()
+    USING_DATA_BEFORE_INITIALIZATION_ERROR = auto()
     DATA_INITIALIZATION_WRONG_ARGUMENTS_ERROR = auto()
 
     CAST_NEG_TO_UNSIGNED_ERROR = auto()
@@ -68,6 +71,10 @@ class ErrorCodes(Enum):
     INSTR_STATUS_ERROR = auto()
 
     DATA_OVERFLOW_ERROR = auto()
+
+    INVALID_DATA_STORAGE_ERROR = auto()
+    INVALID_DATA_TYPE_COLLECTION_ERROR = auto()
+    LAZY_SEQUENCE_CONSUMED_ERROR = auto()
 
     EVALUATOR_CAST_DATA_ERROR = auto()
     EVALUATOR_CAST_WILDCARD_BUILTIN_TYPE_ERROR = auto()
@@ -112,7 +119,7 @@ class FeatureNotImplementedError(ErrorHandler):
         self.descr = descr
         super().__init__(ErrorCodes.FEATURE_NOT_IMPLEMENTED_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self}]]: feature '{self.name}' which is '{self._lit_type}'"
             f" is not implemented on this H-hat version."
@@ -125,7 +132,7 @@ class LiteralTypeMismatchError(ErrorHandler):
         self._lit_type = lit_type
         super().__init__(ErrorCodes.LITERAL_TYPE_MISMATCH_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self}]]: literal {self._lit} and type {self._lit_type}"
             f" mismatched paradigms; both need be classical or quantum."
@@ -137,7 +144,7 @@ class ArrayQuantumClassicalMixedError(ErrorHandler):
         self._array = array
         super().__init__(ErrorCodes.ARRAY_QUANTUM_CLASSICAL_MIXED_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self}]]: array {self._array} has quantum "
             f"and classical data, which is invalid behavior."
@@ -149,7 +156,7 @@ class ArrayElemsNotSameError(ErrorHandler):
         self._array = array
         super().__init__(ErrorCodes.ARRAY_ELEMS_NOT_SAME_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self}]]: array {self._array} has not the same type, which is invalid behavior."
 
 
@@ -157,7 +164,7 @@ class IndexUnknownError(ErrorHandler):
     def __init__(self):
         super().__init__(ErrorCodes.INDEX_UNKNOWN_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: Index unknown error."
 
 
@@ -167,7 +174,7 @@ class IndexAllocationError(ErrorHandler):
         self._max_idxs = max_idxs
         super().__init__(ErrorCodes.INDEX_ALLOC_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: Requested {self._req_idxs},"
             f" but maximum is {self._max_idxs}"
@@ -179,7 +186,7 @@ class IndexVarHasIndexesError(ErrorHandler):
         self._var = var_name
         super().__init__(ErrorCodes.INDEX_VAR_HAS_INDEXES_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: Var '{self._var}' already has indexes."
 
 
@@ -188,7 +195,7 @@ class IndexInvalidVarError(ErrorHandler):
         self._var = var_name
         super().__init__(ErrorCodes.INDEX_INVALID_VAR_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: Var '{self._var}' not in IndexManager."
 
 
@@ -212,7 +219,7 @@ class TypeQuantumOnClassicalError(ErrorHandler):
         self._q = q
         self._c = c
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: '{self._q}' cannot be inside '{self._c}'."
 
 
@@ -222,7 +229,7 @@ class TypeAndMemberNoMatchError(ErrorHandler):
         self.m_type = m_type
         self.m_member = m_member
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: '{self.m_type}' type and '{self.m_member}'"
             f" member are not of the same paradigm."
@@ -234,7 +241,7 @@ class TypeAddMemberError(ErrorHandler):
         self._member = member_name
         super().__init__(ErrorCodes.TYPE_ADD_MEMBER_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: Member of '{self._member}' could not be added."
 
 
@@ -243,7 +250,7 @@ class TypeSingleError(ErrorHandler):
         super().__init__(ErrorCodes.TYPE_SINGLE_ASSIGN_ERROR)
         self._type_name = type_name
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: Type '{self._type_name}'"
             f" cannot contain more than one member."
@@ -255,7 +262,7 @@ class TypeStructError(ErrorHandler):
         super().__init__(ErrorCodes.TYPE_STRUCT_ASSIGN_ERROR)
         self._type_name = type_name
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: Attempting to add wrong member"
             f" types to type '{self._type_name}'."
@@ -267,7 +274,7 @@ class TypeUnionError(ErrorHandler):
         super().__init__(ErrorCodes.TYPE_UNION_ASSIGN_ERROR)
         self._type_name = type_name
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: Attempting to add wrong member"
             f" types to type '{self._type_name}'."
@@ -279,7 +286,7 @@ class TypeEnumError(ErrorHandler):
         super().__init__(ErrorCodes.TYPE_ENUM_ASSIGN_ERROR)
         self._type_name = type_name
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: Attempting to add wrong member"
             f" types to type '{self._type_name}'."
@@ -292,7 +299,7 @@ class TypeMemberNotResolvedError(ErrorHandler):
         self._type_name = type_name
         self._type_member = type_member
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: member {self._type_member} cannot"
             f" be resolved for type '{self._type_name}'."
@@ -312,7 +319,7 @@ class TypeSymbolConversionError(ErrorHandler):
         super().__init__(ErrorCodes.TYPE_SYMBOL_CONVERSION_ERROR)
         self._type_type = type_type
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: symbol could not be converted; "
             f"expected str or array of strs and got {self._type_type}."
@@ -324,7 +331,7 @@ class RetrieveAppendableDataError(ErrorHandler):
         super().__init__(ErrorCodes.RETRIEVE_APPENDABLE_DATA_ERROR)
         self.value = value
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         name = self.__class__.__name__
         return f"[[{name}]]: cannot retrieve data appendable collection using '{self.value}'"
 
@@ -334,7 +341,7 @@ class ContainerVarError(ErrorHandler):
         super().__init__(ErrorCodes.CONTAINER_VAR_ASSIGN_ERROR)
         self._var_name = var_name
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         name = self.__class__.__name__
         return f"[[{name}]]: Error assigning value to data container '{self._var_name}'"
 
@@ -344,7 +351,7 @@ class ContainerVarIsImmutableError(ErrorHandler):
         super().__init__(ErrorCodes.CONTAINER_VAR_IS_IMMUTABLE_ERROR)
         self._var_name = var_name
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: Variable '{self._var_name}' is immutable."
 
 
@@ -353,7 +360,7 @@ class VariableWrongMemberError(ErrorHandler):
         super().__init__(ErrorCodes.VARIABLE_WRONG_MEMBER_ERROR)
         self._var_name = var_name
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: Variable '{self._var_name}' member is wrong."
 
 
@@ -363,7 +370,7 @@ class VariableCreationError(ErrorHandler):
         self._var_name = var_name
         self._var_type = var_type
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: Could not create variable '{self._var_name}'"
             f" of type '{self._var_type}'."
@@ -375,11 +382,49 @@ class VariableFreeingBorrowedError(ErrorHandler):
         super().__init__(ErrorCodes.VARIABLE_FREEING_BORROWED_ERROR)
         self._var_name = var_name
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: Could not freeing variable '{self._var_name}',"
             f" it's borrowing its data."
         )
+
+
+class ImmutableDataReassignmentError(ErrorHandler):
+    def __init__(self):
+        super().__init__(ErrorCodes.IMMUTABLE_DATA_REASSIGNIMENT_ERROR)
+
+    def __call__(self, name: Any) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: '{name}' is being reassigned,"
+            f" but it is an immutable data."
+        )
+
+
+class InvalidContentDataError(ErrorHandler):
+    def __init__(self):
+        super().__init__(ErrorCodes.INVALID_CONTENT_DATA_ERROR)
+
+    def __call__(self, name: Any, data: Any) -> str:
+        return f"[[{self.__class__.__name__}]]: '{name}' had assigned invalid data {data}."
+
+
+class UsingDataBeforeInitializationError(ErrorHandler):
+    def __init__(self, name: Any = None, member: Any = None):
+        super().__init__(ErrorCodes.USING_DATA_BEFORE_INITIALIZATION_ERROR)
+        self.name = name
+        self.member = member
+
+    def __call__(self, *_args: Any) -> str:
+        if self.name and self.member:
+            msg = (
+                f"{self.name} has member {self.member} being used before"
+                f" initialization (assign a value to it before use)."
+            )
+
+        else:
+            msg = "data being used before initialization (assign a value to it before use)."
+
+        return f"[[{self.__class__.__name__}]]: {msg}"
 
 
 class DataInitializationArgumentsError(ErrorHandler):
@@ -389,7 +434,7 @@ class DataInitializationArgumentsError(ErrorHandler):
         self.var_type = var_type
         self.kwargs = kwargs
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: could not initialize '{self.var_name}',"
             f" wrong arguments: {
@@ -404,7 +449,7 @@ class CastNegToUnsignedError(ErrorHandler):
         self._neg_value = neg_value
         self._unsigned_value = unsigned_value
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: Cannot cast negative {self._neg_value} "
             f"to unsigned {self._unsigned_value}."
@@ -417,7 +462,7 @@ class CastIntOverflowError(ErrorHandler):
         self._int_value = int_value
         self._limit = limit
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: Cannot cast integer {self._int_value}"
             f" on {self._limit}; overflow error."
@@ -430,7 +475,7 @@ class CastError(ErrorHandler):
         self._type_cast = type_cast
         self._data = data
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: Cannot cast {self._data} into {self._type_cast}."
 
 
@@ -440,7 +485,7 @@ class FnWrongArgsTypesError(ErrorHandler):
         self._expected = expected
         super().__init__(ErrorCodes.FUNCTION_WRONG_ARGS_TYPES_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: wrong args types; expected {self._expected},"
             f" but got {self._values}."
@@ -452,7 +497,7 @@ class FnWrongDataError(ErrorHandler):
         self._values = values
         super().__init__(ErrorCodes.FUNCTION_WRONG_DATA_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: wrong args types; expected literal or data container,"
             f" but got {self._values}."
@@ -466,7 +511,7 @@ class InvalidDataContainerCastError(ErrorHandler):
         self._to_type = to_type
         super().__init__(ErrorCodes.INVALID_DATA_CONTAINER_CAST_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: invalid data container {self._dc_type} when"
             f" casting from {self._from_type} to {self._to_type}."
@@ -479,7 +524,7 @@ class InvalidTypeCastError(ErrorHandler):
         self._expected = expected
         super().__init__(ErrorCodes.INVALID_TYPE_CAST_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: invalid type cast; expected type {self._expected},"
             f" but got {self._current}."
@@ -491,7 +536,7 @@ class StackFrameGetError(ErrorHandler):
         self._data = data
         super().__init__(ErrorCodes.STACK_FRAME_GET_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: Stack frame could not retrieve data {self._data}."
 
 
@@ -499,7 +544,7 @@ class StackFrameNotFnError(ErrorHandler):
     def __init__(self):
         super().__init__(ErrorCodes.STACK_FRAME_NOT_FN_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: Stack frame is not defined for functions,"
             f" but tried to used as if."
@@ -510,7 +555,7 @@ class StackEmptyError(ErrorHandler):
     def __init__(self):
         super().__init__(ErrorCodes.STACK_EMPTY_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: Stack is empty."
 
 
@@ -518,7 +563,7 @@ class StackOverflowError(ErrorHandler):
     def __init__(self):
         super().__init__(ErrorCodes.STACK_OVERFLOW_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: Stack overflow."
 
 
@@ -526,7 +571,7 @@ class HeapEmptyError(ErrorHandler):
     def __init__(self):
         super().__init__(ErrorCodes.HEAP_EMPTY_ERROR)
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: Heap is empty."
 
 
@@ -535,7 +580,7 @@ class HeapInvalidKeyError(ErrorHandler):
         super().__init__(ErrorCodes.HEAP_INVALID_KEY_ERROR)
         self._key = key
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: key '{self._key}' is invalid."
 
 
@@ -553,7 +598,7 @@ class SymbolTableInvalidKeyError(ErrorHandler):
     def Fn(cls) -> str:
         return "fn"
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: key '{self._key}' is invalid for {self._key_type}."
 
 
@@ -562,7 +607,7 @@ class InvalidQuantumComputedResult(ErrorHandler):
         super().__init__(ErrorCodes.INVALID_QUANTUM_COMPUTED_RESULT)
         self._qdata = qdata
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: quantum data {self._qdata} produced invalid result."
 
 
@@ -571,7 +616,7 @@ class InstrNotFoundError(ErrorHandler):
         super().__init__(ErrorCodes.INSTR_NOTFOUND_ERROR)
         self._name = name
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: instr {self._name} not found"
 
 
@@ -580,7 +625,7 @@ class InstrStatusError(ErrorHandler):
         super().__init__(ErrorCodes.INSTR_STATUS_ERROR)
         self._name = name
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]: instr {self._name} has status error"
 
 
@@ -591,7 +636,7 @@ class FunctionExecutionError(ErrorHandler):
         self._args = args
         self._reason = reason
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: function {self._name} with args {self.args}"
             f" failed due to: {self._reason}"
@@ -605,10 +650,42 @@ class DataOverflowError(ErrorHandler):
         self._expected_type = expected_type
         self._data = data
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: data {self._data} of type {self._data_type},"
             f" but attempted to cast into type {self._expected_type} (data overflow)."
+        )
+
+
+class InvalidDataTypeCollectionError(ErrorHandler):
+    def __init__(self, name: Any):
+        super().__init__(ErrorCodes.INVALID_DATA_TYPE_COLLECTION_ERROR)
+        self._name = name
+
+    def __call__(self, *_args: Any) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: {self._name} is not a valid"
+            f" data type collection key."
+        )
+
+
+class InvalidDataStorageError(ErrorHandler):
+    def __init__(self, name: Any):
+        super().__init__(ErrorCodes.INVALID_DATA_STORAGE_ERROR)
+        self._name = name
+
+    def __call__(self, *_args: Any) -> str:
+        return f"[[{self.__class__.__name__}]]: {self._name} is not a valid" f" data storage key."
+
+
+class LazySequenceConsumedError(ErrorHandler):
+    def __init__(self):
+        super().__init__(ErrorCodes.LAZY_SEQUENCE_CONSUMED_ERROR)
+
+    def __call__(self, name) -> str:
+        return (
+            f"[[{self.__class__.__name__}]]: {name} has a"
+            f" lazy storage and it's already consumed."
         )
 
 
@@ -618,7 +695,7 @@ class EvaluatorCastDataError(ErrorHandler):
         self._name = type(data)
         self._data = data
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: data {self._data} should be container"
             f" or literal, but got {self._name} instead."
@@ -630,7 +707,7 @@ class EvaluatorCastWildcardBuiltinTypeError(ErrorHandler):
         super().__init__(ErrorCodes.EVALUATOR_CAST_WILDCARD_BUILTIN_TYPE_ERROR)
         self._name = t_name
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: a precise type should be known, but"
             f" a wildcard type was given ({self._name})."
@@ -643,5 +720,5 @@ class InterpreterEvaluationError(ErrorHandler):
         self._msg = msg
         self._err = error_where
 
-    def __call__(self) -> str:
+    def __call__(self, *_args: Any) -> str:
         return f"[[{self.__class__.__name__}]]<{self._err} error]>: {self._msg}"

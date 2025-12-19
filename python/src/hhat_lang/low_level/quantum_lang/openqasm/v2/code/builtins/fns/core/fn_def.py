@@ -4,7 +4,7 @@ import sys
 
 from hhat_lang.core.code.base import BaseFnKey
 from hhat_lang.core.data.core import Literal, Symbol, Tmp
-from hhat_lang.core.data.variable import BaseDataContainer
+from hhat_lang.core.data.var_def import DataDef
 from hhat_lang.core.error_handlers.errors import FnWrongDataError
 from hhat_lang.core.fns.core import include_builtin_fn
 from hhat_lang.core.memory.core import MemoryManager
@@ -22,15 +22,13 @@ from hhat_lang.low_level.quantum_lang.openqasm.v2.code.builtins.fns.core import 
     ),
     fn_path=LLQ_MODULE_PATH,
 )
-def builtin_fn_qbool_qredim(
-    *args: Literal | BaseDataContainer, mem: MemoryManager
-) -> BaseDataContainer:
+def builtin_fn_qbool_qredim(*args: Literal | DataDef, mem: MemoryManager) -> DataDef:
     # can only accept one argument
     match arg := args[0]:
         case Literal():
             pass
 
-        case BaseDataContainer():
+        case DataDef():
             pass
 
         case _:
@@ -46,9 +44,7 @@ def builtin_fn_qbool_qredim(
     ),
     fn_path=LLQ_MODULE_PATH,
 )
-def builtin_fn_qint_qredim(
-    *args: Literal | BaseDataContainer, mem: MemoryManager
-) -> BaseDataContainer:
+def builtin_fn_qint_qredim(*args: Literal | DataDef, mem: MemoryManager) -> DataDef:
     pass
 
 
@@ -61,9 +57,7 @@ def builtin_fn_qint_qredim(
     ),
     fn_path=LLQ_MODULE_PATH,
 )
-def builtin_fn_qu2_qredim(
-    *args: Literal | BaseDataContainer, mem: MemoryManager
-) -> BaseDataContainer:
+def builtin_fn_qu2_qredim(*args: Literal | DataDef, mem: MemoryManager) -> DataDef:
     pass
 
 
@@ -76,9 +70,7 @@ def builtin_fn_qu2_qredim(
     ),
     fn_path=LLQ_MODULE_PATH,
 )
-def builtin_fn_qu3_qredim(
-    *args: Literal | BaseDataContainer, mem: MemoryManager
-) -> BaseDataContainer:
+def builtin_fn_qu3_qredim(*args: Literal | DataDef, mem: MemoryManager) -> DataDef:
     pass
 
 
@@ -91,9 +83,7 @@ def builtin_fn_qu3_qredim(
     ),
     fn_path=LLQ_MODULE_PATH,
 )
-def builtin_fn_qu4_qredim(
-    *args: Literal | BaseDataContainer, mem: MemoryManager
-) -> BaseDataContainer:
+def builtin_fn_qu4_qredim(*args: Literal | DataDef, mem: MemoryManager) -> DataDef:
     pass
 
 
@@ -106,9 +96,7 @@ def builtin_fn_qu4_qredim(
     ),
     fn_path=LLQ_MODULE_PATH,
 )
-def builtin_fn_qbool_qsync(
-    *args: Literal | BaseDataContainer, mem: MemoryManager
-) -> BaseDataContainer:
+def builtin_fn_qbool_qsync(*args: Literal | DataDef, mem: MemoryManager) -> DataDef:
     pass
 
 
@@ -121,9 +109,7 @@ def builtin_fn_qbool_qsync(
     ),
     fn_path=LLQ_MODULE_PATH,
 )
-def builtin_fn_qu2_qsync(
-    *args: Literal | BaseDataContainer, mem: MemoryManager
-) -> BaseDataContainer:
+def builtin_fn_qu2_qsync(*args: Literal | DataDef, mem: MemoryManager) -> DataDef:
     pass
 
 
@@ -136,9 +122,7 @@ def builtin_fn_qu2_qsync(
     ),
     fn_path=LLQ_MODULE_PATH,
 )
-def builtin_fn_qu3_qsync(
-    *args: Literal | BaseDataContainer, mem: MemoryManager
-) -> BaseDataContainer:
+def builtin_fn_qu3_qsync(*args: Literal | DataDef, mem: MemoryManager) -> DataDef:
     pass
 
 
@@ -151,7 +135,5 @@ def builtin_fn_qu3_qsync(
     ),
     fn_path=LLQ_MODULE_PATH,
 )
-def builtin_fn_qu4_qsync(
-    *args: Literal | BaseDataContainer, mem: MemoryManager
-) -> BaseDataContainer:
+def builtin_fn_qu4_qsync(*args: Literal | DataDef, mem: MemoryManager) -> DataDef:
     pass

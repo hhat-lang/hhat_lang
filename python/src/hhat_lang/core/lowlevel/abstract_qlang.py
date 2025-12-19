@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from hhat_lang.core.code.ir_graph import IRNode, IRGraph
-from hhat_lang.core.data.variable import BaseDataContainer
+from hhat_lang.core.data.var_def import DataDef
 from hhat_lang.core.execution.abstract_base import BaseExecutor
 from hhat_lang.core.memory.core import MemoryManager
 
@@ -15,7 +15,7 @@ class BaseLLQManager(ABC):
     quantum-specific language.
     """
 
-    _qdata: BaseDataContainer
+    _qdata: DataDef
     _mem: MemoryManager
     _node: IRNode
     _ir_graph: IRGraph
@@ -23,7 +23,7 @@ class BaseLLQManager(ABC):
 
     def __init__(
         self,
-        qdata: BaseDataContainer,
+        qdata: DataDef,
         mem: MemoryManager,
         node: IRNode,
         ir_graph: IRGraph,

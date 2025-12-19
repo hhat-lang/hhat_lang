@@ -18,7 +18,7 @@ from hhat_lang.core.data.core import (
     SimpleObj,
     Symbol,
 )
-from hhat_lang.core.data.variable import BaseDataContainer
+from hhat_lang.core.data.var_def import DataDef
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
     FnWrongArgsTypesError,
@@ -226,7 +226,7 @@ class StackFrame:
 
     _data: OrderedDict[
         SimpleObj | CompositeSymbol | BaseFnCheck,
-        BaseDataContainer | Literal | None,
+        DataDef | Literal | None,
     ]
     _fn_header: BaseFnCheck | None
     _for_fn_use: bool
@@ -252,12 +252,12 @@ class StackFrame:
     def add(
         self,
         key: Symbol | CompositeSymbol | Literal,
-        value: BaseDataContainer | Literal,
+        value: DataDef | Literal,
     ) -> None:
         if (
             isinstance(key, Symbol | CompositeSymbol | Literal)
             and (key not in self._data or self._data[key] is None)  # type: ignore [index]
-            and isinstance(value, BaseDataContainer | Literal)
+            and isinstance(value, DataDef | Literal)
         ):
             self._data[key] = value
 
@@ -267,12 +267,12 @@ class StackFrame:
         if isinstance(header, BaseFnCheck):
             self._fn_header = header
 
-    def _check_fn_args_types(self, *values_types: BaseDataContainer | Literal) -> bool:
+    def _check_fn_args_types(self, *values_types: DataDef | Literal) -> bool:
         if self._for_fn_use:
             return all(
                 cast(BaseFnCheck, self._fn_header).check_args_types(
                     k.type
-                    if isinstance(k, BaseDataContainer)
+                    if isinstance(k, DataDef)
                     else (Symbol(k.type) if isinstance(k.type, str) else CompositeSymbol(k.type))
                 )
                 for k in values_types
@@ -280,7 +280,7 @@ class StackFrame:
 
         sys.exit(StackFrameNotFnError()())
 
-    def add_ordered(self, *values: BaseDataContainer | Literal) -> None:
+    def add_ordered(self, *values: DataDef | Literal) -> None:
         """
         **Note**: to be used only for functions, on its startup parameters declaration.
 
@@ -307,10 +307,10 @@ class StackFrame:
 
     def get(
         self, item: SimpleObj | CompositeSymbol | BaseFnCheck
-    ) -> BaseDataContainer | Literal | ErrorHandler:
+    ) -> DataDef | Literal | ErrorHandler:
         return self._data.get(item) or StackFrameGetError(item)
 
-    def pop(self) -> BaseDataContainer | Literal:
+    def pop(self) -> DataDef | Literal:
         """Pops last value from ``StackFrame`` (data container or literal)"""
 
         return self._data.popitem()[-1]
@@ -329,11 +329,9 @@ class Stack:
         ARG_VALUE = auto()
 
     _data: list[StackFrame] | list
-    _entry_stack: (
-        list[BaseDataContainer | Literal | tuple[Symbol, BaseDataContainer | Literal]] | list
-    )
+    _entry_stack: list[DataDef | Literal | tuple[Symbol, DataDef | Literal]] | list
     _entry_type: Stack.EntryType
-    _return_stack: list[BaseDataContainer | Literal] | list
+    _return_stack: list[DataDef | Literal] | list
 
     def __init__(self):
         self._data = []
@@ -345,16 +343,16 @@ class Stack:
 
         self._data.append(StackFrame(for_fn_use))
 
-    def push(self, data: BaseDataContainer | Literal) -> None:
+    def push(self, data: DataDef | Literal) -> None:
         """Push ``data`` into current stack's frame as its new last item"""
 
-        if isinstance(data, BaseDataContainer):
+        if isinstance(data, DataDef):
             self._data[-1].add(data.name, data)  # type: ignore [arg-type]
 
         else:
             self._data[-1].add(data, data)
 
-    def get(self, item: SimpleObj | CompositeSymbol) -> BaseDataContainer | Literal:
+    def get(self, item: SimpleObj | CompositeSymbol) -> DataDef | Literal:
         """Retrieves data from the current stack frame"""
 
         match res := self._data[-1].get(item):
@@ -364,16 +362,16 @@ class Stack:
             case _:
                 return res
 
-    def pop(self) -> BaseDataContainer | Literal:
+    def pop(self) -> DataDef | Literal:
         """Pops last element from current ``StackFrame`` (either data container or literal)"""
 
         return self._data[-1].pop()
 
     def set_fn_entry(
         self,
-        *values: BaseDataContainer | Literal,
+        *values: DataDef | Literal,
         fn_header: BaseFnCheck,
-        **args_values: BaseDataContainer | Literal,
+        **args_values: DataDef | Literal,
     ) -> None:
         """
         Set the function entry, i.e. it's arguments. It can be through only
@@ -383,9 +381,9 @@ class Stack:
         for it.
 
         Args:
-            *values: ``BaseDataContainer`` or ``CoreLiteral`` data
+            *values: ``DataDef`` or ``CoreLiteral`` data
             fn_header: ``BaseFnCheck`` instance
-            **args_values: ``BaseDataContainer`` or ``CoreLiteral`` data
+            **args_values: ``DataDef`` or ``CoreLiteral`` data
         """
 
         assert (values and not args_values) or (
@@ -419,7 +417,7 @@ class Stack:
 
         sys.exit(StackFrameNotFnError()())
 
-    def set_fn_return(self, item: BaseDataContainer | Literal) -> None:
+    def set_fn_return(self, item: DataDef | Literal) -> None:
         """
         Add a function return to a special space in the stack; to be
         retrieved by the newest last stack frame
@@ -427,7 +425,7 @@ class Stack:
 
         self._return_stack = [item]
 
-    def get_fn_return(self) -> BaseDataContainer | Literal:
+    def get_fn_return(self) -> DataDef | Literal:
         """
         After the function is finished and its return value is properly
         addressed, this method must be used to clean the queue from
@@ -471,19 +469,19 @@ class Stack:
 class Heap:
     """Heap memory handling data of dynamic size"""
 
-    _data: dict[Symbol, BaseDataContainer]
+    _data: dict[Symbol, DataDef]
 
     def __init__(self):
         self._data = dict()
 
-    def set(self, key: Symbol, value: BaseDataContainer) -> None | HeapInvalidKeyError:
-        if not (isinstance(key, Symbol) and isinstance(value, BaseDataContainer)):
+    def set(self, key: Symbol, value: DataDef) -> None | HeapInvalidKeyError:
+        if not (isinstance(key, Symbol) and isinstance(value, DataDef)):
             return HeapInvalidKeyError(key=key)
 
         self._data[key] = value
         return None
 
-    def get(self, key: Symbol) -> BaseDataContainer | HeapInvalidKeyError:
+    def get(self, key: Symbol) -> DataDef | HeapInvalidKeyError:
         """
         Given a key, returns its data which can be a variable container (variable content),
         a working data (symbol, literal) or composite working data.
@@ -507,9 +505,9 @@ class Heap:
     def __contains__(self, item: Symbol) -> bool:
         return item in self._data
 
-    def __getitem__(self, item: Symbol) -> BaseDataContainer:
+    def __getitem__(self, item: Symbol) -> DataDef:
         match res := self.get(item):
-            case BaseDataContainer():
+            case DataDef():
                 return res
 
             case HeapInvalidKeyError():
@@ -670,9 +668,9 @@ class QuantumMemoryManager(MemoryManager):
         return self._idx
 
 
-MemoryDataTypes = BaseDataContainer | Literal | LiteralArray | Symbol | ObjTuple
+MemoryDataTypes = DataDef | Literal | LiteralArray | Symbol | ObjTuple
 """
-- BaseDataContainer
+- DataDef
 - CoreLiteral
 - CompositeLiteral
 - Symbol

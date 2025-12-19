@@ -19,7 +19,7 @@ from hhat_lang.core.data.core import (
     ObjTuple,
     Symbol,
 )
-from hhat_lang.core.data.variable import BaseDataContainer
+from hhat_lang.core.data.var_def import DataDef
 from hhat_lang.core.error_handlers.errors import (
     ErrorHandler,
     InstrNotFoundError,
@@ -105,7 +105,7 @@ class LowLeveQLang:
         return tuple(f"x q[{n}];" for n, k in enumerate(literal.bin) if k == "1")
 
     def gen_var(
-        self, var: BaseDataContainer | Symbol, executor: BaseExecutor
+        self, var: DataDef | Symbol, executor: BaseExecutor
     ) -> tuple[str, ...] | ErrorHandler:
         """Generate QASM code from variable data"""
 

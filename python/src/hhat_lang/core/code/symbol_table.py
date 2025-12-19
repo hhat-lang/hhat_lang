@@ -6,7 +6,7 @@ from typing import Any, Iterable
 from hhat_lang.core.code.base import BaseFnCheck, BaseFnKey
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.data.fn_def import BuiltinFnDef, FnDef, ModifierDef
-from hhat_lang.core.data.variable import BaseDataContainer
+from hhat_lang.core.data.var_def import DataDef
 from hhat_lang.core.types.abstract_base import BaseTypeDef
 
 
@@ -157,18 +157,18 @@ class ConstTable:
     This class holds all constants in a module
     """
 
-    _table: OrderedDict[Symbol | CompositeSymbol, BaseDataContainer]
+    _table: OrderedDict[Symbol | CompositeSymbol, DataDef]
     __slots__ = ("_table",)
 
     def __init__(self):
         self._table = OrderedDict()
 
     @property
-    def table(self) -> OrderedDict[Symbol | CompositeSymbol, BaseDataContainer]:
+    def table(self) -> OrderedDict[Symbol | CompositeSymbol, DataDef]:
         return self._table
 
-    def add(self, item: BaseDataContainer) -> None:
-        if isinstance(item, BaseDataContainer) and item.is_constant:
+    def add(self, item: DataDef) -> None:
+        if isinstance(item, DataDef) and item.is_constant:
             self._table[item.name] = item
 
         raise ValueError(
@@ -177,10 +177,10 @@ class ConstTable:
 
     def get(
         self, item: Symbol | CompositeSymbol, default: Any | None = None
-    ) -> BaseDataContainer | Any | None:
+    ) -> DataDef | Any | None:
         return self._table.get(item, default)
 
-    def __getitem__(self, item: Symbol | CompositeSymbol) -> BaseDataContainer | Any | Any:
+    def __getitem__(self, item: Symbol | CompositeSymbol) -> DataDef | Any | Any:
         return self.get(item)
 
     def __hash__(self) -> int:

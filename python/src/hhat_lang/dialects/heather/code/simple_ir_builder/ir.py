@@ -41,13 +41,13 @@ from hhat_lang.core.data.core import (
 )
 from hhat_lang.core.data.fn_def import FnDef
 from hhat_lang.core.data.utils import DataKind
-from hhat_lang.core.data.variable import BaseDataContainer
 from hhat_lang.core.error_handlers.errors import HeapInvalidKeyError
 from hhat_lang.core.memory.core import MemoryManager
 from hhat_lang.core.types.abstract_base import BaseTypeDef
 from hhat_lang.core.types.builtin_conversion import compatible_types
 from hhat_lang.core.types.builtin_types import builtins_types
 from hhat_lang.dialects.heather.cast.base import CastQ2C, CastC2C, CastC2Q, CastQ2Q
+from hhat_lang.core.data.var_def import DataDef
 
 # from hhat_lang.dialects.heather.code.builtins.fns import BUILTIN_FN_DICT
 
@@ -298,7 +298,7 @@ class DeclareAssignInstr(IRInstr):
     #     var: Symbol = cast(Symbol, self.args[0])
     #     var_type_symbol: Symbol | CompositeSymbol = cast(Symbol | CompositeSymbol, self.args[1])
     #     _declare_variable(var, var_type_symbol, mem, node.irhash, ir_graph)
-    #     variable: BaseDataContainer = cast(BaseDataContainer, mem.stack.get(var))
+    #     variable: DataDef = cast(DataDef, mem.stack.get(var))
     #     mem.stack.push(variable)
     #     _assign_variable(variable=variable, mem=mem, node=node, ir_graph=ir_graph)
 
@@ -420,7 +420,7 @@ class IR(BaseIR):
 #             )
 #
 #             match var_container:
-#                 case BaseDataContainer():
+#                 case DataDef():
 #                     mem.stack.push(var_container)
 #
 #                 case _:
@@ -438,7 +438,7 @@ class IR(BaseIR):
 #     mem: MemoryManager,
 #     node: IRNode,
 #     ir_graph: IRGraph,
-# ) -> Symbol | Literal | Literal | LiteralArray | BaseDataContainer:
+# ) -> Symbol | Literal | Literal | LiteralArray | DataDef:
 #     """
 #     Convenient function to: (1) check whether the data being assigned to the variable has
 #     the correct type, and to (2) resolve any instruction and block.
@@ -506,7 +506,7 @@ class IR(BaseIR):
 #             raise NotImplementedError("composite literal on variable assignment not implemente yet")
 #
 #         case BaseIRInstr():
-#             new_args: tuple[SimpleObj | ObjArray | BaseDataContainer] | tuple = ()
+#             new_args: tuple[SimpleObj | ObjArray | DataDef] | tuple = ()
 #
 #             for k in value:
 #                 new_args += (
@@ -525,7 +525,7 @@ class IR(BaseIR):
 #             return mem.scope.stack[mem.cur_scope].pop()
 #
 #         case BodyBlock() | ArgsBlock() | ArgsValuesBlock():
-#             new_blocks: tuple[SimpleObj | ObjArray | BaseDataContainer] | tuple = ()
+#             new_blocks: tuple[SimpleObj | ObjArray | DataDef] | tuple = ()
 #
 #             for k in value:
 #                 new_blocks += (
@@ -557,7 +557,7 @@ class IR(BaseIR):
 #
 # def _assign_variable(
 #     *,
-#     variable: BaseDataContainer,
+#     variable: DataDef,
 #     mem: MemoryManager,
 #     node: IRNode,
 #     ir_graph: IRGraph,
@@ -601,12 +601,12 @@ class IR(BaseIR):
 #
 #
 # def _get_type_from_data(
-#     data: BaseDataContainer | Literal,
+#     data: DataDef | Literal,
 # ) -> Symbol | CompositeSymbol:
 #     if isinstance(data, Literal):
 #         return data.type
 #
-#     if isinstance(data, BaseDataContainer):
+#     if isinstance(data, DataDef):
 #         return data.type
 #
 #     sys.exit(f"unknown arg value on call args resolution ({type(data)})")
@@ -634,7 +634,7 @@ class IR(BaseIR):
 #
 #
 # def _resolve_cast(
-#     data: BaseDataContainer | Literal,
+#     data: DataDef | Literal,
 #     to_type: BaseTypeDef,
 #     mem: MemoryManager,
 #     node: IRNode,
@@ -669,16 +669,16 @@ class IR(BaseIR):
 #
 #
 # def _resolve_expr_to_data(
-#     expr: IRBlock | BaseIRInstr | Symbol | CompositeSymbol | Literal | BaseDataContainer,
+#     expr: IRBlock | BaseIRInstr | Symbol | CompositeSymbol | Literal | DataDef,
 #     mem: MemoryManager,
 #     node: IRNode,
 #     ir_graph: IRGraph,
-# ) -> Literal | BaseDataContainer:
+# ) -> Literal | DataDef:
 #     """Resolve expression (core literal, symbol, ir block, etc) into actual data"""
 #
 #     match expr:
 #         case IRBlock():
-#             res: Literal | BaseDataContainer | None = None
+#             res: Literal | DataDef | None = None
 #
 #             for k in expr:
 #                 res = _resolve_expr_to_data(*k, mem=mem, node=node, ir_graph=ir_graph)
@@ -695,7 +695,7 @@ class IR(BaseIR):
 #         case Symbol() | CompositeSymbol():
 #             return mem.heap.table[mem.heap.last()].get(expr)
 #
-#         case Literal() | BaseDataContainer():
+#         case Literal() | DataDef():
 #             return expr
 #
 #         case _:
@@ -707,7 +707,7 @@ class IR(BaseIR):
 #     mem: MemoryManager,
 #     node: IRNode,
 #     ir_graph: IRGraph,
-# ) -> tuple[Literal | BaseDataContainer, ...] | tuple:
+# ) -> tuple[Literal | DataDef, ...] | tuple:
 #     """
 #     Convenient function to resolve call arguments.
 #
@@ -727,7 +727,7 @@ class IR(BaseIR):
 #
 #
 # def _resolve_call_args_types(
-#     *args: Literal | BaseDataContainer,
+#     *args: Literal | DataDef,
 # ) -> tuple[Symbol | CompositeSymbol] | tuple:
 #     """
 #     Resolve types from call arguments
@@ -737,7 +737,7 @@ class IR(BaseIR):
 #
 #     for arg in args:
 #         match arg:
-#             case Literal() | BaseDataContainer():
+#             case Literal() | DataDef():
 #                 resolved_types += (_get_type_from_data(arg),)
 #
 #             case _:
@@ -780,7 +780,7 @@ class IR(BaseIR):
 #
 #         case IRFlag.FN_CALL:
 #             args_types: tuple[SimpleObj] | tuple = ()
-#             args: tuple[BaseDataContainer] | tuple = ()
+#             args: tuple[DataDef] | tuple = ()
 #
 #             mem.stack.new(for_fn_use=True)
 #             mem.stack.set_fn_entry()
@@ -837,7 +837,7 @@ class IR(BaseIR):
 #
 #
 # def _resolve_fn_block(
-#     data: IRBlock | BaseIRInstr | Literal | BaseDataContainer,
+#     data: IRBlock | BaseIRInstr | Literal | DataDef,
 #     mem: MemoryManager,
 #     node: IRNode,
 #     ir_graph: IRGraph,
@@ -870,5 +870,5 @@ class IR(BaseIR):
 #         case BaseIRInstr():
 #             data.resolve(mem=mem, node=node, ir_graph=ir_graph)
 #
-#         case Literal() | BaseDataContainer():
+#         case Literal() | DataDef():
 #             mem.stack.push(data)

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import cast
 
 from hhat_lang.core.data.core import Literal, Symbol, SimpleObj
-from hhat_lang.core.data.variable import BaseDataContainer
+from hhat_lang.core.data.var_def import DataDef
 from hhat_lang.core.error_handlers.errors import (
     CastError,
     CastIntOverflowError,
@@ -38,8 +38,8 @@ as their possible convertible types"""
 
 
 def int_to_uN(
-    ds: BuiltinSingleTypeDef, data: Literal | BaseDataContainer
-) -> Literal | BaseDataContainer | ErrorHandler:
+    ds: BuiltinSingleTypeDef, data: Literal | DataDef
+) -> Literal | DataDef | ErrorHandler:
     if ds.bitsize is not None:
         max_value = 1 << ds.bitsize.size
 
@@ -53,7 +53,7 @@ def int_to_uN(
 
             return CastIntOverflowError(data, ds.name)
 
-        if isinstance(data, BaseDataContainer):
+        if isinstance(data, DataDef):
             val = data.get()
             if data.type in int_types:
                 match val:

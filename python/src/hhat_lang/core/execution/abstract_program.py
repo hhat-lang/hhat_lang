@@ -3,9 +3,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Callable
 
-from hhat_lang.core.code.ir_graph import IRNode, IRGraph
+from hhat_lang.core.code.ir_graph import IRGraph, IRNode
 from hhat_lang.core.data.core import Literal
-from hhat_lang.core.data.variable import BaseDataContainer
+from hhat_lang.core.data.var_def import DataDef
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.core.execution.abstract_base import BaseExecutor
 from hhat_lang.core.lowlevel.abstract_qlang import BaseLLQManager
@@ -15,7 +15,7 @@ from hhat_lang.core.memory.core import MemoryManager
 class BaseQuantumProgram(ABC):
     """Base abstract class to handle quantum programs"""
 
-    _qdata: BaseDataContainer | Literal
+    _qdata: DataDef | Literal
     _executor: BaseExecutor
     _qlang: BaseLLQManager
     _mem: MemoryManager
@@ -44,18 +44,18 @@ class QuantumProgram(BaseQuantumProgram):
 
     def __init__(
         self,
-        qdata: BaseDataContainer | Literal,
+        qdata: DataDef | Literal,
         mem: MemoryManager,
         node: IRNode,
         ir_graph: IRGraph,
         base_llq: Callable[
-            [BaseDataContainer, MemoryManager, IRNode, IRGraph, BaseExecutor],
+            [DataDef, MemoryManager, IRNode, IRGraph, BaseExecutor],
             BaseLLQManager,
         ],
         executor: BaseExecutor,
     ):
         if (
-            isinstance(qdata, BaseDataContainer | Literal)
+            isinstance(qdata, DataDef | Literal)
             and isinstance(mem, MemoryManager)
             and isinstance(node, IRNode)
             and isinstance(ir_graph, IRGraph)

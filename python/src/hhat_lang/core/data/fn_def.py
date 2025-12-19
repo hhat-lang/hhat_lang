@@ -11,7 +11,7 @@ from hhat_lang.core.data.core import (
     SimpleObj,
     Symbol,
 )
-from hhat_lang.core.data.variable import BaseDataContainer
+from hhat_lang.core.data.var_def import DataDef
 from hhat_lang.core.memory.core import MemoryManager
 
 
@@ -178,7 +178,7 @@ class BuiltinFnDef:
     def fn_check(self) -> BaseFnCheck:
         return self._fn_check
 
-    def __call__(self, *args: Any, mem: MemoryManager) -> Literal | BaseDataContainer:
+    def __call__(self, *args: Any, mem: MemoryManager) -> Literal | DataDef:
         return self._body(*args, mem=mem)
 
     def __repr__(self) -> str:

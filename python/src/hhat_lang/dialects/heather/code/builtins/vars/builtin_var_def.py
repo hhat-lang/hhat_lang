@@ -107,7 +107,6 @@ class Appendable(DataDef):
     def assign(self, *args: AppendableDataTypes, **_kwargs: Any) -> Appendable:
         for k in args:
             if isinstance(k, AppendableDataTypes):
-
                 match res := self._data_type.insert(k):
                     case ImmutableDataReassignmentError():
                         sys.exit(res(self.name))

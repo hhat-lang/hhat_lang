@@ -437,9 +437,7 @@ class DataInitializationArgumentsError(ErrorHandler):
     def __call__(self, *_args: Any) -> str:
         return (
             f"[[{self.__class__.__name__}]]: could not initialize '{self.var_name}',"
-            f" wrong arguments: {
-            ', '.join(f'{k}={v} ({type(v)})' for k, v in self.kwargs.items())
-            }"
+            f" wrong arguments: {', '.join(f'{k}={v} ({type(v)})' for k, v in self.kwargs.items())}"
         )
 
 
@@ -664,8 +662,7 @@ class InvalidDataTypeCollectionError(ErrorHandler):
 
     def __call__(self, *_args: Any) -> str:
         return (
-            f"[[{self.__class__.__name__}]]: {self._name} is not a valid"
-            f" data type collection key."
+            f"[[{self.__class__.__name__}]]: {self._name} is not a valid data type collection key."
         )
 
 
@@ -675,7 +672,7 @@ class InvalidDataStorageError(ErrorHandler):
         self._name = name
 
     def __call__(self, *_args: Any) -> str:
-        return f"[[{self.__class__.__name__}]]: {self._name} is not a valid" f" data storage key."
+        return f"[[{self.__class__.__name__}]]: {self._name} is not a valid data storage key."
 
 
 class LazySequenceConsumedError(ErrorHandler):
@@ -684,8 +681,7 @@ class LazySequenceConsumedError(ErrorHandler):
 
     def __call__(self, name) -> str:
         return (
-            f"[[{self.__class__.__name__}]]: {name} has a"
-            f" lazy storage and it's already consumed."
+            f"[[{self.__class__.__name__}]]: {name} has a lazy storage and it's already consumed."
         )
 
 

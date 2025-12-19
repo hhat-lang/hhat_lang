@@ -386,9 +386,9 @@ class Stack:
             **args_values: ``DataDef`` or ``CoreLiteral`` data
         """
 
-        assert (values and not args_values) or (
-            not values and args_values
-        ), "stack frame must have either values org args values-pair"
+        assert (values and not args_values) or (not values and args_values), (
+            "stack frame must have either values org args values-pair"
+        )
 
         if isinstance(fn_header, BaseFnCheck):
             self._data[-1].add_fn_header(fn_header)

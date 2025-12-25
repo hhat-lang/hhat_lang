@@ -127,6 +127,10 @@ class BaseTypeDef(AbstractTypeDef, Generic[T, M]):
         return item in self._container
 
     @abstractmethod
+    def __getitem__(self, item: int | Symbol) -> Any:
+        raise NotImplementedError()
+
+    @abstractmethod
     def __iter__(self) -> Iterable:
         raise NotImplementedError()
 

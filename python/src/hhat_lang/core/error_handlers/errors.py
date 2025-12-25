@@ -27,6 +27,8 @@ class ErrorCodes(Enum):
     INDEX_VAR_HAS_INDEXES_ERROR = auto()
     INDEX_INVALID_VAR_ERROR = auto()
 
+    TYPE_INVALID_MEMBER_ERROR = auto()
+    TYPE_INVALID_INDEX_ON_DATABIN_ERROR = auto()
     TYPE_MEMBER_OVERFLOW_ERROR = auto()
     TYPE_QUANTUM_ON_CLASSICAL_ERROR = auto()
     TYPE_AND_MEMBER_NO_MATCH = auto()
@@ -37,6 +39,8 @@ class ErrorCodes(Enum):
     TYPE_ENUM_ASSIGN_ERROR = auto()
     TYPE_MEMBER_NOT_RESOLVED_ERROR = auto()
     TYPE_MEMBER_ALREADY_EXISTS_ERROR = auto()
+
+    COLLECTION_INSERT_WRONG_TYPE_ERROR = auto()
 
     TYPE_SYMBOL_CONVERSION_ERROR = auto()
 
@@ -127,7 +131,7 @@ class FeatureNotImplementedError(ErrorHandler):
         """
         Class to handle feature not implemented errors. The text will appear to the user as::
 
-            [[Error<FEATURE_NOT_IMPLEMENTED_ERROR:0>]]: feature '<feature name>' which is \
+            FEATURE_NOT_IMPLEMENTED_ERROR[1]: feature '<feature name>' which is \
             '<feature description>' is not implemented on this H-hat version.
 
         Args:
@@ -230,8 +234,35 @@ class IndexInvalidVarError(ErrorHandler):
         return f"{self}: Var '{self._var}' not in IndexManager."
 
 
+class TypeInvalidMemberError(ErrorHandler):
+    """Invalid member on type, e.g. enum member inside struct."""
+
+    err_code = ErrorCodes.TYPE_INVALID_MEMBER_ERROR
+
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, name: Any, member: Any) -> str:
+        return f"{self}: type '{name}' had invalid member added ('{member}')."
+
+
+class TypeInvalidIndexOnDatabinError(ErrorHandler):
+    """Invalid index type on type's data bin. Should be symbol or integer."""
+
+    err_code = ErrorCodes.TYPE_INVALID_INDEX_ON_DATABIN_ERROR
+
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, name: Any, item: Any) -> str:
+        return (
+            f"{self}: data bin type '{name}' had invalid index"
+            f" type '{item}' ({type(item)}) to retrieve its actual content."
+        )
+
+
 class TypeMemberOverflowError(ErrorHandler):
-    """Cannot have quantum data inside classical data type. The opposite is valid."""
+    """More members to be added than it was defined."""
 
     err_code = ErrorCodes.TYPE_MEMBER_OVERFLOW_ERROR
 
@@ -349,6 +380,20 @@ class TypeMemberAlreadyExistsError(ErrorHandler):
 
     def __call__(self, name: Any, member_name: Any) -> str:
         return f"{self}: member {member_name} already exists on type {name}."
+
+
+class CollectionInsertWrongTypeError(ErrorHandler):
+    err_code = ErrorCodes.COLLECTION_INSERT_WRONG_TYPE_ERROR
+
+    def __init__(self, name: Any):
+        super().__init__()
+        self.name = name
+
+    def __call__(self, member: Any) -> str:
+        return (
+            f"{self}: collection '{self.name}' member received an invalid member"
+            f" '{member}' ({type(member)}) to be inserted into its content."
+        )
 
 
 class TypeSymbolConversionError(ErrorHandler):

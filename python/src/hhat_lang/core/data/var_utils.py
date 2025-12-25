@@ -25,6 +25,9 @@ from hhat_lang.core.error_handlers.errors import (
     LazySequenceConsumedError,
     RetrieveAppendableDataError,
     UsingDataBeforeInitializationError,
+    sys_exit,
+    CollectionInsertWrongTypeError,
+    FeatureNotImplementedError,
 )
 from hhat_lang.core.memory.utils import ScopeValue
 from hhat_lang.core.types.abstract_base import BaseTypeDef
@@ -143,8 +146,8 @@ class DataHeader:
             self._hash_value = hash((name, data_type, self._uid))
 
         else:
-            sys.exit(
-                DataInitializationArgumentsError(name, data_type, kind=kind, counter=counter)()
+            sys_exit(
+                error=DataInitializationArgumentsError(name, data_type, kind=kind, counter=counter)
             )
 
     @property
@@ -194,7 +197,7 @@ class BaseCollection(ABC, Generic[D]):
     @abstractmethod
     def insert(
         self, *args: Symbol | BaseTypeDef | Any, **kwargs: Symbol | BaseTypeDef | Any
-    ) -> type[ErrorHandler] | None:
+    ) -> ErrorHandler | None:
         raise NotImplementedError()
 
     @abstractmethod
@@ -206,6 +209,9 @@ class BaseCollection(ABC, Generic[D]):
     @abstractmethod
     def __iter__(self) -> Iterable:
         raise NotImplementedError()
+
+    def __getitem__(self, item: int | Any) -> ContentType | Iterable[ContentType]:
+        return self.get(item)
 
 
 @store_to_dict(BaseTypeEnum.SINGLE)
@@ -223,7 +229,7 @@ class SingleCollection(BaseCollection):
     def insert(self, data: ContentType, **kwargs: Any) -> None:
         self._data.add(data)
 
-    def get(self, item: Any | None, **_kwargs: Any) -> ContentType | Iterable[ContentType]:
+    def get(self, item: int | Any | None, **_kwargs: Any) -> ContentType | Iterable[ContentType]:
         return self._data.get(item)
 
     def __iter__(self) -> Iterable:
@@ -243,18 +249,38 @@ class StructCollection(BaseCollection):
         self._data = SymbolOrdered()
 
     def insert(
-        self, member: Symbol | BaseTypeDef, data: ContentType, **kwargs: Any
-    ) -> type[ErrorHandler] | None:
-        if member not in self._data:
-            self._data[member] = self._storage()
-            return self._data[member].add(data)
+        self, member: Symbol | BaseTypeDef | int, data: ContentType, **kwargs: Any
+    ) -> ErrorHandler | None:
+        print(f"struct collection insert {member=} ({type(member)}) {data=} ({type(data)})")
+        match member:
+            case Symbol() | BaseTypeDef():
+                if member not in self._data:
+                    self._data[member] = self._storage()
+                    return self._data[member].add(data)
 
-        else:
-            self._data[member] += data
-            return self._data[member] if isinstance(self._data[member], ErrorHandler) else None
+                else:
+                    self._data[member] += data
+                    return (
+                        self._data[member] if isinstance(self._data[member], ErrorHandler) else None
+                    )
 
-    def get(self, member: Symbol | BaseTypeDef, **kwargs: Any) -> T:
-        pass
+            case int():
+                for n, k in enumerate(self._data):
+                    print(f"struct collection {n=} | {k=} | {member=} | {n == member=}")
+                    if n == member:
+                        self._data[k] += data
+                        print(f"successful {n} {k} {data}")
+                        return self._data[k] if isinstance(self._data[k], ErrorHandler) else None
+
+            case _:
+                return CollectionInsertWrongTypeError("struct")
+
+        return None
+
+    def get(
+        self, member: int | Symbol | BaseTypeDef, **kwargs: Any
+    ) -> ContentType | Iterable[ContentType]:
+        return self._data.get(member).get(None)
 
     def __iter__(self) -> Iterable:
         return iter(self._data.items())
@@ -266,14 +292,26 @@ class EnumCollection(BaseCollection):
     Enum data type collection class.
     """
 
-    def insert(self, member: Symbol | BaseTypeDef, **kwargs: Any) -> None:
-        pass
+    _data: SymbolOrdered[Symbol, Symbol | BaseTypeDef]
+
+    def __init__(self, data_kind: DataKind):
+        super().__init__(data_kind)
+        self._data = SymbolOrdered()
+
+    def insert(self, member: Symbol | BaseTypeDef, **kwargs: Any) -> ErrorHandler | None:
+        sys_exit(
+            error=FeatureNotImplementedError(
+                "insert", "a method to insert content on enum collection"
+            )
+        )
 
     def get(self, member: Symbol | BaseTypeDef, **kwargs: Any) -> T:
-        pass
+        sys_exit(
+            error=FeatureNotImplementedError("get", "a method to get content from enum collection")
+        )
 
     def __iter__(self) -> Iterable:
-        pass
+        return iter(self._data.values())
 
 
 ########################
@@ -341,12 +379,16 @@ class ImmutableItem(BaseDataStorage[ContentType | None]):
     def add(self, value: ContentType, **kwargs: Any) -> ErrorHandler | None:
         if not self._assigned and isinstance(value, ContentType):
             self._data = value
+            self._assigned = True
             return None
 
         return ImmutableDataReassignmentError()
 
     def get(self, item: int | Any, **kwargs: Any) -> ContentType | Iterable[ContentType]:
-        return self.__getitem__(None)
+        if self._assigned:
+            return self.__getitem__(None)
+
+        sys_exit(error=UsingDataBeforeInitializationError())
 
     def __iadd__(self, other: ContentType) -> ImmutableItem | ErrorHandler:
         res = self.add(other)
@@ -359,7 +401,7 @@ class ImmutableItem(BaseDataStorage[ContentType | None]):
         if self._assigned:
             return iter((self._data,))
 
-        sys.exit(UsingDataBeforeInitializationError()())
+        sys_exit(error=UsingDataBeforeInitializationError())
 
 
 @store_to_dict(DataKind.MUTABLE)
@@ -379,12 +421,16 @@ class MutableItem(BaseDataStorage[ContentType | None]):
     def add(self, value: ContentType, **kwargs: Any) -> ErrorHandler | None:
         if isinstance(value, ContentType):
             self._data = value
+            self._assigned = True
             return None
 
         return InvalidContentDataError()
 
     def get(self, item: int | Any, **kwargs: Any) -> ContentType | Iterable[ContentType]:
-        return self.__getitem__(None)
+        if self._assigned:
+            return self.__getitem__(None)
+
+        sys_exit(error=UsingDataBeforeInitializationError())
 
     def __iadd__(self, other: ContentType) -> MutableItem | ErrorHandler:
         res = self.add(other)
@@ -397,7 +443,7 @@ class MutableItem(BaseDataStorage[ContentType | None]):
         if self._assigned:
             return iter((self._data,))
 
-        sys.exit(UsingDataBeforeInitializationError()())
+        sys_exit(error=UsingDataBeforeInitializationError())
 
 
 @store_to_dict(DataKind.APPENDABLE)
@@ -449,7 +495,7 @@ class LazySequence(BaseDataStorage[deque[ContentType]]):
 
         return LazySequenceConsumedError()
 
-    def get(self, item: int | Any | None) -> ContentType | list[ContentType]:
+    def get(self, item: int | Any | None, **kwargs: Any) -> ContentType | list[ContentType]:
         if item is None:
             return list(self._data)
 

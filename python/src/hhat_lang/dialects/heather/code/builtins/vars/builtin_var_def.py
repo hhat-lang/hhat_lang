@@ -17,6 +17,7 @@ from hhat_lang.core.error_handlers.errors import (
     ImmutableDataReassignmentError,
     InvalidContentDataError,
     LazySequenceConsumedError,
+    sys_exit,
 )
 from hhat_lang.core.types.abstract_base import BaseTypeDef
 
@@ -60,26 +61,38 @@ class Immutable(DataDef):
         super().__init__()
 
     def assign(self, *args: ContentType, **kwargs: Any) -> Immutable:
-        for k in args:
+        for n, k in enumerate(args):
             if isinstance(k, ContentType):
-                match res := self._data_type.insert(k):
+                match res := self._data_type.insert(member=self.get_type_member(n), data=k):
                     case ImmutableDataReassignmentError():
-                        sys.exit(res(self.name))
+                        sys_exit(self.name, error=res)
 
                     case InvalidContentDataError():
-                        sys.exit(res(self.name, k))
+                        sys_exit(self.name, k, error=res)
 
                     case LazySequenceConsumedError():
-                        sys.exit(res(self.name))
+                        sys_exit(self.name, error=res)
 
                     case ErrorHandler():
-                        sys.exit(res())
+                        sys_exit(error=res)
 
                     case _:
                         continue
 
             else:
-                sys.exit(ContainerVarError(self.name)())
+                sys_exit(error=ContainerVarError(self.name))
+
+        for k, v in kwargs.items():
+            if isinstance(v, ContentType):
+                match res := self._data_type.insert(member=Symbol(k), data=v):
+                    case ErrorHandler():
+                        sys_exit(error=res)
+
+                    case _:
+                        continue
+
+            else:
+                sys_exit(error=ContainerVarError(self.name))
 
         return self
 
@@ -136,10 +149,11 @@ class Appendable(DataDef):
         self._data_type = get_data_type_collection(self._header.type.type)(DataKind.APPENDABLE)
         super().__init__()
 
-    def assign(self, *args: ContentType, **_kwargs: Any) -> Appendable:
-        for k in args:
+    def assign(self, *args: ContentType, **kwargs: Any) -> Appendable:
+        print(f"assign {args=} | {kwargs=}")
+        for n, k in enumerate(args):
             if isinstance(k, ContentType):
-                match res := self._data_type.insert(k):
+                match res := self._data_type.insert(member=self.get_type_member(n), data=k):
                     case ImmutableDataReassignmentError():
                         sys.exit(res(self.name))
 
@@ -158,9 +172,22 @@ class Appendable(DataDef):
             else:
                 sys.exit(ContainerVarError(self.name)())
 
+        for k, v in kwargs.items():
+            if isinstance(v, ContentType):
+                match res := self._data_type.insert(Symbol(k), v):
+                    case ErrorHandler():
+                        sys_exit(error=res)
+
+                    case _:
+                        continue
+
+            else:
+                sys_exit(error=ContainerVarError(self.name))
+
         return self
 
     def get(self, member: Symbol | BaseTypeDef | None = None, **_kwargs: Any) -> ContentType:
+        print(f"{self._data_type._data=}")
         return self._data_type.get(member)
 
     def borrow_to(self):

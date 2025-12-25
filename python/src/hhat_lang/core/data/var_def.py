@@ -4,11 +4,9 @@ import sys
 from abc import abstractmethod
 from typing import Any, Iterable
 
-import typer
-
-from hhat_lang.core.data.core import CompositeSymbol, Symbol, has_same_type
+from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.data.utils import AbstractDataDef, DataKind, has_same_paradigm
-from hhat_lang.core.data.var_utils import BaseCollection, DataHeader, LazySequence
+from hhat_lang.core.data.var_utils import BaseCollection, DataHeader
 from hhat_lang.core.error_handlers.errors import (
     VariableFreeingBorrowedError,
     QuantumDataNotAppendableError,
@@ -61,8 +59,10 @@ class DataDef(AbstractDataDef):
             if not self.is_quantum:
                 return None
 
-        # sys.exit(QuantumDataNotAppendableError(self._header.name, self._header.kind)())
         sys_exit(error=QuantumDataNotAppendableError(self._header.name, self._header.kind))
+
+    def get_type_member(self, index: int) -> Symbol:
+        return self.type[index][0]
 
     @abstractmethod
     def assign(self, *args: Any, **kwargs: Any) -> DataDef:

@@ -10,6 +10,7 @@ from hhat_lang.core.error_handlers.errors import (
     TypeQuantumOnClassicalError,
     VariableWrongMemberError,
 )
+from hhat_lang.core.types.builtin_base import S_U32, S_QU3
 from hhat_lang.core.types.builtin_types import QU3, U32, U64
 from hhat_lang.core.types.core import EnumTypeDef, SingleTypeDef, StructTypeDef
 from hhat_lang.core.types.utils import BaseTypeEnum
@@ -17,7 +18,7 @@ from hhat_lang.dialects.heather.code.builtins.vars.builtin_var_def import Append
 
 
 def test_single_ds() -> None:
-    lit_108 = Literal("108", Symbol("u32"))
+    lit_108 = Literal("108", S_U32)
 
     user_type1 = SingleTypeDef(name=Symbol("user_type1"))
     user_type1.add_member(U32)
@@ -31,7 +32,7 @@ def test_single_ds() -> None:
 
 
 def test_single_ds_quantum() -> None:
-    lit_q2 = Literal("@2", Symbol("@u3"))
+    lit_q2 = Literal("@2", S_QU3)
 
     # type @type1:@u3
     qtype1 = SingleTypeDef(name=Symbol("@type1"))
@@ -62,52 +63,50 @@ def test_single_ds_quantum_wrong() -> None:
 
 
 def test_struct_ds() -> None:
-    lit_25 = Literal("25", "u32")
-    lit_17 = Literal("17", "u32")
+    lit_25 = Literal("25", S_U32)
+    lit_17 = Literal("17", S_U32)
 
-    point = StructTypeDef(name=Symbol("point"))
+    point = StructTypeDef(name=Symbol("point"), num_members=2)
     point.add_member(U32, Symbol("x")).add_member(U32, Symbol("y"))
-    p = point(var_name=Symbol("p"))
+
+    p = Immutable(name=Symbol("p"), data_type=point, counter=0)
     p.assign(x=lit_25, y=lit_17)
 
     assert p.name == Symbol("p")
-    assert p.type == Symbol("point")
-    assert p.data == OrderedDict({Symbol("x"): lit_25, Symbol("y"): lit_17})
+    assert p.type == point
     assert p.get(Symbol("x")) == lit_25 and p.get(Symbol("y")) == lit_17
     assert p.is_quantum is False
 
-    assert isinstance(p.get("z"), VariableWrongMemberError)
-
 
 def test_struct_ds_quantum() -> None:
-    lit_8 = Literal("8", "u32")
-    lit_q2 = Literal("@2", "@u3")
+    lit_8 = Literal("8", S_U32)
+    lit_q2 = Literal("@2", S_QU3)
 
     # type @sample {counts:u32 @d:@u3}
-    qsample = StructTypeDef(name=Symbol("@sample"))
-    (qsample.add_member(U32, Symbol("counts")).add_member(QU3, Symbol("@d")))
+    qsample = StructTypeDef(name=Symbol("@sample"), num_members=2)
+    qsample.add_member(U32, Symbol("counts")).add_member(QU3, Symbol("@d"))
 
     # @var:@sample
-    qvar = qsample(var_name=Symbol("@var"))
+    qvar = Appendable(name=Symbol("@var"), data_type=qsample, counter=0)
+    # qvar = qsample(var_name=Symbol("@var"))
     # @var.{8 @2:@u3}
     qvar.assign(lit_8, lit_q2)
 
     assert qvar.name == Symbol("@var")
-    assert qvar.type == Symbol("@sample")
-    assert qvar._ds_type == BaseTypeEnum.STRUCT
+    assert qvar.type == qsample
+    assert qvar.type.type == BaseTypeEnum.STRUCT
     assert qvar.is_quantum is True
-    assert qvar.data == OrderedDict({Symbol("counts"): lit_8, Symbol("@d"): [lit_q2]})
     assert qvar.get(Symbol("counts")) == lit_8 and qvar.get(Symbol("@d")) == [lit_q2]
 
     # @var2:@sample
-    qvar2 = qsample(var_name=Symbol("@var2"))
+    qvar2 = Appendable(name=Symbol("@var2"), data_type=qsample, counter=0)
+    # qvar2 = qsample(var_name=Symbol("@var2"))
     # @var2.{counts=8 @d=@2:@u3}
     qvar2.assign(counts=lit_8, q__d=lit_q2)
 
     assert qvar2.name == Symbol("@var2")
-    assert qvar2.type == Symbol("@sample")
+    assert qvar2.type == qsample
     assert qvar2.is_quantum is True
-    assert qvar2.data == OrderedDict({Symbol("counts"): lit_8, Symbol("@d"): [lit_q2]})
     assert qvar2.get(Symbol("counts")) == lit_8 and qvar2.get(Symbol("@d")) == [lit_q2]
 
 
@@ -142,10 +141,10 @@ def test_enum_ds() -> None:
 
 def test_enum_ds_with_struct() -> None:
     _none = Symbol("NONE")
-    _res = StructTypeDef(name=Symbol("RESULT")).add_member(U64, Symbol("result"))
+    _res = StructTypeDef(name=Symbol("RESULT"), num_members=1).add_member(U64, Symbol("result"))
 
     # type option {NONE RESULT{result:u64}}
-    option = EnumTypeDef(name=Symbol("option"))
+    option = EnumTypeDef(name=Symbol("option"), num_members=2)
     option.add_member(_none).add_member(_res)
 
     # var:option

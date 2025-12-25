@@ -4,13 +4,15 @@ from typing import Any, Iterable
 
 from hhat_lang.core.data.core import Symbol
 from hhat_lang.core.data.utils import isquantum
-from hhat_lang.core.types.abstract_base import BaseTypeDef, QSize, Size
+from hhat_lang.core.types.abstract_base import BaseTypeDef, QSize, Size, T, M
 from hhat_lang.core.types.core import (
     SingleDataBin,
     SingleT,
     StructDataBin,
     StructM,
     StructT,
+    EnumT,
+    EnumM,
 )
 from hhat_lang.core.types.utils import BaseTypeEnum
 
@@ -63,6 +65,9 @@ class BuiltinSingleTypeDef(BaseTypeDef[SingleT, None]):
     def add_member(self, **kwargs: Any) -> BaseTypeDef:
         return self
 
+    def __getitem__(self, item: int | Symbol) -> Any:
+        return self._container[item]
+
     def __iter__(self) -> Iterable:
         return iter(self._container)
 
@@ -85,9 +90,26 @@ class BuiltinStructTypeDef(BaseTypeDef[StructT, StructM]):
         self._container.add_member(type_name=type_name, member_name=member_name)
         return self
 
+    def __getitem__(self, item: int | Symbol) -> Any:
+        return self._container[item]
+
     def __iter__(self) -> Iterable:
         return iter(self._container)
 
     def __repr__(self) -> str:
         members = "{" + " ".join(f"{k}:{v}" for k, v in self) + "}"
         return f"{self._name}<struct>{members}"
+
+
+class BuiltinEnumTypeDef(BaseTypeDef[EnumT, EnumM]):
+    def add_member(self, type_name: T | None, member_name: M | None, **kwargs: Any) -> BaseTypeDef:
+        pass
+
+    def __getitem__(self, item: int | Symbol) -> Any:
+        return self._container[item]
+
+    def __iter__(self) -> Iterable:
+        pass
+
+    def __repr__(self) -> str:
+        pass

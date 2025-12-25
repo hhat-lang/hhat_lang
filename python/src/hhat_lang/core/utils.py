@@ -8,6 +8,7 @@ from typing import Any, Generic, Hashable, Iterator, Protocol, TypeVar, runtime_
 from uuid import NAMESPACE_OID
 
 from hhat_lang.core.error_handlers.errors import ErrorHandler
+from hhat_lang.core.types.utils import AbstractTypeDef
 
 
 def gen_uuid(obj: Hashable) -> int:
@@ -39,7 +40,7 @@ class ValueObj(Protocol):
 
 
 Key = TypeVar("Key", bound=KeyObj)
-Value = TypeVar("Value", bound=ValueObj)
+Value = TypeVar("Value", bound=ValueObj | AbstractTypeDef)
 
 
 class SymbolOrdered(Mapping, Generic[Key, Value]):

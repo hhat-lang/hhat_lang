@@ -30,7 +30,3 @@ class TypeMembers:
             self._content[other[0]] = other[1]
             return self
         raise ValueError(f"{other[0]} already added")
-
-
-if __name__ == "__main__":
-    pass

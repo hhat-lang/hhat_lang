@@ -88,10 +88,7 @@ class Symbol:
         return self._hash_value
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, self.__class__):
-            return hash(self) == hash(other)
-
-        return False
+        return hash(self) == hash(other)
 
     def __bool__(self) -> bool:
         """
@@ -157,7 +154,9 @@ class CompositeSymbol:
         self._value = value
         self._type = CompositeGroup.SymbolAttrs
         self._is_quantum = value[0].is_quantum
-        self._hash_value = hash((hash(self._value), hash(self._type), hash(self._is_quantum)))
+        self._hash_value = hash(
+            (hash(self._value), hash(self._type), hash(self._is_quantum))
+        )
 
     @property
     def value(self) -> tuple[Symbol, ...]:
@@ -172,10 +171,7 @@ class CompositeSymbol:
         return self._is_quantum
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, self.__class__):
-            return hash(self) == hash(other)
-
-        return False
+        return hash(self) == hash(other)
 
     def __hash__(self) -> int:
         return self._hash_value
@@ -210,10 +206,7 @@ class AsArray:
         return self._hash_value
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, self.__class__):
-            return hash(self) == hash(other)
-
-        return False
+        return hash(self) == hash(other)
 
     def __repr__(self) -> str:
         return f"[{self._value}]"
@@ -306,7 +299,9 @@ class Literal:
         except ValueError:
             try:
                 # works if float
-                value = "".join(f"{k:08b}" for k in struct.pack(">d", float(self.value.strip("@"))))
+                value = "".join(
+                    f"{k:08b}" for k in struct.pack(">d", float(self.value.strip("@")))
+                )
 
             except ValueError:
                 # works if string
@@ -347,7 +342,7 @@ class Literal:
         return False
 
     def __repr__(self) -> str:
-        return f"{self._value}:{self._type}"
+        return f"{self._value}<{self._type}>"
 
 
 class LiteralArray:
@@ -366,7 +361,7 @@ class LiteralArray:
     __slots__ = ("_value", "_type", "_is_quantum", "_hash_value")
 
     def __init__(self, value: tuple[Literal, ...]):
-        if has_same_type(value):
+        if has_same_type(*value):
             match all_or_none_quantum(value):
                 case AllNoneQuantum.AllQuantum:
                     self._is_quantum = True
@@ -405,11 +400,40 @@ class LiteralArray:
 
         return False
 
+    def __iadd__(self, other: Any) -> LiteralArray:
+        if isinstance(other, LiteralArray) and hasattr(other, "value"):
+            return LiteralArray(self._value + other.value)
+
+        raise ValueError()
+
+    def __add__(self, other: Any) -> LiteralArray:
+        if isinstance(other, LiteralArray):
+            return LiteralArray(self._value + other.value)
+
+        if hasattr(other, "value"):
+            return LiteralArray(self._value + (other.value,))
+
+        raise ValueError()
+
+    def __radd__(self, other: Any) -> LiteralArray:
+        if isinstance(other, LiteralArray):
+            return LiteralArray(other.value + self._value)
+
+        if hasattr(other, "value"):
+            return LiteralArray((other.value,) + self._value)
+
+        raise ValueError()
+
+    def __getitem__(self, item: int | Any) -> Literal:
+        if isinstance(item, int):
+            return self._value[item]
+        raise ValueError()
+
     def __iter__(self) -> Iterable:
         return iter(self._value)
 
     def __repr__(self) -> str:
-        return f"[{' '.join(str(k) for k in self._value)}]"
+        return f"[{' '.join(str(k) for k in self._value)}]<{self._type}>"
 
 
 ######################################

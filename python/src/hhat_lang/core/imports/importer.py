@@ -8,7 +8,7 @@ from arpeggio import ParserPython
 from arpeggio.cleanpeg import ParserPEG
 
 from hhat_lang.core.code.abstract import BaseIR
-from hhat_lang.core.code.base import BaseFnCheck
+from hhat_lang.core.code.base import FnHeader
 from hhat_lang.core.code.ir_graph import IRGraph
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.fns.core import builtin_fns_path
@@ -202,7 +202,7 @@ class FnImporter(BaseImporter):
         self,
         name: CompositeSymbol,
         ir_graph: IRGraph,
-    ) -> tuple[tuple[BaseFnCheck, Path], ...]:
+    ) -> tuple[tuple[FnHeader, Path], ...]:
         """
         Retrieve function references to be filled at the node's ``RefFnTable``.
 
@@ -226,9 +226,11 @@ class FnImporter(BaseImporter):
         module_path: Path
         dir_name, file_name, fn_name = self._path_parts(name)
 
-        module_path = Path(*dir_name) / (file_name + ".hat")
-        if module_path in builtin_fns_path:
-            return tuple((fn.fn_check, module_path) for fn in builtin_fns_path[module_path])
+        # module_path = Path(*dir_name) / (file_name + ".hat")
+        # if module_path in builtin_fns_path:
+        #     return tuple(
+        #         (fn.fn_header, module_path) for fn in builtin_fns_path[module_path]
+        #     )
 
         module_path = self._get_module_path(*dir_name, file_name)
         if module_path not in ir_graph:
@@ -241,8 +243,8 @@ class FnImporter(BaseImporter):
         self,
         names: Iterable[CompositeSymbol],
         ir_graph: IRGraph,
-    ) -> dict[BaseFnCheck, Path]:
-        res: tuple | tuple[tuple[BaseFnCheck, Path]] = ()
+    ) -> dict[FnHeader, Path]:
+        res: tuple | tuple[tuple[FnHeader, Path]] = ()
 
         for name in names:
             res += self._retrieve_fn_reference(name, ir_graph)

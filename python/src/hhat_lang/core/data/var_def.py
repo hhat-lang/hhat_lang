@@ -59,7 +59,9 @@ class DataDef(AbstractDataDef):
             if not self.is_quantum:
                 return None
 
-        sys_exit(error=QuantumDataNotAppendableError(self._header.name, self._header.kind))
+        sys_exit(
+            error_fn=QuantumDataNotAppendableError(self._header.name, self._header.kind)
+        )
 
     def get_type_member(self, index: int) -> Symbol:
         return self.type[index][0]

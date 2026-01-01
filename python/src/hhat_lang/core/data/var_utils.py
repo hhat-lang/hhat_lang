@@ -13,7 +13,13 @@ from typing import (
 )
 
 from hhat_lang.core.code.base import BaseIRBlock, BaseIRInstr
-from hhat_lang.core.data.core import AsArray, CompositeSymbol, Literal, LiteralArray, Symbol
+from hhat_lang.core.data.core import (
+    AsArray,
+    CompositeSymbol,
+    Literal,
+    LiteralArray,
+    Symbol,
+)
 from hhat_lang.core.data.utils import DataKind, isquantum
 from hhat_lang.core.error_handlers.errors import (
     DataInitializationArgumentsError,
@@ -32,14 +38,16 @@ from hhat_lang.core.error_handlers.errors import (
 from hhat_lang.core.memory.utils import ScopeValue
 from hhat_lang.core.types.abstract_base import BaseTypeDef
 from hhat_lang.core.types.utils import BaseTypeEnum
-from hhat_lang.core.utils import SymbolOrdered
+from hhat_lang.core.utils import HatOrderedDict
 
 T = TypeVar("T")
 D = TypeVar("D")
 ContentType = BaseIRBlock | BaseIRInstr | Literal | LiteralArray | AsArray
 
 
-_data_type_storage_dict: dict[BaseTypeEnum, Callable[[DataKind], BaseCollection]] = dict()
+_data_type_storage_dict: dict[BaseTypeEnum, Callable[[DataKind], BaseCollection]] = (
+    dict()
+)
 """
 Dictionary to store data type classes (``BaseCollection``) as values 
 and they naming convention (``BaseTypeEnum``) as keys.
@@ -52,7 +60,9 @@ enum values as keys.
 """
 
 
-def get_data_type_collection(entry: BaseTypeEnum) -> Callable[[DataKind], BaseCollection]:
+def get_data_type_collection(
+    entry: BaseTypeEnum,
+) -> Callable[[DataKind], BaseCollection]:
     """
     Function to retrieve data type collection class callable through a ``BaseTypeEnum``
     member argument.
@@ -99,13 +109,17 @@ def store_to_dict(
             obj = _data_type_storage_dict
 
         case _:
-            raise ValueError(f"invalid obj '{key}' to store on data collection {type(key)}")
+            raise ValueError(
+                f"invalid obj '{key}' to store on data collection {type(key)}"
+            )
 
     def decorator(
         cls: type[BaseDataStorage],
     ) -> Callable[[DataKind | None], BaseDataStorage]:
         @wraps(cls)
-        def wrapper(*args: DataKind | None, **kwargs: DataKind | None) -> BaseDataStorage:
+        def wrapper(
+            *args: DataKind | None, **kwargs: DataKind | None
+        ) -> BaseDataStorage:
             return cls(*args, **kwargs)
 
         obj[key] = wrapper
@@ -130,7 +144,11 @@ class DataHeader:
     __slots__ = ("_name", "_type", "_is_quantum", "_kind", "_uid", "_hash_value")
 
     def __init__(
-        self, name: Symbol | CompositeSymbol, data_type: BaseTypeDef, kind: DataKind, counter: int
+        self,
+        name: Symbol | CompositeSymbol,
+        data_type: BaseTypeDef,
+        kind: DataKind,
+        counter: int,
     ):
         if (
             isinstance(name, Symbol | CompositeSymbol)
@@ -147,7 +165,9 @@ class DataHeader:
 
         else:
             sys_exit(
-                error=DataInitializationArgumentsError(name, data_type, kind=kind, counter=counter)
+                error_fn=DataInitializationArgumentsError(
+                    name, data_type, kind=kind, counter=counter
+                )
             )
 
     @property
@@ -229,7 +249,9 @@ class SingleCollection(BaseCollection):
     def insert(self, data: ContentType, **kwargs: Any) -> None:
         self._data.add(data)
 
-    def get(self, item: int | Any | None, **_kwargs: Any) -> ContentType | Iterable[ContentType]:
+    def get(
+        self, item: int | Any | None, **_kwargs: Any
+    ) -> ContentType | Iterable[ContentType]:
         return self._data.get(item)
 
     def __iter__(self) -> Iterable:
@@ -242,16 +264,18 @@ class StructCollection(BaseCollection):
     Struct data type collection class.
     """
 
-    _data: SymbolOrdered[Symbol | BaseTypeDef, BaseDataStorage]
+    _data: HatOrderedDict[Symbol | BaseTypeDef, BaseDataStorage]
 
     def __init__(self, data_kind: DataKind):
         super().__init__(data_kind)
-        self._data = SymbolOrdered()
+        self._data = HatOrderedDict()
 
     def insert(
         self, member: Symbol | BaseTypeDef | int, data: ContentType, **kwargs: Any
     ) -> ErrorHandler | None:
-        print(f"struct collection insert {member=} ({type(member)}) {data=} ({type(data)})")
+        print(
+            f"struct collection insert {member=} ({type(member)}) {data=} ({type(data)})"
+        )
         match member:
             case Symbol() | BaseTypeDef():
                 if member not in self._data:
@@ -261,7 +285,9 @@ class StructCollection(BaseCollection):
                 else:
                     self._data[member] += data
                     return (
-                        self._data[member] if isinstance(self._data[member], ErrorHandler) else None
+                        self._data[member]
+                        if isinstance(self._data[member], ErrorHandler)
+                        else None
                     )
 
             case int():
@@ -270,7 +296,11 @@ class StructCollection(BaseCollection):
                     if n == member:
                         self._data[k] += data
                         print(f"successful {n} {k} {data}")
-                        return self._data[k] if isinstance(self._data[k], ErrorHandler) else None
+                        return (
+                            self._data[k]
+                            if isinstance(self._data[k], ErrorHandler)
+                            else None
+                        )
 
             case _:
                 return CollectionInsertWrongTypeError("struct")
@@ -292,22 +322,26 @@ class EnumCollection(BaseCollection):
     Enum data type collection class.
     """
 
-    _data: SymbolOrdered[Symbol, Symbol | BaseTypeDef]
+    _data: HatOrderedDict[Symbol, Symbol | BaseTypeDef]
 
     def __init__(self, data_kind: DataKind):
         super().__init__(data_kind)
-        self._data = SymbolOrdered()
+        self._data = HatOrderedDict()
 
-    def insert(self, member: Symbol | BaseTypeDef, **kwargs: Any) -> ErrorHandler | None:
+    def insert(
+        self, member: Symbol | BaseTypeDef, **kwargs: Any
+    ) -> ErrorHandler | None:
         sys_exit(
-            error=FeatureNotImplementedError(
+            error_fn=FeatureNotImplementedError(
                 "insert", "a method to insert content on enum collection"
             )
         )
 
     def get(self, member: Symbol | BaseTypeDef, **kwargs: Any) -> T:
         sys_exit(
-            error=FeatureNotImplementedError("get", "a method to get content from enum collection")
+            error_fn=FeatureNotImplementedError(
+                "get", "a method to get content from enum collection"
+            )
         )
 
     def __iter__(self) -> Iterable:
@@ -339,7 +373,9 @@ class BaseDataStorage(ABC, Generic[T]):
         raise NotImplementedError()
 
     @abstractmethod
-    def get(self, item: int | Any, **kwargs: Any) -> ContentType | Iterable[ContentType]:
+    def get(
+        self, item: int | Any, **kwargs: Any
+    ) -> ContentType | Iterable[ContentType]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -384,11 +420,13 @@ class ImmutableItem(BaseDataStorage[ContentType | None]):
 
         return ImmutableDataReassignmentError()
 
-    def get(self, item: int | Any, **kwargs: Any) -> ContentType | Iterable[ContentType]:
+    def get(
+        self, item: int | Any, **kwargs: Any
+    ) -> ContentType | Iterable[ContentType]:
         if self._assigned:
             return self.__getitem__(None)
 
-        sys_exit(error=UsingDataBeforeInitializationError())
+        sys_exit(error_fn=UsingDataBeforeInitializationError())
 
     def __iadd__(self, other: ContentType) -> ImmutableItem | ErrorHandler:
         res = self.add(other)
@@ -401,7 +439,7 @@ class ImmutableItem(BaseDataStorage[ContentType | None]):
         if self._assigned:
             return iter((self._data,))
 
-        sys_exit(error=UsingDataBeforeInitializationError())
+        sys_exit(error_fn=UsingDataBeforeInitializationError())
 
 
 @store_to_dict(DataKind.MUTABLE)
@@ -426,11 +464,13 @@ class MutableItem(BaseDataStorage[ContentType | None]):
 
         return InvalidContentDataError()
 
-    def get(self, item: int | Any, **kwargs: Any) -> ContentType | Iterable[ContentType]:
+    def get(
+        self, item: int | Any, **kwargs: Any
+    ) -> ContentType | Iterable[ContentType]:
         if self._assigned:
             return self.__getitem__(None)
 
-        sys_exit(error=UsingDataBeforeInitializationError())
+        sys_exit(error_fn=UsingDataBeforeInitializationError())
 
     def __iadd__(self, other: ContentType) -> MutableItem | ErrorHandler:
         res = self.add(other)
@@ -443,7 +483,7 @@ class MutableItem(BaseDataStorage[ContentType | None]):
         if self._assigned:
             return iter((self._data,))
 
-        sys_exit(error=UsingDataBeforeInitializationError())
+        sys_exit(error_fn=UsingDataBeforeInitializationError())
 
 
 @store_to_dict(DataKind.APPENDABLE)
@@ -495,7 +535,9 @@ class LazySequence(BaseDataStorage[deque[ContentType]]):
 
         return LazySequenceConsumedError()
 
-    def get(self, item: int | Any | None, **kwargs: Any) -> ContentType | list[ContentType]:
+    def get(
+        self, item: int | Any | None, **kwargs: Any
+    ) -> ContentType | list[ContentType]:
         if item is None:
             return list(self._data)
 

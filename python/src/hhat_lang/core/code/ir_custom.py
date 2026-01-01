@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Iterable
+
 from hhat_lang.core.code.base import BaseIRInstr
 from hhat_lang.core.code.ir_block import (
     IRBlock,
@@ -46,7 +48,9 @@ class ArgsValuesBlock(IRBlock):
                     self.args += (k[0],)
 
                 case _:
-                    raise ValueError("args values block's args must be symbol or modifier block ")
+                    raise ValueError(
+                        "args values block's args must be symbol or modifier block "
+                    )
 
             match k[1]:
                 case (
@@ -63,6 +67,9 @@ class ArgsValuesBlock(IRBlock):
                     raise ValueError(
                         f"args values block's values must be symbol, literal, ir block or ir instr {k[1]} {type(k[1])}"
                     )
+
+    def __iter__(self) -> Iterable:
+        return iter(zip(self.args, self.values))
 
     def __repr__(self) -> str:
         return f"ARG-VALUE#[{' '.join(f'{a}:{v}' for a, v in zip(self.args, self.values))}]"
@@ -94,7 +101,9 @@ class ReturnBlock(IRBlock):
     args: tuple[SimpleObj | ObjArray | IRBlock | BaseIRInstr, ...]
 
     def __init__(self, *args: SimpleObj | ObjArray | IRBlock | BaseIRInstr):
-        if all(isinstance(k, SimpleObj | ObjArray | IRBlock | BaseIRInstr) for k in args):
+        if all(
+            isinstance(k, SimpleObj | ObjArray | IRBlock | BaseIRInstr) for k in args
+        ):
             self.args = args
 
         else:
@@ -109,14 +118,18 @@ class ModifierBlock(IRBlock):
 
     args: tuple[Symbol | CompositeSymbol | BaseIRInstr, ModifierArgsBlock]
 
-    def __init__(self, obj: Symbol | CompositeSymbol | BaseIRInstr, args: ModifierArgsBlock):
+    def __init__(
+        self, obj: Symbol | CompositeSymbol | BaseIRInstr, args: ModifierArgsBlock
+    ):
         if isinstance(obj, Symbol | CompositeSymbol | BaseIRInstr) and isinstance(
             args, ModifierArgsBlock
         ):
             self.args = (obj, args)
 
         else:
-            raise ValueError(f"modifier block cannot have types {type(obj)} and {type(args)}")
+            raise ValueError(
+                f"modifier block cannot have types {type(obj)} and {type(args)}"
+            )
 
     @property
     def obj(self) -> Symbol | CompositeSymbol | BaseIRInstr:
@@ -135,7 +148,9 @@ class ModifierArgsBlock(IRBlock):
 
     args: tuple[Symbol | CompositeSymbol, ...] | ArgsValuesBlock | ArgsBlock  # type: ignore [assignment]
 
-    def __init__(self, args: tuple[Symbol | CompositeSymbol, ...] | ArgsValuesBlock | ArgsBlock):
+    def __init__(
+        self, args: tuple[Symbol | CompositeSymbol, ...] | ArgsValuesBlock | ArgsBlock
+    ):
         if isinstance(args, ArgsValuesBlock | ArgsBlock) or all(
             isinstance(k, Symbol | CompositeSymbol) for k in args
         ):
@@ -154,10 +169,17 @@ class ModifierArgsBlock(IRBlock):
 class ArgsBlock(IRBlock):
     _name = IRBlockFlag.ARGS
 
-    args: tuple[SimpleObj | ObjArray | ArgsValuesBlock | IRBlock | BaseIRInstr, ...] | tuple
+    args: (
+        tuple[SimpleObj | ObjArray | ArgsValuesBlock | IRBlock | BaseIRInstr, ...]
+        | tuple
+    )
 
-    def __init__(self, *args: SimpleObj | ObjArray | ArgsValuesBlock | IRBlock | BaseIRInstr):
-        if all(isinstance(k, SimpleObj | ObjArray | IRBlock | BaseIRInstr) for k in args):
+    def __init__(
+        self, *args: SimpleObj | ObjArray | ArgsValuesBlock | IRBlock | BaseIRInstr
+    ):
+        if all(
+            isinstance(k, SimpleObj | ObjArray | IRBlock | BaseIRInstr) for k in args
+        ):
             self.args = args
 
         else:
@@ -185,13 +207,15 @@ class OptionBlock(IRBlock):
         option: SimpleObj | ObjArray | IRBlock | BaseIRInstr,
         block: IRBlock | BaseIRInstr,
     ):
-        if isinstance(option, SimpleObj | ObjArray | IRBlock | BaseIRInstr) and isinstance(
-            block, SimpleObj | ObjArray | IRBlock | BaseIRInstr
-        ):
+        if isinstance(
+            option, SimpleObj | ObjArray | IRBlock | BaseIRInstr
+        ) and isinstance(block, SimpleObj | ObjArray | IRBlock | BaseIRInstr):
             self.args = (option, block)
 
         else:
-            raise ValueError(f"option ({type(option)}) or block ({type(block)}) is of wrong type.")
+            raise ValueError(
+                f"option ({type(option)}) or block ({type(block)}) is of wrong type."
+            )
 
     @property
     def option(self) -> SimpleObj | ObjArray | IRBlock | BaseIRInstr:

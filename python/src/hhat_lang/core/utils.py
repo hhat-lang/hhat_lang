@@ -4,7 +4,15 @@ import uuid
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import Mapping
-from typing import Any, Generic, Hashable, Iterator, Protocol, TypeVar, runtime_checkable
+from typing import (
+    Any,
+    Generic,
+    Hashable,
+    Iterator,
+    Protocol,
+    TypeVar,
+    runtime_checkable,
+)
 from uuid import NAMESPACE_OID
 
 from hhat_lang.core.error_handlers.errors import ErrorHandler
@@ -31,6 +39,13 @@ class KeyObj(Protocol):
 
 
 @runtime_checkable
+class KeyObjType(Protocol):
+    @property
+    def members(self) -> Any:
+        pass
+
+
+@runtime_checkable
 class ValueObj(Protocol):
     """A generic value object to bound as value to ``SymbolOrdered`` instance."""
 
@@ -39,11 +54,13 @@ class ValueObj(Protocol):
         pass
 
 
-Key = TypeVar("Key", bound=KeyObj)
+Key = TypeVar("Key", bound=KeyObj | KeyObjType)
 Value = TypeVar("Value", bound=ValueObj | AbstractTypeDef)
 
+Keys = KeyObj | KeyObjType
 
-class SymbolOrdered(Mapping, Generic[Key, Value]):
+
+class HatOrderedDict(Mapping, Generic[Key, Value]):
     """
     A special OrderedDict that accepts Symbol as keys but transforms them
     as str to unpack the class. Useful for building data structures such
@@ -56,14 +73,16 @@ class SymbolOrdered(Mapping, Generic[Key, Value]):
         self._data = OrderedDict() if data is None else OrderedDict(data)
 
     def __setitem__(self, key: Key, value: Value) -> None:
-        if isinstance(key, KeyObj):
+        if isinstance(key, Keys):
             self._data[key] = value
 
         else:
-            raise ValueError(f"{key} ({type(key)}) is not valid key for data collection.")
+            raise ValueError(
+                f"{key} ({type(key)}) is not valid key for data collection."
+            )
 
     def __getitem__(self, key: Key) -> Any:
-        if isinstance(key, KeyObj):
+        if isinstance(key, Keys):
             return self._data[key]
 
         raise KeyError(f"'{key}' is not found in data collection.")

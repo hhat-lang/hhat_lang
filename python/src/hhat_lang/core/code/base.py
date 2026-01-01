@@ -7,15 +7,15 @@ from typing import Any, Iterable, Iterator
 from hhat_lang.core.data.core import (
     CompositeSymbol,
     ObjArray,
+    SimpleObj,
     Symbol,
     Tmp,
-    SimpleObj,
 )
 
 
-class BaseFnKey:
+class FnHeaderDef:
     """
-    Base class for functions definition on memory's SymbolTable.
+    Base class for functions header definition on memory's SymbolTable.
     Provide functions a signature.
 
     Given a function::
@@ -24,14 +24,14 @@ class BaseFnKey:
 
     The function key object is as follows::
 
-        BaseFnKey(
+        FnHeaderDef(
             name=Symbol("sum"),
             type=Symbol("u64"),
             args_names=(Symbol("a"), Symbol("b"),),
             args_types=(Symbol("u64"), Symbol("u64"),)
         )
 
-    When trying to retrieve the function data, use ``BaseFnCheck``
+    When trying to retrieve the function data, use ``BaseFnHeader``
     parent instance instead:
 
     """
@@ -97,7 +97,7 @@ class BaseFnKey:
         return self._hash_value
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, BaseFnKey | BaseFnCheck):
+        if isinstance(other, FnHeaderDef | FnHeader):
             return hash(self) == hash(other)
 
         return False
@@ -115,9 +115,9 @@ class BaseFnKey:
         )
 
 
-class BaseFnCheck:
+class FnHeader:
     """
-    Base function class to check and retrieve a given function from the SymbolTable.
+    Base function header class to check and retrieve a given function from the SymbolTable.
     """
 
     _name: Symbol | CompositeSymbol
@@ -148,17 +148,19 @@ class BaseFnCheck:
 
     def transform(
         self, fn_type: Symbol | CompositeSymbol, args_names: tuple[Symbol, ...]
-    ) -> BaseFnKey:
-        if all(isinstance(p, Symbol | CompositeSymbol) for p in args_names) and isinstance(
-            fn_type, Symbol | CompositeSymbol
-        ):
-            return BaseFnKey(
+    ) -> FnHeaderDef:
+        if all(
+            isinstance(p, Symbol | CompositeSymbol) for p in args_names
+        ) and isinstance(fn_type, Symbol | CompositeSymbol):
+            return FnHeaderDef(
                 fn_name=self.name,
                 fn_type=fn_type,
                 args_types=self._args_types,
                 args_names=args_names,
             )
-        raise ValueError(f"cannot transform FnKey with fn type {fn_type} and args {args_names}")
+        raise ValueError(
+            f"cannot transform FnKey with fn type {fn_type} and args {args_names}"
+        )
 
     def check_args_types(self, *values: Symbol | CompositeSymbol) -> bool:
         """Check whether ``*values`` have the same values as in function args types"""
@@ -171,7 +173,7 @@ class BaseFnCheck:
         return self._hash_value
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, BaseFnCheck):
+        if isinstance(other, FnHeader):
             return hash(self) == hash(other)
 
         return False

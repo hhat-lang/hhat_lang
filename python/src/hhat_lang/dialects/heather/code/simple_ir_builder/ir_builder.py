@@ -2,21 +2,21 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from hhat_lang.core.code.base import BaseFnCheck
-from hhat_lang.core.code.tools import build_reftable
+from hhat_lang.core.code.base import FnHeader
+from hhat_lang.core.code.ir_custom import BodyBlock
 from hhat_lang.core.code.symbol_table import SymbolTable
+from hhat_lang.core.code.tools import build_reftable
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
-from hhat_lang.core.data.fn_def import FnDef, BuiltinFnDef
+from hhat_lang.core.data.fn_def import BuiltinFnDef, FnDef
 from hhat_lang.core.types.abstract_base import BaseTypeDef
 from hhat_lang.dialects.heather.code.simple_ir_builder.ir import (
     IR,
     IRModule,
 )
-from hhat_lang.core.code.ir_custom import BodyBlock
 from hhat_lang.dialects.heather.parsing.utils import FnsDict, TypesDict
 
 TypesTyping = TypesDict | dict[Symbol | CompositeSymbol, Path]
-FnsTyping = FnsDict | dict[BaseFnCheck, Path]
+FnsTyping = FnsDict | dict[FnHeader, Path]
 
 
 def build_ir_module(
@@ -48,7 +48,7 @@ def build_ir_module(
         st.type.add(t.name, t)
 
     for f in fns:
-        st.fn.add(f.fn_check, f)
+        st.fn.add(f.fn_header, f)
 
     return IRModule(path=path, symboltable=st, main=main)
 

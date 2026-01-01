@@ -5,8 +5,8 @@ from typing import Callable
 from arpeggio import ParserPython
 
 from hhat_lang.core.code.ir_graph import IRGraph
+from hhat_lang.core.compiler.builtin_modules import gen_builtin_modules
 from hhat_lang.core.config.base import HhatProjectSettings
-from hhat_lang.core.fns.builtin_ir_builder import gen_all_builtin_modules
 from hhat_lang.dialects.heather.code.simple_ir_builder.ir import IR, IRModule
 from hhat_lang.dialects.heather.grammar.fn_grammar import fn_program
 from hhat_lang.dialects.heather.parsing.ir_visitor import parse, parser_grammar_code
@@ -37,7 +37,7 @@ def compile_project_ir(
     ir = IR
     ir_graph = IRGraph()
 
-    gen_all_builtin_modules(ir_graph=ir_graph, ir_module=ir_module, ir=ir)
+    gen_builtin_modules(ir_graph, ir_module, ir)
     parse(
         grammar_parser=grammar_parser,
         program_rule=program_rule,

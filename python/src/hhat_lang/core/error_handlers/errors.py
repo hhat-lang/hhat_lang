@@ -10,67 +10,112 @@ from rich.console import Console
 console = Console()
 
 
-def sys_exit(*args: Any, error: ErrorHandler) -> NoReturn:
-    console.print(error(*args))
-    sys.exit(error.error_code.value)
+def sys_exit(*args: Any, error_fn: ErrorHandler) -> NoReturn:
+    """
+    System exit with pretty print message on terminal. The exit status is equivalent
+    to ``ErrorHandler``'s instance corresponding ``ErrorCodes`` enum member value.
+
+    Args:
+        *args: the arguments to be placed when calling `error_fn` instance
+        error_fn: a callable ``ErrorHandler`` instance
+    """
+
+    console.print(error_fn(*args))
+    sys.exit(error_fn.error_code.value)
 
 
 class ErrorCodes(Enum):
-    FEATURE_NOT_IMPLEMENTED_ERROR = auto()
+    """
+    Enum listing all possible error codes for the H-hat language system.
 
+    This is the user facing error messaging logic, given the user should not get
+    Python's error messages for H-hat written code.
+
+    Error values are reserved and divided into categories containing their own value
+    range, such as: base error (generic errors for literal, symbols and paradigms
+    checks, 3 to 99), index errors (101 to 199), type errors, data errors, cast
+    errors, function errors, memory errors, instruction errors, evaluator errors,
+    compiler errors, etc. Subcategories may exist depending on specific needs. Check
+    this class source code for more information.
+    """
+
+    FEATURE_NOT_IMPLEMENTED_ERROR = 1
+    """Feature not implemented reserved error value is always 1."""
+
+    BASE_ERROR = 2
+    """
+    Base generic reserved error values from 3 to 99. It includes literal, symbols,
+    classical/quantum paradigm checks. Value number 2 reserved for itself.
+    """
     LITERAL_TYPE_MISMATCH_ERROR = auto()
     ARRAY_QUANTUM_CLASSICAL_MIXED_ERROR = auto()
     ARRAY_ELEMS_NOT_SAME_ERROR = auto()
 
+    INDEX_ERROR = 100
+    """Index related reserved error values from 101 to 199."""
     INDEX_UNKNOWN_ERROR = auto()
     INDEX_ALLOC_ERROR = auto()
     INDEX_VAR_HAS_INDEXES_ERROR = auto()
     INDEX_INVALID_VAR_ERROR = auto()
 
+    TYPE_ERROR = 200
+    """Type related reserved error values from 201 to 299."""
     TYPE_INVALID_MEMBER_ERROR = auto()
-    TYPE_INVALID_INDEX_ON_DATABIN_ERROR = auto()
+    TYPE_INVALID_INDEX_ON_CONTENT_ERROR = auto()
     TYPE_MEMBER_OVERFLOW_ERROR = auto()
     TYPE_QUANTUM_ON_CLASSICAL_ERROR = auto()
     TYPE_AND_MEMBER_NO_MATCH = auto()
     TYPE_ADD_MEMBER_ERROR = auto()
     TYPE_SINGLE_ASSIGN_ERROR = auto()
     TYPE_STRUCT_ASSIGN_ERROR = auto()
-    TYPE_UNION_ASSIGN_ERROR = auto()
     TYPE_ENUM_ASSIGN_ERROR = auto()
     TYPE_MEMBER_NOT_RESOLVED_ERROR = auto()
     TYPE_MEMBER_ALREADY_EXISTS_ERROR = auto()
+    TYPE_MEMBER_EMPTY_ERROR = auto()
 
     COLLECTION_INSERT_WRONG_TYPE_ERROR = auto()
 
+    TYPE_NOT_FOUND = auto()
     TYPE_SYMBOL_CONVERSION_ERROR = auto()
 
+    DATA_ERROR = 300
+    """Data related reserved error values from 301 to 399."""
     RETRIEVE_APPENDABLE_DATA_ERROR = auto()
-
     CONTAINER_VAR_ASSIGN_ERROR = auto()
     CONTAINER_VAR_IS_IMMUTABLE_ERROR = auto()
-
     QUANTUM_DATA_NOT_APPENDABLE_ERROR = auto()
 
     VARIABLE_WRONG_MEMBER_ERROR = auto()
     VARIABLE_CREATION_ERROR = auto()
     VARIABLE_FREEING_BORROWED_ERROR = auto()
 
-    IMMUTABLE_DATA_REASSIGNIMENT_ERROR = auto()
+    IMMUTABLE_DATA_REASSIGNMENT_ERROR = auto()
     INVALID_CONTENT_DATA_ERROR = auto()
     USING_DATA_BEFORE_INITIALIZATION_ERROR = auto()
     DATA_INITIALIZATION_WRONG_ARGUMENTS_ERROR = auto()
 
+    DATA_OVERFLOW_ERROR = auto()
+
+    INVALID_DATA_STORAGE_ERROR = auto()
+    INVALID_DATA_TYPE_COLLECTION_ERROR = auto()
+    LAZY_SEQUENCE_CONSUMED_ERROR = auto()
+
+    CAST_ERROR = 400
+    """Cast related reserved error value from 401 to 499."""
     CAST_NEG_TO_UNSIGNED_ERROR = auto()
     CAST_INT_OVERFLOW_ERROR = auto()
-    CAST_ERROR = auto()
-
-    FUNCTION_WRONG_ARGS_TYPES_ERROR = auto()
-    FUNCTION_WRONG_DATA_ERROR = auto()
-    FUNCTION_EXECUTION_ERROR = auto()
 
     INVALID_DATA_CONTAINER_CAST_ERROR = auto()
     INVALID_TYPE_CAST_ERROR = auto()
 
+    FN_ERROR = 500
+    """Function related reserved error value from 501 to 599."""
+    FUNCTION_WRONG_ARGS_TYPES_ERROR = auto()
+    FUNCTION_WRONG_DATA_ERROR = auto()
+    FUNCTION_EXECUTION_ERROR = auto()
+
+    MEMORY_ERROR = 600
+    """Memory related reserved error values from 601 to 699."""
     STACK_FRAME_GET_ERROR = auto()
     STACK_FRAME_NOT_FN_ERROR = auto()
     STACK_EMPTY_ERROR = auto()
@@ -81,21 +126,22 @@ class ErrorCodes(Enum):
 
     SYMBOLTABLE_INVALID_KEY_ERROR = auto()
 
+    INSTR_ERROR = 700
+    """Instructions related reserved error values from 701 to 799."""
     INVALID_QUANTUM_COMPUTED_RESULT = auto()
 
     INSTR_NOTFOUND_ERROR = auto()
     INSTR_STATUS_ERROR = auto()
 
-    DATA_OVERFLOW_ERROR = auto()
-
-    INVALID_DATA_STORAGE_ERROR = auto()
-    INVALID_DATA_TYPE_COLLECTION_ERROR = auto()
-    LAZY_SEQUENCE_CONSUMED_ERROR = auto()
-
+    EVALUATOR_ERROR = 800
+    """Evaluator related reserved error values from 801 to 899."""
     EVALUATOR_CAST_DATA_ERROR = auto()
     EVALUATOR_CAST_WILDCARD_BUILTIN_TYPE_ERROR = auto()
 
     INTERPRETER_EVALUATION_ERROR = auto()
+
+    COMPILER_ERROR = 900
+    """Compiler related reserved error values from 901 to 999."""
 
 
 class ErrorHandler(BaseException, ABC):
@@ -209,7 +255,9 @@ class IndexAllocationError(ErrorHandler):
         super().__init__()
 
     def __call__(self, *_args: Any) -> str:
-        return f"{self}: Requested {self._req_idxs}," f" but maximum is {self._max_idxs}"
+        return (
+            f"{self}: Requested {self._req_idxs}," f" but maximum is {self._max_idxs}"
+        )
 
 
 class IndexVarHasIndexesError(ErrorHandler):
@@ -246,17 +294,17 @@ class TypeInvalidMemberError(ErrorHandler):
         return f"{self}: type '{name}' had invalid member added ('{member}')."
 
 
-class TypeInvalidIndexOnDatabinError(ErrorHandler):
-    """Invalid index type on type's data bin. Should be symbol or integer."""
+class TypeInvalidIndexOnContentError(ErrorHandler):
+    """Invalid index type on type's content. Should be symbol or integer."""
 
-    err_code = ErrorCodes.TYPE_INVALID_INDEX_ON_DATABIN_ERROR
+    err_code = ErrorCodes.TYPE_INVALID_INDEX_ON_CONTENT_ERROR
 
     def __init__(self):
         super().__init__()
 
     def __call__(self, name: Any, item: Any) -> str:
         return (
-            f"{self}: data bin type '{name}' had invalid index"
+            f"{self}: content type '{name}' had invalid index"
             f" type '{item}' ({type(item)}) to retrieve its actual content."
         )
 
@@ -321,7 +369,9 @@ class TypeSingleError(ErrorHandler):
         self._type_name = type_name
 
     def __call__(self, *_args: Any) -> str:
-        return f"{self}: Type '{self._type_name}'" f" cannot contain more than one member."
+        return (
+            f"{self}: Type '{self._type_name}'" f" cannot contain more than one member."
+        )
 
 
 class TypeStructError(ErrorHandler):
@@ -332,18 +382,10 @@ class TypeStructError(ErrorHandler):
         self._type_name = type_name
 
     def __call__(self, *_args: Any) -> str:
-        return f"{self}: Attempting to add wrong member" f" types to type '{self._type_name}'."
-
-
-class TypeUnionError(ErrorHandler):
-    err_code = ErrorCodes.TYPE_UNION_ASSIGN_ERROR
-
-    def __init__(self, type_name: Any):
-        super().__init__()
-        self._type_name = type_name
-
-    def __call__(self, *_args: Any) -> str:
-        return f"{self}: Attempting to add wrong member" f" types to type '{self._type_name}'."
+        return (
+            f"{self}: Attempting to add wrong member"
+            f" types to type '{self._type_name}'."
+        )
 
 
 class TypeEnumError(ErrorHandler):
@@ -354,7 +396,10 @@ class TypeEnumError(ErrorHandler):
         self._type_name = type_name
 
     def __call__(self, *_args: Any) -> str:
-        return f"{self}: Attempting to add wrong member" f" types to type '{self._type_name}'."
+        return (
+            f"{self}: Attempting to add wrong member"
+            f" types to type '{self._type_name}'."
+        )
 
 
 class TypeMemberNotResolvedError(ErrorHandler):
@@ -382,6 +427,16 @@ class TypeMemberAlreadyExistsError(ErrorHandler):
         return f"{self}: member {member_name} already exists on type {name}."
 
 
+class TypeMemberEmptyError(ErrorHandler):
+    err_code = ErrorCodes.TYPE_MEMBER_EMPTY_ERROR
+
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, name: Any) -> str:
+        return f"{self}: type {name} has empty member (not added any member yet)."
+
+
 class CollectionInsertWrongTypeError(ErrorHandler):
     err_code = ErrorCodes.COLLECTION_INSERT_WRONG_TYPE_ERROR
 
@@ -394,6 +449,17 @@ class CollectionInsertWrongTypeError(ErrorHandler):
             f"{self}: collection '{self.name}' member received an invalid member"
             f" '{member}' ({type(member)}) to be inserted into its content."
         )
+
+
+class TypeNotFoundError(ErrorHandler):
+    err_code = ErrorCodes.TYPE_NOT_FOUND
+
+    def __init__(self, type_type: Any):
+        super().__init__()
+        self._type_type = type_type
+
+    def __call__(self, *_args: Any) -> str:
+        return f"{self}: {self._type_type} not found."
 
 
 class TypeSymbolConversionError(ErrorHandler):
@@ -418,8 +484,9 @@ class RetrieveAppendableDataError(ErrorHandler):
         self.value = value
 
     def __call__(self, *_args: Any) -> str:
-        name = self
-        return f"[[{name}]]: cannot retrieve data appendable collection using '{self.value}'"
+        return (
+            f"{self}: cannot retrieve data appendable collection using '{self.value}'"
+        )
 
 
 class ContainerVarError(ErrorHandler):
@@ -430,8 +497,7 @@ class ContainerVarError(ErrorHandler):
         self._var_name = var_name
 
     def __call__(self, *_args: Any) -> str:
-        name = self
-        return f"[[{name}]]: Error assigning value to data container '{self._var_name}'"
+        return f"{self}: Error assigning value to data container '{self._var_name}'"
 
 
 class ContainerVarIsImmutableError(ErrorHandler):
@@ -481,7 +547,8 @@ class VariableCreationError(ErrorHandler):
 
     def __call__(self, *_args: Any) -> str:
         return (
-            f"{self}: Could not create variable '{self._var_name}'" f" of type '{self._var_type}'."
+            f"{self}: Could not create variable '{self._var_name}'"
+            f" of type '{self._var_type}'."
         )
 
 
@@ -494,12 +561,13 @@ class VariableFreeingBorrowedError(ErrorHandler):
 
     def __call__(self, *_args: Any) -> str:
         return (
-            f"{self}: Could not freeing variable '{self._var_name}'," f" it's borrowing its data."
+            f"{self}: Could not freeing variable '{self._var_name}',"
+            f" it's borrowing its data."
         )
 
 
 class ImmutableDataReassignmentError(ErrorHandler):
-    err_code = ErrorCodes.IMMUTABLE_DATA_REASSIGNIMENT_ERROR
+    err_code = ErrorCodes.IMMUTABLE_DATA_REASSIGNMENT_ERROR
 
     def __init__(self):
         super().__init__()
@@ -580,7 +648,8 @@ class CastIntOverflowError(ErrorHandler):
 
     def __call__(self, *_args: Any) -> str:
         return (
-            f"{self}: Cannot cast integer {self._int_value}" f" on {self._limit}; overflow error."
+            f"{self}: Cannot cast integer {self._int_value}"
+            f" on {self._limit}; overflow error."
         )
 
 
@@ -605,7 +674,10 @@ class FnWrongArgsTypesError(ErrorHandler):
         super().__init__()
 
     def __call__(self, *_args: Any) -> str:
-        return f"{self}: wrong args types; expected {self._expected}," f" but got {self._values}."
+        return (
+            f"{self}: wrong args types; expected {self._expected},"
+            f" but got {self._values}."
+        )
 
 
 class FnWrongDataError(ErrorHandler):
@@ -671,7 +743,10 @@ class StackFrameNotFnError(ErrorHandler):
         super().__init__()
 
     def __call__(self, *_args: Any) -> str:
-        return f"{self}: Stack frame is not defined for functions," f" but tried to used as if."
+        return (
+            f"{self}: Stack frame is not defined for functions,"
+            f" but tried to used as if."
+        )
 
 
 class StackEmptyError(ErrorHandler):
@@ -779,7 +854,8 @@ class FunctionExecutionError(ErrorHandler):
 
     def __call__(self, *_args: Any) -> str:
         return (
-            f"{self}: function {self._name} with args {self.args}" f" failed due to: {self._reason}"
+            f"{self}: function {self._name} with args {self.args}"
+            f" failed due to: {self._reason}"
         )
 
 

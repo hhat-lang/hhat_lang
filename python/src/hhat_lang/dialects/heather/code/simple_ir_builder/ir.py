@@ -6,7 +6,7 @@ from typing import Any, cast, Callable
 
 from hhat_lang.core.code.abstract import BaseIR, BaseIRModule, IRHash, RefTable
 from hhat_lang.core.code.base import (
-    BaseFnCheck,
+    FnHeader,
     BaseIRInstr,
 )
 from hhat_lang.core.code.ir_block import (
@@ -102,9 +102,9 @@ class CastInstr(IRInstr):
         data: SimpleObj | ObjArray | ModifierBlock | BaseIRInstr,
         to_type: Symbol | CompositeSymbol | ModifierBlock,
     ):
-        if isinstance(data, SimpleObj | ObjArray | ModifierBlock | BaseIRInstr) and isinstance(
-            to_type, Symbol | CompositeSymbol | ModifierBlock
-        ):
+        if isinstance(
+            data, SimpleObj | ObjArray | ModifierBlock | BaseIRInstr
+        ) and isinstance(to_type, Symbol | CompositeSymbol | ModifierBlock):
             super().__init__(data, to_type, name=IRFlag.CAST)
 
         else:
@@ -352,7 +352,9 @@ class IR(BaseIR):
             super().__init__(ref_table, ir_module)
 
         else:
-            raise ValueError("cannot have main IR block and symbol table in the same IR")
+            raise ValueError(
+                "cannot have main IR block and symbol table in the same IR"
+            )
 
     def __repr__(self) -> str:
         rf = ""

@@ -16,7 +16,7 @@ from arpeggio import (
 )
 from typing_extensions import deprecated
 
-from hhat_lang.core.code.base import BaseFnCheck
+from hhat_lang.core.code.base import FnHeader
 from hhat_lang.core.code.ir_block import (
     IRBlock,
     IRInstr,
@@ -90,7 +90,9 @@ def parser_grammar_code(program_fn: Callable) -> ParserPython:
         The ``ParserPython`` constructor
     """
 
-    return ParserPython(program_fn, comment_def=comment, ws=WHITESPACE, memoization=True)
+    return ParserPython(
+        program_fn, comment_def=comment, ws=WHITESPACE, memoization=True
+    )
 
 
 ###################
@@ -211,7 +213,7 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_fn_program(self, _: NonTerminal, child: SemanticActionResults) -> IR:
         main: BodyBlock | None = None
         ref_types: dict[Symbol | CompositeSymbol, Path] = dict()
-        ref_fns: dict[BaseFnCheck, Path] = dict()
+        ref_fns: dict[FnHeader, Path] = dict()
         types: tuple[BaseTypeDef, ...] | tuple = ()
         fns: tuple[FnDef | BuiltinFnDef, ...] | tuple = ()
 
@@ -251,7 +253,9 @@ class ParserIRVisitor(PTNodeVisitor):
 
         return visited_ir
 
-    def visit_type_file(self, _: NonTerminal, child: SemanticActionResults) -> BaseTypeDef:
+    def visit_type_file(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> BaseTypeDef:
         return child[0]
 
     def visit_typesingle(
@@ -273,7 +277,9 @@ class ParserIRVisitor(PTNodeVisitor):
         member_name = child[0]
         return member_type, member_name
 
-    def visit_typestruct(self, _: NonTerminal, child: SemanticActionResults) -> BaseTypeDef:
+    def visit_typestruct(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> BaseTypeDef:
         struct = StructTypeDef(name=child[0], num_members=len(child[1:]))
 
         # second, populate struct
@@ -291,7 +297,9 @@ class ParserIRVisitor(PTNodeVisitor):
 
         return child[0]
 
-    def visit_typeenum(self, _: NonTerminal, child: SemanticActionResults) -> BaseTypeDef:
+    def visit_typeenum(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> BaseTypeDef:
         enum_ds = EnumTypeDef(name=child[0], num_members=len(child[1:]))
 
         for member in child[1:]:
@@ -304,14 +312,18 @@ class ParserIRVisitor(PTNodeVisitor):
 
     def visit_fns(self, _: NonTerminal, child: SemanticActionResults) -> FnDef:
         if len(child) == 4:
-            return FnDef(fn_name=child[0], fn_args=child[1], fn_type=child[2], fn_body=child[3])
+            return FnDef(
+                fn_name=child[0], fn_args=child[1], fn_type=child[2], fn_body=child[3]
+            )
 
         return FnDef(fn_name=child[0], fn_args=child[1], fn_type=None, fn_body=child[2])
 
     def visit_fnargs(self, _: NonTerminal, child: SemanticActionResults) -> ArgsBlock:
         return ArgsBlock(*child)
 
-    def visit_argtype(self, _: NonTerminal, child: SemanticActionResults) -> ArgsValuesBlock:
+    def visit_argtype(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> ArgsValuesBlock:
         return ArgsValuesBlock((child[0], child[1]))
 
     def visit_fn_body(self, _: NonTerminal, child: SemanticActionResults) -> BodyBlock:
@@ -332,19 +344,25 @@ class ParserIRVisitor(PTNodeVisitor):
 
         return BodyBlock(*values)
 
-    def visit_declare(self, _: NonTerminal, child: SemanticActionResults) -> DeclareInstr:
+    def visit_declare(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> DeclareInstr:
         if len(child) == 2:
             return DeclareInstr(var=child[0], var_type=child[1])
 
         if len(child) == 3:
-            return DeclareInstr(var=ModifierBlock(obj=child[0], args=child[1]), var_type=child[2])
+            return DeclareInstr(
+                var=ModifierBlock(obj=child[0], args=child[1]), var_type=child[2]
+            )
 
         raise ValueError("declaring variable must have only variable and its type")
 
     def visit_assign(self, _: NonTerminal, child: SemanticActionResults) -> AssignInstr:
         return AssignInstr(var=child[0], value=child[1])
 
-    def visit_assign_ds(self, _: NonTerminal, child: SemanticActionResults) -> AssignInstr:
+    def visit_assign_ds(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> AssignInstr:
         return AssignInstr(var=child[0], value=ArgsBlock(*child[1:]))
 
     def visit_declareassign(
@@ -362,7 +380,9 @@ class ParserIRVisitor(PTNodeVisitor):
 
         raise ValueError("declaring and assigning cannot contain more than 4 elements")
 
-    def visit_declareassign_ds(self, _: NonTerminal, child: SemanticActionResults) -> Any:
+    def visit_declareassign_ds(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> Any:
         if isinstance(child[1], ModifierArgsBlock):
             return DeclareAssignInstr(
                 var=ModifierBlock(obj=child[0], args=child[1]),
@@ -370,9 +390,13 @@ class ParserIRVisitor(PTNodeVisitor):
                 value=ArgsBlock(*child[3:]) if len(child) > 4 else child[3],
             )
 
-        return DeclareAssignInstr(var=child[0], var_type=child[1], value=ArgsBlock(*child[2:]))
+        return DeclareAssignInstr(
+            var=child[0], var_type=child[1], value=ArgsBlock(*child[2:])
+        )
 
-    def visit_fn_return(self, _: NonTerminal, child: SemanticActionResults) -> ReturnBlock:
+    def visit_fn_return(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> ReturnBlock:
         return ReturnBlock(*child)
 
     def visit_expr(
@@ -384,7 +408,9 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_cast(self, _: NonTerminal, child: SemanticActionResults) -> CastInstr:
         return CastInstr(data=child[0], to_type=child[1])
 
-    def visit_call(self, _: NonTerminal, child: SemanticActionResults) -> CallInstr | ModifierBlock:
+    def visit_call(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> CallInstr | ModifierBlock:
         if len(child) == 1:
             # only the caller is present
             return CallInstr(name=child[0])
@@ -412,7 +438,9 @@ class ParserIRVisitor(PTNodeVisitor):
             match (child[1], child[2]):
                 # args and modifier
                 case (ArgsBlock() | ArgsValuesBlock(), ModifierArgsBlock()):
-                    return ModifierBlock(CallInstr(name=child[0], args=child[1]), args=child[2])
+                    return ModifierBlock(
+                        CallInstr(name=child[0], args=child[1]), args=child[2]
+                    )
 
                 # trait and something
                 case _:
@@ -457,16 +485,24 @@ class ParserIRVisitor(PTNodeVisitor):
 
         return ArgsValuesBlock(*argsvalues)
 
-    def visit_assignargs(self, _: NonTerminal, child: SemanticActionResults) -> ArgsValuesBlock:
+    def visit_assignargs(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> ArgsValuesBlock:
         if len(child) == 2:
             return ArgsValuesBlock((child[0], child[1]))
 
-        raise ValueError("assigning arg with value cannot have more than an argument and a value")
+        raise ValueError(
+            "assigning arg with value cannot have more than an argument and a value"
+        )
 
-    def visit_callargs(self, _: NonTerminal, child: SemanticActionResults) -> ArgsValuesBlock:
+    def visit_callargs(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> ArgsValuesBlock:
         return ArgsValuesBlock((child[0], child[1]))
 
-    def visit_valonly(self, _: NonTerminal, child: SemanticActionResults) -> SimpleObj | ObjArray:
+    def visit_valonly(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> SimpleObj | ObjArray:
         return child[0]
 
     def visit_option(self, _: NonTerminal, child: SemanticActionResults) -> OptionBlock:
@@ -476,7 +512,9 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_call_bdn(self, _: NonTerminal, child: SemanticActionResults) -> CallInstr:
         raise NotImplementedError()
 
-    def visit_call_optbdn(self, _: NonTerminal, child: SemanticActionResults) -> CallInstr:
+    def visit_call_optbdn(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> CallInstr:
         args: tuple = ()
         body: BodyBlock | None = None
         option: tuple[OptionBlock] | tuple = ()
@@ -493,13 +531,17 @@ class ParserIRVisitor(PTNodeVisitor):
                     option += (k,)
 
                 case _:
-                    raise ValueError(f"unexpected value on call with body options {k} ({type(k)})")
+                    raise ValueError(
+                        f"unexpected value on call with body options {k} ({type(k)})"
+                    )
 
         body = BodyBlock(*option) if option else body
         args_entry = ArgsBlock(*args) if args else None
         return CallInstr(name=child[0], args=args_entry, body=body)
 
-    def visit_call_optn(self, _: NonTerminal, child: SemanticActionResults) -> CallInstr:
+    def visit_call_optn(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> CallInstr:
         return CallInstr(name=child[0], option=child[1])
 
     def visit_id_composite_value(
@@ -508,7 +550,9 @@ class ParserIRVisitor(PTNodeVisitor):
         # Id composite value should have only one value
         return child[0]
 
-    def visit_imports(self, _: NonTerminal, child: SemanticActionResults) -> ImportDicts:
+    def visit_imports(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> ImportDicts:
         types = TypesDict()
         fns = FnsDict()
 
@@ -523,7 +567,9 @@ class ParserIRVisitor(PTNodeVisitor):
         parsed_imports = ImportDicts(types=types, fns=fns)
         return parsed_imports
 
-    def visit_typeimport(self, _: NonTerminal, child: SemanticActionResults) -> TypesDict:
+    def visit_typeimport(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> TypesDict:
         if isinstance(child[0], tuple):
             types = TypesDict()
             importer = TypeImporter(self._root, self._grammar, type_program, parse)
@@ -560,7 +606,9 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_many_import(self, _: NonTerminal, child: SemanticActionResults) -> tuple:
         return tuple(chain.from_iterable(child))
 
-    def visit_main(self, _: NonTerminal, child: SemanticActionResults) -> IRBlock | tuple:
+    def visit_main(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> IRBlock | tuple:
         if len(child) == 0:
             return ()
 
@@ -600,12 +648,16 @@ class ParserIRVisitor(PTNodeVisitor):
                         ids += _compose_id_group(p)
 
                     case _:
-                        raise ValueError(f"unexpected composite id children {p} ({type(p)})")
+                        raise ValueError(
+                            f"unexpected composite id children {p} ({type(p)})"
+                        )
 
             return ids
 
         res: tuple[tuple[Symbol, ...], ...] = _compose_id_group(child[1:])
-        final_ids: tuple[CompositeSymbol, ...] = tuple(CompositeSymbol(_root + k) for k in res)
+        final_ids: tuple[CompositeSymbol, ...] = tuple(
+            CompositeSymbol(_root + k) for k in res
+        )
         return final_ids
 
     def visit_full_id(
@@ -619,13 +671,17 @@ class ParserIRVisitor(PTNodeVisitor):
 
         raise NotImplementedError("symbol with modifier not implemented yet")
 
-    def visit_modifier(self, _: NonTerminal, child: SemanticActionResults) -> ModifierArgsBlock:
+    def visit_modifier(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> ModifierArgsBlock:
         return ModifierArgsBlock(tuple(k for k in child))
 
     def visit_array(self, _: NonTerminal, child: SemanticActionResults) -> ObjArray:
         raise NotImplementedError("array not implemented yet")
 
-    def visit_composite_id(self, _: NonTerminal, child: SemanticActionResults) -> CompositeSymbol:
+    def visit_composite_id(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> CompositeSymbol:
         return CompositeSymbol(value=_resolve_data_to_symbol(child))
 
     def visit_simple_id(self, node: Terminal, _: None) -> Symbol:
@@ -637,17 +693,23 @@ class ParserIRVisitor(PTNodeVisitor):
     def visit_pointer(self, node: Terminal, _: None) -> Symbol:
         return Pointer(value=node.value)
 
-    def visit_literal(self, _: NonTerminal, child: SemanticActionResults) -> Literal | LiteralArray:
+    def visit_literal(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> Literal | LiteralArray:
         if len(child) == 1:
             return child[0]
 
         if len(child) == 2:
-            if isinstance(child[0], Literal) and isinstance(child[1], Symbol | CompositeSymbol):
+            if isinstance(child[0], Literal) and isinstance(
+                child[1], Symbol | CompositeSymbol
+            ):
                 return Literal(value=child[0].value, lit_type=child[1])
 
         raise ValueError(f"unknown literal {child}")
 
-    def visit_complex(self, _: NonTerminal, child: SemanticActionResults) -> LiteralArray:
+    def visit_complex(
+        self, _: NonTerminal, child: SemanticActionResults
+    ) -> LiteralArray:
         raise NotImplementedError("complex type not implemented yet")
 
     def visit_t_null(self, node: Terminal, _: None) -> Literal:
@@ -677,7 +739,13 @@ class ParserIRVisitor(PTNodeVisitor):
 
 def _resolve_data_to_symbol(
     data: (
-        SemanticActionResults | tuple | SimpleObj | CompositeSymbol | ModifierBlock | ObjArray | str
+        SemanticActionResults
+        | tuple
+        | SimpleObj
+        | CompositeSymbol
+        | ModifierBlock
+        | ObjArray
+        | str
     ),
 ) -> tuple | tuple[Symbol | CompositeSymbol, ...]:
     match data:
@@ -784,5 +852,9 @@ def _fetch_enum_size_qsize(
                 count_qsize_max = member.qsize.max
 
     size = Size(count_size) if count_size > 0 else None
-    qsize = None if count_qsize_min == 0 else QSize(count_qsize_min, count_qsize_max or None)
+    qsize = (
+        None
+        if count_qsize_min == 0
+        else QSize(count_qsize_min, count_qsize_max or None)
+    )
     return size, qsize

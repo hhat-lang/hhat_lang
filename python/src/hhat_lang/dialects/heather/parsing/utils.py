@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
-from hhat_lang.core.code.base import BaseFnCheck
+from hhat_lang.core.code.base import FnHeader
 from hhat_lang.core.data.core import Symbol
 from hhat_lang.core.imports.utils import BaseImports
 
@@ -68,13 +68,13 @@ class FnsDict(Mapping):
     as ``BaseFnKey`` and value as ``FnDef`` or ``BuiltinFnDef`` object.
     """
 
-    _data: dict[BaseFnCheck, Path]
+    _data: dict[FnHeader, Path]
 
     def __init__(self, data: dict | None = None):
         self._data = data if isinstance(data, dict) else dict()
 
-    def __setitem__(self, key: BaseFnCheck, value: Path) -> None:
-        if isinstance(key, BaseFnCheck) and isinstance(value, Path):
+    def __setitem__(self, key: FnHeader, value: Path) -> None:
+        if isinstance(key, FnHeader) and isinstance(value, Path):
             if key.name in self._data:
                 self._data[key] = value
 
@@ -84,8 +84,8 @@ class FnsDict(Mapping):
         else:
             raise ValueError(f"{key} ({type(key)}) is not valid key for types")
 
-    def __getitem__(self, key: BaseFnCheck, /) -> Path:
-        if isinstance(key, BaseFnCheck):
+    def __getitem__(self, key: FnHeader, /) -> Path:
+        if isinstance(key, FnHeader):
             return self._data[key]
 
         raise KeyError(key)

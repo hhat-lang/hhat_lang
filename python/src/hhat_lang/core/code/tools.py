@@ -7,7 +7,7 @@ from hhat_lang.core.code.abstract import (
     IRHash,
     RefTable,
 )
-from hhat_lang.core.code.base import BaseFnCheck
+from hhat_lang.core.code.base import FnHeader
 from hhat_lang.core.code.ir_graph import (
     IRGraph,
     IRNode,
@@ -40,8 +40,8 @@ def get_type(
 
 
 def get_fn(
-    node_key: IRHash, importing: BaseFnCheck, ir_graph: IRGraph
-) -> FnDef | BuiltinFnDef | dict[BaseFnCheck, FnDef | BuiltinFnDef] | None:
+    node_key: IRHash, importing: FnHeader, ir_graph: IRGraph
+) -> FnDef | BuiltinFnDef | dict[FnHeader, FnDef | BuiltinFnDef] | None:
     """
     Import a function check instance ``importing`` from an IR module's hash value ``node_key``.
 
@@ -64,7 +64,7 @@ def get_fn(
 
 def build_reftable(
     types: Mapping[Symbol | CompositeSymbol, Path] | None = None,
-    fns: Mapping[BaseFnCheck, Path] | None = None,
+    fns: Mapping[FnHeader, Path] | None = None,
 ) -> RefTable:
     types = types or dict()
     fns = fns or dict()

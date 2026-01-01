@@ -8,7 +8,7 @@ from enum import Enum, auto
 from typing import Any, cast
 from uuid import UUID
 
-from hhat_lang.core.code.base import BaseFnCheck, BaseIRBlock
+from hhat_lang.core.code.base import FnHeader, BaseIRBlock
 from hhat_lang.core.data.core import (
     CompositeSymbol,
     Literal,
@@ -169,7 +169,9 @@ class IndexManager:
 
         return idxs
 
-    def add(self, member_name: SimpleObj | ObjArray, num_idxs: int) -> None | ErrorHandler:
+    def add(
+        self, member_name: SimpleObj | ObjArray, num_idxs: int
+    ) -> None | ErrorHandler:
         """
         Add a variable member/literal with a given number of indexes required for it.
         The amount will be used upon request through the `request` method.
@@ -182,7 +184,9 @@ class IndexManager:
 
             return IndexVarHasIndexesError(member_name)
 
-        return IndexAllocationError(requested_idxs=num_idxs, max_idxs=self._num_allocated)
+        return IndexAllocationError(
+            requested_idxs=num_idxs, max_idxs=self._num_allocated
+        )
 
     def request(self, member_name: SimpleObj | ObjArray) -> deque | ErrorHandler:
         """
@@ -225,10 +229,10 @@ class StackFrame:
     """Stack memory frame. To be used inside ``Stack`` instance whenever a new scope is needed"""
 
     _data: OrderedDict[
-        SimpleObj | CompositeSymbol | BaseFnCheck,
+        SimpleObj | CompositeSymbol | FnHeader,
         DataDef | Literal | None,
     ]
-    _fn_header: BaseFnCheck | None
+    _fn_header: FnHeader | None
     _for_fn_use: bool
 
     def __init__(self, for_fn_use: bool = False):
@@ -238,7 +242,7 @@ class StackFrame:
     @property
     def keys(
         self,
-    ) -> tuple[SimpleObj | ObjArray | BaseFnCheck, ...] | tuple:
+    ) -> tuple[SimpleObj | ObjArray | FnHeader, ...] | tuple:
         return tuple(self._data.keys())
 
     @property
@@ -261,19 +265,23 @@ class StackFrame:
         ):
             self._data[key] = value
 
-    def add_fn_header(self, header: BaseFnCheck) -> None:
+    def add_fn_header(self, header: FnHeader) -> None:
         """First thing to be added on the stack frame instance if it is used for a function."""
 
-        if isinstance(header, BaseFnCheck):
+        if isinstance(header, FnHeader):
             self._fn_header = header
 
     def _check_fn_args_types(self, *values_types: DataDef | Literal) -> bool:
         if self._for_fn_use:
             return all(
-                cast(BaseFnCheck, self._fn_header).check_args_types(
+                cast(FnHeader, self._fn_header).check_args_types(
                     k.type
                     if isinstance(k, DataDef)
-                    else (Symbol(k.type) if isinstance(k.type, str) else CompositeSymbol(k.type))
+                    else (
+                        Symbol(k.type)
+                        if isinstance(k.type, str)
+                        else CompositeSymbol(k.type)
+                    )
                 )
                 for k in values_types
             )
@@ -298,7 +306,7 @@ class StackFrame:
             sys.exit(
                 FnWrongArgsTypesError(
                     values=values,
-                    expected=cast(BaseFnCheck, self._fn_header)._args_types,
+                    expected=cast(FnHeader, self._fn_header)._args_types,
                 )()
             )
 
@@ -306,7 +314,7 @@ class StackFrame:
         sys.exit(StackFrameNotFnError()())
 
     def get(
-        self, item: SimpleObj | CompositeSymbol | BaseFnCheck
+        self, item: SimpleObj | CompositeSymbol | FnHeader
     ) -> DataDef | Literal | ErrorHandler:
         return self._data.get(item) or StackFrameGetError(item)
 
@@ -370,7 +378,7 @@ class Stack:
     def set_fn_entry(
         self,
         *values: DataDef | Literal,
-        fn_header: BaseFnCheck,
+        fn_header: FnHeader,
         **args_values: DataDef | Literal,
     ) -> None:
         """
@@ -386,11 +394,11 @@ class Stack:
             **args_values: ``DataDef`` or ``CoreLiteral`` data
         """
 
-        assert (values and not args_values) or (not values and args_values), (
-            "stack frame must have either values org args values-pair"
-        )
+        assert (values and not args_values) or (
+            not values and args_values
+        ), "stack frame must have either values org args values-pair"
 
-        if isinstance(fn_header, BaseFnCheck):
+        if isinstance(fn_header, FnHeader):
             self._data[-1].add_fn_header(fn_header)
 
         if values:
@@ -398,7 +406,9 @@ class Stack:
             self._entry_type = Stack.EntryType.VALUE_ONLY
             return
 
-        self._entry_stack.extend((Symbol(arg), value) for arg, value in args_values.items())
+        self._entry_stack.extend(
+            (Symbol(arg), value) for arg, value in args_values.items()
+        )
         self._entry_type = Stack.EntryType.ARG_VALUE
 
     def get_fn_entry(self) -> None:
@@ -591,7 +601,7 @@ class BaseMemoryManager(ABC):
     def cur_scope(self) -> ScopeValue:
         return self._cur_scope
 
-    def new_fn_stack(self, *args: Any, fn_header: BaseFnCheck) -> Stack:
+    def new_fn_stack(self, *args: Any, fn_header: FnHeader) -> Stack:
         self._stack.new(for_fn_use=True)
         self._stack.set_fn_entry(*args, fn_header=fn_header)
         return self._stack
@@ -643,7 +653,9 @@ class MemoryManager(BaseMemoryManager):
                 pass
 
         else:
-            raise ValueError("trying to free last scope, but no more scope is left; mind is empty")
+            raise ValueError(
+                "trying to free last scope, but no more scope is left; mind is empty"
+            )
 
 
 class QuantumMemoryManager(MemoryManager):
@@ -655,13 +667,17 @@ class QuantumMemoryManager(MemoryManager):
 
     _idx: IndexManager
 
-    def __init__(self, *, ir_block: BaseIRBlock, max_num_index: int, depth_counter: int = 0):
+    def __init__(
+        self, *, ir_block: BaseIRBlock, max_num_index: int, depth_counter: int = 0
+    ):
         if isinstance(max_num_index, int):
             self._idx = IndexManager(max_num_index)
             super().__init__(ir_block=ir_block, depth_counter=depth_counter)
 
         else:
-            raise ValueError(f"max num index must be integer, got {type(max_num_index)}")
+            raise ValueError(
+                f"max num index must be integer, got {type(max_num_index)}"
+            )
 
     @property
     def idx(self) -> IndexManager:

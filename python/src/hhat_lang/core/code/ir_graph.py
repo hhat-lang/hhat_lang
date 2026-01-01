@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from hhat_lang.core.code.abstract import BaseIR, IRHash
-from hhat_lang.core.code.base import BaseFnCheck
+from hhat_lang.core.code.base import FnHeader
 from hhat_lang.core.code.utils import ResultPHF, gen_phf, get_hash
 from hhat_lang.core.data.core import (
     CompositeSymbol,
@@ -62,7 +62,9 @@ class IRNode:
 
         return False
 
-    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck | Path | Any) -> bool:
+    def __contains__(
+        self, item: Symbol | CompositeSymbol | FnHeader | Path | Any
+    ) -> bool:
         return item in self._ir.module or item == self._path
 
     def __repr__(self) -> str:
@@ -79,7 +81,11 @@ class NodeSet:
     _phf: ResultPHF | None
 
     def __init__(self, *data: IRNode, phf: ResultPHF | None = None):
-        if all(isinstance(k, IRNode) for k in data) and isinstance(phf, ResultPHF) or phf is None:
+        if (
+            all(isinstance(k, IRNode) for k in data)
+            and isinstance(phf, ResultPHF)
+            or phf is None
+        ):
             self._data = data
             self._phf = phf
 
@@ -99,7 +105,7 @@ class NodeSet:
 
     def __contains__(
         self,
-        item: (IRHash | IRNode | Path | tuple[Path, Symbol | CompositeSymbol | BaseFnCheck]),
+        item: IRHash | IRNode | Path | tuple[Path, Symbol | CompositeSymbol | FnHeader],
     ) -> bool:
         match item:
             case IRNode():
@@ -238,7 +244,7 @@ class IRGraph:
 
         raise NotImplementedError()
 
-    def get_fns(self, module_path: Path, item: Symbol) -> tuple[BaseFnCheck, ...]:
+    def get_fns(self, module_path: Path, item: Symbol) -> tuple[FnHeader, ...]:
         """
         Get all functions from a module with name given by 'item' argument, and
         return as a tuple of those function signatures.
@@ -257,7 +263,7 @@ class IRGraph:
         raise ValueError(f"item {item} not found in ir node at {module_path}")
 
     def __contains__(self, item: Any) -> bool:
-        if isinstance(item, Symbol | BaseFnCheck):
+        if isinstance(item, Symbol | FnHeader):
             for tmp_node in self._tmp_nodes:
                 if item in tmp_node:
                     return True
@@ -272,6 +278,13 @@ class IRGraph:
     def __repr__(self) -> str:
         max_n = str(len(self.nodes))
         txt = "".join(
-            f"\nN#{'0' * (len(max_n) - len(str(n)))}{n}{k.ir}" for n, k in enumerate(self.nodes)
+            f"\nN#{'0' * (len(max_n) - len(str(n)))}{n}{k.ir}"
+            for n, k in enumerate(self.nodes)
         )
-        return f"==============\n=*=IR GRAPH=*=\n==============\n{txt}\n"
+        return (
+            f"==============\n"
+            f"=*=[IR GRAPH start]=*=\n"
+            f"==============\n"
+            f"{txt}\n"
+            f"=*=[IR GRAPH end]=*=\n"
+        )

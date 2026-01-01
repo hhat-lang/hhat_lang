@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Iterable
 
-from hhat_lang.core.code.base import BaseFnCheck, BaseIRBlock
+from hhat_lang.core.code.base import FnHeader, BaseIRBlock
 from hhat_lang.core.code.symbol_table import SymbolTable
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 
@@ -101,7 +101,9 @@ class BaseIRModule(ABC):
 
         return False
 
-    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck | Path | Any) -> bool:
+    def __contains__(
+        self, item: Symbol | CompositeSymbol | FnHeader | Path | Any
+    ) -> bool:
         return item in self._symbol_table.type or item in self._symbol_table.fn
 
     @abstractmethod
@@ -153,7 +155,9 @@ class RefTypeTable:
         self._table = dict()
 
     def add_ref(self, type_name: Symbol | CompositeSymbol, ir_path: Path) -> None:
-        if isinstance(type_name, Symbol | CompositeSymbol) and isinstance(ir_path, Path):
+        if isinstance(type_name, Symbol | CompositeSymbol) and isinstance(
+            ir_path, Path
+        ):
             self._table[type_name] = IRHash(ir_path)
 
         else:
@@ -187,23 +191,23 @@ class RefTypeTable:
 class RefFnTable:
     """Reference to functions from another IR"""
 
-    _table: dict[BaseFnCheck, IRHash]
+    _table: dict[FnHeader, IRHash]
     __slots__ = ("_table",)
 
     def __init__(self):
         self._table = dict()
 
-    def add_ref(self, fn_name: BaseFnCheck, ir_path: Path) -> None:
-        if isinstance(fn_name, BaseFnCheck) and isinstance(ir_path, Path):
+    def add_ref(self, fn_name: FnHeader, ir_path: Path) -> None:
+        if isinstance(fn_name, FnHeader) and isinstance(ir_path, Path):
             self._table[fn_name] = IRHash(ir_path)
 
         else:
             raise ValueError(f"wrong reference type table input ({fn_name})")
 
-    def get_irpath(self, fn_name: BaseFnCheck) -> Path:
+    def get_irpath(self, fn_name: FnHeader) -> Path:
         return self.get_irhash(fn_name).key
 
-    def get_irhash(self, fn_name: BaseFnCheck) -> IRHash:
+    def get_irhash(self, fn_name: FnHeader) -> IRHash:
         return self._table[fn_name]
 
     def __hash__(self) -> int:
@@ -215,9 +219,9 @@ class RefFnTable:
 
         return False
 
-    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck) -> bool:
+    def __contains__(self, item: Symbol | CompositeSymbol | FnHeader) -> bool:
         match item:
-            case BaseFnCheck():
+            case FnHeader():
                 return item in self._table
 
             case Symbol() | CompositeSymbol():
@@ -233,7 +237,7 @@ class RefFnTable:
     def __len__(self) -> int:
         return len(self._table)
 
-    def __iter__(self) -> Iterable[tuple[BaseFnCheck, IRHash]]:
+    def __iter__(self) -> Iterable[tuple[FnHeader, IRHash]]:
         return iter(self._table.items())
 
 
@@ -244,7 +248,9 @@ class RefTable:
     _fns: RefFnTable
     __slots__ = ("_types", "_fns")
 
-    def __init__(self, *, type_ref: RefTypeTable | None = None, fn_ref: RefFnTable | None = None):
+    def __init__(
+        self, *, type_ref: RefTypeTable | None = None, fn_ref: RefFnTable | None = None
+    ):
         self._types = type_ref or RefTypeTable()
         self._fns = fn_ref or RefFnTable()
 
@@ -265,5 +271,5 @@ class RefTable:
 
         return False
 
-    def __contains__(self, item: Symbol | CompositeSymbol | BaseFnCheck) -> bool:
+    def __contains__(self, item: Symbol | CompositeSymbol | FnHeader) -> bool:
         return item in self._types or item in self._fns

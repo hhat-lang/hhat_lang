@@ -18,14 +18,16 @@ from hhat_lang.core.error_handlers.errors import (
     sys_exit,
     TypeQuantumOnClassicalError,
     TypeInvalidMemberError,
-    TypeInvalidIndexOnDatabinError,
+    TypeInvalidIndexOnContentError,
 )
 from hhat_lang.core.types.abstract_base import BaseTypeDataBin, BaseTypeDef, M
 from hhat_lang.core.types.utils import BaseTypeEnum
-from hhat_lang.core.utils import SymbolOrdered
+from hhat_lang.core.utils import HatOrderedDict
 
 
-def is_valid_member(datatype: BaseTypeDef, member: str | Symbol | CompositeSymbol) -> bool:
+def is_valid_member(
+    datatype: BaseTypeDef, member: str | Symbol | CompositeSymbol
+) -> bool:
     """
     Check if a datatype member is valid for the given datatype, e.g. quantum
     datatype supports classical members, but a classical datatype cannot contain
@@ -56,7 +58,9 @@ class SingleDataBin(BaseTypeDataBin[SingleT, SingleC, SingleM]):
         self._container = ()
         self._locked = False
 
-    def add_member(self, type_name: SingleT, **kwargs: Any) -> SingleDataBin | ErrorHandler:
+    def add_member(
+        self, type_name: SingleT, **kwargs: Any
+    ) -> SingleDataBin | ErrorHandler:
         if not self._locked:
             self._container += (type_name,)
             self._locked = True
@@ -90,7 +94,7 @@ class SingleTypeDef(BaseTypeDef[SingleT, None]):
                 case _:
                     return self
 
-        sys_exit(error=TypeQuantumOnClassicalError(self._name, type_name))
+        sys_exit(error_fn=TypeQuantumOnClassicalError(self._name, type_name))
 
     def __getitem__(self, item: int | Symbol) -> SingleT:
         return self._container[item]
@@ -107,7 +111,7 @@ class SingleTypeDef(BaseTypeDef[SingleT, None]):
 ##################
 
 StructT = SymbolObj
-StructC = SymbolOrdered[Symbol, SymbolObj]
+StructC = HatOrderedDict[Symbol, SymbolObj]
 StructM = Symbol
 
 
@@ -116,7 +120,7 @@ class StructDataBin(BaseTypeDataBin[StructT, StructC, StructM]):
     _num_members: int
 
     def __init__(self):
-        self._container = SymbolOrdered()
+        self._container = HatOrderedDict()
         self._num_members = 0
 
     def add_member(
@@ -150,9 +154,13 @@ class StructTypeDef(BaseTypeDef[StructT, StructM]):
         self._is_quantum = isquantum(name)
         self._container = StructDataBin()
 
-    def add_member(self, type_name: StructT, member_name: StructM, **kwargs: Any) -> StructTypeDef:
+    def add_member(
+        self, type_name: StructT, member_name: StructM, **kwargs: Any
+    ) -> StructTypeDef:
         if self._num_members > 0:
-            match res := self._container.add_member(type_name=type_name, member_name=member_name):
+            match res := self._container.add_member(
+                type_name=type_name, member_name=member_name
+            ):
                 case TypeMemberAlreadyExistsError():
                     sys.exit(res(self._name, member_name))
 
@@ -178,7 +186,7 @@ class StructTypeDef(BaseTypeDef[StructT, StructM]):
 ################
 
 EnumT = Literal | StructTypeDef
-EnumC = SymbolOrdered[Symbol, Literal | StructTypeDef]
+EnumC = HatOrderedDict[Symbol, Literal | StructTypeDef]
 EnumM = Symbol | StructTypeDef
 
 
@@ -187,7 +195,7 @@ class EnumDataBin(BaseTypeDataBin[EnumT, EnumC, EnumM]):
     _counter: int
 
     def __init__(self, num_members: int):
-        self._data = SymbolOrdered()
+        self._data = HatOrderedDict()
         self._counter = 1 if num_members else 0
 
     def add_member(
@@ -220,7 +228,11 @@ class EnumDataBin(BaseTypeDataBin[EnumT, EnumC, EnumM]):
                 return tuple(self._container.values())[item]
 
             case _:
-                sys_exit(self.__class__.__name__, item, error=TypeInvalidIndexOnDatabinError())
+                sys_exit(
+                    self.__class__.__name__,
+                    item,
+                    error_fn=TypeInvalidIndexOnContentError(),
+                )
 
     def __iter__(self) -> Iterable:
         return iter(self._container.items())
@@ -244,16 +256,16 @@ class EnumTypeDef(BaseTypeDef[EnumT, StructM]):
                     sys.exit(res(self._name, member_name))
 
                 case TypeInvalidMemberError():
-                    sys_exit(self._name, member_name, error=res)
+                    sys_exit(self._name, member_name, error_fn=res)
 
                 case ErrorHandler():
-                    sys_exit(error=res)
+                    sys_exit(error_fn=res)
 
                 case _:
                     self._num_members -= 1
                     return self
 
-        sys_exit(self._name, self._t_type, error=TypeMemberOverflowError())
+        sys_exit(self._name, self._t_type, error_fn=TypeMemberOverflowError())
 
     def __getitem__(self, item: int | Symbol) -> EnumT:
         return self._container[item]
@@ -262,5 +274,9 @@ class EnumTypeDef(BaseTypeDef[EnumT, StructM]):
         return iter(self._container)
 
     def __repr__(self) -> str:
-        members = "{" + " ".join(f"{k}" if isinstance(v, int) else f"{v}" for k, v in self) + "}"
+        members = (
+            "{"
+            + " ".join(f"{k}" if isinstance(v, int) else f"{v}" for k, v in self)
+            + "}"
+        )
         return f"{self._name}<enum>{members}"

@@ -5,12 +5,14 @@ from enum import Enum, auto
 
 
 class BaseTypeEnum(Enum):
-    """Enum data type structures for ``BaseTypeDataStructure`` instances"""
+    """Enum data type structures for types definitions instances"""
+
+    CORE = auto()
+    """the core types, such as bool, integers and floats types, string"""
 
     SINGLE = auto()
     STRUCT = auto()
     ENUM = auto()
-    UNION = auto()
 
     REMOTE_UNION = auto()
     """

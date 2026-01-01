@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 
-from hhat_lang.core.code.base import BaseFnKey
+from hhat_lang.core.code.base import FnHeaderDef
 from hhat_lang.core.data.core import Literal, Symbol, Tmp
 from hhat_lang.core.data.var_def import DataDef
 from hhat_lang.core.error_handlers.errors import FnWrongDataError
@@ -14,7 +14,7 @@ from hhat_lang.low_level.quantum_lang.openqasm.v2.code.builtins.fns.core import 
 
 
 @include_builtin_fn(
-    fn_entry=BaseFnKey(
+    fn_entry=FnHeaderDef(
         fn_name=Tmp("@redim"),
         fn_type=Symbol("@bool"),
         args_names=(Symbol("@a"),),
@@ -36,7 +36,7 @@ def builtin_fn_qbool_qredim(*args: Literal | DataDef, mem: MemoryManager) -> Dat
 
 
 @include_builtin_fn(
-    fn_entry=BaseFnKey(
+    fn_entry=FnHeaderDef(
         fn_name=Tmp("@redim"),
         fn_type=Symbol("@int"),
         args_names=(Symbol("@a"),),
@@ -49,7 +49,7 @@ def builtin_fn_qint_qredim(*args: Literal | DataDef, mem: MemoryManager) -> Data
 
 
 @include_builtin_fn(
-    fn_entry=BaseFnKey(
+    fn_entry=FnHeaderDef(
         fn_name=Tmp("@redim"),
         fn_type=Symbol("@u2"),
         args_names=(Symbol("@a"),),
@@ -62,7 +62,7 @@ def builtin_fn_qu2_qredim(*args: Literal | DataDef, mem: MemoryManager) -> DataD
 
 
 @include_builtin_fn(
-    fn_entry=BaseFnKey(
+    fn_entry=FnHeaderDef(
         fn_name=Tmp("@redim"),
         fn_type=Symbol("@u3"),
         args_names=(Symbol("@a"),),
@@ -75,7 +75,7 @@ def builtin_fn_qu3_qredim(*args: Literal | DataDef, mem: MemoryManager) -> DataD
 
 
 @include_builtin_fn(
-    fn_entry=BaseFnKey(
+    fn_entry=FnHeaderDef(
         fn_name=Tmp("@redim"),
         fn_type=Symbol("@u4"),
         args_names=(Symbol("@a"),),
@@ -88,7 +88,7 @@ def builtin_fn_qu4_qredim(*args: Literal | DataDef, mem: MemoryManager) -> DataD
 
 
 @include_builtin_fn(
-    fn_entry=BaseFnKey(
+    fn_entry=FnHeaderDef(
         fn_name=Tmp("@sync"),
         fn_type=Symbol("@bell_t"),
         args_names=(Symbol("@s"), Symbol("@t")),
@@ -101,7 +101,7 @@ def builtin_fn_qbool_qsync(*args: Literal | DataDef, mem: MemoryManager) -> Data
 
 
 @include_builtin_fn(
-    fn_entry=BaseFnKey(
+    fn_entry=FnHeaderDef(
         fn_name=Tmp("@sync"),
         fn_type=Symbol("@ghz2_t"),
         args_names=(Symbol("@s"), Symbol("@t")),
@@ -114,7 +114,7 @@ def builtin_fn_qu2_qsync(*args: Literal | DataDef, mem: MemoryManager) -> DataDe
 
 
 @include_builtin_fn(
-    fn_entry=BaseFnKey(
+    fn_entry=FnHeaderDef(
         fn_name=Tmp("@sync"),
         fn_type=Symbol("@ghz3_t"),
         args_names=(Symbol("@s"), Symbol("@t")),
@@ -127,7 +127,7 @@ def builtin_fn_qu3_qsync(*args: Literal | DataDef, mem: MemoryManager) -> DataDe
 
 
 @include_builtin_fn(
-    fn_entry=BaseFnKey(
+    fn_entry=FnHeaderDef(
         fn_name=Tmp("@sync"),
         fn_type=Symbol("@ghz4_t"),
         args_names=(Symbol("@s"), Symbol("@t")),

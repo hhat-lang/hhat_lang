@@ -144,17 +144,12 @@ class VarHeader:
 class VarDef:
     _header: VarHeader
     _data: HatOrderedDict
-    _data_type: BaseTypeEnum
 
     def __init__(self, var_name: Symbol, var_type: Symbol):
         self._header = VarHeader(var_name, var_type)
         self._data = expand_type_as_container(var_type)
         if isinstance(self._data, ErrorHandler):
             sys_exit(error_fn=self._data)
-
-        self._data_type = get_data_type(var_type)
-        if isinstance(self._data_type, ErrorHandler):
-            sys_exit(error_fn=self._data_type)
 
     @property
     def name(self) -> Symbol:
@@ -172,7 +167,11 @@ class VarDef:
     def data(self) -> HatOrderedDict:
         return self._data
 
-    def _assign(self, data_container: Any, params: Any, values: Any) -> None:
+    @classmethod
+    def declare(cls, var_name: Symbol, var_type: Symbol | CompositeSymbol) -> VarDef:
+        return VarDef(var_name, var_type)
+
+    def _assign(self, data_container: Any, params: Any, values: Any) -> Any:
         match data_container, params, values:
             case [HatOrderedDict(), tuple(), VarDef()]:
                 self._assign(data_container, params, values._data)
@@ -210,13 +209,6 @@ class VarDef:
                 data_container[params].add(values)
 
             case [
-                HatOrderedDict(),
-                TypeDef(),
-                Literal() | LiteralArray() | BaseIRBlock() | BaseIRInstr(),
-            ]:
-                data_container[params].add(values)
-
-            case [
                 Container(),
                 Symbol(),
                 Literal()
@@ -234,18 +226,9 @@ class VarDef:
                     f"| {values} ({type(values)})"
                 )
 
-    def _assign_single(self, data_container: HatOrderedDict, values: Any) -> None:
-        match values:
-            case Literal() | LiteralArray() | BaseIRBlock() | BaseIRInstr():
-                data_container[next(iter(data_container.keys()))].add(values)
-
-            case tuple():
-                self._assign_single(data_container, next(iter(values)))
-
-            case _:
-                raise ValueError(
-                    f"{data_container=} {type(data_container)=} | {values=} ({type(values)=})"
-                )
+    def assign(self, values: Iterable[ContentType], params: Iterable[Symbol]) -> VarDef:
+        self._assign(self._data, params, values)
+        return self
 
     def _check_eq(self, lhs: Any, rhs: Any) -> bool:
         match lhs, rhs:
@@ -277,34 +260,6 @@ class VarDef:
             case _:
                 print("something else?")
                 return False
-
-    @classmethod
-    def declare(cls, var_name: Symbol, var_type: Symbol | CompositeSymbol) -> VarDef:
-        return VarDef(var_name, var_type)
-
-    def assign(
-        self,
-        values: Iterable[ContentType],
-        params: TypeDef | dict | HatOrderedDict | tuple,
-    ) -> VarDef:
-        # if self._data_type is BaseTypeEnum.SINGLE:
-        #     self._assign_single(self._data, values)
-
-        # if isinstance(params, TypeDef):
-        #     params = expand_type_as_container(params)
-        #
-        # if isinstance(params, dict | HatOrderedDict):
-        #     params = type_members_recursive(params)
-
-        if not isinstance(params, tuple):
-            sys_exit(params, error_fn=VarContainerParamsTypeError(self.name))
-
-        self._assign(self._data, params, values)
-        return self
-
-    def get(self, member: Symbol | None = None) -> ContentType:
-        if member and member in self._data:
-            return self._data[member]
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, VarDef):

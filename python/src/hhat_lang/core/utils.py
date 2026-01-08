@@ -96,7 +96,7 @@ class HatOrderedDict(Mapping, Generic[Key, Value]):
 
     def keys(self) -> Iterator:
         for k in self._data.keys():
-            yield k.value if isinstance(k, Symbol | CompositeSymbol) else k
+            yield k.value if hasattr(k, "value") else k
 
     def values(self) -> Iterator:
         return iter(self._data.values())

@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 from abc import ABC, abstractmethod
 from collections import deque
+from enum import Enum, auto
 from functools import wraps
 from typing import (
     Any,
@@ -20,10 +21,12 @@ from hhat_lang.core.data.core import (
     LiteralArray,
     Symbol,
 )
-from hhat_lang.core.data.utils import DataKind, isquantum
+from hhat_lang.core.data.utils import DataKind, isquantum, has_same_paradigm
 from hhat_lang.core.error_handlers.errors import (
+    CollectionInsertWrongTypeError,
     DataInitializationArgumentsError,
     ErrorHandler,
+    FeatureNotImplementedError,
     ImmutableDataReassignmentError,
     InvalidContentDataError,
     InvalidDataStorageError,
@@ -32,13 +35,12 @@ from hhat_lang.core.error_handlers.errors import (
     RetrieveAppendableDataError,
     UsingDataBeforeInitializationError,
     sys_exit,
-    CollectionInsertWrongTypeError,
-    FeatureNotImplementedError,
 )
 from hhat_lang.core.memory.utils import ScopeValue
 from hhat_lang.core.types.abstract_base import BaseTypeDef
 from hhat_lang.core.types.utils import BaseTypeEnum
 from hhat_lang.core.utils import HatOrderedDict
+
 
 T = TypeVar("T")
 D = TypeVar("D")
@@ -559,3 +561,348 @@ class LazySequence(BaseDataStorage[deque[ContentType]]):
             yield from self._data
 
         sys.exit()
+
+
+class ContainerType(Enum):
+    """
+    Container enum class. Contain members to name a given container instance. Values:
+
+    - IMMUTABLE
+    - MUTABLE
+    - ARRAY
+    - LAZY
+    """
+
+    IMMUTABLE = auto()
+    MUTABLE = auto()
+    ARRAY = auto()
+    LAZY = auto()
+
+
+class Container(ABC):
+    """
+    Abstract container class. To hold data for variables, constants,
+    temporary data, etc.
+    """
+
+    _data: Iterable
+    _type: ContainerType
+
+    @property
+    def value(self) -> Iterable:
+        return self._data
+
+    @abstractmethod
+    def add(self, value: ContentType) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __getitem__(self, item: int | Any) -> ContentType | Iterable[ContentType]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get(self, *_args: Any) -> ContentType | Iterable[ContentType]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __add__(self, other: Any) -> Any:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __radd__(self, other: Any) -> Any:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        raise NotImplementedError()
+
+    def __iter__(self) -> Iterable:
+        return iter(self._data)
+
+    def __repr__(self):
+        return f"{self._type.name}({' '.join(str(k) for k in self._data)})"
+
+
+class ImmutableContainer(Container):
+    """
+    Immutable data container class. Must contain a single immutable element.
+    """
+
+    _data: tuple[ContentType] | tuple
+    _assigned: bool
+    _type = ContainerType.IMMUTABLE
+
+    def __init__(self):
+        self._data = ()
+        self._assigned = False
+
+    def add(self, value: ContentType) -> None | ErrorHandler:
+        if not self._assigned:
+            if isinstance(value, self.__class__):
+                self._data = (self + value)._data
+
+            else:
+                self._data = (value,)
+
+            self._assigned = True
+
+        return ImmutableDataReassignmentError()
+
+    def get(self, *_args: Any) -> ContentType | None:
+        return self._data[0]
+
+    def __getitem__(self, item: int | Any) -> ContentType:
+        return self._data[0]
+
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, self.__class__):
+            return self
+
+        raise ValueError()
+
+    def __radd__(self, other: Any) -> Any:
+        if isinstance(other, self.__class__):
+            return self
+
+        raise ValueError()
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return self.value == other.value
+
+        return False
+
+
+class MutableContainer(Container):
+    """
+    Mutable data container class. Must contain a single element.
+    """
+
+    _data: tuple[ContentType] | tuple
+    _type = ContainerType.MUTABLE
+
+    def __init__(self):
+        self._data = ()
+
+    def add(self, value: ContentType) -> None:
+        if isinstance(value, self.__class__):
+            self._data = (self + value)._data
+
+        else:
+            self._data = (value,)
+
+    def get(self, *_args: Any) -> ContentType | None:
+        return self._data[0]
+
+    def __getitem__(self, item: int | Any) -> ContentType:
+        return self._data[0]
+
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, self.__class__):
+            return other
+
+        raise ValueError()
+
+    def __radd__(self, other: Any) -> Any:
+        if isinstance(other, self.__class__):
+            return self
+
+        raise ValueError()
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return self.value == other.value
+
+        return False
+
+
+class ArrayContainer(Container):
+    """
+    Array data container class. Can contain multiple elements.
+    """
+
+    _data: tuple[ContentType] | tuple
+    _type = ContainerType.ARRAY
+
+    def __init__(self):
+        self._data = ()
+
+    def add(self, value: ContentType) -> None:
+        if isinstance(value, self.__class__):
+            self._data = (self + value)._data
+
+        else:
+            self._data += (value,)
+
+    def get(self, value: Any) -> ContentType | tuple[ContentType]:
+        if value:
+            return self._data[value]
+
+        return self._data
+
+    def __getitem__(self, item: int | Any) -> ContentType:
+        return self._data[item]
+
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, self.__class__):
+            for k in other:
+                self.add(k)
+
+            return self
+
+        raise ValueError()
+
+    def __radd__(self, other: Any) -> Any:
+        if isinstance(other, self.__class__):
+            for k in self:
+                other.add(k)
+
+            return other
+
+        raise ValueError()
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return self.value == other.value
+
+        return False
+
+
+class LazySequenceContainer(Container):
+    """
+    Appendable lazy sequence, to be used on appendable data kind, such as quantum data.
+    All quantum data (variables, expressions) are appendable. Ex::
+
+        // appendable variable @q
+        @q:@bool = @false
+
+        // appendable expression '@redim(@0)'
+        @redim(@0)
+
+        // appendable expression '@redim(@3)' inside appendable variable @v
+        @v:@u3 = @redim(@3)
+
+    Any other combination, for instance applying a functions to a variable, will
+    be incorporated as appendable as well. Under the hood, it considers everything
+    as ir blocks or ir instructions.
+
+    It is a lazy sequence due to its nature to accumulate instructions and to be
+    consumed iterated over, which is the desirable behavior for a quantum data
+    storage.
+
+    Note: this object is not hashable.
+    """
+
+    # use Queue in the future for threading/asynchronous queueing
+    _data: deque[ContentType]
+    _type = ContainerType.LAZY
+
+    def __init__(self):
+        self._data = deque()
+
+    def add(self, value: ContentType) -> None:
+        if isinstance(value, self.__class__):
+            self._data.extend(value._data)
+            return None
+
+        if isinstance(value, deque):
+            self._data.extend(value)
+            return None
+
+        self._data.append(value)
+        return None
+
+    def get(self, value: Any) -> deque[ContentType] | ContentType:
+        if value:
+            return self._data[value]
+
+        return self._data
+
+    def __getitem__(self, item: int | Any) -> ContentType | deque[ContentType]:
+        if isinstance(item, int):
+            return self._data[item]
+
+        raise ValueError()
+
+    def __add__(self, other: Any) -> Any:
+        if isinstance(other, self.__class__):
+            for k in other:
+                self.add(k)
+
+            return self
+
+        raise ValueError()
+
+    def __radd__(self, other: Any) -> Any:
+        return other + self
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return all(p == q for p, q in zip(self.value, other.value))
+
+        return False
+
+
+class VarHeader:
+    """
+    To hold relevant and unique information regarding a data container
+    (variable, temporary data, etc.). Each data header must have a name,
+    a type and an uid value (for scope purposes).
+    """
+
+    _name: Symbol
+    _type: Symbol | CompositeSymbol
+    _is_quantum: bool
+    _uid: int
+    _hash_value: int
+    __slots__ = ("_name", "_type", "_is_quantum", "_uid", "_hash_value")
+
+    def __init__(
+        self,
+        var_name: Symbol,
+        var_type: Symbol | CompositeSymbol,
+        uid: int | None = None,
+    ):
+        if has_same_paradigm(var_name, var_type):
+            self._name = var_name
+            self._type = var_type
+            self._is_quantum = isquantum(var_name)
+            if uid:
+                self._uid = uid
+
+            else:
+                from random import randint
+
+                self._uid = randint(2, 2 << 32)
+
+            self._hash_value = hash(
+                (
+                    var_name,
+                    var_type,
+                )
+            )
+
+    @property
+    def name(self) -> Symbol:
+        return self._name
+
+    @property
+    def type(self) -> Symbol | CompositeSymbol:
+        return self._type
+
+    @property
+    def is_quantum(self) -> bool:
+        return self._is_quantum
+
+    @property
+    def uid(self) -> int:
+        return self._uid
+
+    def __hash__(self) -> int:
+        return self._hash_value
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return hash(self) == hash(other)
+
+        return False

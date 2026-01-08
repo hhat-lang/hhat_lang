@@ -102,7 +102,7 @@ class HatOrderedDict(Mapping, Generic[Key, Value]):
         return iter(self._data.values())
 
     def __iter__(self) -> Iterator:
-        return iter(self._data.items())
+        return iter(self._data)
 
     def __repr__(self) -> str:
         return str(self._data)

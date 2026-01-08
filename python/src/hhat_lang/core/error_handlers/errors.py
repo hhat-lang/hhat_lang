@@ -537,8 +537,8 @@ class VariableWrongMemberError(ErrorHandler):
         super().__init__()
         self._var_name = var_name
 
-    def __call__(self, *_args: Any) -> str:
-        return f"{self}: Variable '{self._var_name}' member is wrong."
+    def __call__(self, value: Any) -> str:
+        return f"{self}: Variable '{self._var_name}' member is wrong ({value})."
 
 
 class VariableCreationError(ErrorHandler):

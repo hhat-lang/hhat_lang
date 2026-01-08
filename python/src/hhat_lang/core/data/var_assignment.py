@@ -4,29 +4,29 @@ from abc import ABC, abstractmethod
 from collections import deque
 from copy import deepcopy
 from pathlib import Path
-
 from typing import Any, Iterable
 
 from hhat_lang.core.code.base import BaseIRBlock, BaseIRInstr
-from hhat_lang.core.data.utils import DataKind, isquantum, has_same_paradigm
-from hhat_lang.core.error_handlers.errors import (
-    ErrorHandler,
-    TypeSymbolConversionError,
-    sys_exit,
-    TypeNotFoundError,
-)
-from hhat_lang.core.types import POINTER_SIZE, BUILTIN_STD_TYPE_MODULE_PATH
-from hhat_lang.core.types.new_core import StructTypeDef, SingleTypeDef
 from hhat_lang.core.data.core import (
-    Symbol,
+    AsArray,
     CompositeSymbol,
     Literal,
     LiteralArray,
-    AsArray,
+    Symbol,
 )
-from hhat_lang.core.types.new_builtin_core import builtin_types
-from hhat_lang.core.types.new_base_type import Size, QSize
-from hhat_lang.core.types.new_builtin_core import CoreTypeDef
+from hhat_lang.core.data.utils import DataKind, has_same_paradigm, isquantum
+from hhat_lang.core.error_handlers.errors import (
+    ErrorHandler,
+    TypeNotFoundError,
+    TypeSymbolConversionError,
+    VarContainerParamsTypeError,
+    sys_exit,
+)
+from hhat_lang.core.types import BUILTIN_STD_TYPE_MODULE_PATH, POINTER_SIZE
+from hhat_lang.core.types.new_base_type import QSize, Size, TypeDef
+from hhat_lang.core.types.new_builtin_core import CoreTypeDef, builtin_types
+from hhat_lang.core.types.new_core import SingleTypeDef, StructTypeDef
+from hhat_lang.core.types.utils import BaseTypeEnum
 from hhat_lang.core.utils import HatOrderedDict
 
 ContentType = BaseIRBlock | BaseIRInstr | Literal | LiteralArray | HatOrderedDict
@@ -144,12 +144,17 @@ class VarHeader:
 class VarDef:
     _header: VarHeader
     _data: HatOrderedDict
+    _data_type: BaseTypeEnum
 
     def __init__(self, var_name: Symbol, var_type: Symbol):
         self._header = VarHeader(var_name, var_type)
-        self._data = expand_type(var_type)
+        self._data = expand_type_as_container(var_type)
         if isinstance(self._data, ErrorHandler):
             sys_exit(error_fn=self._data)
+
+        self._data_type = get_data_type(var_type)
+        if isinstance(self._data_type, ErrorHandler):
+            sys_exit(error_fn=self._data_type)
 
     @property
     def name(self) -> Symbol:
@@ -167,37 +172,21 @@ class VarDef:
     def data(self) -> HatOrderedDict:
         return self._data
 
-    @classmethod
-    def declare(cls, var_name: Symbol, var_type: Symbol | CompositeSymbol) -> VarDef:
-        return VarDef(var_name, var_type)
-
-    def _assign(self, values: Any, params: Any | None = None) -> Any:
-        if isinstance(values, type(self._data) | tuple):
-            _d = HatOrderedDict()
-            if isinstance(params, tuple):
-                for k, v in zip(params, values):
-                    _d[k] = self._assign(v, k)
-            _d[params] = self._assign(values)
-            return _d
-        return HatOrderedDict({params: values})
-
-    def _iter_data_container(
-        self, data_container: Any, params: Any, values: Any
-    ) -> Any:
+    def _assign(self, data_container: Any, params: Any, values: Any) -> None:
         match data_container, params, values:
             case [HatOrderedDict(), tuple(), VarDef()]:
-                self._iter_data_container(data_container, params, values._data)
+                self._assign(data_container, params, values._data)
 
             case [HatOrderedDict(), tuple(), tuple()]:
                 for k, p, q in zip(data_container.values(), params, values):
-                    self._iter_data_container(data_container, p, q)
+                    self._assign(data_container, p, q)
 
             case [HatOrderedDict(), HatOrderedDict(), VarDef()]:
-                self._iter_data_container(data_container, params, values._data)
+                self._assign(data_container, params, values._data)
 
             case [HatOrderedDict(), HatOrderedDict(), HatOrderedDict()]:
                 for p in params:
-                    self._iter_data_container(data_container[p], params[p], values)
+                    self._assign(data_container[p], params[p], values)
 
             case [HatOrderedDict(), HatOrderedDict(), tuple()]:
                 raise ValueError(f" ?  {data_container} | {params} | {values}")
@@ -205,7 +194,7 @@ class VarDef:
             case [HatOrderedDict(), tuple(), HatOrderedDict()]:
                 for p, (k, q) in zip(params, values.items()):
                     if p in data_container and p in values:
-                        self._iter_data_container(data_container, p, q)
+                        self._assign(data_container, p, q)
 
                     else:
                         raise ValueError()
@@ -221,6 +210,13 @@ class VarDef:
                 data_container[params].add(values)
 
             case [
+                HatOrderedDict(),
+                TypeDef(),
+                Literal() | LiteralArray() | BaseIRBlock() | BaseIRInstr(),
+            ]:
+                data_container[params].add(values)
+
+            case [
                 Container(),
                 Symbol(),
                 Literal()
@@ -229,7 +225,6 @@ class VarDef:
                 | BaseIRInstr()
                 | HatOrderedDict(),
             ]:
-                print("c s llbio")
                 data_container.add(values)
 
             case _:
@@ -239,9 +234,18 @@ class VarDef:
                     f"| {values} ({type(values)})"
                 )
 
-    def assign(self, values: Iterable[ContentType], params: Iterable[Symbol]) -> VarDef:
-        self._iter_data_container(self._data, params, values)
-        return self
+    def _assign_single(self, data_container: HatOrderedDict, values: Any) -> None:
+        match values:
+            case Literal() | LiteralArray() | BaseIRBlock() | BaseIRInstr():
+                data_container[next(iter(data_container.keys()))].add(values)
+
+            case tuple():
+                self._assign_single(data_container, next(iter(values)))
+
+            case _:
+                raise ValueError(
+                    f"{data_container=} {type(data_container)=} | {values=} ({type(values)=})"
+                )
 
     def _check_eq(self, lhs: Any, rhs: Any) -> bool:
         match lhs, rhs:
@@ -273,6 +277,34 @@ class VarDef:
             case _:
                 print("something else?")
                 return False
+
+    @classmethod
+    def declare(cls, var_name: Symbol, var_type: Symbol | CompositeSymbol) -> VarDef:
+        return VarDef(var_name, var_type)
+
+    def assign(
+        self,
+        values: Iterable[ContentType],
+        params: TypeDef | dict | HatOrderedDict | tuple,
+    ) -> VarDef:
+        # if self._data_type is BaseTypeEnum.SINGLE:
+        #     self._assign_single(self._data, values)
+
+        # if isinstance(params, TypeDef):
+        #     params = expand_type_as_container(params)
+        #
+        # if isinstance(params, dict | HatOrderedDict):
+        #     params = type_members_recursive(params)
+
+        if not isinstance(params, tuple):
+            sys_exit(params, error_fn=VarContainerParamsTypeError(self.name))
+
+        self._assign(self._data, params, values)
+        return self
+
+    def get(self, member: Symbol | None = None) -> ContentType:
+        if member and member in self._data:
+            return self._data[member]
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, VarDef):
@@ -468,7 +500,7 @@ def get_type(type_name: Symbol | CompositeSymbol | AsArray) -> Any | None:
     return None
 
 
-def expand_type(data: Any) -> Container | HatOrderedDict | ErrorHandler:
+def expand_type_as_container(data: Any) -> Container | HatOrderedDict | ErrorHandler:
     match data:
         case CoreTypeDef():
             if data.is_quantum:
@@ -479,26 +511,26 @@ def expand_type(data: Any) -> Container | HatOrderedDict | ErrorHandler:
         case SingleTypeDef():
             res = HatOrderedDict()
             for k in data.members:
-                res[data] = expand_type(k)
+                res[data] = expand_type_as_container(k)
 
             return res
 
         case StructTypeDef():
             res = HatOrderedDict()
             for k, v in data:
-                res[k] = expand_type(v)
+                res[k] = expand_type_as_container(v)
 
             return res
 
         case Symbol() | CompositeSymbol():
             if res := get_type(data):
-                return expand_type(res)
+                return expand_type_as_container(res)
 
             return TypeNotFoundError(data)
 
         case AsArray():
             if res := get_type(data.value):
-                return expand_type(res)
+                return expand_type_as_container(res)
 
             if data._is_quantum:
                 return LazySequenceContainer()
@@ -522,14 +554,22 @@ def type_members_recursive(
             return _r
 
         case Symbol() | CompositeSymbol():
-            if values in types_dict:
-                return type_members_recursive(types_dict[values])
+            # for t, q in types_dict.items():
+            #     if values in q:
+            #         return type_members_recursive(types_dict[t][values])
+
+            # if values in types_dict:
+            #     return type_members_recursive(types_dict[values])
 
             return (values,)
 
         case AsArray():
-            if values.value in types_dict:
-                return type_members_recursive(types_dict[values.value])
+            # for t, q in types_dict.items():
+            #     if values in q:
+            #         return type_members_recursive(types_dict[t][values.value])
+
+            # if values.value in types_dict:
+            #     return type_members_recursive(types_dict[values.value])
 
             return (values.value,)
 
@@ -540,21 +580,34 @@ def type_members_recursive(
             raise ValueError(f"{values} ({type(values)})")
 
 
+def get_data_type(value: Symbol | CompositeSymbol) -> BaseTypeEnum | ErrorHandler:
+    for t, q in types_dict.items():
+        if value in q:
+            return types_dict[t][value].type
+
+    return TypeNotFoundError(value)
+
+
 if __name__ == "__main__":
+    print(f"{types_dict=}")
     print(i_t)
     print(point)
     print(point.size)
     print(place)
     print(place.size)
-    print(expand_type(i32))
-    print(expand_type(i_t))
-    print(expand_type(point))
-    print(expand_type(place))
+    print(expand_type_as_container(i32))
+    print(expand_type_as_container(i_t))
+    print(expand_type_as_container(point))
+    print(expand_type_as_container(place))
     print(qdataset)
-    print(expand_type(qdataset))
+    print(expand_type_as_container(qdataset))
     print(qdataframe)
-    print(expand_type(qdataframe))
-    print(type_members_recursive(expand_type(qdataframe)))
+    print(expand_type_as_container(qdataframe))
+    print(type_members_recursive(expand_type_as_container(qdataframe)))
+    # x0 = VarDef.declare(Symbol("x0"), Symbol("i_t"))
+    # print(x0)
+    # x0.assign((Literal("2", Symbol("u32")),), (i_t,))
+    # print(x0)
     qv1 = VarDef.declare(Symbol("@v1"), Symbol("@dataset"))
     print(qv1)
     qv1.assign(
@@ -572,7 +625,7 @@ if __name__ == "__main__":
             Literal('"df"', Symbol("str")),
             qv1._data,
         ),
-        type_members_recursive(expand_type(qdataframe)),
+        type_members_recursive(expand_type_as_container(qdataframe)),
     )
     print(qv2)
 
@@ -582,7 +635,7 @@ if __name__ == "__main__":
             Literal('"df"', Symbol("str")),
             qv1,
         ),
-        type_members_recursive(expand_type(qdataframe)),
+        type_members_recursive(expand_type_as_container(qdataframe)),
     )
     print(qv3)
     assert qv2 == qv3, False

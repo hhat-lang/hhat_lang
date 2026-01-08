@@ -51,7 +51,7 @@ qint_types: set = {S_QINT, S_QU2, S_QU3, S_QU4}
 
 class BuiltinSingleTypeDef(BaseTypeDef[SingleT, None]):
     _container: SingleDataBin
-    _t_type = BaseTypeEnum.SINGLE
+    _type = BaseTypeEnum.SINGLE
     _is_builtin = True
 
     def __init__(self, name: Symbol, size: Size, qsize: QSize | None = None):
@@ -77,7 +77,7 @@ class BuiltinSingleTypeDef(BaseTypeDef[SingleT, None]):
 
 class BuiltinStructTypeDef(BaseTypeDef[StructT, StructM]):
     _container: StructDataBin
-    _t_type = BaseTypeEnum.STRUCT
+    _type = BaseTypeEnum.STRUCT
     _is_builtin = True
 
     def __init__(self, name: Symbol, size: Size, qsize: QSize | None = None):
@@ -86,7 +86,9 @@ class BuiltinStructTypeDef(BaseTypeDef[StructT, StructM]):
         self._container = StructDataBin()
         self.set_sizes(size, qsize)
 
-    def add_member(self, type_name: StructT, member_name: StructM, **kwargs: Any) -> BaseTypeDef:
+    def add_member(
+        self, type_name: StructT, member_name: StructM, **kwargs: Any
+    ) -> BaseTypeDef:
         self._container.add_member(type_name=type_name, member_name=member_name)
         return self
 
@@ -102,7 +104,9 @@ class BuiltinStructTypeDef(BaseTypeDef[StructT, StructM]):
 
 
 class BuiltinEnumTypeDef(BaseTypeDef[EnumT, EnumM]):
-    def add_member(self, type_name: T | None, member_name: M | None, **kwargs: Any) -> BaseTypeDef:
+    def add_member(
+        self, type_name: T | None, member_name: M | None, **kwargs: Any
+    ) -> BaseTypeDef:
         pass
 
     def __getitem__(self, item: int | Symbol) -> Any:

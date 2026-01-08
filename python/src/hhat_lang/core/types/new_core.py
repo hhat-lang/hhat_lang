@@ -11,7 +11,7 @@ from hhat_lang.core.error_handlers.errors import (
     TypeMemberOverflowError,
     sys_exit,
 )
-from hhat_lang.core.types.new_base_type import K, TypeDef, TypeMembers, V
+from hhat_lang.core.types.new_base_type import TypeDef, TypeMembers
 from hhat_lang.core.types.utils import BaseTypeEnum
 from hhat_lang.core.utils import HatOrderedDict
 

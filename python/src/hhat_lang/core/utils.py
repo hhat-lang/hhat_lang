@@ -15,6 +15,7 @@ from typing import (
 )
 from uuid import NAMESPACE_OID
 
+from hhat_lang.core.data.core import Symbol, CompositeSymbol
 from hhat_lang.core.error_handlers.errors import ErrorHandler
 from hhat_lang.core.types.utils import AbstractTypeDef
 
@@ -95,13 +96,13 @@ class HatOrderedDict(Mapping, Generic[Key, Value]):
 
     def keys(self) -> Iterator:
         for k in self._data.keys():
-            yield k.value if not isinstance(k, int) else k
+            yield k.value if isinstance(k, Symbol | CompositeSymbol) else k
 
     def values(self) -> Iterator:
-        yield from self._data.values()
+        return iter(self._data.values())
 
     def __iter__(self) -> Iterator:
-        return iter(k for k in self._data)
+        return iter(self._data.items())
 
     def __repr__(self) -> str:
         return str(self._data)

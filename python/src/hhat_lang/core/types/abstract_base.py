@@ -73,7 +73,7 @@ class BaseTypeDef(AbstractTypeDef, Generic[T, M]):
     """
 
     _name: Symbol
-    _t_type: BaseTypeEnum
+    _type: BaseTypeEnum
     _container: BaseTypeDataBin
     _is_quantum: bool
     _is_builtin: bool
@@ -111,7 +111,9 @@ class BaseTypeDef(AbstractTypeDef, Generic[T, M]):
         return self._qsize
 
     @abstractmethod
-    def add_member(self, type_name: T | None, member_name: M | None, **kwargs: Any) -> BaseTypeDef:
+    def add_member(
+        self, type_name: T | None, member_name: M | None, **kwargs: Any
+    ) -> BaseTypeDef:
         raise NotImplementedError()
 
     def set_sizes(self, size: Size, qsize: QSize | None = None) -> BaseTypeDef:

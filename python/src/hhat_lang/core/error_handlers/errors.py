@@ -96,6 +96,8 @@ class ErrorCodes(Enum):
 
     DATA_OVERFLOW_ERROR = auto()
 
+    VAR_CONTAINER_PARAMS_TYPE_ERROR = auto()
+
     INVALID_DATA_STORAGE_ERROR = auto()
     INVALID_DATA_TYPE_COLLECTION_ERROR = auto()
     LAZY_SEQUENCE_CONSUMED_ERROR = auto()
@@ -162,7 +164,9 @@ class ErrorHandler(BaseException, ABC):
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"[bold]{self.err_code.name}[[red]{self.err_code.value}[/red]][/bold]"
+        return (
+            f"error [bold]{self.err_code.name}[[red]{self.err_code.value}[/red]][/bold]"
+        )
 
 
 #################
@@ -459,7 +463,7 @@ class TypeNotFoundError(ErrorHandler):
         self._type_type = type_type
 
     def __call__(self, *_args: Any) -> str:
-        return f"{self}: {self._type_type} not found."
+        return f"{self}: type '{self._type_type}' not found."
 
 
 class TypeSymbolConversionError(ErrorHandler):
@@ -496,8 +500,8 @@ class ContainerVarError(ErrorHandler):
         super().__init__()
         self._var_name = var_name
 
-    def __call__(self, *_args: Any) -> str:
-        return f"{self}: Error assigning value to data container '{self._var_name}'"
+    def __call__(self, value: Any) -> str:
+        return f"{self}: Error assigning value(s) '{value}' to data container '{self._var_name}'"
 
 
 class ContainerVarIsImmutableError(ErrorHandler):
@@ -872,6 +876,20 @@ class DataOverflowError(ErrorHandler):
         return (
             f"{self}: data {self._data} of type {self._data_type},"
             f" but attempted to cast into type {self._expected_type} (data overflow)."
+        )
+
+
+class VarContainerParamsTypeError(ErrorHandler):
+    err_code = ErrorCodes.VAR_CONTAINER_PARAMS_TYPE_ERROR
+
+    def __init__(self, var_name: Any):
+        super().__init__()
+        self._name = var_name
+
+    def __call__(self, params: Any) -> str:
+        return (
+            f"{self}: variable {self._name} has an error when converting params"
+            f" type '{params}': invalid type {type(params)}."
         )
 
 

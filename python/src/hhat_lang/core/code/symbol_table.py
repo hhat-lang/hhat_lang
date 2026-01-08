@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from collections import OrderedDict
-from typing import Any, Iterable
+from typing import Any, Generic, Iterable, TypeVar
 
 from hhat_lang.core.code.base import FnHeader, FnHeaderDef
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
@@ -9,8 +10,54 @@ from hhat_lang.core.data.fn_def import BuiltinFnDef, FnDef, ModifierDef
 from hhat_lang.core.data.var_def import DataDef
 from hhat_lang.core.types.new_base_type import TypeDef
 
+K = TypeVar("K")
+V = TypeVar("V")
 
-class TypeTable:
+
+class BaseTable(ABC, Generic[K, V]):
+    @abstractmethod
+    @property
+    def table(self) -> OrderedDict[K, V]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def add(self, *args: Any, **kwargs: Any) -> Any:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get(self, *args: Any, **kwargs: Any) -> Any:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __hash__(self) -> int:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __getitem__(self, item: Any) -> Any:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __contains__(self, item: Any) -> Any:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __len__(self) -> int:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __iter__(self) -> Iterable:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __repr__(self) -> str:
+        raise NotImplementedError()
+
+
+class TypeTable(BaseTable[Symbol | CompositeSymbol, TypeDef]):
     _table: OrderedDict[Symbol | CompositeSymbol, TypeDef]
     __slots__ = ("_table",)
 
@@ -46,7 +93,10 @@ class TypeTable:
 
         return False
 
-    def __getitem__(self, item: Symbol | CompositeSymbol) -> TypeDef | Any | None:
+    def __getitem__(self, item: int | Symbol | CompositeSymbol) -> TypeDef | Any | None:
+        if isinstance(item, int):
+            return tuple(self.table.items())[item]
+
         return self.get(item)
 
     def __contains__(self, item: Any) -> bool:
@@ -63,7 +113,9 @@ class TypeTable:
         return f"\n    - types:\n        {content}\n"
 
 
-class FnTable:
+class FnTable(
+    BaseTable[Symbol | CompositeSymbol, dict[FnHeader, FnDef | BuiltinFnDef]]
+):
     """
     This class holds functions definitions as ``BaseFnCheck`` for function
     entry (function name, type and argument types) and its body (content).
@@ -130,6 +182,14 @@ class FnTable:
 
         return False
 
+    def __getitem__(
+        self, item: int | Symbol | CompositeSymbol | FnHeader
+    ) -> FnDef | BuiltinFnDef | dict[FnHeader, FnDef | BuiltinFnDef | None]:
+        if isinstance(item, int):
+            return tuple(self.table.items())[item]
+
+        return self.get(item)
+
     def __contains__(self, item: Any) -> bool:
         match item:
             case Symbol() | CompositeSymbol():
@@ -154,7 +214,7 @@ class FnTable:
         return f"\n    - fns:\n        {content}"
 
 
-class ConstTable:
+class ConstTable(BaseTable[Symbol | CompositeSymbol, DataDef]):
     """
     This class holds all constants in a module
     """
@@ -203,8 +263,14 @@ class ConstTable:
     def __iter__(self) -> Iterable:
         return iter(self.table.items())
 
+    def __repr__(self) -> str:
+        content = "\n        ".join(
+            f"{k}:\n          {v}" for h in self.table.values() for k, v in h.items()
+        )
+        return f"\n    - consts:\n        {content}"
 
-class MetaModTable:
+
+class MetaModTable(BaseTable[Symbol | CompositeSymbol, dict[FnHeader, FnDef]]):
     """
     This class holds all meta modules in a module.
     """
@@ -269,6 +335,14 @@ class MetaModTable:
 
         return False
 
+    def __getitem__(
+        self, item: int | Symbol | CompositeSymbol | FnHeader
+    ) -> FnDef | dict[FnHeader, FnDef] | None:
+        if isinstance(item, int):
+            return tuple(self.table.items())[item]
+
+        return self.get(item)
+
     def __contains__(self, item: Any) -> bool:
         match item:
             case Symbol() | CompositeSymbol():
@@ -286,8 +360,14 @@ class MetaModTable:
     def __iter__(self) -> Iterable:
         return iter((p, q) for v in self.table.values() for p, q in v.items())
 
+    def __repr__(self) -> str:
+        content = "\n        ".join(
+            f"{k}:\n          {v}" for h in self.table.values() for k, v in h.items()
+        )
+        return f"\n    - metamods:\n        {content}"
 
-class ModifierTable:
+
+class ModifierTable(BaseTable[Symbol | CompositeSymbol, dict[FnHeader, ModifierDef]]):
     """
     This class holds all modifiers in a module
     """
@@ -334,6 +414,14 @@ class ModifierTable:
 
         return False
 
+    def __getitem__(
+        self, item: int | Symbol | CompositeSymbol | FnHeader
+    ) -> ModifierDef | dict[FnHeader, ModifierDef] | None:
+        if isinstance(item, int):
+            return tuple(self.table.items())[item]
+
+        return self.get(item)
+
     def __contains__(self, item: Any) -> bool:
         match item:
             case Symbol() | CompositeSymbol():
@@ -350,6 +438,12 @@ class ModifierTable:
 
     def __iter__(self) -> Iterable:
         return iter((p, q) for v in self.table.values() for p, q in v.items())
+
+    def __repr__(self) -> str:
+        content = "\n        ".join(
+            f"{k}:\n          {v}" for h in self.table.values() for k, v in h.items()
+        )
+        return f"\n    - modifiers:\n        {content}"
 
 
 class SymbolTable:
@@ -386,7 +480,7 @@ class SymbolTable:
         return self._metamods
 
     @property
-    def modifiers(self) -> ModifierTable:
+    def modifier(self) -> ModifierTable:
         return self._modifiers
 
     def __hash__(self) -> int:

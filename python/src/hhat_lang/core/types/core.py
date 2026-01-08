@@ -77,7 +77,7 @@ class SingleDataBin(BaseTypeDataBin[SingleT, SingleC, SingleM]):
 
 class SingleTypeDef(BaseTypeDef[SingleT, None]):
     _container: SingleDataBin
-    _t_type = BaseTypeEnum.SINGLE
+    _type = BaseTypeEnum.SINGLE
 
     def __init__(self, name: Symbol):
         self._name = name
@@ -146,7 +146,7 @@ class StructDataBin(BaseTypeDataBin[StructT, StructC, StructM]):
 class StructTypeDef(BaseTypeDef[StructT, StructM]):
     _num_members: int
     _container: StructDataBin
-    _t_type = BaseTypeEnum.STRUCT
+    _type = BaseTypeEnum.STRUCT
 
     def __init__(self, name: Symbol, num_members: int):
         self._name = name
@@ -241,7 +241,7 @@ class EnumDataBin(BaseTypeDataBin[EnumT, EnumC, EnumM]):
 class EnumTypeDef(BaseTypeDef[EnumT, StructM]):
     _num_members: int
     _container: EnumDataBin
-    _t_type = BaseTypeEnum.ENUM
+    _type = BaseTypeEnum.ENUM
 
     def __init__(self, name: Symbol, num_members: int):
         self._name = name

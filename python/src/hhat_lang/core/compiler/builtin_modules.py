@@ -4,17 +4,62 @@ from pathlib import Path
 from typing import Any, Callable
 
 from hhat_lang.core.code.abstract import BaseIR, BaseIRModule
+from hhat_lang.core.code.base import CompositeSymbol, FnHeader, Symbol
 from hhat_lang.core.code.ir_graph import IRGraph
-from hhat_lang.core.code.symbol_table import SymbolTable
+from hhat_lang.core.code.symbol_table import BaseTable, SymbolTable
 from hhat_lang.core.code.tools import build_reftable
+from hhat_lang.core.data.fn_def import BuiltinFnDef
 from hhat_lang.core.fns.core import builtin_fns_path
+from hhat_lang.core.types.new_base_type import TypeDef
 from hhat_lang.core.types.new_builtin_core import builtin_types
+
+
+def _get_table(value: Any, st: SymbolTable) -> BaseTable:
+    if isinstance(value, FnHeader) or (
+        isinstance(value, dict) and isinstance(next(iter(value.keys())), FnHeader)
+    ):
+        return st.fn
+
+    return st.type
+
+
+def add_builtin_modules(
+    ir_graph: IRGraph,
+    ir_module: Callable[[Path, SymbolTable, ...], BaseIRModule],
+    ir: type[BaseIR],
+    builtin_dict: dict[
+        Path, dict[Symbol | CompositeSymbol, TypeDef] | dict[FnHeader, BuiltinFnDef]
+    ],
+    **kwargs: Any,
+) -> None:
+    """
+
+    Args:
+        ir_graph: ``IRGraph`` instance
+        ir_module: IR module class (to be instantiated)
+        ir: IR class (to be instantiated)
+        builtin_dict: the dictionary containing the objects to be built (functions or types)
+    """
+
+    for mod_path, mod_objs in builtin_dict.items():
+        st = SymbolTable()
+        table: BaseTable = _get_table(mod_objs, st)
+
+        for name, obj in mod_objs.items():
+            table.add(name, obj)
+
+        # TODO: include any dependencies as ref tables below:
+        ref_table = build_reftable()
+        ir_mod = ir_module(mod_path, st, **kwargs)
+        ir_obj = ir(ref_table, ir_mod)
+        ir_graph.add_node(ir_obj)
 
 
 def gen_builtin_modules(
     ir_graph: IRGraph,
     ir_module: Callable[[Path, SymbolTable, ...], BaseIRModule],
     ir: type[BaseIR],
+    to_build: bool = False,
     **kwargs: Any,
 ) -> None:
     """
@@ -29,25 +74,8 @@ def gen_builtin_modules(
         **kwargs: extra arguments to be used on the IR object
     """
 
-    for mod_path, mod_fns in builtin_fns_path.items():
-        st = SymbolTable()
-        for name, fn in mod_fns.items():
-            st.fn.add(name, fn)
+    add_builtin_modules(ir_graph, ir_module, ir, builtin_fns_path, **kwargs)
+    add_builtin_modules(ir_graph, ir_module, ir, builtin_types, **kwargs)
 
-        ref_table = build_reftable()
-        ir_mod_fn = ir_module(mod_path, st, **kwargs)
-        ir_obj = ir(ref_table, ir_mod_fn)
-        ir_graph.add_node(ir_obj)
-
-    for mod_path, mod_types in builtin_types.items():
-        st = SymbolTable()
-        for name, t in mod_types.items():
-            st.type.add(name, t)
-
-        # include any dependencies as ref tables below:
-        ref_table = build_reftable()
-        ir_mod_type = ir_module(mod_path, st, **kwargs)
-        ir_obj = ir(ref_table, ir_mod_type)
-        ir_graph.add_node(ir_obj)
-
-    ir_graph.build()
+    if to_build:
+        ir_graph.build()

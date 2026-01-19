@@ -154,9 +154,7 @@ class CompositeSymbol:
         self._value = value
         self._type = CompositeGroup.SymbolAttrs
         self._is_quantum = value[0].is_quantum
-        self._hash_value = hash(
-            (hash(self._value), hash(self._type), hash(self._is_quantum))
-        )
+        self._hash_value = hash((hash(self._value), hash(self._type), hash(self._is_quantum)))
 
     @property
     def value(self) -> tuple[Symbol, ...]:
@@ -201,6 +199,10 @@ class AsArray:
     @property
     def value(self) -> Symbol | CompositeSymbol:
         return self._value
+
+    @property
+    def is_quantum(self) -> bool:
+        return self._is_quantum
 
     def __hash__(self) -> int:
         return self._hash_value
@@ -299,9 +301,7 @@ class Literal:
         except ValueError:
             try:
                 # works if float
-                value = "".join(
-                    f"{k:08b}" for k in struct.pack(">d", float(self.value.strip("@")))
-                )
+                value = "".join(f"{k:08b}" for k in struct.pack(">d", float(self.value.strip("@"))))
 
             except ValueError:
                 # works if string

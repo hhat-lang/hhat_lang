@@ -36,13 +36,13 @@ def insert_builtin_type(name: Symbol, type_path: Path) -> Callable:
 
 
 class CoreTypeDef(TypeDef):
-    _members: Symbol
+    _members: tuple[Symbol]
     _type = BaseTypeEnum.CORE
     _is_core = True
 
     def __init__(self, name: Symbol):
         super().__init__(name)
-        self._members = name
+        self._members = (name,)
         self._is_quantum = isquantum(name)
         self._hash_value = hash((name, self._type))
 
@@ -51,6 +51,9 @@ class CoreTypeDef(TypeDef):
 
     def get_member(self, member: None = None) -> Symbol:
         return self._name
+
+    def __len__(self) -> int:
+        return 1
 
     def __repr__(self) -> str:
         return f"{self._name}"

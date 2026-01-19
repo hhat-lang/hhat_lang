@@ -94,6 +94,9 @@ class SingleTypeMember(TypeMembers[None, SingleM]):
     def __iter__(self) -> Iterable:
         return iter((self._content,))
 
+    def __len__(self) -> int:
+        return 1
+
     def __repr__(self) -> str:
         return f"{self._content}"
 
@@ -175,6 +178,9 @@ class StructTypeMember(TypeMembers[StructT, StructM]):
     def __iter__(self) -> Iterable:
         return iter(self._content.items())
 
+    def __len__(self) -> int:
+        return len(self._content)
+
     def __repr__(self) -> str:
         members = "{" + " ".join(f"{k}:{v}" for k, v in self) + "}"
         return members
@@ -215,9 +221,7 @@ class EnumTypeDef(TypeDef[EnumT, EnumM]):
                             self._members_left -= 1
                             if self._members_left == 0:
                                 self._members.set_hash()
-                                self._hash_value = hash(
-                                    (self._name, self._type, self._members)
-                                )
+                                self._hash_value = hash((self._name, self._type, self._members))
 
                             return self
 
@@ -232,9 +236,7 @@ class EnumTypeDef(TypeDef[EnumT, EnumM]):
                             self._members_left -= 1
                             if self._members_left == 0:
                                 self._members.set_hash()
-                                self._hash_value = hash(
-                                    (self._name, self._type, self._members)
-                                )
+                                self._hash_value = hash((self._name, self._type, self._members))
 
                             return self
 
@@ -290,13 +292,13 @@ class EnumTypeMember(TypeMembers[EnumT, EnumM]):
     def __iter__(self) -> Iterable:
         return iter(self._content.items())
 
+    def __len__(self) -> int:
+        return len(self._content)
+
     def __repr__(self) -> str:
         members = (
             "{"
-            + " ".join(
-                str(k) if isinstance(v, int) else str(v)
-                for k, v in self._content.items()
-            )
+            + " ".join(str(k) if isinstance(v, int) else str(v) for k, v in self._content.items())
             + "}"
         )
         return members

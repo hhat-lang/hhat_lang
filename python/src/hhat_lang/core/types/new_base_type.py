@@ -107,6 +107,9 @@ class TypeDef(AbstractTypeDef, ABC, Generic[K, V]):
 
         return False
 
+    def __len__(self) -> int:
+        return len(self._members)
+
     def __iter__(self) -> Iterable:
         return iter(self._members)
 
@@ -130,6 +133,10 @@ class TypeMembers(ABC, Generic[K, V]):
 
     @abstractmethod
     def __iter__(self) -> Iterable:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __len__(self) -> int:
         raise NotImplementedError()
 
     @abstractmethod

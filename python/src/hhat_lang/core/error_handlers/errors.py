@@ -82,6 +82,7 @@ class ErrorCodes(Enum):
     """Data related reserved error values from 301 to 399."""
     RETRIEVE_APPENDABLE_DATA_ERROR = auto()
     CONTAINER_VAR_ASSIGN_ERROR = auto()
+    CONTAINER_EMPTY_USAGE_ERROR = auto()
     CONTAINER_VAR_IS_IMMUTABLE_ERROR = auto()
     QUANTUM_DATA_NOT_APPENDABLE_ERROR = auto()
 
@@ -164,9 +165,7 @@ class ErrorHandler(BaseException, ABC):
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return (
-            f"error [bold]{self.err_code.name}[[red]{self.err_code.value}[/red]][/bold]"
-        )
+        return f"error [bold]{self.err_code.name}[[red]{self.err_code.value}[/red]][/bold]"
 
 
 #################
@@ -259,9 +258,7 @@ class IndexAllocationError(ErrorHandler):
         super().__init__()
 
     def __call__(self, *_args: Any) -> str:
-        return (
-            f"{self}: Requested {self._req_idxs}," f" but maximum is {self._max_idxs}"
-        )
+        return f"{self}: Requested {self._req_idxs}," f" but maximum is {self._max_idxs}"
 
 
 class IndexVarHasIndexesError(ErrorHandler):
@@ -373,9 +370,7 @@ class TypeSingleError(ErrorHandler):
         self._type_name = type_name
 
     def __call__(self, *_args: Any) -> str:
-        return (
-            f"{self}: Type '{self._type_name}'" f" cannot contain more than one member."
-        )
+        return f"{self}: Type '{self._type_name}'" f" cannot contain more than one member."
 
 
 class TypeStructError(ErrorHandler):
@@ -386,10 +381,7 @@ class TypeStructError(ErrorHandler):
         self._type_name = type_name
 
     def __call__(self, *_args: Any) -> str:
-        return (
-            f"{self}: Attempting to add wrong member"
-            f" types to type '{self._type_name}'."
-        )
+        return f"{self}: Attempting to add wrong member" f" types to type '{self._type_name}'."
 
 
 class TypeEnumError(ErrorHandler):
@@ -400,10 +392,7 @@ class TypeEnumError(ErrorHandler):
         self._type_name = type_name
 
     def __call__(self, *_args: Any) -> str:
-        return (
-            f"{self}: Attempting to add wrong member"
-            f" types to type '{self._type_name}'."
-        )
+        return f"{self}: Attempting to add wrong member" f" types to type '{self._type_name}'."
 
 
 class TypeMemberNotResolvedError(ErrorHandler):
@@ -488,9 +477,7 @@ class RetrieveAppendableDataError(ErrorHandler):
         self.value = value
 
     def __call__(self, *_args: Any) -> str:
-        return (
-            f"{self}: cannot retrieve data appendable collection using '{self.value}'"
-        )
+        return f"{self}: cannot retrieve data appendable collection using '{self.value}'"
 
 
 class ContainerVarError(ErrorHandler):
@@ -502,6 +489,16 @@ class ContainerVarError(ErrorHandler):
 
     def __call__(self, value: Any) -> str:
         return f"{self}: Error assigning value(s) '{value}' to data container '{self._var_name}'"
+
+
+class ContainerEmptyUsageError(ErrorHandler):
+    err_code = ErrorCodes.CONTAINER_EMPTY_USAGE_ERROR
+
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, value: Any, action: str) -> str:
+        return f"{self}: trying to use an variable empty container to {action } '{value}'."
 
 
 class ContainerVarIsImmutableError(ErrorHandler):
@@ -551,8 +548,7 @@ class VariableCreationError(ErrorHandler):
 
     def __call__(self, *_args: Any) -> str:
         return (
-            f"{self}: Could not create variable '{self._var_name}'"
-            f" of type '{self._var_type}'."
+            f"{self}: Could not create variable '{self._var_name}'" f" of type '{self._var_type}'."
         )
 
 
@@ -565,8 +561,7 @@ class VariableFreeingBorrowedError(ErrorHandler):
 
     def __call__(self, *_args: Any) -> str:
         return (
-            f"{self}: Could not freeing variable '{self._var_name}',"
-            f" it's borrowing its data."
+            f"{self}: Could not freeing variable '{self._var_name}'," f" it's borrowing its data."
         )
 
 
@@ -652,8 +647,7 @@ class CastIntOverflowError(ErrorHandler):
 
     def __call__(self, *_args: Any) -> str:
         return (
-            f"{self}: Cannot cast integer {self._int_value}"
-            f" on {self._limit}; overflow error."
+            f"{self}: Cannot cast integer {self._int_value}" f" on {self._limit}; overflow error."
         )
 
 
@@ -678,10 +672,7 @@ class FnWrongArgsTypesError(ErrorHandler):
         super().__init__()
 
     def __call__(self, *_args: Any) -> str:
-        return (
-            f"{self}: wrong args types; expected {self._expected},"
-            f" but got {self._values}."
-        )
+        return f"{self}: wrong args types; expected {self._expected}," f" but got {self._values}."
 
 
 class FnWrongDataError(ErrorHandler):
@@ -747,10 +738,7 @@ class StackFrameNotFnError(ErrorHandler):
         super().__init__()
 
     def __call__(self, *_args: Any) -> str:
-        return (
-            f"{self}: Stack frame is not defined for functions,"
-            f" but tried to used as if."
-        )
+        return f"{self}: Stack frame is not defined for functions," f" but tried to used as if."
 
 
 class StackEmptyError(ErrorHandler):
@@ -858,8 +846,7 @@ class FunctionExecutionError(ErrorHandler):
 
     def __call__(self, *_args: Any) -> str:
         return (
-            f"{self}: function {self._name} with args {self.args}"
-            f" failed due to: {self._reason}"
+            f"{self}: function {self._name} with args {self.args}" f" failed due to: {self._reason}"
         )
 
 

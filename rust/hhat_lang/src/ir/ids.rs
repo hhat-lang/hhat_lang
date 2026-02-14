@@ -19,6 +19,7 @@ impl Path {
 #[repr(transparent)]
 pub struct SymbolId(pub u32);
 
+pub struct ExprId(u32);
 
 pub struct ModuleId(u32);
 
@@ -59,6 +60,15 @@ impl BackendKind {
             BackendKind::QPU => String::from("@"),
         }
     }
+    pub fn sugar_str(&self) -> &str {
+        match self {
+            BackendKind::CPU => "",
+            BackendKind::GPU => "+",
+            BackendKind::NPU => "!",
+            BackendKind::TPU => "%",
+            BackendKind::QPU => "@",
+        }
+    } 
 }
 
 

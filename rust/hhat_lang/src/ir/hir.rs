@@ -2,8 +2,10 @@
 //! This is the first IR generated out of the raw text.
 //!
 
+use std::borrow::Borrow;
 use std::fmt::{Display, Formatter};
-use crate::ir::ids::{BackendKind, Path};
+use crate::ir::ids::{BackendKind, ExprId, Path};
+use itertools::Itertools;
 
 
 /// Identifier for HIR.
@@ -28,6 +30,32 @@ impl Symbol {
 
 /// Composite identifier for HIR.
 ///
+/// Can be used for calling enums, for instance.
+///
+pub struct CompositeSymbol {
+    pub value: Vec<Symbol>,
+}
+
+impl Display for CompositeSymbol {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value
+            .iter()
+            .map(|x| format!("{}{}", x.backend_kind.sugar_str(), x.value.as_str()))
+            .format(".")
+        )
+    }
+}
+
+
+impl CompositeSymbol {
+    pub fn new(value: Vec<Symbol>) -> Self {
+        Self { value }
+    }
+}
+
+
+/// Symbols with path for importing purposes for HIR.
+///
 pub struct ImportPathSymbol {
     pub name: Symbol,
     pub path: Path,
@@ -50,6 +78,7 @@ impl ImportPathSymbol {
 
 
 /// HIR imports.
+///
 /// Includes constants, types, functions, modifiers, meta-functions.
 ///
 /// Imports cannot have alias for now, so constants and types
@@ -110,10 +139,7 @@ pub enum Expr {
         modifiers: Vec<Modifier>,
     },
     /// Get value from struct/enum: `var.member1`, `var.{member1 member2}`, so on
-    DataMemberAccess {
-        member: Symbol,
-        value: Box<Expr>,
-    }
+    DataMemberAccess(CompositeSymbol),
 }
 
 
@@ -186,6 +212,7 @@ pub struct StructMember {
 
 
 /// Type name for HIR.
+///
 /// It contains the name (as a [`Symbol`]) and its
 /// backend kind (as a [`BackendKind`]).
 ///
@@ -197,9 +224,11 @@ pub struct TypeName {
 
 pub enum EnumMember {
     /// Enum member as a single value:
+    ///
     /// `enum status { ON, OFF }` -> `status.ON`, `status.OFF`
     KindMember(Symbol),
     /// Enum member as a struct:
+    ///
     /// `enum color { rgb{r:u8 g:u8 b:u8} hex{value:u32} }` ->
     /// `color.rgb`, `color.hex` ->
     /// `color.rgb.r`, `color.rgb.g`, `color.rgb.b`, etc.
@@ -275,6 +304,40 @@ pub struct Param {
 pub struct Block(Vec<Stmt>);
 
 
+pub enum Assign {
+    Single {
+        name: Symbol,
+        value: Expr,
+        modifiers: Vec<Modifier>,
+    },
+    Struct {
+        ty: Option<Symbol>,
+        members: Vec<StructMembersInit>,
+    },
+    Enum {
+        ty: Symbol,
+        members: EnumMembersInit,
+    },
+}
+
+pub struct DeclareAssign {
+    name: Symbol,
+
+}
+
+
+pub struct StructMembersInit {
+    name: Symbol,
+    value: Expr,
+}
+
+
+pub enum EnumMembersInit {
+    EnumMember(),
+    StructMember(),
+}
+
+
 pub enum AssignDef {
     SingleMemberAssign,
     FullAssign,
@@ -289,10 +352,7 @@ pub enum Stmt {
         ty: TypeName,
         modifiers: Vec<Modifier>,
     },
-    Assign {
-        name: Symbol,
-        value: Expr,
-    },
+    Assign(Assign),
     DeclareAssign {
         name: Symbol,
         ty: TypeName,

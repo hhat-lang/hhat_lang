@@ -40,8 +40,7 @@ nav:
             - Casting quantum data: dialects/heather/examples/casting_quantum.md
   - Blog:
       - blog/index.md
-  - TODOs: TODOs.md
-
+  
 markdown_extensions:
   - abbr
   - attr_list
@@ -88,7 +87,6 @@ plugins:
   - blog:
       blog_toc: true
       post_date_format: full
-      authors_profiles: true
       post_excerpt: required
       categories_allowed:
         - Roadmap
@@ -102,23 +100,6 @@ plugins:
         - Thoughts
   - meta
   - tags
-#  - search
-#  - mkdocstrings:
-#  - api-autonav:
-#      modules: ['python/src/hhat_lang', 'rust/hhat_lang']
-#      nav_section_title: "Python API Reference"
-#      show_full_namespace: false
-#      on_implicit_namespace_package: "skip"
-#      module_options:
-#        package.submodule:
-#          docstring_section_style: "table"
-#          docstring_style: google
-#          merge_init_into_class: true
-#          parameter_headings: true
-#          show_signature_annotations: true
-#          show_symbol_type_heading: true
-#          show_symbol_type_toc: true
-#          summary: true
 
 
 extra_javascript:

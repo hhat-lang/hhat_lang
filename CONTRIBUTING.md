@@ -4,7 +4,9 @@ You can check the issues in the [H-hat issue's page](https://github.com/hhat-lan
 - Python:
   - Pull Request (PR) code should follow formatting from [pre-commit configuration](python/.pre-commit-config.yaml) and [pyproject](python/pyproject.toml).
 - Rust:
-  - No specific formatting style or checks other than rust formatter and analyzer.
+  - Besides from rust formatter and analyzer, `cargo check` and `cargo audit` is recommended to run.
+  - More information to come.
+
 
 Additionally to code contribution, you are encourage to make part of discussions involving how H-hat can handle some language features or concepts. Reach us out at the [Discord](http://discord.unitary.foundation)'s `#h-hat` channel to learn more on how to contribute on that and also to chill and chat, if you feel like doing so.
 

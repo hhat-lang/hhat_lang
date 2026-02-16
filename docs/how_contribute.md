@@ -1,26 +1,16 @@
+# Contributing to H-hat
 
-## Before writing code
-
-!!! info "Important"
-
-    Please read this documentation before to understand how the repository is organized and how the language structure works.
-
-
-## Setting up your environment
-
-Check the [Getting Started](getting_started.md) page on how to prepare your environment to contributing.
-
-You can check both [H-hat issues page](https://github.com/hhat-lang/hhat_lang/issues) and [TODOs.md](TODOs.md) page to see what is listed to be done. When picking something from the TODOs page, make sure to create a new issue through the issues page and selecting the "Feature Implementation" template. Fill it up accordingly (you can check the current open issues for guidance).
-
-Once the code is ready, you can make a pull request (PR) to the H-hat repository. Write a comprehensive description, referencing all the issues it addresses. You can assign [Doomsk](https://github.com/Doomsk) as reviewer, for instance.
+You can check the issues in the [H-hat issue's page](https://github.com/hhat-lang/hhat_lang/issues) and try contributing on the issues with [good first issue](https://github.com/hhat-lang/hhat_lang/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22) label. Depending on the programming language you are using, some formatting styles and checks are required. For instance:
+- Python:
+    - Pull Request (PR) code should follow formatting from [pre-commit configuration](https://github.com/hhat-lang/hhat_lang/blob/main/python/.pre-commit-config.yaml) and [pyproject](https://github.com/hhat-lang/hhat_lang/blob/main/python/pyproject.toml).
+- Rust:
+    - Besides from rust formatter and analyzer, `cargo check` and `cargo audit` is recommended to run.
+    - More information to come.
 
 
-### Python code
-
-The code must follow the [pre-commit](https://pre-commit.com/) settings from pre-commit yaml ([.pre-commit-config.yaml](https://github.com/hhat-lang/hhat_lang/blob/main/python/.pre-commit-config,yaml)) file at H-hat's python implementation. Check more on the pre-commit page on how to set up and run it.
+Additionally to code contribution, you are encourage to make part of discussions involving how H-hat can handle some language features or concepts. Reach us out at the [Discord](http://discord.unitary.foundation)'s `#h-hat` channel to learn more on how to contribute on that and also to chill and chat, if you feel like doing so.
 
 
-### Community
+## AI Contributions
 
-At last, you can reach us out at the [UnitaryFundation Discord](http://discord.unitary.foundation)'s `#h-hat` channel to
-learn more on how to contribute, address some questions, or chat, if you feel like doing so.
+The rise of Generative AI brought many advancements for newcomers to start writing code, but also created concerning situations when incorporating AI-generated code to repositories. Regardless whether you choose to use the tool or not, the code you put in a PR is your responsibility. Make sure you checked it is doing what is intended to do, and does not introduce unnecessary complexity or bugs to the existing codebase. Simply AI prompted code will not be accepted. You are required to evaluate the intent of existing issue or PR, the existing codebase, and the code you are bringing up. Should your PR produce automated AI content (description and content) without support of your critical thinking, it will be closed.    

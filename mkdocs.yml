@@ -15,32 +15,25 @@ nav:
           - Python: python/python_guide.md
           - Rust: rust/rust_guide.md
       - Understanding H-hat:
-          - Built-in Instructions:
-            - core/builtin_instr.md
-            - Classical: core/classical_instr.md
-            - Quantum: core/quantum_instr.md
           - Rule System: rule_system.md
-          - Core Features: core/index.md
+          - Nomenclature: core/naming.md
+          - Language design: core/language_design.md
+          - Compiler framework: core/compiler_framework.md
+          - Documentation design: core/doc_design.md
       - Tools:
           - toolchain.md
-          - Dialect creation: dialects/creation.md
           - CLI: cli.md
-          - Notebooks: notebooks.md
       - Running it:
           - running_hhat.md
   - Dialects:
       - dialects/index.md
       - Heather:
         - dialects/heather/index.md
-        - Syntax: dialects/heather/current_syntax.md
-        - Examples:
-            - First code: dialects/heather/examples/first_code.md
-            - Calling a function: dialects/heather/examples/calling_fn.md
-            - Defining a new type: dialects/heather/examples/new_type.md
-            - Casting quantum data: dialects/heather/examples/casting_quantum.md
+        - Syntax: dialects/heather/syntax.md
+        - Grammar: dialects/heather/grammar.md
   - Blog:
       - blog/index.md
-  
+
 markdown_extensions:
   - abbr
   - attr_list

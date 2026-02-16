@@ -7,36 +7,22 @@
 !!! warning
 
     This is a work in progress and may be seeing as such. Errors, inconsistencies,
-    tons of experimentation, modifications and trials are happening. Until there is
-    a stable version, it is prone to breaking changes.
+    tons of experimentation are modifications are happening. Until the version 0.3 is released, it is prone to breaking changes.
 
 
-## What `H-hat` is
+*H-hat is a rule system, compiler framework, and a statically typed, functional and distributed system inspired, quantum programming language.*
 
-- A quantum programming language family and the ecosystem to build it
-- An abstraction layer _above_ QASM-like languages
-- A language to
-    - Use higher-level abstraction to harness quantum resources, such as superposition,
-      entanglement, etc.
-    - Need _no_ specialized knowledge on quantum mechanics or quantum information theory
-    - Close the gap between developers/programmers/computer scientists and quantum physicists
-    - Use quantum data and quantum data structures to reason about quantum information processing
-    - Solve problems using quantum logic, rather than Quantum Mechanics approach
+It aims to support explicit function overloading, algebraic data types, ownership and RAII-like features, strict and lazy evaluation, reflective cast, metaprogramming, structured typing-like approach, concurrency, backend kind-based types (CPU and QPU), and multi-architecture targeting computation (e.g. CPU: x86_64, aarch64; gate- and analog-based QPU: superconducting, trapped ion, neutral atoms, photonics, etc.)
 
-## What `H-hat` *is not*
+The language is intended to be used on single computers, HPCs and embedded systems, for local and distributed computation. Inspired by Fortran, Erlang, Rust, C and Lean, it focuses on good performance, integration, distributed computing resilience, and algorithmic verifiability.
 
-- A replacement for quantum logic-level quantum computation (circuit-like quantum computing, for
-  instance), such as QASM-like languages
-- A full stack programming language with direct access to the hardware
-- A simulator
-- A replacement for Quantum Mechanics
-
+  
 ## Language features
 
 - Code reasoning closer to classical programming languages
 - Quantum data types, variables, functions just as its classical counterpart
-- Additionally, there is quantum primitives to define some general platform-dependent instruction
-  set
+- Additionally, there are quantum primitives to define some general platform-independent instruction
+  sets
 - Classical and quantum parts have similar syntaxes and components
 - Quantum variables:
     - hold quantum and classical instructions
@@ -47,50 +33,34 @@
 
 ## Code Organization
 
-The code is organized by the development language chosen to develop H-hat, also known as main
-development language (**MDL**). For instance, a `python/`
-folder will contain `Python` code to make a workable version of H-hat, as a `rust/` folder will
-contain a respective `Rust` code. Each programming language development folder must reproduce the
-same results regardless the language chosen. It means different MDLs will converge on
-the expected behavior and a H-hat code should work in any of those implementations.
-
-### Current MDLs
-
-Some MDLs are being actively developed and have their own branch. For example,
-development branch for `Python` MDL is
-in [dev/python](https://github.com/hhat-lang/hhat_lang/tree/dev/python), while *in progress* branch
-should be in `dev/python_impl/[custom_name]`. Once stable,
-their folders should appear in the main branch.
-
-### How to use H-hat
-
 !!! note
 
-    The development is still in alpha phase, but some features are
-    being released in different MDLs to test concepts, functionalities,
-    feasibility and performance.
+    The development is still in alpha phase.
 
-Each MDL folder (for example `python/`) will contain more information about their implementation as
-well as how to install and/or start coding with H-hat. You may want to look directly into the folder
-of your preferred (available) programming language.
+
+The code has been developed in two different development programming languages (DPL) so far: Python (`python/`) and Rust (`rust/`). *Rust is being carried out for further development*.
+
+Inside each DPL folder there are `README.md` files with information regarding implementation, folder purpose and code organization.
+
 
 ### H-hat Heather
 
 H-hat defines some rules and concepts to its paradigm so programmers can understand how to use it.
-However, it does not explicitly implement a particular syntax or interpreter/JIT/compiler. The main
+However, it does not explicitly implement a particular syntax or interpreter/JIT/AOT compiler. The main
 idea is to give programmers freedom to develop their own syntax and/or interpreter/compiler versions
 that are compatible with those rules.
 
 To showcase some features and present programmers with its paradigm, a *dialect* is developed,
 called **Heather**. It is a simple dialect with simple syntax that can make concrete what
-programming a H-hat code should/does look like. You may find its implementation in some of the MDL
-folders as `[MDL]/dialects/heather/` (ex: `python/dialects/heather/`).
+programming a H-hat code should/does look like. You may find its implementation in both DPLs.
 
 New reference dialects may emerge in the future.
 
+
 ## Getting Started
 
-Finally, you can get started by checking out the [Getting Started page](getting_started.md).
+You can get started by checking out the [Getting Started page](getting_started.md).
+
 
 ## License
 

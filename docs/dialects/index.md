@@ -1,5 +1,4 @@
 # H-hat Dialects
 
-Dialects are independent programming languages that share some common features, as defined by [H-hat rule system](../rule_system.md). Although they may be syntactically different, their essence in those rules must be the same.
+H-hat has no official syntax; only a [minimum set of rules](../rule_system.md) that must be implemented for a language to be considered part of the H-hat language family, or its dialect. However, there is a default dialect for now called [Heather](heather/index.md). It is shipped with H-hat toolchain to enable users to build programs using the H-hat paradigm. Plans to enable out-of-the-box tools to build your own dialect are on future roadmaps.
 
-To enable experiencing what H-hat proposes, a first H-hat dialect was created, called [Heather](heather/index.md).

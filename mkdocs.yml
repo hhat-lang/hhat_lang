@@ -1,36 +1,76 @@
 site_name: H-hat quantum programming language
-
 site_url: https://docs.hhat-lang.org/
+site_description: A rule system, compiler framework, and statically typed quantum programming language
+site_author: H-hat Community
 
 repo_url: "https://github.com/hhat-lang/hhat_lang/"
 repo_name: hhat-lang/hhat_lang
+edit_uri: edit/main/docs/
+
+copyright: Copyright &copy; 2025-2026 H-hat Contributors
 
 nav:
-  - Home:
-      - H-hat language: index.md
-      - How to Contribute: how_contribute.md
+  - Introduction:
+      - Welcome: index.md
+      - Why H-hat?: introduction/why_hhat.md
+      - Features & Goals: introduction/features.md
+      - Project Status: introduction/status.md
   - Getting Started:
-      - Getting Started: getting_started.md
-      - Guides:
-          - Python: python/python_guide.md
-          - Rust: rust/rust_guide.md
-      - Understanding H-hat:
+      - Quick Start: getting_started.md
+      - Installation:
+          - Python Guide: python/python_guide.md
+          - Rust Guide: rust/rust_guide.md
+      - Your First Program: getting_started/first_program.md
+      - Tools & Toolchain: toolchain.md
+      - CLI Reference: cli.md
+      - Running H-hat: running_hhat.md
+  - Language Concepts:
+      - core/index.md
+      - Core Concepts:
           - Rule System: rule_system.md
+          - Language Design: core/language_design.md
+          - Compiler Framework: core/compiler_framework.md
           - Nomenclature: core/naming.md
-          - Language design: core/language_design.md
-          - Compiler framework: core/compiler_framework.md
-          - Documentation design: core/doc_design.md
-      - Tools:
-          - toolchain.md
-          - CLI: cli.md
-      - Running it:
-          - running_hhat.md
+      - Type System:
+          - Types Overview: concepts/types.md
+          - Quantum Types: concepts/quantum_types.md
+          - Cast System: concepts/casting.md
+      - Memory & Ownership:
+          - Ownership Model: concepts/ownership.md
+          - Memory Management: concepts/memory.md
+      - Advanced Topics:
+          - Concurrency: concepts/concurrency.md
+          - Meta-programming: concepts/metaprogramming.md
   - Dialects:
       - dialects/index.md
       - Heather:
-        - dialects/heather/index.md
-        - Syntax: dialects/heather/syntax.md
-        - Grammar: dialects/heather/grammar.md
+          - dialects/heather/index.md
+          - Syntax: dialects/heather/syntax.md
+          - Grammar: dialects/heather/grammar.md
+  - Examples:
+      - examples/index.md
+      - Basic Examples:
+          - First Code: examples/basic/first_code.md
+          - Variables & Types: examples/basic/variables.md
+          - Functions: examples/basic/functions.md
+      - Quantum Examples:
+          - Quantum Types: examples/quantum/quantum_types.md
+          - Casting Quantum: examples/quantum/casting.md
+          - Quantum Operations: examples/quantum/operations.md
+      - Advanced Examples:
+          - Custom Types: examples/advanced/custom_types.md
+          - Calling Functions: examples/advanced/calling_functions.md
+  - Community & Support:
+      - community/index.md
+      - Get Help: community/get_help.md
+      - Discussion Forums: community/discussions.md
+      - Code of Conduct: community/code_of_conduct.md
+  - Contributing:
+      - contributing/index.md
+      - How to Contribute: contributing/guide.md
+      - Development Setup: contributing/development.md
+      - Documentation: core/doc_design.md
+      - Pull Requests: contributing/pull_requests.md
   - Blog:
       - blog/index.md
 
@@ -101,6 +141,34 @@ extra_javascript:
 extra_css:
   - stylesheets/extra.css
 
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/hhat-lang/hhat_lang
+      name: H-hat on GitHub
+    - icon: fontawesome/brands/discord
+      link: http://discord.unitary.foundation
+      name: Join us on Discord
+    - icon: fontawesome/solid/globe
+      link: https://unitary.foundation
+      name: Unitary Foundation
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: >-
+            Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: >-
+            Thanks for your feedback! Help us improve this page by
+            opening an issue on GitHub.
+  generator: false
+
 theme:
   name: material
   font:
@@ -108,21 +176,37 @@ theme:
     code: JetBrains Mono
   logo: hhat_logo.svg
   favicon: hhat_logo.ico
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
   features:
-    - navigation.sections
-    - navigation.tabs
-    - navigation.top
-    - navigation.indexes
-    - navigation.tabs.sticky
-    - content.tooltips
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
     - content.code.annotate
     - content.code.copy
+    - content.tooltips
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
     - toc.follow
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
         icon: material/brightness-auto
-        name: Switch to preferred mode
+        name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: teal
@@ -135,5 +219,5 @@ theme:
       primary: amber
       accent: teal
       toggle:
-        icon: material/brightness-1
-        name: Switch to light mode
+        icon: material/brightness-4
+        name: Switch to system preference

@@ -4,7 +4,7 @@ Heather is a H-hat's regular syntax dialect intended to provide the first steps 
 
 A (classical) "hello world" program looks like (inside `main.hat`):
 
-```
+```heather
 main { print("hoi quantum") }  // a "hello world" program
 ```
 
@@ -14,7 +14,7 @@ Heather has no need for `;` to separate between statements or `,` to separate be
 
 Constants are defined inside `consts.hat` files. They have the following syntax:
 
-```
+```heather
 const <name>:<type> = <value>
 ```
 
@@ -22,14 +22,14 @@ const <name>:<type> = <value>
 
 - `math/consts.hat`:
 
-  ```
+  ```heather
   const pi32:f32 = 3.14159265
   const pi64:f64 = 3.141592653589793
   ```
 
 - `io/consts.hat`:
 
-  ```
+  ```heather
   const localhost:str = "localhost"
   ```
 
@@ -39,13 +39,13 @@ You can import constants in functions kinds and other constants files.
 
 - For single imports:
 
-  ```
+  ```heather
   use(const:<path.constant-name>)
   ```
 
 - For multiple imports:
 
-  ```
+  ```heather
   use(
     const:<path.constant-name1>
     const:<path.constant-name2>
@@ -54,7 +54,7 @@ You can import constants in functions kinds and other constants files.
 
 - For multiple imports inside a single `const`:
 
-  ```
+  ```heather
   use(
     const:[
       <path.constant-name1>
@@ -74,7 +74,7 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
 - Syntax:
 
-  ```
+  ```heather
   type <name> { <member>:<type> ... }
   ```
 
@@ -82,13 +82,13 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
     * Defining struct type:
 
-      ```
+      ```heather
       type point { x:i32 y:i32 }
       ```
 
     * Using struct type:
 
-      ```
+      ```heather
       // assigning to variable p while declaring it
       p:point =.{x=34 y=43}
 
@@ -107,11 +107,11 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
     * Importing:
 
-      ```
+      ```heather
       // single import
       use(type:<path.type-name>)
       ```
-      ```
+      ```heather
       // multiple imports:
       use(
         type:<path.type-name1>
@@ -135,7 +135,7 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
 - Syntax:
 
-  ```
+  ```heather
   type <name> { <enumerator?> <struct?> ... }
   ```
 
@@ -143,7 +143,7 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
     * Defining enum type:
 
-      ```
+      ```heather
       type status_t { ON OFF }
       
       type result_t { 
@@ -156,7 +156,7 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
     * Using enum type:
 
-      ```
+      ```heather
       // declaring and assigning on a variable
       status:status_t = status_t.ON
       res:result_t = result_t.data.value=...
@@ -175,7 +175,7 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
 - Syntax:
 
-  ```
+  ```heather
   fn <name> (<args?>) <type?> { <body?> }
   ```
   Return has a special syntax sugar: `::` prefixed on an expression.
@@ -184,10 +184,10 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
     * Defining a type:
 
-      ```
+      ```heather
       fn sum(a:i64 b:i64) i64 { ::add(a b) }
       ```
-      ```
+      ```heather
       fn print-gt(a:u64 b:u64) {
         if(
           gt(a b): print(a)
@@ -202,7 +202,7 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
 - Syntax:
 
-  ```
+  ```heather
   meta-fn <name> (args) <type?> { <body> }
   ```
 
@@ -212,13 +212,13 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
       Defining:
 
-      ```
+      ```heather
       meta-fn if(options:[opt-body_t]) ir_t { ... }
       ```
 
       Calling:
 
-      ```
+      ```heather
       if(gt(a b):a true:b)
       ```
 
@@ -226,13 +226,13 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
       Defining:
 
-      ```
+      ```heather
       meta-fn pipe(args:[expr_t] body:ir_t) ir_t { ... }
       ```
 
       Calling:
 
-      ```
+      ```heather
       pipe(var) { double print }  // applies double on var and then print on double's result
       ```
 
@@ -240,13 +240,13 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
       Defining:
 
-      ```
+      ```heather
       meta-fn match(arg:[expr_t] options:[opt-body_t]) ir_t { ... }
       ```
 
       Calling:
 
-      ```
+      ```heather
       match(status) {
           status_t.ON:print("on!")
           status_t.OFF:print("off!")
@@ -259,7 +259,7 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
 - Syntax:
 
-  ```
+  ```heather
   modifier <name> (self <arg?>) <type> { <body> }
   ```
   the `<type>` must be the same of self.
@@ -268,12 +268,12 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
     * `&` (reference) modifier
 
-      ```
+      ```heather
       modifier &(self) u32 { ... }  // for u32 type
       modifier &(self) [u32] { ... }  // for array of u32 type
       modifier &(self) status_t { ... }  // for status_t type
       ```
-      ```
+      ```heather
       // usage
       var:status_t<&>
       ```
@@ -284,19 +284,19 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
 
 - Syntax:
 
-    ```
+    ```heather
     fn cast (data:<type> to:<type>) <to type> { <body> }
     ```
 
 - Examples:
     - casting strict data
-        ```
+        ```heather
         v1:u32 = 42
         v2:u64 = v1 * u64  // now v1 data is cast into u64 and stored in v2
         ```
 
     - casting lazy data
-        ```
+        ```heather
         @q:@bell_t =.{@s=@false @t=@false}
         @sync(@q)
         res:hashmap = @q * hashmap  // evaluate lazy data from @q and convert its result as hashmap, storing at res

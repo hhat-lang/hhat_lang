@@ -47,6 +47,7 @@ nav:
           - dialects/heather/index.md
           - Syntax: dialects/heather/syntax.md
           - Grammar: dialects/heather/grammar.md
+          - Syntax Highlighting: dialects/heather/syntax_highlighting.md
   - Examples:
       - examples/index.md
       - Basic Examples:
@@ -57,6 +58,7 @@ nav:
           - Quantum Types: examples/quantum/quantum_types.md
           - Casting Quantum: examples/quantum/casting.md
           - Quantum Operations: examples/quantum/operations.md
+          - Syntax Highlighting Demo: examples/quantum/syntax_demo.md
       - Advanced Examples:
           - Custom Types: examples/advanced/custom_types.md
           - Calling Functions: examples/advanced/calling_functions.md

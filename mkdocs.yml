@@ -73,6 +73,8 @@ nav:
       - Development Setup: contributing/development.md
       - Documentation: core/doc_design.md
       - Pull Requests: contributing/pull_requests.md
+  - Brand & Design:
+      - Visual Identity: brand/visual_identity.md
   - Blog:
       - blog/index.md
 
@@ -96,6 +98,7 @@ markdown_extensions:
       linenums_style: pymdownx.inline
       line_spans: __span
       pygments_lang_class: true
+      pygments_style: hhat-dark
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
@@ -142,6 +145,7 @@ extra_javascript:
 
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/hhat-colors.css
 
 extra:
   social:
@@ -173,8 +177,25 @@ extra:
 
 theme:
   name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: pink
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: pink
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   font:
-    text: Lato
+    text: Inter
     code: JetBrains Mono
   logo: hhat_logo.svg
   favicon: hhat_logo.ico

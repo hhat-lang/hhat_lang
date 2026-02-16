@@ -1,0 +1,255 @@
+/**
+ * H-hat Official Color Palette and Styles
+ * 
+ * Custom CSS for H-hat documentation using the official color scheme.
+ * Colors are designed to avoid pure white and black for better readability.
+ */
+
+/* ============================================================================
+   CSS Variables for H-hat Colors
+   ============================================================================ */
+
+:root {
+  /* Primary Brand Colors */
+  --hhat-quantum-purple: #7c4dff;
+  --hhat-quantum-blue: #448aff;
+  --hhat-entangle-pink: #ff4081;
+  --hhat-measurement-teal: #00bfa5;
+}
+
+/* Dark Theme Colors */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #7c4dff;
+  --md-primary-fg-color--light: #9575ff;
+  --md-primary-fg-color--dark: #6200ea;
+  --md-accent-fg-color: #ff4081;
+  
+  /* Background colors (not pure black) */
+  --md-default-bg-color: #1e1e2e;
+  --md-default-fg-color: #cdd6f4;
+  --md-code-bg-color: #181825;
+  --md-code-fg-color: #cdd6f4;
+  
+  /* Link colors */
+  --md-typeset-a-color: #89b4fa;
+  
+  /* Syntax highlighting overrides */
+  --md-code-hl-keyword-color: #cba6f7;
+  --md-code-hl-string-color: #a6e3a1;
+  --md-code-hl-number-color: #fab387;
+  --md-code-hl-comment-color: #6c7086;
+  --md-code-hl-function-color: #89dceb;
+  --md-code-hl-constant-color: #f5c2e7;
+  --md-code-hl-operator-color: #94e2d5;
+  
+  /* Admonition colors */
+  --md-admonition-fg-color: #cdd6f4;
+  --md-admonition-bg-color: #1e1e2e;
+}
+
+/* Light Theme Colors */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #7c4dff;
+  --md-primary-fg-color--light: #b388ff;
+  --md-primary-fg-color--dark: #6200ea;
+  --md-accent-fg-color: #ff4081;
+  
+  /* Background colors (not pure white) */
+  --md-default-bg-color: #eff1f5;
+  --md-default-fg-color: #4c4f69;
+  --md-code-bg-color: #e6e9ef;
+  --md-code-fg-color: #4c4f69;
+  
+  /* Link colors */
+  --md-typeset-a-color: #1e66f5;
+  
+  /* Syntax highlighting overrides */
+  --md-code-hl-keyword-color: #8839ef;
+  --md-code-hl-string-color: #40a02b;
+  --md-code-hl-number-color: #fe640b;
+  --md-code-hl-comment-color: #9ca0b0;
+  --md-code-hl-function-color: #209fb5;
+  --md-code-hl-constant-color: #ea76cb;
+  --md-code-hl-operator-color: #179299;
+}
+
+/* ============================================================================
+   Typography - Code Fonts
+   ============================================================================ */
+
+/* Monospace font stack for code */
+code, pre, .md-typeset code, .md-typeset pre {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 
+               'Courier New', monospace;
+  font-variant-ligatures: common-ligatures;
+}
+
+/* Inline code styling */
+.md-typeset code {
+  padding: 0.1em 0.4em;
+  border-radius: 0.2em;
+  font-size: 0.85em;
+  font-weight: 400;
+}
+
+/* Code block styling */
+.md-typeset pre > code {
+  padding: 1em;
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   Syntax Highlighting - Quantum-specific Tokens
+   ============================================================================ */
+
+/* Quantum types (@qubit, @qint, etc.) */
+.highlight .nv-magic {
+  color: var(--md-code-hl-constant-color);
+  font-weight: 500;
+}
+
+/* Quantum states (|0>, |+>, etc.) */
+.highlight .ss {
+  color: #b794f6;
+  font-weight: 500;
+}
+
+[data-md-color-scheme="default"] .highlight .ss {
+  color: #8b5cf6;
+}
+
+/* Quantum gates (h, cnot, swap, etc.) */
+.highlight .nb-pseudo {
+  color: #80ffdb;
+  font-weight: 500;
+}
+
+[data-md-color-scheme="default"] .highlight .nb-pseudo {
+  color: #0d9488;
+}
+
+/* Traits (#Printable, etc.) */
+.highlight .na {
+  color: #ffc6ff;
+  font-style: italic;
+}
+
+[data-md-color-scheme="default"] .highlight .na {
+  color: #d946ef;
+}
+
+/* Meta-programming keywords */
+.highlight .nf-magic {
+  color: #ffd6a5;
+  font-weight: 600;
+}
+
+[data-md-color-scheme="default"] .highlight .nf-magic {
+  color: #f59e0b;
+}
+
+/* ============================================================================
+   Enhanced Code Block Styling
+   ============================================================================ */
+
+/* Code block with language label */
+.language-heather {
+  position: relative;
+}
+
+/* Add language badge */
+.language-heather::before {
+  content: "Heather";
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  padding: 0.2em 0.6em;
+  background: var(--hhat-quantum-purple);
+  color: #ffffff;
+  font-size: 0.7em;
+  font-weight: 600;
+  border-radius: 0.3em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+  z-index: 1;
+}
+
+/* Highlighted lines */
+.highlight .hll {
+  background-color: #313244;
+}
+
+[data-md-color-scheme="default"] .highlight .hll {
+  background-color: #dce0e8;
+}
+
+/* Line numbers */
+.highlight .linenos {
+  color: #585b70;
+  user-select: none;
+}
+
+[data-md-color-scheme="default"] .highlight .linenos {
+  color: #acb0be;
+}
+
+/* ============================================================================
+   Brand Elements
+   ============================================================================ */
+
+/* Quantum-themed headers */
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Accent on quantum-related terms */
+.quantum-term {
+  color: var(--hhat-quantum-purple);
+  font-weight: 500;
+}
+
+/* Callout boxes for quantum concepts */
+.quantum-callout {
+  padding: 1em;
+  border-left: 4px solid var(--hhat-quantum-purple);
+  background: var(--md-code-bg-color);
+  border-radius: 0.3em;
+  margin: 1em 0;
+}
+
+/* ============================================================================
+   Accessibility and Readability
+   ============================================================================ */
+
+/* Ensure sufficient contrast for readability */
+.md-typeset {
+  line-height: 1.7;
+}
+
+/* Focus indicators */
+a:focus, button:focus, input:focus {
+  outline: 2px solid var(--hhat-quantum-purple);
+  outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+  background: var(--hhat-quantum-purple);
+  color: #ffffff;
+}
+
+/* ============================================================================
+   Responsive Typography
+   ============================================================================ */
+
+@media screen and (max-width: 768px) {
+  code, pre {
+    font-size: 0.9em;
+  }
+  
+  .language-heather::before {
+    font-size: 0.65em;
+  }
+}

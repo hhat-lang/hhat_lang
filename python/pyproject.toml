@@ -79,7 +79,8 @@ dev = [
 hat = "hhat_lang.toolchain.cli.cli:main"
 
 [project.entry-points."pygments.lexers"]
-hhat = "hhat_lang.dialects.heather.toolchain.pygments.lexer:HhatLexer"
+heather = "hhat_lang.dialects.heather.toolchain.pygments:HeatherLexer"
+hhat = "hhat_lang.dialects.heather.toolchain.pygments:HeatherLexer"
 
 [tool.setuptools_scm]
 root = ".."

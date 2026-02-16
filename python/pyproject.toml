@@ -82,6 +82,10 @@ hat = "hhat_lang.toolchain.cli.cli:main"
 heather = "hhat_lang.dialects.heather.toolchain.pygments:HeatherLexer"
 hhat = "hhat_lang.dialects.heather.toolchain.pygments:HeatherLexer"
 
+[project.entry-points."pygments.styles"]
+hhat-dark = "hhat_lang.dialects.heather.toolchain.pygments:HhatDarkStyle"
+hhat-light = "hhat_lang.dialects.heather.toolchain.pygments:HhatLightStyle"
+
 [tool.setuptools_scm]
 root = ".."
 version_scheme = "no-guess-dev"

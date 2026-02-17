@@ -7,3 +7,4 @@ mod types;
 mod ids;
 mod hir;
 mod modules;
+mod mir;

@@ -19,34 +19,30 @@ impl Path {
 #[repr(transparent)]
 pub struct SymbolId(pub u32);
 
-pub struct ExprId(u32);
+#[repr(transparent)]
+pub struct LiteralId(pub u32);
 
-pub struct ModuleId(u32);
+#[repr(transparent)]
+pub struct ExprId(pub u32);
+
+#[repr(transparent)]
+pub struct ModuleId(pub u32);
 
 
 /// Computational backend kind.
 ///
 /// Defines the rules and execution planner to run.
 /// Some backend kinds can be executed instructions
-/// immediately (strict mode) or lazily (staged mode),
+/// immediately (strict mode) or lazily (lazy mode),
 /// while others are restricted to one or the other only.
 ///
 /// Existing enumerated backend kinds:
 /// - CPU
-/// - GPU
-/// - NPU
-/// - TPU
 /// - QPU  (lazy mode only)
-///
-/// *Note*: only CPU and QPU are available for the current
-/// language version.
 ///
 pub enum BackendKind {
     CPU,
-    GPU,
-    NPU,
-    TPU,
-    /// QPUs can only execute on lazy (staged) mode.
+    /// QPUs can only execute on lazy mode.
     QPU,
 }
 
@@ -54,18 +50,12 @@ impl BackendKind {
     pub fn sugar_fmt(&self) -> String {
         match self {
             BackendKind::CPU => String::from(""),
-            BackendKind::GPU => String::from("+"),
-            BackendKind::NPU => String::from("!"),
-            BackendKind::TPU => String::from("%"),
             BackendKind::QPU => String::from("@"),
         }
     }
     pub fn sugar_str(&self) -> &str {
         match self {
             BackendKind::CPU => "",
-            BackendKind::GPU => "+",
-            BackendKind::NPU => "!",
-            BackendKind::TPU => "%",
             BackendKind::QPU => "@",
         }
     } 

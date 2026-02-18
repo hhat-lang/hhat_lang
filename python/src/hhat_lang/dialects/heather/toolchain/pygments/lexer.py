@@ -40,7 +40,7 @@ class HhatLexer(RegexLexer):
         "main",
         "fn",
         "type",
-        "metafn",
+        "meta-fn",
         "use",
         "modifier",
         "metamod",
@@ -48,15 +48,17 @@ class HhatLexer(RegexLexer):
         "const",
         "self",
     )
+    symbolic_keywords = (
+        "::",
+        "*",
+        "&",
+    )
     operators = (
         ":",
         "=",
         ".",
         "..",
         "...",
-        "::",
-        "*",
-        "&",
     )
     punctuation = (
         "(",
@@ -96,10 +98,11 @@ class HhatLexer(RegexLexer):
 
     tokens = {
         "root": [
-            (rf"{WHITESPACE}+", Whitespace),
+            (rf"[{WHITESPACE}]+", Whitespace),
             (SINGLE_COMMENT, Comment.Single),
             (MULTILINE_COMMENT, Comment.Multiline),
             (words(keywords, suffix=r"\b"), Keyword.Declaration),
+            (words(symbolic_keywords), Keyword.Declaration),
             (words(builtin_types, suffix=r"\b"), Name.Builtin),
             (rf"({ID})(\s*)(\()", bygroups(Name.Function, Whitespace, Punctuation)),
             (words(operators), Operator),

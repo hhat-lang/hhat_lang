@@ -1,0 +1,2195 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://docs.hhat-lang.org/blog/2025/09/24/followup-v0.3-roadmap/">
+      
+      
+        <link rel="prev" href="../../09/v0.3-roadmap/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../hhat_logo.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Follow up on the roadmap for version 0.3 - H-hat quantum programming language</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="../../../../../assets/external/fonts.googleapis.com/css.dbc2241c.css">
+        <style>:root{--md-text-font:"Lato";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#follow-up-on-the-roadmap-for-version-03" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="H-hat quantum programming language" class="md-header__button md-logo" aria-label="H-hat quantum programming language" data-md-component="logo">
+      
+  <img src="../../../../../hhat_logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            H-hat quantum programming language
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Follow up on the roadmap for version 0.3
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to preferred mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to preferred mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="amber" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hhat-lang/hhat_lang/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hhat-lang/hhat_lang
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../.." class="md-tabs__link">
+          
+  
+  
+    
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../getting_started/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../dialects/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Dialects
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../../../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Blog
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="H-hat quantum programming language" class="md-nav__button md-logo" aria-label="H-hat quantum programming language" data-md-component="logo">
+      
+  <img src="../../../../../hhat_logo.svg" alt="logo">
+
+    </a>
+    H-hat quantum programming language
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hhat-lang/hhat_lang/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hhat-lang/hhat_lang
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Home
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../how_contribute/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Contribute
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../python/python_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../rust/rust_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rust
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Understanding H-hat
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Understanding H-hat
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../rule_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rule System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../core/naming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nomenclature
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../core/language_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Language design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../core/compiler_framework/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compiler framework
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../core/doc_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../toolchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Toolchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running it
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Running it
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../running_hhat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running H-hat
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../dialects/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dialects
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dialects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../dialects/heather/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heather
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Heather
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../dialects/heather/syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Syntax
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../dialects/heather/grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grammar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Blog
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Archive
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../archive/2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2025
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Categories
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Categories
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../category/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#codebase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codebase
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Codebase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#september" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        September
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="September">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finish-minimal-function-implementation-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finish minimal function implementation capabilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-minimal-built-in-functions-dialect-or-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add minimal built-in functions (dialect or core?)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implement-cast-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implement cast system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactorreimplement-openqasmv2-code-logic-and-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactor/reimplement OpenQASMv2 code logic and structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#october" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        October
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="October">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finish-cast-system-implementation-structure-and-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finish cast system implementation (structure and logic)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finish-working-on-openqasmv2-base-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finish working on OpenQASMv2 base code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactorreimplement-qiskit-code-logic-and-structure-for-target-backends-no-optimizations-extra-passes-etc-yet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactor/reimplement Qiskit code logic and structure for target backends (no optimizations, extra passes, etc. yet)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implement-modifier-feature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implement modifier feature
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#november" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        November
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="November">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#more-modifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More modifier
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meta-module-feature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Meta module feature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#netqasm-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NetQASM implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#december" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        December
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#january" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        January
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="January">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#netsquidsquidasm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NetSquid/SquidASM
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#distributed-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distributed features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release!(?)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#february" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        February
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conferences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conferences
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-the-stable-version-part" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On the stable version part
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#final-remarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final remarks
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../../../../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+                  <span class="md-ellipsis">
+                    Back to index
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+              <div class="md-post__authors md-typeset">
+                
+                  <div class="md-profile md-post__profile">
+                    <span class="md-author md-author--long">
+                      <img src="../../../../../assets/external/github.com/Doomsk.png.jpg" alt="Dooms">
+                    </span>
+                    <span class="md-profile__description">
+                      <strong>
+                        
+                          <a href="https://github.com/Doomsk">Dooms</a>
+                        
+                      </strong>
+                      <br>
+                      Hat master
+                    </span>
+                  </div>
+                
+              </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    Metadata
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
+                        <time datetime="2025-09-24 00:00:00+00:00" class="md-ellipsis">Wednesday, September 24, 2025</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"/></svg>
+                          <span class="md-ellipsis">
+                            in
+                            
+                              <a href="../../../../category/roadmap/">Roadmap</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg>
+                          <span class="md-ellipsis">
+                            
+                              7 min read
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+            
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+  
+
+
+  <nav class="md-tags" >
+    
+      
+      
+      
+      
+        <span class="md-tag">announcement</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">roadmap</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">v0.3</span>
+      
+    
+  </nav>
+
+
+  
+  
+
+
+<h1 id="follow-up-on-the-roadmap-for-version-03">Follow up on the roadmap for version 0.3<a class="headerlink" href="#follow-up-on-the-roadmap-for-version-03" title="Permanent link">&para;</a></h1>
+<p>As discussed <a href="../../09/v0.3-roadmap/">previously</a>, I will give a little bit more information on the actual roadmap.</p>
+<!-- more -->
+
+<p>Considering I am focusing on studying, designing and writing code for H-hat in the coming weeks/months with part-time dedication and eventually some people will be helping here and there, the goals and timelines are:</p>
+<h2 id="codebase">Codebase<a class="headerlink" href="#codebase" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>[!NOTE]</p>
+<p>The order of the items does not reflect their priority or implementation order.
+</p>
+</blockquote>
+<h3 id="september">September<a class="headerlink" href="#september" title="Permanent link">&para;</a></h3>
+<h4 id="finish-minimal-function-implementation-capabilities">Finish minimal function implementation capabilities<a class="headerlink" href="#finish-minimal-function-implementation-capabilities" title="Permanent link">&para;</a></h4>
+<p>How to invoke built-in, in-code or external (library/package) functions. In principle, they should use the same principles behind. In the case of built-in ones, a special space of the <code>BaseIRInstr</code> class so it can also follow the same workflow, aka be called through <code>resolve</code> method to address the correct function.</p>
+<p>Considering Heather dialect uses function overloading, it will try to find the correct function through the combination of arguments types provided and the given function name. However, it cannot figure out the function output type, so a same function same with same number and types of arguments must not have different definitions with different outputs.</p>
+<h4 id="add-minimal-built-in-functions-dialect-or-core">Add minimal built-in functions (dialect or core?)<a class="headerlink" href="#add-minimal-built-in-functions-dialect-or-core" title="Permanent link">&para;</a></h4>
+<p>A very specific set of built-in functions will be added at this moment. Hopefully I can get enough feedback to choose the best ones for the first working version. So your feedback matters here (or anywhere where you can find me, really)!</p>
+<p>It is still uncertain whether it should be: (1) a core feature or a dialect-specific feature, (3) available by default or need to do some function importing.</p>
+<h4 id="implement-cast-system">Implement cast system<a class="headerlink" href="#implement-cast-system" title="Permanent link">&para;</a></h4>
+<p>Cast system is a core feature of H-hat, and it has been tried a few times so far, with different outcomes from each iteration. I will write more about it in a separated post, but so far it suffices to say that this feature contains the heart of all I think is important to provide the proper level of high abstraction from programmers using quantum resources.</p>
+<h4 id="refactorreimplement-openqasmv2-code-logic-and-structure">Refactor/reimplement OpenQASMv2 code logic and structure<a class="headerlink" href="#refactorreimplement-openqasmv2-code-logic-and-structure" title="Permanent link">&para;</a></h4>
+<p>This needs to be rethought... again. This part always seems easy and lazy to do, but always prove hard to be good enough to be extensible for all the optimizations and passes available by Qiskit ecosystem or some other custom-made features, and at the same time have a robust enough base API to be used by it or any other low level language (such as NetQASM). I keep postponing improving this part... maybe other things are more priority or interesting.</p>
+<h3 id="october">October<a class="headerlink" href="#october" title="Permanent link">&para;</a></h3>
+<h4 id="finish-cast-system-implementation-structure-and-logic">Finish cast system implementation (structure and logic)<a class="headerlink" href="#finish-cast-system-implementation-structure-and-logic" title="Permanent link">&para;</a></h4>
+<p>Nothing much to say here. Cast system is a delicate structure that interfaces quantum types with classical ones while performing all the execution requests, checks and casting type part for the quantum programs. It may take longer, but I hope that I have enough experience and material from previous iterations to finalize it by October (at most beginning of November?).</p>
+<h4 id="finish-working-on-openqasmv2-base-code">Finish working on OpenQASMv2 base code<a class="headerlink" href="#finish-working-on-openqasmv2-base-code" title="Permanent link">&para;</a></h4>
+<p>I may drag this throughout October, but be nice (or do it for me 👼 ).</p>
+<h4 id="refactorreimplement-qiskit-code-logic-and-structure-for-target-backends-no-optimizations-extra-passes-etc-yet">Refactor/reimplement Qiskit code logic and structure for target backends (no optimizations, extra passes, etc. yet)<a class="headerlink" href="#refactorreimplement-qiskit-code-logic-and-structure-for-target-backends-no-optimizations-extra-passes-etc-yet" title="Permanent link">&para;</a></h4>
+<p>This part is less traumatic than the OpenQASMv2 part (can't even start thinking of OpenQASMv3 yet), but it needs to have a good base API to handle not only Qiskit but also any other target backend infrastructure, such as NetQASM/SquidASM/AWSBraket/etc. So in the end, doing Qiskit will help shape the base API for it (and of course implement it throughout the process) and future backends.</p>
+<h4 id="implement-modifier-feature">Implement modifier feature<a class="headerlink" href="#implement-modifier-feature" title="Permanent link">&para;</a></h4>
+<p>Modifier is a nice (I hope) feature I have been thinking that may bring some power to the programmer and also clarity on the code. It basically enables to modify the behavior, property or add extra properties to some instance, should it be a variable or a function, for example. The syntax is <code>something&lt;mdfr-arg1=mdfr-value1 mdfr-arg2=mdfr-value2&gt;</code>, where the <code>&lt;&gt;</code> brackets defines the scope of the modifier for a given instance (<code>something</code> in this case). A few simple examples:</p>
+<ul>
+<li><code>some-var&lt;&amp;&gt;</code> means the reference of <code>some-var</code>, or <code>&amp;some_var</code> in some other languages, like Rust or C</li>
+<li><code>@some-var&lt;shots=3000&gt;</code> means it will use <code>3000</code> shots for this quantum variable execution on the backend, regardless the default configuration is</li>
+</ul>
+<p>In most cases, the modifier argument needs a argument name and a value. In specific unequivocal cases, a symbol alone can be used (as is the case of the reference <code>&amp;</code>). It may stack modifiers and their order must not matter, unless they are used in different moments throughout the code. In the later case, the current modifier overwrites any repeated modifier argument, but must use all previous ones.</p>
+<p><em>Maybe having a tag in the modifier stating "use it once" should be a good idea, so that the modifier will only work at that specific moment and not after.</em></p>
+<h3 id="november">November<a class="headerlink" href="#november" title="Permanent link">&para;</a></h3>
+<h4 id="more-modifier">More modifier<a class="headerlink" href="#more-modifier" title="Permanent link">&para;</a></h4>
+<p>Hopefully it will be done by November.</p>
+<h4 id="meta-module-feature">Meta module feature<a class="headerlink" href="#meta-module-feature" title="Permanent link">&para;</a></h4>
+<p>Something that bothers me <em>a lot</em> in Python is the hacky way to do dynamic imports. So I thought "why not trying to do something better, like creating a meta module with a template so other modules can use it and define their expected functions and behaviors?". Seemed a good idea, so I am going to implement it. Still unsure whether it makes sense to be implemented at this point, but I see potential and need for it.</p>
+<h4 id="netqasm-implementation">NetQASM implementation<a class="headerlink" href="#netqasm-implementation" title="Permanent link">&para;</a></h4>
+<p>It is not the first implementation, but <em>will be</em> the first successful working one. On the previous ones, I spent too much time fighting with divergent approaches and could never make up my mind on which one to use. In the end, I had to focus on other things, and it was put aside to freeze. It will basically take the same ideas from OpenQASMv2 successful implementation and, using the base API, should be no more than writing down the NetQASM-specific instructions.</p>
+<p>Previously, I was stuck because NetQASM uses a very thoughtful approach to have internal memory for classical and quantum data inside its routines. It was very nice for NetQASM, but very hard to access it smoothly from the outside to read or write its content. I ended up lost in their code logic and couldn't find a neat solution at that time without changing H-hat internals. Result: I <em>had</em> to change H-hat internals to account for that. So I decided to create a memory manager for quantum programs that basically handles classical and quantum memory, qubits, scopes and other relevant resources. It is still not extensible, so if in the future some other low level language requires other kinds of features, I may need to rethink... again.</p>
+<h3 id="december">December<a class="headerlink" href="#december" title="Permanent link">&para;</a></h3>
+<p>December will be full of wrapping up previous tasks.</p>
+<h3 id="january">January<a class="headerlink" href="#january" title="Permanent link">&para;</a></h3>
+<h4 id="netsquidsquidasm">NetSquid/SquidASM<a class="headerlink" href="#netsquidsquidasm" title="Permanent link">&para;</a></h4>
+<p>Then, it comes to the time of implementing NetSquid/SquidASM (maybe Simulaqron?) backend. I just think that having at least one "standalone" and one quantum networks backends would make sense to test, try and develop relevant features that the language want the programmer to benefit from and also to learn how to create them.</p>
+<h4 id="distributed-features">Distributed features<a class="headerlink" href="#distributed-features" title="Permanent link">&para;</a></h4>
+<p>Besides the quantum networks backend, H-hat needs to have some support that can show such capabilities even if just on simulators. So having distributed features is very important, but maybe not detrimental for the release of version 0.3. Let's see how it works out.</p>
+<h4 id="release">Release!(?)<a class="headerlink" href="#release" title="Permanent link">&para;</a></h4>
+<p>At this point, it should be able to be good enough to at least be tested. Hopefully, kind people will join to help feedback, guide and improve the features, language and its ecosystem, and maybe even be part of the community!</p>
+<h3 id="february">February<a class="headerlink" href="#february" title="Permanent link">&para;</a></h3>
+<p>I expect February be a January++.</p>
+<h2 id="conferences">Conferences<a class="headerlink" href="#conferences" title="Permanent link">&para;</a></h2>
+<p>Besides the code development side, some interesting conferences are right in the horizon and I think they cannot be missed (again). I missed a few ones this year due to work and personal reasons, for instance, the 2<sup>nd</sup> Workshop on Quantum Software 2025 in Seoul (https://pldi25.sigplan.org/home/wqs-2025) and the 7<sup>th</sup> International Workshop on Quantum Compilation in Helsinki (https://quantum-compilers.github.io/iwqc25/). So now, there are a few opportunities coming up due this year:</p>
+<ul>
+<li>Munich Quantum Software Forum 2025 (https://www.cda.cit.tum.de/research/quantum/mqsf/); <em>H-hat was accepted and is attending! preparations in progress</em></li>
+<li>Seventh International Workshop on Quantum Software Engineering (Q-SE 2026) (https://conf.researchr.org/home/icse-2026/q-se-2026); <em>checking viability</em></li>
+<li>International Conference on Quantum Communications, Networking, and Computing (QCNC 2026) (https://www.ieee-qcnc.org/2026/); <em>draft in progress</em></li>
+</ul>
+<h2 id="on-the-stable-version-part">On the stable version part<a class="headerlink" href="#on-the-stable-version-part" title="Permanent link">&para;</a></h2>
+<p>Depending on how things evolve people-wise, code-wise, time-wise, opportunities-wise, it may be possible to resume the Rust side, making the <em>actual JIT compiler</em> for the stable version. And that is another exciting challenge and project on its own that I have been studying and testing a few things (with less frequency). Using <a href="https://github.com/vaivaswatha/pliron">Pliron</a>, <a href="https://github.com/bytecodealliance/wasmtime/tree/main/cranelift">Cranelift</a> or <a href="https://github.com/mlir-rs/melior">Melior</a> framework?</p>
+<p>I have been in touch with Pliron's creator and collaborators, and it has been a very interesting experience so far to learn about it. Still unsure how practical it can be to use on its current state for H-hat current needs, but definitely I want to test it in practice. Cranelift is another one that caught my attention, especially because its JIT compiler-driven features already in place.</p>
+<p>If that depends only on me, I will try to use whatever uses less C++ for now.</p>
+<h2 id="final-remarks">Final remarks<a class="headerlink" href="#final-remarks" title="Permanent link">&para;</a></h2>
+<p>I hope this post can bring some light on what is in progress and what is planned for the coming months. Hopefully more people can join the effort! Feedback, reviews, discussions, beta testing, coding, designing, emotional support. Anything helps!</p>
+<p>Well, that is it. Until the next post.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["navigation.sections", "navigation.tabs", "navigation.top", "navigation.indexes", "navigation.tabs.sticky", "content.tooltips", "content.code.annotate", "content.code.copy", "toc.follow"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../../../../assets/external/cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

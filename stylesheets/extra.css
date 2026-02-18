@@ -1,0 +1,23 @@
+:root > * {
+.md-typeset .admonition,
+.md-typeset details {
+  font-size: 100%
+}
+
+}
+
+body {
+  background: var(--md-default-bg-color);
+}
+
+[data-md-color-scheme="default"] {
+  --md-default-primary-color: #036969;
+  --md-default-fg-color: #263f57;
+  --md-default-bg-color: #fee2c4;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-default-primary-color: #d8ae2d;
+  --md-default-fg-color: #c0c0c0; /* #9eacba;*/
+  --md-default-bg-color: #152230;
+}

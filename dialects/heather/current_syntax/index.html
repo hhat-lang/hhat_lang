@@ -1,0 +1,1929 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://docs.hhat-lang.org/dialects/heather/current_syntax/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../hhat_logo.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19">
+    
+    
+      
+        <title>Current syntax - H-hat quantum programming language</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="../../../assets/external/fonts.googleapis.com/css.dbc2241c.css">
+        <style>:root{--md-text-font:"Lato";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#1-main" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="H-hat quantum programming language" class="md-header__button md-logo" aria-label="H-hat quantum programming language" data-md-component="logo">
+      
+  <img src="../../../hhat_logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            H-hat quantum programming language
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Current syntax
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to preferred mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to preferred mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="amber" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hhat-lang/hhat_lang/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hhat-lang/hhat_lang
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../.." class="md-tabs__link">
+          
+  
+  
+    
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../getting_started/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Dialects
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../blog/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Blog
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="H-hat quantum programming language" class="md-nav__button md-logo" aria-label="H-hat quantum programming language" data-md-component="logo">
+      
+  <img src="../../../hhat_logo.svg" alt="logo">
+
+    </a>
+    H-hat quantum programming language
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hhat-lang/hhat_lang/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hhat-lang/hhat_lang
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Home
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../how_contribute/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    How to Contribute
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/python_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Python
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../rust/rust_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rust
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Understanding H-hat
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Understanding H-hat
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../rule_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rule System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../core/naming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Nomenclature
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../core/language_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Language design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../core/compiler_framework/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Compiler framework
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../core/doc_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Documentation design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tools
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../toolchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Toolchain
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Running it
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            Running it
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../running_hhat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Running H-hat
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Dialects
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Dialects
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Heather
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Heather
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Syntax
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Grammar
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../blog/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Blog
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Blog
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Archive
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../blog/archive/2026/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2026
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../blog/archive/2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2025
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Categories
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            Categories
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../blog/category/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-main" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Main
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-comments" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Comments
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Calls
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-casting" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Casting
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Types
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Functions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-conditional-statements-if" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Conditional statements (if)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-pattern-matching-match" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Pattern matching (match)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Pattern matching (match)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#10-modifiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Modifiers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-generics" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. Generics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-type-trait" class="md-nav__link">
+    <span class="md-ellipsis">
+      12. Type trait
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-typespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      13. typespace
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-function-traits-and-fnspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      14. Function traits and fnspace
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. Function traits and fnspace">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#141-call-with-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      14.1 call with options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#142-call-with-body" class="md-nav__link">
+    <span class="md-ellipsis">
+      14.2 call with body
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#143-call-with-body-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      14.3 call with body options
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Current syntax</h1>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The syntax is in development and will have more features added continuously.</p>
+</div>
+<p>The H-hat's Heather dialect syntax works as follows:</p>
+<h2 id="1-main">1. Main<a class="headerlink" href="#1-main" title="Permanent link">&para;</a></h2>
+<p>There is a main file that will be used for program execution. Its name can be anything, but it must contain a <code>main</code> keyword with brackets:</p>
+<div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1">main {}
+</span></code></pre></div></td></tr></table></div>
+<p>Code to be executed must live inside <code>main</code> body, e.g. anything inside the brackets will be executed.</p>
+<h2 id="2-comments">2. Comments<a class="headerlink" href="#2-comments" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-1-1">// single line comment here
+</span><span id="__span-1-2">
+</span><span id="__span-1-3">/- multiple
+</span><span id="__span-1-4">lines comment
+</span><span id="__span-1-5">here
+</span><span id="__span-1-6">-/
+</span></code></pre></div></td></tr></table></div>
+<h2 id="3-variables">3. Variables<a class="headerlink" href="#3-variables" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p>Variable declaration:
+   <div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-2-1">var:some-type    // for classical data
+</span><span id="__span-2-2">
+</span><span id="__span-2-3">@var:@some-type  // for quantum data
+</span></code></pre></div></td></tr></table></div>
+      All quantum literals, types, functions, variables (and so on) start with <code>@</code>. This is the universal identifier for quantum-related things.</p>
+</li>
+<li>
+<p>Variable assignment:
+   <div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-3-1">// classical
+</span><span id="__span-3-2">var1:some-type = value     // declare+assign
+</span><span id="__span-3-3">var2 = value          // assign
+</span><span id="__span-3-4">
+</span><span id="__span-3-5">// quantum
+</span><span id="__span-3-6">@var1:@some-type = @value  // declare+assign
+</span><span id="__span-3-7">@var2 = @value        // assign
+</span></code></pre></div></td></tr></table></div></p>
+</li>
+</ol>
+<h2 id="4-calls">4. Calls<a class="headerlink" href="#4-calls" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-4-1">do_smt()               // empty call
+</span><span id="__span-4-2">print(&quot;hoi&quot;)           // one-argument call
+</span><span id="__span-4-3">add(1 2)               // multiple-anonymous argument call
+</span><span id="__span-4-4">range(start:0 end:10)  // multiple-named argument call
+</span></code></pre></div></td></tr></table></div>
+<ul>
+<li>
+<p>Multiple-argument call arguments can be separated by <a href="../#features">any Heather-defined whitespaces</a></p>
+</li>
+<li>
+<p>Calls with named argument will have the <code>argument-name</code> followed by colon <code>:</code> and its value, e.g. <code>arg:val</code></p>
+</li>
+<li>
+<p>Classical variable assignment:
+   <div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-5-1">var:some-type = data    // assign value
+</span><span id="__span-5-2">var = other-data   // assign a new data
+</span></code></pre></div></td></tr></table></div></p>
+<ul>
+<li>Assigning data more than once to a classical variable may be possible if it is mutable. More on that at the <a href="../../../core/">language core system page</a>. If the variable is immutable, an error will happen.</li>
+</ul>
+</li>
+<li>
+<p>Quantum variable assignment:
+   <div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-6-1">@var:@some-type = @first_value  // assign the first value
+</span><span id="__span-6-2">@fn(@var)                  // @fn will be appended to @var data
+</span><span id="__span-6-3">@other-fn(@var params)     // @other-fn will be appended next
+</span></code></pre></div></td></tr></table></div></p>
+<ul>
+<li>A quantum data is an <em>appendable data container</em>, that is a data container that appends instructions applied to it in order. In the case above, the content of <code>@var</code> will be an array of elements: <code>[first_value, @fn(%self), @other-fn(%self params)]</code> that will be transformed and executed in order. More on what appendable data container is at the <a href="../../../core/">language core system page</a>.</li>
+</ul>
+</li>
+</ul>
+<h2 id="5-casting">5. Casting<a class="headerlink" href="#5-casting" title="Permanent link">&para;</a></h2>
+<p><div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-7-1">// classical data to classical data casting
+</span><span id="__span-7-2">16*u32      // casts 16 to u32 type
+</span><span id="__span-7-3">
+</span><span id="__span-7-4">// quantum data to classical data casting
+</span><span id="__span-7-5">@2*u32      // casts @2 to u32 type
+</span></code></pre></div></td></tr></table></div>
+   - Casting is a special property in the H-hat logic system. There is the usual classical to classical data casting, but also the quantum to classical data casting. The quantum to classical is special due to the nature of quantum data/variables. More on that in the <a href="../../../rule_system/">rule system page</a>. The syntax is <code>literal*type</code> or <code>variable*type</code>. In a similar fashion when declaring a variable one uses <code>variable:type</code>, with a different syntax sugar, <code>*</code>, to connect the data with the type.</p>
+<h2 id="6-types">6. Types<a class="headerlink" href="#6-types" title="Permanent link">&para;</a></h2>
+<p>There are 4 types of type definitions: <code>single</code>, <code>struct</code>, <code>enum</code> and <code>union</code>. Below you can find how to define them:</p>
+<div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-8-1">type lines:u32
+</span><span id="__span-8-2">/- a single type called &#39;lines&#39; that is
+</span><span id="__span-8-3">defined by u32. -/
+</span><span id="__span-8-4">
+</span><span id="__span-8-5">type point { x:u32 y:u32 }
+</span><span id="__span-8-6">/- a struct type called &#39;point&#39; with
+</span><span id="__span-8-7">members &#39;x &#39; of type u32 and &#39;y&#39; of type u32. -/
+</span><span id="__span-8-8">
+</span><span id="__span-8-9">
+</span><span id="__span-8-10">type result {
+</span><span id="__span-8-11">  ok{ msg:str }
+</span><span id="__span-8-12">  err
+</span><span id="__span-8-13">}
+</span><span id="__span-8-14">/- a enum type called &#39;result&#39; with
+</span><span id="__span-8-15">members &#39;ok&#39;, a struct data with member &#39;msg&#39;,
+</span><span id="__span-8-16">and &#39;err&#39;, a simple identifier. -/
+</span><span id="__span-8-17">
+</span><span id="__span-8-18">
+</span><span id="__span-8-19">type code union {
+</span><span id="__span-8-20">   number:u64
+</span><span id="__span-8-21">   text:str
+</span><span id="__span-8-22">}
+</span><span id="__span-8-23">/- a union type called &#39;code&#39; with
+</span><span id="__span-8-24">members &#39;number&#39; of type u64 and &#39;text&#39; of type str. -/
+</span></code></pre></div></td></tr></table></div>
+<p>Some key aspects of each type:</p>
+<ul>
+<li>
+<p>Single types can be thought as a "label" for a given type, but it has its own properties and checks</p>
+</li>
+<li>
+<p>Structs are always defined by members with a name and type</p>
+</li>
+<li>
+<p>Enums can be either identifiers or structs</p>
+</li>
+<li>
+<p>Unions have the <code>union</code> keyword before the body and can hold members with name and type, structs or enums; they behave like usual unions in C, for instance</p>
+</li>
+</ul>
+<h2 id="7-functions">7. Functions<a class="headerlink" href="#7-functions" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-9-1">fn sum (a:u32 b:u32) u32 { =add(a b) }
+</span></code></pre></div></td></tr></table></div>
+<ul>
+<li>
+<p>The <code>fn</code> keyword followed by the function name, <code>sum</code>, followed by the arguments between parenthesis, <code>a</code> and <code>b</code> of type <code>u32</code>, followed by the function type, <code>u32</code>, followed by the function body between brackets, <code>=add(a b)</code>. If the function has no return value, the <code>null</code> type can be left empty.</p>
+</li>
+<li>
+<p>The last expression to be return must contain a <code>=</code> syntax sugar to indicate it is the "return" expression.</p>
+</li>
+</ul>
+<h2 id="8-conditional-statements-if">8. Conditional statements (<code>if</code>)<a class="headerlink" href="#8-conditional-statements-if" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-10-1">if(
+</span><span id="__span-10-2">   eq(a b): some-result
+</span><span id="__span-10-3">   lt(a b): { some-bracket-body-result }
+</span><span id="__span-10-4">   true: else-result
+</span><span id="__span-10-5">)
+</span></code></pre></div></td></tr></table></div>
+<p>An <code>if</code> statement is a call with options: each option is one condition with its result. If the result contains multiple expressions, it must be inside a bracket body. The last condition can be a <code>true</code> option, representing the <code>else</code> clause in other programming languages, or a fallback <code>default</code>.</p>
+<h2 id="9-pattern-matching-match">9. Pattern matching (<code>match</code>)<a class="headerlink" href="#9-pattern-matching-match" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-11-1">match (something) {
+</span><span id="__span-11-2">   option1: some-result
+</span><span id="__span-11-3">   option2: { some-bracket-body-result }
+</span><span id="__span-11-4">   default: fallback-result
+</span><span id="__span-11-5">}
+</span></code></pre></div></td></tr></table></div>
+<p>In a similar fashion to <code>if</code>, pattern matching <code>match</code> will have options containing their respective instructions. However, <code>match</code> requires a variable, function call, literal, etc. to be matched against. This something is placed inside parenthesis after <code>match</code> and a bracket body is defined with the options.</p>
+<h3 id="10-modifiers">10. Modifiers<a class="headerlink" href="#10-modifiers" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-12-1">id&lt;keyword&gt;
+</span><span id="__span-12-2">
+</span><span id="__span-12-3">id&lt;property=value&gt;
+</span><span id="__span-12-4">
+</span><span id="__span-12-5">id&lt;keyword property=value ...&gt;
+</span></code></pre></div></td></tr></table></div>
+<p>Modifiers provide an extensive way to complement, define or modify the data it is attached to, a literal, variable, type, function call, etc.</p>
+<h3 id="11-generics">11. Generics<a class="headerlink" href="#11-generics" title="Permanent link">&para;</a></h3>
+<h3 id="12-type-trait">12. Type trait<a class="headerlink" href="#12-type-trait" title="Permanent link">&para;</a></h3>
+<h3 id="13-typespace">13. <code>typespace</code><a class="headerlink" href="#13-typespace" title="Permanent link">&para;</a></h3>
+<h3 id="14-function-traits-and-fnspace">14. Function traits and <code>fnspace</code><a class="headerlink" href="#14-function-traits-and-fnspace" title="Permanent link">&para;</a></h3>
+<h4 id="141-call-with-options">14.1 call with options<a class="headerlink" href="#141-call-with-options" title="Permanent link">&para;</a></h4>
+<h4 id="142-call-with-body">14.2 call with body<a class="headerlink" href="#142-call-with-body" title="Permanent link">&para;</a></h4>
+<h4 id="143-call-with-body-options">14.3 call with body options<a class="headerlink" href="#143-call-with-body-options" title="Permanent link">&para;</a></h4>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.tabs", "navigation.top", "navigation.indexes", "navigation.tabs.sticky", "content.tooltips", "content.code.annotate", "content.code.copy", "toc.follow"], "search": "../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+        <script src="../../../assets/external/cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

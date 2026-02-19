@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pygments.lexer import RegexLexer, words
+from pygments.lexer import RegexLexer, bygroups, words
 from pygments.token import (
     Comment,
     Keyword,
@@ -8,6 +8,7 @@ from pygments.token import (
     Name,
     Number,
     Operator,
+    Punctuation,
     String,
     Whitespace,
 )
@@ -32,18 +33,22 @@ class HhatLexer(RegexLexer):
     """
 
     name = "H-hat"
-    aliases = ["hhat", "hhat-lang"]
+    aliases = ["hhat", "hhat-lang", "hhat-heather", "heather"]
     filenames = ["*.hhat", "*.hat"]
 
     keywords = (
         "main",
         "fn",
         "type",
-        "metafn",
+        "meta-fn",
         "use",
         "modifier",
         "metamod",
+        "super-type",
+        "const",
         "self",
+    )
+    symbolic_keywords = (
         "::",
         "*",
         "&",
@@ -93,18 +98,20 @@ class HhatLexer(RegexLexer):
 
     tokens = {
         "root": [
-            (rf"{WHITESPACE}+", Whitespace),
+            (rf"[{WHITESPACE}]+", Whitespace),
             (SINGLE_COMMENT, Comment.Single),
             (MULTILINE_COMMENT, Comment.Multiline),
-            (words(keywords), Keyword.Namespace),
-            (words(builtin_types), Name.BuiltinType),
+            (words(keywords, suffix=r"\b"), Keyword.Declaration),
+            (words(symbolic_keywords), Keyword.Declaration),
+            (words(builtin_types, suffix=r"\b"), Name.Builtin),
+            (rf"({ID})(\s*)(\()", bygroups(Name.Function, Whitespace, Punctuation)),
             (words(operators), Operator),
-            (words(punctuation), Operator.Punctuation),
-            (ID, Name.Identifier),
-            (STRING, String),
-            (INT, Number.Integer),
-            (QINT, Number.QInteger),
+            (words(punctuation), Punctuation),
             (FLOAT, Number.Float),
+            (QINT, Number.Integer),
+            (INT, Number.Integer),
+            (STRING, String),
             (words(bool_literals, prefix=r"\b", suffix=r"\b"), Literal.Boolean),
+            (ID, Name.Variable),
         ],
     }

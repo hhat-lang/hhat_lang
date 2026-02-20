@@ -50,6 +50,8 @@
     
       <link rel="stylesheet" href="../../../stylesheets/extra.css">
     
+      <link rel="stylesheet" href="../../../stylesheets/hhat-heather-pygments.css">
+    
     <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -1735,12 +1737,12 @@
 
 <p>Heather is a H-hat's regular syntax dialect intended to provide the first steps for programmers to explore the language features and possibilities in this new paradigm.</p>
 <p>A (classical) "hello world" program looks like (inside <code>main.hat</code>):</p>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><span class="kd">main</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="s">&quot;hoi quantum&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">// a &quot;hello world&quot; program</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><span class="kd">main</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="nf">print</span><span class="pm">(</span><span class="s">&quot;hoi quantum&quot;</span><span class="pm">)</span><span class="w"> </span><span class="pm">}</span><span class="w">  </span><span class="c1">// a &quot;hello world&quot; program</span>
 </span></code></pre></div></td></tr></table></div>
 <p>Heather has no need for <code>;</code> to separate between statements or <code>,</code> to separate between items. <code></code>, <code>\t</code>, <code>\n</code>, <code>;</code> and <code>,</code> are all treated as whitespaces and are ignored. You may use them if you prefer though. Because of Heather's regular syntax, statements and expressions can be organized in what fits better the programmer's or a particular project style. We expect that it can provide some freedom for people to experiment and define what works better for a particular situation, rather than enforcing that without a real reason. Comments are: <code>// comment goes here</code>  for line comments, and <code>/* comment body goes inside here */</code> for multiline comments.</p>
 <h4 id="1-constants">1. Constants<a class="headerlink" href="#1-constants" title="Permanent link">&para;</a></h4>
 <p>Constants are defined inside <code>consts.hat</code> files. They have the following syntax:</p>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-1-1"><span class="kd">const</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">name</span><span class="err">&gt;</span><span class="o">:</span><span class="err">&lt;</span><span class="kd">type</span><span class="err">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">value</span><span class="err">&gt;</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-1-1"><span class="kd">const</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">name</span><span class="k k-Symbol">&gt;</span><span class="o">:</span><span class="k k-Symbol">&lt;</span><span class="kd">type</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">value</span><span class="k k-Symbol">&gt;</span>
 </span></code></pre></div></td></tr></table></div>
 <h5 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h5>
 <ul>
@@ -1760,7 +1762,7 @@
 <ul>
 <li>For single imports:</li>
 </ul>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-4-1"><span class="kd">use</span><span class="p">(</span><span class="kd">const</span><span class="o">:</span><span class="err">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="nv">constant-name</span><span class="err">&gt;</span><span class="p">)</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-4-1"><span class="kd">use</span><span class="pm">(</span><span class="kd">const</span><span class="o">:</span><span class="k k-Symbol">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="nv">constant-name</span><span class="k k-Symbol">&gt;</span><span class="pm">)</span>
 </span></code></pre></div></td></tr></table></div>
 <ul>
 <li>For multiple imports:</li>
@@ -1768,10 +1770,10 @@
 <div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
 <span class="normal">2</span>
 <span class="normal">3</span>
-<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-5-1"><span class="kd">use</span><span class="p">(</span>
-</span><span id="__span-5-2"><span class="w">  </span><span class="kd">const</span><span class="o">:</span><span class="err">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="nv">constant-name1</span><span class="err">&gt;</span>
-</span><span id="__span-5-3"><span class="w">  </span><span class="kd">const</span><span class="o">:</span><span class="err">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="nv">constant-name2</span><span class="err">&gt;</span>
-</span><span id="__span-5-4"><span class="p">)</span>
+<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-5-1"><span class="kd">use</span><span class="pm">(</span>
+</span><span id="__span-5-2"><span class="w">  </span><span class="kd">const</span><span class="o">:</span><span class="k k-Symbol">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="nv">constant-name1</span><span class="k k-Symbol">&gt;</span>
+</span><span id="__span-5-3"><span class="w">  </span><span class="kd">const</span><span class="o">:</span><span class="k k-Symbol">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="nv">constant-name2</span><span class="k k-Symbol">&gt;</span>
+</span><span id="__span-5-4"><span class="pm">)</span>
 </span></code></pre></div></td></tr></table></div>
 <ul>
 <li>For multiple imports inside a single <code>const</code>:</li>
@@ -1781,12 +1783,12 @@
 <span class="normal">3</span>
 <span class="normal">4</span>
 <span class="normal">5</span>
-<span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-6-1"><span class="kd">use</span><span class="p">(</span>
-</span><span id="__span-6-2"><span class="w">  </span><span class="kd">const</span><span class="o">:</span><span class="p">[</span>
-</span><span id="__span-6-3"><span class="w">    </span><span class="err">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="nv">constant-name1</span><span class="err">&gt;</span>
-</span><span id="__span-6-4"><span class="w">    </span><span class="err">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="nv">constant-name2</span><span class="err">&gt;</span>
-</span><span id="__span-6-5"><span class="w">  </span><span class="p">]</span>
-</span><span id="__span-6-6"><span class="p">)</span>
+<span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-6-1"><span class="kd">use</span><span class="pm">(</span>
+</span><span id="__span-6-2"><span class="w">  </span><span class="kd">const</span><span class="o">:</span><span class="pm">[</span>
+</span><span id="__span-6-3"><span class="w">    </span><span class="k k-Symbol">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="nv">constant-name1</span><span class="k k-Symbol">&gt;</span>
+</span><span id="__span-6-4"><span class="w">    </span><span class="k k-Symbol">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="nv">constant-name2</span><span class="k k-Symbol">&gt;</span>
+</span><span id="__span-6-5"><span class="w">  </span><span class="pm">]</span>
+</span><span id="__span-6-6"><span class="pm">)</span>
 </span></code></pre></div></td></tr></table></div>
 <h4 id="2-types">2. Types<a class="headerlink" href="#2-types" title="Permanent link">&para;</a></h4>
 <p>Types are defined inside custom files located on <code>src/hat_types/</code> path. There are basically two types of user types: structs and enums. A quantum type can contain classical types as its members/named values, but the opposite is not valid.</p>
@@ -1799,7 +1801,7 @@
 <p>Syntax:</p>
 </li>
 </ul>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-7-1"><span class="kd">type</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">name</span><span class="err">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">member</span><span class="err">&gt;</span><span class="o">:</span><span class="err">&lt;</span><span class="kd">type</span><span class="err">&gt;</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-7-1"><span class="kd">type</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">name</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">member</span><span class="k k-Symbol">&gt;</span><span class="o">:</span><span class="k k-Symbol">&lt;</span><span class="kd">type</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
 <ul>
 <li>
@@ -1807,7 +1809,7 @@
 <ul>
 <li>Defining struct type:</li>
 </ul>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-8-1"><span class="kd">type</span><span class="w"> </span><span class="nv">point</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">x</span><span class="o">:</span><span class="nb">i32</span><span class="w"> </span><span class="nv">y</span><span class="o">:</span><span class="nb">i32</span><span class="w"> </span><span class="p">}</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-8-1"><span class="kd">type</span><span class="w"> </span><span class="nv">point</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="nv">x</span><span class="o">:</span><span class="nb">i32</span><span class="w"> </span><span class="nv">y</span><span class="o">:</span><span class="nb">i32</span><span class="w"> </span><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
 <ul>
 <li>Using struct type:</li>
@@ -1826,36 +1828,36 @@
 <span class="normal">12</span>
 <span class="normal">13</span>
 <span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-9-1"><span class="c1">// assigning to variable p while declaring it</span>
-</span><span id="__span-9-2"><span class="nv">p</span><span class="o">:</span><span class="nv">point</span><span class="w"> </span><span class="o">=.</span><span class="p">{</span><span class="nv">x</span><span class="o">=</span><span class="mi">34</span><span class="w"> </span><span class="nv">y</span><span class="o">=</span><span class="mi">43</span><span class="p">}</span>
+</span><span id="__span-9-2"><span class="nv">p</span><span class="o">:</span><span class="nv">point</span><span class="w"> </span><span class="o">=.</span><span class="pm">{</span><span class="nv">x</span><span class="o">=</span><span class="mi">34</span><span class="w"> </span><span class="nv">y</span><span class="o">=</span><span class="mi">43</span><span class="pm">}</span>
 </span><span id="__span-9-3">
 </span><span id="__span-9-4"><span class="c1">// assigning to variable already declared</span>
 </span><span id="__span-9-5"><span class="nv">p2</span><span class="o">:</span><span class="nv">point</span>
-</span><span id="__span-9-6"><span class="nv">p2</span><span class="o">.</span><span class="p">{</span><span class="nv">x</span><span class="o">=</span><span class="mi">15</span><span class="w"> </span><span class="nv">y</span><span class="o">=</span><span class="mi">51</span><span class="p">}</span>
+</span><span id="__span-9-6"><span class="nv">p2</span><span class="o">.</span><span class="pm">{</span><span class="nv">x</span><span class="o">=</span><span class="mi">15</span><span class="w"> </span><span class="nv">y</span><span class="o">=</span><span class="mi">51</span><span class="pm">}</span>
 </span><span id="__span-9-7">
 </span><span id="__span-9-8"><span class="c1">// (re)assigning to individual members</span>
-</span><span id="__span-9-9"><span class="nv">p3</span><span class="err">&lt;</span><span class="nv">mut</span><span class="err">&gt;</span><span class="o">:</span><span class="nv">point</span>
-</span><span id="__span-9-10"><span class="nv">p3</span><span class="o">.</span><span class="p">{</span><span class="nv">x</span><span class="o">=</span><span class="mi">143</span><span class="w"> </span><span class="nv">y</span><span class="o">=</span><span class="mi">331</span><span class="p">}</span>
+</span><span id="__span-9-9"><span class="nv">p3</span><span class="k k-Symbol">&lt;</span><span class="nv">mut</span><span class="k k-Symbol">&gt;</span><span class="o">:</span><span class="nv">point</span>
+</span><span id="__span-9-10"><span class="nv">p3</span><span class="o">.</span><span class="pm">{</span><span class="nv">x</span><span class="o">=</span><span class="mi">143</span><span class="w"> </span><span class="nv">y</span><span class="o">=</span><span class="mi">331</span><span class="pm">}</span>
 </span><span id="__span-9-11"><span class="nv">p3</span><span class="o">.</span><span class="nv">y</span><span class="o">=</span><span class="mi">341</span>
 </span><span id="__span-9-12">
 </span><span id="__span-9-13"><span class="c1">// calling it</span>
-</span><span id="__span-9-14"><span class="nf">print</span><span class="p">(</span><span class="nv">p</span><span class="o">.</span><span class="nv">x</span><span class="p">)</span>
+</span><span id="__span-9-14"><span class="nf">print</span><span class="pm">(</span><span class="nv">p</span><span class="o">.</span><span class="nv">x</span><span class="pm">)</span>
 </span></code></pre></div></td></tr></table></div>
 <ul>
 <li>Importing:</li>
 </ul>
 <p><div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
 <span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-10-1"><span class="c1">// single import</span>
-</span><span id="__span-10-2"><span class="kd">use</span><span class="p">(</span><span class="kd">type</span><span class="o">:</span><span class="err">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="kd">type</span><span class="err">-</span><span class="nv">name</span><span class="err">&gt;</span><span class="p">)</span>
+</span><span id="__span-10-2"><span class="kd">use</span><span class="pm">(</span><span class="kd">type</span><span class="o">:</span><span class="k k-Symbol">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="kd">type</span><span class="err">-</span><span class="nv">name</span><span class="k k-Symbol">&gt;</span><span class="pm">)</span>
 </span></code></pre></div></td></tr></table></div>
   <div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
 <span class="normal">2</span>
 <span class="normal">3</span>
 <span class="normal">4</span>
 <span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-11-1"><span class="c1">// multiple imports:</span>
-</span><span id="__span-11-2"><span class="kd">use</span><span class="p">(</span>
-</span><span id="__span-11-3"><span class="w">  </span><span class="kd">type</span><span class="o">:</span><span class="err">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="kd">type</span><span class="err">-</span><span class="nv">name1</span><span class="err">&gt;</span>
-</span><span id="__span-11-4"><span class="w">  </span><span class="kd">type</span><span class="o">:</span><span class="err">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="kd">type</span><span class="err">-</span><span class="nv">name2</span><span class="err">&gt;</span>
-</span><span id="__span-11-5"><span class="p">)</span>
+</span><span id="__span-11-2"><span class="kd">use</span><span class="pm">(</span>
+</span><span id="__span-11-3"><span class="w">  </span><span class="kd">type</span><span class="o">:</span><span class="k k-Symbol">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="kd">type</span><span class="err">-</span><span class="nv">name1</span><span class="k k-Symbol">&gt;</span>
+</span><span id="__span-11-4"><span class="w">  </span><span class="kd">type</span><span class="o">:</span><span class="k k-Symbol">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="kd">type</span><span class="err">-</span><span class="nv">name2</span><span class="k k-Symbol">&gt;</span>
+</span><span id="__span-11-5"><span class="pm">)</span>
 </span></code></pre></div></td></tr></table></div>
   <div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
 <span class="normal">2</span>
@@ -1864,12 +1866,12 @@
 <span class="normal">5</span>
 <span class="normal">6</span>
 <span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-12-1"><span class="c1">// multiple imports, single call:</span>
-</span><span id="__span-12-2"><span class="kd">use</span><span class="p">(</span>
-</span><span id="__span-12-3"><span class="w">  </span><span class="kd">type</span><span class="o">:</span><span class="p">[</span>
-</span><span id="__span-12-4"><span class="w">    </span><span class="err">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="kd">type</span><span class="err">-</span><span class="nv">name1</span><span class="err">&gt;</span>
-</span><span id="__span-12-5"><span class="w">    </span><span class="err">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="kd">type</span><span class="err">-</span><span class="nv">name2</span><span class="err">&gt;</span>
-</span><span id="__span-12-6"><span class="w">  </span><span class="p">]</span>
-</span><span id="__span-12-7"><span class="p">)</span>
+</span><span id="__span-12-2"><span class="kd">use</span><span class="pm">(</span>
+</span><span id="__span-12-3"><span class="w">  </span><span class="kd">type</span><span class="o">:</span><span class="pm">[</span>
+</span><span id="__span-12-4"><span class="w">    </span><span class="k k-Symbol">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="kd">type</span><span class="err">-</span><span class="nv">name1</span><span class="k k-Symbol">&gt;</span>
+</span><span id="__span-12-5"><span class="w">    </span><span class="k k-Symbol">&lt;</span><span class="nv">path</span><span class="o">.</span><span class="kd">type</span><span class="err">-</span><span class="nv">name2</span><span class="k k-Symbol">&gt;</span>
+</span><span id="__span-12-6"><span class="w">  </span><span class="pm">]</span>
+</span><span id="__span-12-7"><span class="pm">)</span>
 </span></code></pre></div></td></tr></table></div></p>
 </li>
 </ul>
@@ -1882,7 +1884,7 @@
 <p>Syntax:</p>
 </li>
 </ul>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-13-1"><span class="kd">type</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">name</span><span class="err">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">enumerator</span><span class="err">?&gt;</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">struct</span><span class="err">?&gt;</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-13-1"><span class="kd">type</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">name</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">enumerator</span><span class="err">?</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">struct</span><span class="err">?</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
 <ul>
 <li>
@@ -1897,14 +1899,14 @@
 <span class="normal">5</span>
 <span class="normal">6</span>
 <span class="normal">7</span>
-<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-14-1"><span class="kd">type</span><span class="w"> </span><span class="nv">status_t</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">ON</span><span class="w"> </span><span class="nv">OFF</span><span class="w"> </span><span class="p">}</span>
+<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-14-1"><span class="kd">type</span><span class="w"> </span><span class="nv">status_t</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="nv">ON</span><span class="w"> </span><span class="nv">OFF</span><span class="w"> </span><span class="pm">}</span>
 </span><span id="__span-14-2">
-</span><span id="__span-14-3"><span class="kd">type</span><span class="w"> </span><span class="nv">result_t</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-14-4"><span class="w">  </span><span class="nv">data</span><span class="p">{</span>
+</span><span id="__span-14-3"><span class="kd">type</span><span class="w"> </span><span class="nv">result_t</span><span class="w"> </span><span class="pm">{</span>
+</span><span id="__span-14-4"><span class="w">  </span><span class="nv">data</span><span class="pm">{</span>
 </span><span id="__span-14-5"><span class="w">    </span><span class="nv">value</span><span class="o">:</span><span class="nb">sample_t</span>
-</span><span id="__span-14-6"><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-14-6"><span class="w">  </span><span class="pm">}</span>
 </span><span id="__span-14-7"><span class="w">  </span><span class="nv">NONE</span>
-</span><span id="__span-14-8"><span class="p">}</span>
+</span><span id="__span-14-8"><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
 <ul>
 <li>Using enum type:</li>
@@ -1930,8 +1932,8 @@
 </span><span id="__span-15-8"><span class="nv">status2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">status_t</span><span class="o">.</span><span class="nv">ON</span>
 </span><span id="__span-15-9">
 </span><span id="__span-15-10"><span class="c1">// calling it</span>
-</span><span id="__span-15-11"><span class="nf">print</span><span class="p">(</span><span class="nv">status_t</span><span class="o">.</span><span class="nv">OFF</span><span class="p">)</span>
-</span><span id="__span-15-12"><span class="nf">print</span><span class="p">(</span><span class="nv">status</span><span class="p">)</span>
+</span><span id="__span-15-11"><span class="nf">print</span><span class="pm">(</span><span class="nv">status_t</span><span class="o">.</span><span class="nv">OFF</span><span class="pm">)</span>
+</span><span id="__span-15-12"><span class="nf">print</span><span class="pm">(</span><span class="nv">status</span><span class="pm">)</span>
 </span></code></pre></div></td></tr></table></div>
 </li>
 </ul>
@@ -1939,7 +1941,7 @@
 <ul>
 <li>Syntax:</li>
 </ul>
-<p><div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-16-1"><span class="kd">fn</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">name</span><span class="err">&gt;</span><span class="w"> </span><span class="p">(</span><span class="err">&lt;</span><span class="nv">args</span><span class="err">?&gt;</span><span class="p">)</span><span class="w"> </span><span class="err">&lt;</span><span class="kd">type</span><span class="err">?&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">body</span><span class="err">?&gt;</span><span class="w"> </span><span class="p">}</span>
+<p><div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-16-1"><span class="kd">fn</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">name</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">(</span><span class="k k-Symbol">&lt;</span><span class="nv">args</span><span class="err">?</span><span class="k k-Symbol">&gt;</span><span class="pm">)</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="kd">type</span><span class="err">?</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">body</span><span class="err">?</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
   Return has a special syntax sugar: <code>::</code> prefixed on an expression.</p>
 <ul>
@@ -1948,19 +1950,19 @@
 <ul>
 <li>Defining a type:</li>
 </ul>
-<p><div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-17-1"><span class="kd">fn</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="nv">a</span><span class="o">:</span><span class="nb">i64</span><span class="w"> </span><span class="nv">b</span><span class="o">:</span><span class="nb">i64</span><span class="p">)</span><span class="w"> </span><span class="nb">i64</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kd">::</span><span class="nf">add</span><span class="p">(</span><span class="nv">a</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<p><div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-17-1"><span class="kd">fn</span><span class="w"> </span><span class="nf">sum</span><span class="pm">(</span><span class="nv">a</span><span class="o">:</span><span class="nb">i64</span><span class="w"> </span><span class="nv">b</span><span class="o">:</span><span class="nb">i64</span><span class="pm">)</span><span class="w"> </span><span class="nb">i64</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="k k-Symbol">::</span><span class="nf">add</span><span class="pm">(</span><span class="nv">a</span><span class="w"> </span><span class="nv">b</span><span class="pm">)</span><span class="w"> </span><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
   <div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
 <span class="normal">2</span>
 <span class="normal">3</span>
 <span class="normal">4</span>
 <span class="normal">5</span>
-<span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-18-1"><span class="kd">fn</span><span class="w"> </span><span class="nf">print-gt</span><span class="p">(</span><span class="nv">a</span><span class="o">:</span><span class="nb">u64</span><span class="w"> </span><span class="nv">b</span><span class="o">:</span><span class="nb">u64</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-18-2"><span class="w">  </span><span class="nf">if</span><span class="p">(</span>
-</span><span id="__span-18-3"><span class="w">    </span><span class="nf">gt</span><span class="p">(</span><span class="nv">a</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="nv">a</span><span class="p">)</span>
-</span><span id="__span-18-4"><span class="w">    </span><span class="l l-Boolean">true</span><span class="o">:</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="nv">b</span><span class="p">)</span>
-</span><span id="__span-18-5"><span class="w">  </span><span class="p">)</span>
-</span><span id="__span-18-6"><span class="p">}</span>
+<span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-18-1"><span class="kd">fn</span><span class="w"> </span><span class="nf">print-gt</span><span class="pm">(</span><span class="nv">a</span><span class="o">:</span><span class="nb">u64</span><span class="w"> </span><span class="nv">b</span><span class="o">:</span><span class="nb">u64</span><span class="pm">)</span><span class="w"> </span><span class="pm">{</span>
+</span><span id="__span-18-2"><span class="w">  </span><span class="nf">if</span><span class="pm">(</span>
+</span><span id="__span-18-3"><span class="w">    </span><span class="nf">gt</span><span class="pm">(</span><span class="nv">a</span><span class="w"> </span><span class="nv">b</span><span class="pm">)</span><span class="o">:</span><span class="w"> </span><span class="nf">print</span><span class="pm">(</span><span class="nv">a</span><span class="pm">)</span>
+</span><span id="__span-18-4"><span class="w">    </span><span class="l l-Boolean">true</span><span class="o">:</span><span class="w"> </span><span class="nf">print</span><span class="pm">(</span><span class="nv">b</span><span class="pm">)</span>
+</span><span id="__span-18-5"><span class="w">  </span><span class="pm">)</span>
+</span><span id="__span-18-6"><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div></p>
 </li>
 </ul>
@@ -1973,7 +1975,7 @@
 <p>Syntax:</p>
 </li>
 </ul>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-19-1"><span class="kd">meta-fn</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">name</span><span class="err">&gt;</span><span class="w"> </span><span class="p">(</span><span class="nv">args</span><span class="p">)</span><span class="w"> </span><span class="err">&lt;</span><span class="kd">type</span><span class="err">?&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">body</span><span class="err">&gt;</span><span class="w"> </span><span class="p">}</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-19-1"><span class="kd">meta-fn</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">name</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">(</span><span class="nv">args</span><span class="pm">)</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="kd">type</span><span class="err">?</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">body</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
 <ul>
 <li>
@@ -1982,34 +1984,34 @@
 <li><code>if</code> meta-function (option type):</li>
 </ul>
 <p>Defining:</p>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-20-1"><span class="kd">meta-fn</span><span class="w"> </span><span class="nf">if</span><span class="p">(</span><span class="nv">options</span><span class="o">:</span><span class="p">[</span><span class="nv">opt-body_t</span><span class="p">])</span><span class="w"> </span><span class="nb">ir_t</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-20-1"><span class="kd">meta-fn</span><span class="w"> </span><span class="nf">if</span><span class="pm">(</span><span class="nv">options</span><span class="o">:</span><span class="pm">[</span><span class="nv">opt-body_t</span><span class="pm">])</span><span class="w"> </span><span class="nb">ir_t</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
 <p>Calling:</p>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-21-1"><span class="nf">if</span><span class="p">(</span><span class="nf">gt</span><span class="p">(</span><span class="nv">a</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="o">:</span><span class="nv">a</span><span class="w"> </span><span class="l l-Boolean">true</span><span class="o">:</span><span class="nv">b</span><span class="p">)</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-21-1"><span class="nf">if</span><span class="pm">(</span><span class="nf">gt</span><span class="pm">(</span><span class="nv">a</span><span class="w"> </span><span class="nv">b</span><span class="pm">)</span><span class="o">:</span><span class="nv">a</span><span class="w"> </span><span class="l l-Boolean">true</span><span class="o">:</span><span class="nv">b</span><span class="pm">)</span>
 </span></code></pre></div></td></tr></table></div>
 <ul>
 <li><code>pipe</code> meta-function (body type):</li>
 </ul>
 <p>Defining:</p>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-22-1"><span class="kd">meta-fn</span><span class="w"> </span><span class="nf">pipe</span><span class="p">(</span><span class="nv">args</span><span class="o">:</span><span class="p">[</span><span class="nv">expr_t</span><span class="p">]</span><span class="w"> </span><span class="nv">body</span><span class="o">:</span><span class="nb">ir_t</span><span class="p">)</span><span class="w"> </span><span class="nb">ir_t</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-22-1"><span class="kd">meta-fn</span><span class="w"> </span><span class="nf">pipe</span><span class="pm">(</span><span class="nv">args</span><span class="o">:</span><span class="pm">[</span><span class="nv">expr_t</span><span class="pm">]</span><span class="w"> </span><span class="nv">body</span><span class="o">:</span><span class="nb">ir_t</span><span class="pm">)</span><span class="w"> </span><span class="nb">ir_t</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
 <p>Calling:</p>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-23-1"><span class="nf">pipe</span><span class="p">(</span><span class="nv">var</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">double</span><span class="w"> </span><span class="nv">print</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">// applies double on var and then print on double&#39;s result</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-23-1"><span class="nf">pipe</span><span class="pm">(</span><span class="nv">var</span><span class="pm">)</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="nv">double</span><span class="w"> </span><span class="nv">print</span><span class="w"> </span><span class="pm">}</span><span class="w">  </span><span class="c1">// applies double on var and then print on double&#39;s result</span>
 </span></code></pre></div></td></tr></table></div>
 <ul>
 <li><code>match</code> meta-function (option-body type):</li>
 </ul>
 <p>Defining:</p>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-24-1"><span class="kd">meta-fn</span><span class="w"> </span><span class="nf">match</span><span class="p">(</span><span class="nv">arg</span><span class="o">:</span><span class="p">[</span><span class="nv">expr_t</span><span class="p">]</span><span class="w"> </span><span class="nv">options</span><span class="o">:</span><span class="p">[</span><span class="nv">opt-body_t</span><span class="p">])</span><span class="w"> </span><span class="nb">ir_t</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-24-1"><span class="kd">meta-fn</span><span class="w"> </span><span class="nf">match</span><span class="pm">(</span><span class="nv">arg</span><span class="o">:</span><span class="pm">[</span><span class="nv">expr_t</span><span class="pm">]</span><span class="w"> </span><span class="nv">options</span><span class="o">:</span><span class="pm">[</span><span class="nv">opt-body_t</span><span class="pm">])</span><span class="w"> </span><span class="nb">ir_t</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
 <p>Calling:</p>
 <div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
 <span class="normal">2</span>
 <span class="normal">3</span>
-<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-25-1"><span class="nf">match</span><span class="p">(</span><span class="nv">status</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-25-2"><span class="w">    </span><span class="nv">status_t</span><span class="o">.</span><span class="nv">ON</span><span class="o">:</span><span class="nf">print</span><span class="p">(</span><span class="s">&quot;on!&quot;</span><span class="p">)</span>
-</span><span id="__span-25-3"><span class="w">    </span><span class="nv">status_t</span><span class="o">.</span><span class="nv">OFF</span><span class="o">:</span><span class="nf">print</span><span class="p">(</span><span class="s">&quot;off!&quot;</span><span class="p">)</span>
-</span><span id="__span-25-4"><span class="p">}</span>
+<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-25-1"><span class="nf">match</span><span class="pm">(</span><span class="nv">status</span><span class="pm">)</span><span class="w"> </span><span class="pm">{</span>
+</span><span id="__span-25-2"><span class="w">    </span><span class="nv">status_t</span><span class="o">.</span><span class="nv">ON</span><span class="o">:</span><span class="nf">print</span><span class="pm">(</span><span class="s">&quot;on!&quot;</span><span class="pm">)</span>
+</span><span id="__span-25-3"><span class="w">    </span><span class="nv">status_t</span><span class="o">.</span><span class="nv">OFF</span><span class="o">:</span><span class="nf">print</span><span class="pm">(</span><span class="s">&quot;off!&quot;</span><span class="pm">)</span>
+</span><span id="__span-25-4"><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
 </li>
 </ul>
@@ -2022,7 +2024,7 @@
 <p>Syntax:</p>
 </li>
 </ul>
-<p><div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-26-1"><span class="kd">modifier</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">name</span><span class="err">&gt;</span><span class="w"> </span><span class="p">(</span><span class="kd">self</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">arg</span><span class="err">?&gt;</span><span class="p">)</span><span class="w"> </span><span class="err">&lt;</span><span class="kd">type</span><span class="err">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">body</span><span class="err">&gt;</span><span class="w"> </span><span class="p">}</span>
+<p><div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-26-1"><span class="kd">modifier</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">name</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">(</span><span class="kd">self</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">arg</span><span class="err">?</span><span class="k k-Symbol">&gt;</span><span class="pm">)</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="kd">type</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">body</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
   the <code>&lt;type&gt;</code> must be the same of self.</p>
 <ul>
@@ -2033,13 +2035,13 @@
 </ul>
 <p><div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
 <span class="normal">2</span>
-<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-27-1"><span class="kd">modifier</span><span class="w"> </span><span class="kd">&amp;</span><span class="p">(</span><span class="kd">self</span><span class="p">)</span><span class="w"> </span><span class="nb">u32</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">// for u32 type</span>
-</span><span id="__span-27-2"><span class="kd">modifier</span><span class="w"> </span><span class="kd">&amp;</span><span class="p">(</span><span class="kd">self</span><span class="p">)</span><span class="w"> </span><span class="p">[</span><span class="nb">u32</span><span class="p">]</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">// for array of u32 type</span>
-</span><span id="__span-27-3"><span class="kd">modifier</span><span class="w"> </span><span class="kd">&amp;</span><span class="p">(</span><span class="kd">self</span><span class="p">)</span><span class="w"> </span><span class="nv">status_t</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">// for status_t type</span>
+<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-27-1"><span class="kd">modifier</span><span class="w"> </span><span class="k k-Symbol">&amp;</span><span class="pm">(</span><span class="kd">self</span><span class="pm">)</span><span class="w"> </span><span class="nb">u32</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="pm">}</span><span class="w">  </span><span class="c1">// for u32 type</span>
+</span><span id="__span-27-2"><span class="kd">modifier</span><span class="w"> </span><span class="k k-Symbol">&amp;</span><span class="pm">(</span><span class="kd">self</span><span class="pm">)</span><span class="w"> </span><span class="pm">[</span><span class="nb">u32</span><span class="pm">]</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="pm">}</span><span class="w">  </span><span class="c1">// for array of u32 type</span>
+</span><span id="__span-27-3"><span class="kd">modifier</span><span class="w"> </span><span class="k k-Symbol">&amp;</span><span class="pm">(</span><span class="kd">self</span><span class="pm">)</span><span class="w"> </span><span class="nv">status_t</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="pm">}</span><span class="w">  </span><span class="c1">// for status_t type</span>
 </span></code></pre></div></td></tr></table></div>
   <div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
 <span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-28-1"><span class="c1">// usage</span>
-</span><span id="__span-28-2"><span class="nv">var</span><span class="o">:</span><span class="nv">status_t</span><span class="err">&lt;</span><span class="kd">&amp;</span><span class="err">&gt;</span>
+</span><span id="__span-28-2"><span class="nv">var</span><span class="o">:</span><span class="nv">status_t</span><span class="k k-Symbol">&lt;&amp;&gt;</span>
 </span></code></pre></div></td></tr></table></div></p>
 </li>
 </ul>
@@ -2050,7 +2052,7 @@
 </li>
 <li>
 <p>Syntax:</p>
-<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-29-1"><span class="kd">fn</span><span class="w"> </span><span class="nf">cast</span><span class="w"> </span><span class="p">(</span><span class="nv">data</span><span class="o">:</span><span class="err">&lt;</span><span class="kd">type</span><span class="err">&gt;</span><span class="w"> </span><span class="nv">to</span><span class="o">:</span><span class="err">&lt;</span><span class="kd">type</span><span class="err">&gt;</span><span class="p">)</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">to</span><span class="w"> </span><span class="kd">type</span><span class="err">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">&lt;</span><span class="nv">body</span><span class="err">&gt;</span><span class="w"> </span><span class="p">}</span>
+<div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-29-1"><span class="kd">fn</span><span class="w"> </span><span class="nf">cast</span><span class="w"> </span><span class="pm">(</span><span class="nv">data</span><span class="o">:</span><span class="k k-Symbol">&lt;</span><span class="kd">type</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="nv">to</span><span class="o">:</span><span class="k k-Symbol">&lt;</span><span class="kd">type</span><span class="k k-Symbol">&gt;</span><span class="pm">)</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">to</span><span class="w"> </span><span class="kd">type</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">{</span><span class="w"> </span><span class="k k-Symbol">&lt;</span><span class="nv">body</span><span class="k k-Symbol">&gt;</span><span class="w"> </span><span class="pm">}</span>
 </span></code></pre></div></td></tr></table></div>
 </li>
 <li>
@@ -2060,16 +2062,16 @@
 <p>casting strict data
     <div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
 <span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-30-1"><span class="nv">v1</span><span class="o">:</span><span class="nb">u32</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">42</span>
-</span><span id="__span-30-2"><span class="nv">v2</span><span class="o">:</span><span class="nb">u64</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">v1</span><span class="w"> </span><span class="kd">*</span><span class="w"> </span><span class="nb">u64</span><span class="w">  </span><span class="c1">// now v1 data is cast into u64 and stored in v2</span>
+</span><span id="__span-30-2"><span class="nv">v2</span><span class="o">:</span><span class="nb">u64</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">v1</span><span class="w"> </span><span class="k k-Symbol">*</span><span class="w"> </span><span class="nb">u64</span><span class="w">  </span><span class="c1">// now v1 data is cast into u64 and stored in v2</span>
 </span></code></pre></div></td></tr></table></div></p>
 </li>
 <li>
 <p>casting lazy data
     <div class="language-hhat-heather highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
 <span class="normal">2</span>
-<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-31-1"><span class="nv">@q</span><span class="o">:</span><span class="nb">@bell_t</span><span class="w"> </span><span class="o">=.</span><span class="p">{</span><span class="nv">@s</span><span class="o">=</span><span class="nv">@false</span><span class="w"> </span><span class="nv">@t</span><span class="o">=</span><span class="nv">@false</span><span class="p">}</span>
-</span><span id="__span-31-2"><span class="nf">@sync</span><span class="p">(</span><span class="nv">@q</span><span class="p">)</span>
-</span><span id="__span-31-3"><span class="nv">res</span><span class="o">:</span><span class="nb">hashmap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">@q</span><span class="w"> </span><span class="kd">*</span><span class="w"> </span><span class="nb">hashmap</span><span class="w">  </span><span class="c1">// evaluate lazy data from @q and convert its result as hashmap, storing at res</span>
+<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-31-1"><span class="nv">@q</span><span class="o">:</span><span class="nb">@bell_t</span><span class="w"> </span><span class="o">=.</span><span class="pm">{</span><span class="nv">@s</span><span class="o">=</span><span class="l l-Boolean">@false</span><span class="w"> </span><span class="nv">@t</span><span class="o">=</span><span class="l l-Boolean">@false</span><span class="pm">}</span>
+</span><span id="__span-31-2"><span class="nf">@sync</span><span class="pm">(</span><span class="nv">@q</span><span class="pm">)</span>
+</span><span id="__span-31-3"><span class="nv">res</span><span class="o">:</span><span class="nb">hashmap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">@q</span><span class="w"> </span><span class="k k-Symbol">*</span><span class="w"> </span><span class="nb">hashmap</span><span class="w">  </span><span class="c1">// evaluate lazy data from @q and convert its result as hashmap, storing at res</span>
 </span></code></pre></div></td></tr></table></div></p>
 </li>
 </ul>

@@ -81,13 +81,20 @@ hat = "hhat_lang.toolchain.cli.cli:main"
 [project.entry-points."pygments.lexers"]
 hhat-heather = "hhat_lang.dialects.heather.toolchain.pygments.lexer:HhatLexer"
 
+[project.entry-points."pygments.styles"]
+hhat_heather_light = "hhat_lang.dialects.heather.toolchain.pygments.style:HhatLightStyle"
+hhat_heather_dark = "hhat_lang.dialects.heather.toolchain.pygments.style:HhatDarkStyle"
+
+[project.entry-points."mkdocs.plugins"]
+hhat-heather-pygments = "hhat_lang.dialects.heather.toolchain.pygments.mkdocs_plugin:HhatCssPlugin"
+
 [tool.setuptools_scm]
 root = ".."
 version_scheme = "no-guess-dev"
 local_scheme = "no-local-version"
 
 [project.urls]
-Home = "https://github.com/hhat-lang/hhat_lang"
+Homepage = "https://github.com/hhat-lang/hhat_lang"
 Issues = "https://github.com/hhat-lang/hhat_lang/issues"
 Documentation = "https://docs.hhat-lang.org"
 

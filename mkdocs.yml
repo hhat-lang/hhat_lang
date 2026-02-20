@@ -55,6 +55,7 @@ markdown_extensions:
       line_spans: __span
       pygments_lang_class: true
       use_pygments: true
+      noclasses: false
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
@@ -78,6 +79,7 @@ markdown_extensions:
 plugins:
   - privacy
   - search
+  - hhat-heather-pygments
   - blog:
       blog_toc: true
       post_date_format: full

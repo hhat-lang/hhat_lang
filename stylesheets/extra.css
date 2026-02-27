@@ -1,23 +1,171 @@
-:root > * {
-.md-typeset .admonition,
-.md-typeset details {
-  font-size: 100%
+/* import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;800&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+    --stroke-width: 3px;
+    --hard-shadow: 6px 6px 0px 0px #000000;
+    --hard-shadow-hover: 3px 3px 0px 0px #000000;
 }
 
-}
-
-body {
-  background: var(--md-default-bg-color);
-}
-
+/* LIGHT THEME */
 [data-md-color-scheme="default"] {
-  --md-default-primary-color: #036969;
-  --md-default-fg-color: #263f57;
-  --md-default-bg-color: #fee2c4;
+    --md-primary-fg-color: #E99E08;
+    --md-primary-fg-color--dark: #202020;
+    --md-default-bg-color: #efeded;
+    --md-default-fg-color: #000000e3;
+    --md-accent-fg-color: #202020; 
+    --md-code-bg-color: #dcdcdc;
+    --heading-color: #202020; 
+    --grid-color: rgba(0, 0, 0, 0.07);
 }
 
+/* DARK THEME */
 [data-md-color-scheme="slate"] {
-  --md-default-primary-color: #d8ae2d;
-  --md-default-fg-color: #c0c0c0; /* #9eacba;*/
-  --md-default-bg-color: #152230;
+    --md-primary-fg-color: #1e1e1e; 
+    --md-primary-fg-color--dark: #1e1e1e;
+    --md-default-bg-color: #1e1e1e; 
+    --md-accent-fg-color: #de9905;
+    --md-default-fg-color: #e0e0e0;
+    --md-code-bg-color: #2b2b2b;
+    
+    /* MODIFIED: Changed RGBA to Solid Hex for the theme-colored shadow */
+    --hard-shadow-color: #0a0a0a; 
+    --hard-shadow: 6px 6px 0px 0px var(--hard-shadow-color);
+    
+    --heading-color: var(--md-accent-fg-color);
+    --grid-color: rgba(255, 255, 255, 0.03); /* Subtle white grid */
+}
+
+/* --- GRID BACKGROUND IMPLEMENTATION --- */
+body {
+    background-image: 
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 50px 50px; /* adjust size of grid squares here */
+    background-attachment: fixed;
+}
+
+/* ensuring background transparency so grid shows through */
+.md-container, .md-main, .md-content, .md-sidebar {
+    background: transparent !important;
+}
+
+/* --- STYLING --- */
+
+/* 1. header navigation */
+.md-header {
+    border-bottom: var(--stroke-width) solid #000 !important;
+    background-color: var(--md-primary-fg-color) !important;
+}
+
+/* This targets the inner container to unify the height without displacement */
+.md-header__inner {
+    min-height: 1rem; 
+    display: flex;
+    align-items: center; 
+}
+
+[data-md-color-scheme="slate"] .md-header__title,
+[data-md-color-scheme="slate"] .md-header__button {
+    color: var(--md-accent-fg-color) !important;
+}
+
+/* --- LIGHT THEME SEARCH & GITHUB logo OVERRIDES --- */
+
+[data-md-color-scheme="default"] .md-header {
+    /* targets the text title */
+    color: #202020 !important;
+}
+
+/* 1. Search Bar Text and Icon */
+[data-md-color-scheme="default"] .md-search__input::placeholder {
+    color: #202020 !important; 
+}
+
+[data-md-color-scheme="default"] .md-search__input {
+    color: #202020 !important;
+}
+
+[data-md-color-scheme="default"] .md-search__icon {
+    color: #202020 !important;
+    opacity: 1 !important;
+}
+
+/* 2. GitHub / Repository Link */
+[data-md-color-scheme="default"] .md-source {
+    color: #202020 !important;
+}
+
+[data-md-color-scheme="default"] .md-source__icon svg {
+    fill: #202020 !important; /* Forces the GitHub SVG logo to black */
+}
+
+[data-md-color-scheme="default"] .md-source__repository {
+    font-weight: 800;
+    color: #202020 !important;
+}
+
+/* 3. Search Result "Keys" */
+[data-md-color-scheme="default"] .md-search__input + .md-search__icon {
+    color: #202020 !important;
+}
+
+/* 2. Bold Typography & Headings */
+h1, h2, h3 {
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    color: var(--heading-color) !important;
+}
+
+/* 3. Link Styling (Universal: Orange Hover) */
+.md-typeset a {
+    color: var(--md-accent-fg-color);
+    text-decoration: none !important;
+    font-weight: 700;
+    transition: color 0.2s ease;
+}
+
+.md-typeset a:hover {
+    color: #FF9100 !important;
+}
+
+/* 4. Code Blocks */
+.highlight {
+    border: var(--stroke-width) solid #000 !important;
+    box-shadow: var(--hard-shadow);
+    border-radius: 0px !important;
+}
+
+code {
+    font-family: 'Space Mono', monospace !important;
+    font-weight: 700;
+}
+
+/* 5. Active Navigation Link & Sidebar Hover */
+.md-nav__link--active {
+    color: var(--md-accent-fg-color) !important;
+    font-weight: 800 !important;
+}
+
+.md-nav__link:hover {
+    color: #FF9100 !important;
+}
+
+/* --- THEME-SPECIFIC Icon SWAP --- */
+
+/* Switches to icon_dark.svg when the user activates Dark Mode (slate) */
+[data-md-color-scheme="slate"] .md-header__button.md-logo img {
+  content: url("../assets/icon_dark.svg");
+}
+
+/* IMAGE DEFAULT & SLATE */
+[data-md-color-scheme="default"] img[src$="#only-dark"],
+[data-md-color-scheme="default"] img[src$="#gh-dark-mode-only"] {
+  display: none; /* Hide dark images in light mode */
+}
+
+[data-md-color-scheme="slate"] img[src$="#only-light"],
+[data-md-color-scheme="slate"] img[src$="#gh-light-mode-only"] {
+  display: none; /* Hide light images in dark mode */
 }

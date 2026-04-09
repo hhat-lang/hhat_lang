@@ -68,7 +68,7 @@ dev = [
     "isort",
     "pre-commit",
     "mkdocs",
-    "mkdocs-material",
+    "mkdocs-material[imaging]",
     "mkdocs-autoapi",
     "mkdocstrings",
     "markdown",

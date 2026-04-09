@@ -1,5 +1,8 @@
 site_name: H-hat quantum programming language
 site_url: https://docs.hhat-lang.org/
+site_author: H-hat team
+site_description: H-hat is a rule system, compiler framework, and a statically typed, functional and distributed system inspired, quantum programming language.
+
 repo_url: "https://github.com/hhat-lang/hhat_lang/"
 repo_name: hhat-lang/hhat_lang
 
@@ -76,6 +79,7 @@ markdown_extensions:
 
 plugins:
   - search
+  - social
   - hhat-heather-pygments
   - blog:
       blog_toc: true

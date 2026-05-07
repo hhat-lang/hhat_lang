@@ -3,6 +3,9 @@ name = "hhat_lang"
 version = "0.3.0-alpha.1"
 edition = "2024"
 
+[workspace]
+members = ["hhat_core", "hhat_dialects/hhat_heather"]
+
 [dependencies]
 peg = "0.8.5"
 walkdir = "2.5.0"

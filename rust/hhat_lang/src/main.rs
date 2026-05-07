@@ -1,8 +1,5 @@
 #![allow(dead_code, unused)]
 
-use std::collections::HashMap;
-use peg;
-
 mod ir;
 mod parse;
 mod passes;

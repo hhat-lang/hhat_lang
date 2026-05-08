@@ -148,9 +148,26 @@ code {
     font-weight: 800 !important;
 }
 
-.md-nav__link:hover {
-    color: #FF9100 !important;
+
+[data-md-color-scheme="default"] .md-tabs__link:hover {
+    color: #000000e3;
 }
+
+[data-md-color-scheme="default"] .md-tabs__item--active .md-tabs__link {
+    color: #000000e3 !important;
+    font-weight: 600 !important;
+}
+
+
+[data-md-color-scheme="slate"] .md-tabs__link:hover {
+    color: #FF9100;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__item--active .md-tabs__link {
+    color: #de9905 !important;
+    font-weight: 600 !important;
+}
+
 
 /* --- THEME-SPECIFIC Icon SWAP --- */
 

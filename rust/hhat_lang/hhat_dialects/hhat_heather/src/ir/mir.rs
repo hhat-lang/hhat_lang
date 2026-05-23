@@ -1,3 +1,6 @@
+
+/// Middle Intermediate Representation
+///
 pub struct MIRModule {
 
 }

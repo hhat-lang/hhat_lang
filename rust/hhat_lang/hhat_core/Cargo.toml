@@ -5,3 +5,5 @@ edition = "2024"
 
 [dependencies]
 cranelift-codegen = "0.131.1"
+strum = "0.28.0"
+strum_macros = "0.28.0"

@@ -6,8 +6,7 @@
 
 > [!WARNING]
 >
->    This is a work in progress and may be seeing as such. Errors, inconsistencies,
->    tons of experimentation are modifications are happening. Until the version 0.3 is released, it is prone to breaking changes.
+>    This is project under development. You can help contributing with it. Take a look at the issues
 >
 
 *H-hat is a rule system, compiler framework, and a statically typed, functional and distributed system inspired, quantum programming language.*

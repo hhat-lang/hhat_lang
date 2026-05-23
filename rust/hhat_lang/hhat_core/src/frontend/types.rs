@@ -1,8 +1,14 @@
+use crate::core::ArenaIndexHolder;
+use std::fmt::Debug;
+use std::slice::Iter;
 use crate::SymbolId;
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
+
 
 /// Define all available types.
 ///
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Ty {
     Primitive(TyPrimitive),
     Struct(TyStruct),
@@ -12,8 +18,9 @@ pub enum Ty {
 
 /// Define primitive types.
 ///
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, EnumIter)]
 pub enum TyPrimitive {
+    // Classical
     Bool,
     U32,
     U64,
@@ -24,11 +31,23 @@ pub enum TyPrimitive {
     C64,
     C128,
     String,
+    // Quantum
+    QBool,
+    QU2,
+    QU3,
+    QU4,
+    QU8,
 }
 
 /// Define struct type.
 ///
-#[derive(Clone, Debug)]
+/// Ex:
+/// ```
+/// type smt { m1:ty1, m2:ty2 }
+/// type @smt { @m1:@ty1, @m2:@ty2, m3:ty3 }
+/// ```
+///
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct TyStruct {
     pub name: SymbolId,
     pub members: Vec<(SymbolId, Ty)>,
@@ -46,7 +65,16 @@ impl TyStruct {
 
     pub fn add_member(&mut self, name: &SymbolId, ty: Ty) {
         match self.locked {
-            false => self.members.push((name.clone(), ty)),
+            false => {
+                if !self.name.is_quantum() && name.is_quantum() {
+                    panic!(
+                        "cannot add quantum member {:?} ({:?}) to a classical struct {:?}.",
+                        name, ty, self.name
+                    )
+                } else {
+                    self.members.push((name.clone(), ty))
+                }
+            },
             true => panic!(
                 "cannot add more members ({:?}, {:?}) to struct; it's already locked in",
                 name, ty
@@ -61,11 +89,15 @@ impl TyStruct {
     pub fn is_locked(&self) -> bool {
         self.locked
     }
+
+    pub fn iter(&self) -> Iter<(SymbolId, Ty)> {
+        self.members.iter()
+    }
 }
 
 /// Define enum type.
 ///
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct TyEnum {
     pub name: SymbolId,
     pub variants: Vec<TyVariants>,
@@ -89,6 +121,11 @@ impl TyEnum {
             }
             (false, None) => {
                 // named, labeled value
+                // warning:
+                //     this will cause overflow for enums with more than 32 elements
+                //
+                // todo: rethink it, decide whether it's worth keeping
+                //  it small to enable logical operations or not.
                 let variant_value = 2u32.pow(self.variants.len() as u32);
                 self.variants
                     .push(TyVariants::Named(name.clone(), variant_value))
@@ -107,9 +144,13 @@ impl TyEnum {
     pub fn is_locked(&self) -> bool {
         self.locked
     }
+
+    pub fn iter(&self) -> Iter<TyVariants> {
+        self.variants.iter()
+    }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum TyVariants {
     Named(SymbolId, u32),
     Tagged(SymbolId, TyStruct),
@@ -126,13 +167,13 @@ impl TyVariants {
 
 /// Define array type (static or dynamic/vector-like).
 ///
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct TyArray {
     pub element: Box<Ty>,
     pub kind: TyArrayKind,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum TyArrayKind {
     /// Compile-time known length. Stored inline.
     Static(u32),

@@ -90,7 +90,7 @@ impl TyStruct {
         self.locked
     }
 
-    pub fn iter(&self) -> Iter<(SymbolId, Ty)> {
+    pub fn iter(&'_ self) -> Iter<'_, (SymbolId, Ty)> {
         self.members.iter()
     }
 }
@@ -145,7 +145,7 @@ impl TyEnum {
         self.locked
     }
 
-    pub fn iter(&self) -> Iter<TyVariants> {
+    pub fn iter(&'_ self) -> Iter<'_, TyVariants> {
         self.variants.iter()
     }
 }

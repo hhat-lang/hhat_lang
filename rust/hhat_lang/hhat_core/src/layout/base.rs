@@ -123,8 +123,8 @@ impl LayoutCache {
                     )
                 )
             },
-            Ty::Enum(e) => { todo!() },
-            Ty::Array(a) => { todo!() },
+            Ty::Enum(_e) => { todo!() },
+            Ty::Array(_a) => { todo!() },
         }
     }
 

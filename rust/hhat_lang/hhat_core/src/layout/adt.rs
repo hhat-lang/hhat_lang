@@ -2,7 +2,6 @@
 //! Composite algebraic data types for Cranelift framework forms.
 //!
 
-use std::env::var;
 use crate::core::{ArenaIndexHolder, Arenable};
 use crate::frontend::types::{TyEnum, TyStruct, TyVariants};
 use crate::layout::base::{LayoutCache, TypeLayout};
@@ -93,7 +92,7 @@ impl EnumLayout {
         let mut variants: Vec<VariantLayout> = Vec::with_capacity(ty.variants.len());
         let _ = ty.iter().map(|v| {
            match v {
-               TyVariants::Named(sid, id) => {
+               TyVariants::Named(sid, _) => {
                    variants.push(
                        VariantLayout {
                            name: sid.clone(),
@@ -101,11 +100,11 @@ impl EnumLayout {
                        }
                    );
                },
-               TyVariants::Tagged(sid, s) => {
+               TyVariants::Tagged(_sid, s) => {
                    let _ = s.iter().map(|(v_sid, ts)| {
                        let tmp_struct_layout = layout_cache.layout_of(ts);
                        let struct_layout: StructLayout = match tmp_struct_layout.clone() {
-                           TypeLayout::Struct(sl, mr) => {
+                           TypeLayout::Struct(sl, _) => {
                                sl
                            },
                            a => panic!("invalid variant entry layout ({:?}) for enums", a),

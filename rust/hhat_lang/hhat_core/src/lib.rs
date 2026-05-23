@@ -1,4 +1,4 @@
-#[allow(dead_code, unused)]
+#![allow(dead_code, unused)]
 
 pub mod frontend;
 pub mod backend;

@@ -69,7 +69,7 @@ pub enum MIRExpr {
     Literal(LiteralId, Option<MIRModifiers>),
     Call {
         name: SymbolId,
-        args: thin_vec::ThinVec<Box<MIRExpr>>,
+        args: Vec<Box<MIRExpr>>,
         modifiers: Option<MIRModifiers>,
     },
     MetaCall(SymbolId, MetaCallKind),

@@ -1,5 +1,3 @@
-use std::ops::{Index, IndexMut};
-
 
 /// An instance that can be inside an arena.
 ///

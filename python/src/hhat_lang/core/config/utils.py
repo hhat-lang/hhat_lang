@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import wraps
 from pathlib import Path
-from typing import Callable, Any
+from typing import Any, Callable
 
 conversion_types: dict[str, Callable[[Path], dict | Any]] = dict()
 """
@@ -33,7 +33,10 @@ def read_json(file: Path) -> dict:
 
 @insert_reader("toml")
 def read_toml(file: Path) -> Any:
-    raise NotImplementedError("reading TOML config files for H-hat not implemented yet.")
+    import tomllib
+
+    with open(file, "rb") as fp:
+        return tomllib.load(fp)
 
 
 @insert_reader("yaml")

@@ -10,12 +10,13 @@ from rich.console import Console
 from rich.panel import Panel
 
 from hhat_lang.toolchain.project.new import (
+    create_new_const_file,
     create_new_fn_file,
     create_new_project,
     create_new_type_file,
-    create_new_const_file,
 )
 from hhat_lang.toolchain.project.run import run_project
+from hhat_lang.toolchain.project.update import update_project
 from hhat_lang.toolchain.project.utils import get_proj_dir
 
 app = typer.Typer(
@@ -70,6 +71,7 @@ def help(command: Optional[str] = typer.Argument(None, help="Command to get help
                 "[bold]Available commands:[/bold]\n"
                 "  [bold]new[/bold]     Create a new project, file, or type file\n"
                 "  [bold]run[/bold]     Run the current H-hat project\n"
+                "  [bold]update[/bold]  Synchronize docs with project code\n"
                 "  [bold]help[/bold]    Show this help message\n\n"
                 "Use [bold]hat help <command>[/bold] for detailed information about a command.",
                 title="hat - Command Line Interface",
@@ -263,6 +265,41 @@ def run() -> None:
             Panel(
                 f"An error occurred while running the project: {str(e)}\n\n"
                 "Please check your code for errors.",
+                title="⚠ Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+
+
+@app.command()
+def update() -> None:
+    """
+    Synchronize project documentation with current H-hat code files.
+
+    This command must be executed from within a H-hat project directory.
+
+    Example:
+        hat update
+    """
+    try:
+        project_dir = get_proj_dir()
+        summary = update_project(project_dir)
+        console.print(
+            Panel(
+                "Documentation synchronized successfully!\n\n"
+                f"Created docs: {summary.created_docs}\n"
+                f"Updated docs: {summary.updated_docs}\n"
+                f"Orphaned docs: {summary.orphaned_docs}",
+                title="✓ Success",
+                border_style="green",
+            )
+        )
+    except Exception as e:
+        console.print(
+            Panel(
+                f"An error occurred while updating documentation: {str(e)}\n\n"
+                "Please make sure you're inside a valid H-hat project directory.",
                 title="⚠ Error",
                 border_style="red",
             )

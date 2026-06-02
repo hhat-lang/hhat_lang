@@ -10,7 +10,7 @@ authors = [
     { name = "Eduardo Maschio", email = "eduardo.maschio@hhat-lang.org" },
     { name = "Inho Choi", email = "inho.quantum@gmail.com" }
 ]
-readme = "README"
+readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 classifiers = [

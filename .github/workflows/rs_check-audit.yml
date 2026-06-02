@@ -1,0 +1,74 @@
+name: rs_check-audit
+
+on:
+  push:
+    branches: [main, dev/rust]
+  pull_request:
+    branches: [main, dev/rust]
+
+permissions:
+  contents: read
+
+jobs:
+  check-audit:
+    name: cargo / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        rust: [stable]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect Rust crate
+        id: rust
+        shell: bash
+        run: |
+          if [ -f rust/hhat_lang/Cargo.toml ] && find rust -type f -name '*.rs' | grep -q .; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Rust ${{ matrix.rust }}
+        if: steps.rust.outputs.present == 'true'
+        shell: bash
+        run: |
+          rustup toolchain install "${{ matrix.rust }}" --profile minimal --component rustfmt,clippy
+          rustup default "${{ matrix.rust }}"
+
+      - name: Generate lockfile for checks
+        if: steps.rust.outputs.present == 'true'
+        working-directory: rust/hhat_lang
+        run: cargo generate-lockfile
+
+      - name: Check formatting
+        if: steps.rust.outputs.present == 'true'
+        working-directory: rust/hhat_lang
+        run: cargo fmt --all -- --check
+
+      - name: Check crate
+        if: steps.rust.outputs.present == 'true'
+        working-directory: rust/hhat_lang
+        run: cargo check --all-targets --locked
+
+      - name: Run tests
+        if: steps.rust.outputs.present == 'true'
+        working-directory: rust/hhat_lang
+        run: cargo test --all-targets --locked
+
+      - name: Run analyzer
+        if: steps.rust.outputs.present == 'true'
+        working-directory: rust/hhat_lang
+        run: cargo clippy --all-targets --all-features --locked
+
+      - name: Install cargo-audit
+        if: steps.rust.outputs.present == 'true'
+        run: cargo install cargo-audit --locked
+
+      - name: Audit dependencies
+        if: steps.rust.outputs.present == 'true'
+        working-directory: rust/hhat_lang
+        run: cargo audit

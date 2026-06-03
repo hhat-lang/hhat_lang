@@ -25,6 +25,9 @@ pub enum PrimitiveKind {
 pub struct PrimitiveLayout {
     pub size: u32,
     pub align: u32,
+    /// Number of qubits this primitive occupies in the quantum layout.
+    /// Always 0 for classical primitives.
+    pub qubits: u32,
     pub kind: PrimitiveKind,
 }
 
@@ -34,77 +37,33 @@ impl PrimitiveLayout {
     /// Get a layout for primitive types.
     ///
     pub fn layout(ty: &TyPrimitive, arch: Option<Arch>) -> Self {
-        match ty {
-            TyPrimitive::Bool => PrimitiveLayout {
-                size: 1,
-                align: 1,
-                kind: PrimitiveKind::Single(types::I8)
+        // qubit footprint is independent of the classical (size/align/kind) one
+        let qubits = ty.qubits();
+        let (size, align, kind) = match ty {
+            TyPrimitive::Bool => (1, 1, PrimitiveKind::Single(types::I8)),
+            TyPrimitive::U32 | TyPrimitive::I32 => (4, 4, PrimitiveKind::Single(types::I32)),
+            TyPrimitive::U64 | TyPrimitive::I64 => (8, 8, PrimitiveKind::Single(types::I64)),
+            TyPrimitive::F32 => (4, 4, PrimitiveKind::Single(types::F32)),
+            TyPrimitive::F64 => (8, 8, PrimitiveKind::Single(types::F64)),
+            TyPrimitive::C64 => (8, 4, PrimitiveKind::Pair(types::F32, types::F32)),
+            TyPrimitive::C128 => (16, 8, PrimitiveKind::Pair(types::F64, types::F64)),
+            TyPrimitive::String => match arch {
+                Some(a) => (
+                    a.pointer_size,
+                    a.pointer_align,
+                    PrimitiveKind::Pair(a.pointer_type, a.pointer_type),
+                ),
+                None => panic!("string must have Arch definition (32 or 64 bits)"),
             },
-            TyPrimitive::U32 | TyPrimitive::I32 => PrimitiveLayout {
-                size: 4,
-                align: 4,
-                kind: PrimitiveKind::Single(types::I32)
-            },
-            TyPrimitive::U64 | TyPrimitive::I64 => PrimitiveLayout {
-                size: 8,
-                align: 8,
-                kind: PrimitiveKind::Single(types::I64)
-            },
-            TyPrimitive::F32 => PrimitiveLayout {
-                size: 4,
-                align: 4,
-                kind: PrimitiveKind::Single(types::F32)
-            },
-            TyPrimitive::F64 => PrimitiveLayout {
-                size: 8,
-                align: 8,
-                kind: PrimitiveKind::Single(types::F64)
-            },
-            TyPrimitive::C64 => PrimitiveLayout {
-                size: 8,
-                align: 4,
-                kind: PrimitiveKind::Pair(types::F32, types::F32)
-            },
-            TyPrimitive::C128 => PrimitiveLayout {
-                size: 16,
-                align: 8,
-                kind: PrimitiveKind::Pair(types::F64, types::F64)
-            },
-            TyPrimitive::String => if let Some(a) = arch {
-                PrimitiveLayout {
-                    size: a.pointer_size,
-                    align: a.pointer_align,
-                    kind: PrimitiveKind::Pair(a.pointer_type, a.pointer_type),
-                }
-            } else {
-                panic!("string must have Arch definition (32 or 64 bits)")
-            }
-            TyPrimitive::QBool => PrimitiveLayout {
-                size: 0,
-                align: 0,
-                kind: PrimitiveKind::None,
-            },
-            TyPrimitive::QU2 => PrimitiveLayout {
-                size: 0,
-                align: 0,
-                kind: PrimitiveKind::None,
-            },
-            TyPrimitive::QU3 => PrimitiveLayout {
-                size: 0,
-                align: 0,
-                kind: PrimitiveKind::None,
-            },
-            TyPrimitive::QU4 => PrimitiveLayout {
-                size: 0,
-                align: 0,
-                kind: PrimitiveKind::None,
-            },
-            TyPrimitive::QU8 => PrimitiveLayout {
-                size: 0,
-                align: 0,
-                kind: PrimitiveKind::None,
-            },
-        }
+            // Quantum primitives have no classical footprint (zero-sized, zero-aligned);
+            // their footprint lives in `qubits` instead.
+            TyPrimitive::QBool
+            | TyPrimitive::QU2
+            | TyPrimitive::QU3
+            | TyPrimitive::QU4
+            | TyPrimitive::QU8 => (0, 0, PrimitiveKind::None),
+        };
+        PrimitiveLayout { size, align, qubits, kind }
     }
 }
 

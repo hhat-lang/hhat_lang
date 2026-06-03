@@ -1,0 +1,61 @@
+name: rs_check-audit
+
+on:
+  pull_request:
+    branches: [main, "dev/**"]
+  push:
+    branches: [main, "dev/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  detect-rust:
+    name: Detect Rust sources
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      has-rust: ${{ steps.detect.outputs.has-rust }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          if git ls-files "rust/**" | grep -q .; then
+            echo "has-rust=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-rust=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  check-audit:
+    name: Rust check/audit (${{ matrix.os }})
+    needs: detect-rust
+    if: needs.detect-rust.outputs.has-rust == 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: rust/hhat_lang
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust stable
+        run: |
+          rustup toolchain install stable --profile minimal --component clippy,rustfmt
+          rustup default stable
+      - name: Fetch locked dependencies
+        run: cargo fetch --locked
+      - name: Check formatting
+        run: cargo fmt --all --check
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Check build
+        run: cargo check --all-targets --all-features
+      - name: Run tests
+        run: cargo test --all-targets --all-features
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+      - name: Audit dependencies
+        run: cargo audit

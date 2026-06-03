@@ -13,7 +13,6 @@ impl Path {
     pub fn len(&self) -> usize {
         self.0.len()
     }
-
 }
 
 #[repr(transparent)]
@@ -28,7 +27,6 @@ pub struct ExprId(pub u32);
 #[repr(transparent)]
 pub struct ModuleId(pub u32);
 
-
 /// Computational backend kind.
 ///
 /// Defines the rules and execution planner to run.
@@ -40,6 +38,7 @@ pub struct ModuleId(pub u32);
 /// - CPU
 /// - QPU  (lazy mode only)
 ///
+#[allow(clippy::upper_case_acronyms)]
 pub enum BackendKind {
     CPU,
     /// QPUs can only execute on lazy mode.
@@ -58,10 +57,7 @@ impl BackendKind {
             BackendKind::CPU => "",
             BackendKind::QPU => "@",
         }
-    } 
+    }
 }
 
-
-pub struct SymbolContext {
-
-}
+pub struct SymbolContext {}

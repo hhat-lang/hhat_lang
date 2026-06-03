@@ -1,6 +1,6 @@
-use std::env;
-use crate::ir::ids::Path;
 use crate::ir::hir::{Content, Imports};
+use crate::ir::ids::Path;
+use std::env;
 
 /// module for HIR.
 /// First module produced for the HIR.
@@ -9,24 +9,19 @@ pub struct HIRModule {
     /// module name as a vector of strings (`(dir(,dir)*,)*file_name`)
     pub name: Path,
     pub imports: Vec<Imports>,
-    pub content: Content
+    pub content: Content,
 }
-
 
 impl HIRModule {
     pub fn new(path: String) -> Self {
         todo!()
     }
 
-    fn string_to_vec(path_str: &String) -> Vec<String> {
-        let x: Vec<String> = path_str.split("/")
-            .filter_map(|x| Some(String::from(x)))
-            .collect();
+    fn string_to_vec(path_str: &str) -> Vec<String> {
+        let x: Vec<String> = path_str.split('/').map(String::from).collect();
         x
     }
-
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -37,6 +32,5 @@ mod tests {
         let path_str = String::from("some/dir/like/str");
         let res = HIRModule::string_to_vec(&path_str);
         println!("{:?}", res);
-
     }
 }

@@ -1,12 +1,5 @@
-pub struct TypeDef {
+pub struct TypeDef {}
 
-}
+pub struct FieldId {}
 
-pub struct FieldId {
-
-}
-
-pub struct VariantId {
-
-}
-
+pub struct VariantId {}

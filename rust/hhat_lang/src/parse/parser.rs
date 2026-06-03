@@ -3,7 +3,6 @@
 
 use peg;
 
-
 peg::parser!(
     /// Function grammar
     pub grammar fn_program() for str {
@@ -19,14 +18,12 @@ peg::parser!(
 
 );
 
-
 peg::parser!(
     /// Type grammar
     pub grammar type_program() for str {
 
     }
 );
-
 
 peg::parser!(
     /// Const grammar

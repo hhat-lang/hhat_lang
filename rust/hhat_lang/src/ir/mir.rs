@@ -1,6 +1,5 @@
 use crate::ir::ids::{ExprId, LiteralId, SymbolId};
 
-
 pub enum MetaCallKind {
     /// Option (cases) meta-function
     Optn,
@@ -9,7 +8,6 @@ pub enum MetaCallKind {
     /// Option-body (cases-blocks) meta-function
     OptBdn,
 }
-
 
 pub enum MIRStmt {
     Declare {
@@ -28,7 +26,6 @@ pub enum MIRStmt {
     Return(MIRExpr),
 }
 
-
 /// Keep kinds of types enumerated:
 /// - plain
 /// - array
@@ -46,13 +43,11 @@ pub enum MIRTypeKind {
     GenericArray,
 }
 
-
 pub struct MIRTypeName {
     name: SymbolId,
     ty_kind: MIRTypeKind,
     modifiers: MIRModifiers,
 }
-
 
 /// Hold MIR modifiers:
 /// ```
@@ -62,7 +57,6 @@ pub struct MIRTypeName {
 pub struct MIRModifiers {
     value: Vec<MIRExpr>,
 }
-
 
 pub enum MIRExpr {
     Id(SymbolId, Option<MIRModifiers>),
@@ -81,7 +75,6 @@ pub enum MIRExpr {
     DataMember(Box<MIRExpr>, Option<MIRModifiers>),
 }
 
-
 pub enum MIRAssign {
     /// ```
     /// x = y
@@ -92,7 +85,10 @@ pub enum MIRAssign {
     /// x.a.{A=z B=w}
     /// ```
     /// etc.
-    Member { name: SymbolId, member_value: Box<MIRAssign> },
+    Member {
+        name: SymbolId,
+        member_value: Box<MIRAssign>,
+    },
     /// ```
     /// x.{a=y b=z}
     /// x.{a.{A=z1 B=z2} b.{C=z3 D=z4}}
@@ -100,7 +96,6 @@ pub enum MIRAssign {
     /// etc.
     Struct(Vec<MIRAssign>),
 }
-
 
 pub enum MIRTypeDef {
     Struct {
@@ -110,13 +105,15 @@ pub enum MIRTypeDef {
     Enum {
         ty: SymbolId,
         variants: MIREnumVariants,
-    }
+    },
 }
-
 
 pub struct MIRStructMember(SymbolId, MIRTypeName);
 
 pub enum MIREnumVariants {
     SingleValue(SymbolId),
-    StructValue { name: SymbolId, members: Vec<MIRStructMember> },
+    StructValue {
+        name: SymbolId,
+        members: Vec<MIRStructMember>,
+    },
 }

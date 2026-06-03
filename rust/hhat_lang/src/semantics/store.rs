@@ -1,4 +1,1 @@
-
-pub struct SemanticsTable {
-
-}
+pub struct SemanticsTable {}

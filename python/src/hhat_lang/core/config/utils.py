@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import wraps
 from pathlib import Path
-from typing import Callable, Any
+from typing import Any, Callable
 
 conversion_types: dict[str, Callable[[Path], dict | Any]] = dict()
 """
@@ -28,12 +28,16 @@ def insert_reader(ext: str) -> Callable:
 def read_json(file: Path) -> dict:
     import json
 
-    return json.load(open(file))
+    with file.open(encoding="utf-8") as fp:
+        return json.load(fp)
 
 
 @insert_reader("toml")
 def read_toml(file: Path) -> Any:
-    raise NotImplementedError("reading TOML config files for H-hat not implemented yet.")
+    import tomllib
+
+    with file.open("rb") as fp:
+        return tomllib.load(fp)
 
 
 @insert_reader("yaml")
@@ -41,10 +45,14 @@ def read_yaml(file: Path) -> dict:
     raise NotImplementedError("reading YAML config files for H-hat not implemented yet.")
 
 
-def read_file(file: Path) -> dict | Any:
+def read_file(file: Path | str) -> dict | Any:
     """
     Reads H-hat's project configuration file.
     """
 
-    read_fn: Callable[[Path], dict | Any] = conversion_types.get(file.name.split(".")[-1])
+    file = Path(file)
+    read_fn: Callable[[Path], dict | Any] = conversion_types.get(file.suffix.removeprefix("."))
+    if read_fn is None:
+        raise ValueError(f"unsupported H-hat configuration file type: {file.suffix}")
+
     return read_fn(file)

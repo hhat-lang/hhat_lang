@@ -30,8 +30,12 @@ impl StructLayout {
                 struct_size += prev_size.abs_diff(tmp_size);  // add padding
             }
             prev_size = tmp_size;
-            // align should be 1, 4, 8, so it's safe to unwrap
-            struct_align = struct_align.checked_next_multiple_of(tmp_align).unwrap();
+            // Quantum members have no classical alignment (align == 0); skip them so
+            // we don't try to round up to a multiple of zero. Classical aligns are
+            // 1, 4 or 8, so the unwrap is safe.
+            if tmp_align > 0 {
+                struct_align = struct_align.checked_next_multiple_of(tmp_align).unwrap();
+            }
             struct_offset += struct_align;
             members.push(
                 MemberLayout {

@@ -94,6 +94,12 @@ impl LayoutCache {
         self.cache.contains_key(ty)
     }
 
+    /// Compute and store the layout for a type (and, recursively, its members).
+    pub fn insert(&mut self, ty: &Ty) -> Option<TypeLayout> {
+        let arch = Some(self.arch);
+        self.insert_layout(ty, &arch)
+    }
+
     fn insert_layout(&mut self, ty: &Ty, arch: &Option<Arch>) -> Option<TypeLayout> {
         match ty.clone() {
             Ty::Primitive(p) => self.cache.insert(

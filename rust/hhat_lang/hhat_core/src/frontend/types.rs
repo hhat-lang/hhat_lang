@@ -39,6 +39,33 @@ pub enum TyPrimitive {
     QU8,
 }
 
+impl TyPrimitive {
+    /// Number of qubits a primitive type occupies in the quantum memory layout.
+    /// Classical primitives occupy no qubits.
+    pub fn qubits(&self) -> u32 {
+        match self {
+            TyPrimitive::QBool => 1,
+            TyPrimitive::QU2 => 2,
+            TyPrimitive::QU3 => 3,
+            TyPrimitive::QU4 => 4,
+            TyPrimitive::QU8 => 8,
+            _ => 0,
+        }
+    }
+
+    /// Whether this primitive is a quantum type.
+    pub fn is_quantum(&self) -> bool {
+        matches!(
+            self,
+            TyPrimitive::QBool
+                | TyPrimitive::QU2
+                | TyPrimitive::QU3
+                | TyPrimitive::QU4
+                | TyPrimitive::QU8
+        )
+    }
+}
+
 /// Define struct type.
 ///
 /// Ex:

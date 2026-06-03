@@ -9,5 +9,6 @@
 
 pub mod arch;
 pub mod primitives;
+pub mod quantum;
 mod adt;
 mod base;

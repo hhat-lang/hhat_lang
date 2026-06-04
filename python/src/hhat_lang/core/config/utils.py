@@ -33,7 +33,10 @@ def read_json(file: Path) -> dict:
 
 @insert_reader("toml")
 def read_toml(file: Path) -> Any:
-    raise NotImplementedError("reading TOML config files for H-hat not implemented yet.")
+    import tomllib
+
+    with open(file, "rb") as config_file:
+        return tomllib.load(config_file)
 
 
 @insert_reader("yaml")

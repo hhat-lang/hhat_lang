@@ -16,6 +16,7 @@ from hhat_lang.toolchain.project.new import (
     create_new_const_file,
 )
 from hhat_lang.toolchain.project.run import run_project
+from hhat_lang.toolchain.project.update import update_project
 from hhat_lang.toolchain.project.utils import get_proj_dir
 
 app = typer.Typer(
@@ -69,6 +70,7 @@ def help(command: Optional[str] = typer.Argument(None, help="Command to get help
                 "[bold]H-hat Language Toolchain[/bold]\n\n"
                 "[bold]Available commands:[/bold]\n"
                 "  [bold]new[/bold]     Create a new project, file, or type file\n"
+                "  [bold]update[/bold]  Sync generated documentation signatures\n"
                 "  [bold]run[/bold]     Run the current H-hat project\n"
                 "  [bold]help[/bold]    Show this help message\n\n"
                 "Use [bold]hat help <command>[/bold] for detailed information about a command.",
@@ -220,6 +222,51 @@ def new(
                 f"An unexpected error occurred: {str(e)}\n\n"
                 "If this persists, please report it as an issue.",
                 title="⚠ Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+
+
+@app.command()
+def update() -> None:
+    """
+    Update generated documentation signatures for the current H-hat project.
+
+    The command scans `src/**/*.hat`, mirrors the files into `docs/**/*.md`, and
+    refreshes only the generated signature block while preserving hand-written
+    documentation outside that block.
+
+    Example:
+        hat update
+    """
+    try:
+        proj_dir = get_proj_dir()
+        result = update_project(proj_dir)
+        console.print(
+            Panel(
+                "Documentation signatures updated successfully!\n\n"
+                f"Files scanned: {result['files']}\n"
+                f"Signatures found: {result['signatures']}",
+                title="鉁?Success",
+                border_style="green",
+            )
+        )
+    except ValueError as e:
+        console.print(
+            Panel(
+                str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
+                title="鈿?Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(
+            Panel(
+                f"An unexpected error occurred: {str(e)}\n\n"
+                "If this persists, please report it as an issue.",
+                title="鈿?Error",
                 border_style="red",
             )
         )

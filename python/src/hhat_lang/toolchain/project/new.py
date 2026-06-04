@@ -35,6 +35,8 @@ def _is_project_scope(project_name: str | Path, some_path: Path) -> bool:
 
 
 def create_new_project(project_name: Path) -> Any:
+    if project_name.exists():
+        raise FileExistsError(f"Project already exists: {project_name}")
     _create_template_folders(project_name)
     _create_template_files(project_name)
 
@@ -72,7 +74,7 @@ def create_new_fn_file(project_root: Path, file_name: str | Path) -> Path:
     file_path: Path = project_root / SOURCE_FOLDER_NAME / file_name
 
     if file_path.is_file():
-        raise FileExistsError(f"File {file_path}.hat already exists")
+        raise FileExistsError(f"File already exists: {file_path}")
 
     if file_path.parent != Path("."):
         file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -93,7 +95,7 @@ def create_new_type_file(project_path: Path, file_name: str | Path) -> Path:
     file_path: Path = project_path / SOURCE_TYPES_PATH / file_name
 
     if file_path.is_file():
-        raise FileExistsError(f"File {file_path}.hat already exists")
+        raise FileExistsError(f"File already exists: {file_path}")
 
     if file_path.parent != Path("."):
         file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -114,7 +116,7 @@ def create_new_const_file(project_path: Path, file_name: str | Path) -> Path:
     file_path: Path = project_path / SOURCE_FOLDER_NAME / file_name
 
     if file_path.is_file():
-        raise FileExistsError(f"File {file_path}.hat already exists")
+        raise FileExistsError(f"File already exists: {file_path}")
 
     if file_path.parent != Path("."):
         file_path.parent.mkdir(parents=True, exist_ok=True)

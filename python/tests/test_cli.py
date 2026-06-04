@@ -50,6 +50,7 @@ def test_help_command():
     assert result.exit_code == 0
     assert "Available commands:" in result.stdout
     assert "new" in result.stdout
+    assert "update" in result.stdout
     assert "run" in result.stdout
     assert "help" in result.stdout
 
@@ -127,6 +128,69 @@ def test_create_type_file():
         assert result.exit_code == 0
         assert "created successfully" in result.stdout
         assert "customtype.hat" in result.stdout
+
+
+def test_update_project_documentation_signatures():
+    with temp_dir("testproject_update_docs") as tp:
+        runner.invoke(app, ["new", tp])
+        os.chdir(tp)
+
+        Path("src/math.hat").write_text(
+            """
+            fn sum(a:i64 b:i64) i64 { ::add(a b) }
+            fn @rotate(@theta:@f64 target:@bool) @bool { ::target }
+            """
+        )
+        Path("src/hat_types/geometry.hat").write_text(
+            """
+            type point {x:i32 y:i32}
+            type @qflag:@bool
+            """
+        )
+
+        result = runner.invoke(app, ["update"])
+
+        assert result.exit_code == 0
+        assert "Documentation signatures updated successfully" in result.stdout
+        assert "Signatures found: 4" in result.stdout
+
+        math_doc = Path("docs/math.hat.md").read_text()
+        assert "### sum" in math_doc
+        assert "| a | i64 | classical |" in math_doc
+        assert "### @rotate" in math_doc
+        assert "| @theta | @f64 | quantum |" in math_doc
+
+        type_doc = Path("docs/hat_types/geometry.hat.md").read_text()
+        assert "### point" in type_doc
+        assert "- Kind: struct" in type_doc
+        assert "| x | i32 | classical |" in type_doc
+        assert "### @qflag" in type_doc
+        assert "- Kind: alias" in type_doc
+        assert "- Type: @bool" in type_doc
+
+
+def test_update_preserves_handwritten_documentation():
+    with temp_dir("testproject_update_preserve") as tp:
+        runner.invoke(app, ["new", tp])
+        os.chdir(tp)
+
+        Path("src/math.hat").write_text("fn sum(a:i64 b:i64) i64 { ::add(a b) }")
+        Path("docs/math.hat.md").write_text(
+            "# math\n\nManual overview before generated data.\n\n"
+            "<!-- hhat:auto-signatures:start -->\n"
+            "stale generated content\n"
+            "<!-- hhat:auto-signatures:end -->\n\n"
+            "Manual notes after generated data.\n"
+        )
+
+        result = runner.invoke(app, ["update"])
+
+        assert result.exit_code == 0
+        doc = Path("docs/math.hat.md").read_text()
+        assert "Manual overview before generated data." in doc
+        assert "Manual notes after generated data." in doc
+        assert "stale generated content" not in doc
+        assert "### sum" in doc
 
 
 def test_run_project():

@@ -9,6 +9,12 @@ from rich import print
 from rich.console import Console
 from rich.panel import Panel
 
+from hhat_lang.toolchain.project.docs import (
+    ProjectDocBlockError,
+    ProjectDocReadError,
+    ProjectDocWriteError,
+    ProjectSourceReadError,
+)
 from hhat_lang.toolchain.project.new import (
     create_new_const_file,
     create_new_fn_file,
@@ -31,9 +37,7 @@ console = Console()
 
 def version_callback(value: bool) -> None:
     if value:
-        print(
-            "[bold royal_blue1]H-hat Language Toolchain[/] version [bold royal_blue1]0.1.0[/]"
-        )
+        print("[bold royal_blue1]H-hat Language Toolchain[/] version [bold royal_blue1]0.1.0[/]")
         raise typer.Exit()
 
 
@@ -57,9 +61,7 @@ def common(
 
 
 @app.command()
-def help(
-    command: Optional[str] = typer.Argument(None, help="Command to get help for")
-) -> None:
+def help(command: Optional[str] = typer.Argument(None, help="Command to get help for")) -> None:
     """
     Show help about commands.
 
@@ -75,7 +77,7 @@ def help(
                 "[bold]Available commands:[/bold]\n"
                 "  [bold]new[/bold]     Create a new project, file, or type file\n"
                 "  [bold]run[/bold]     Run the current H-hat project\n"
-                "  [bold]update[/bold]  Refresh mirrored project documentation\n"
+                "  [bold]update[/bold]  Update and check the current project\n"
                 "  [bold]help[/bold]    Show this help message\n\n"
                 "Use [bold]hat help <command>[/bold] for detailed information about a command.",
                 title="hat - Command Line Interface",
@@ -93,14 +95,10 @@ def help(
 
 @app.command()
 def new(
-    project_name: Optional[str] = typer.Argument(
-        None, help="Name of the project to create"
-    ),
+    project_name: Optional[str] = typer.Argument(None, help="Name of the project to create"),
     file_name: str = typer.Option(None, "--file", "-f", help="Create a new file"),
     type_file: str = typer.Option(None, "--type", "-t", help="Create a new type file"),
-    const_file: str = typer.Option(
-        None, "--const", "-c", help="Create a new constant file"
-    ),
+    const_file: str = typer.Option(None, "--const", "-c", help="Create a new constant file"),
 ) -> None:
     """
     Create a new project, file, constant, or type file.
@@ -142,8 +140,7 @@ def new(
             except ValueError as e:
                 console.print(
                     Panel(
-                        str(e)
-                        + "\n\nPlease make sure you're inside a H-hat project directory.",
+                        str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
                         title="⚠ Error",
                         border_style="red",
                     )
@@ -173,8 +170,7 @@ def new(
             except ValueError as e:
                 console.print(
                     Panel(
-                        str(e)
-                        + "\n\nPlease make sure you're inside a H-hat project directory.",
+                        str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
                         title="⚠ Error",
                         border_style="red",
                     )
@@ -195,8 +191,7 @@ def new(
             except ValueError as e:
                 console.print(
                     Panel(
-                        str(e)
-                        + "\n\nPlease make sure you're inside a H-hat project directory.",
+                        str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
                         title="⚠ Error",
                         border_style="red",
                     )
@@ -286,11 +281,10 @@ def run() -> None:
 @app.command()
 def update() -> None:
     """
-    Refresh mirrored documentation for the current H-hat project.
+    Update and check the current H-hat project.
 
-    This command scans .hat source files under src/, creates the matching
-    docs/*.md files when missing, and refreshes generated function/type
-    signature blocks.
+    This command currently refreshes mirrored documentation from .hat source
+    files. More project checks can be added to the same update command.
 
     Example:
         hat update
@@ -300,7 +294,7 @@ def update() -> None:
         result = update_project(project_root)
         console.print(
             Panel(
-                "Documentation updated successfully!\n\n"
+                "Project update completed successfully!\n\n"
                 f"Created docs: {len(result.created_docs)}\n"
                 f"Updated docs: {len(result.updated_docs)}\n"
                 f"Unchanged docs: {len(result.unchanged_docs)}\n"
@@ -313,9 +307,44 @@ def update() -> None:
     except ValueError as e:
         console.print(
             Panel(
-                str(e)
-                + "\n\nPlease make sure you're inside a H-hat project directory.",
+                str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
                 title="⚠ Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+    except ProjectSourceReadError as e:
+        console.print(
+            Panel(
+                f"{str(e)}\n\nCheck that the source file exists and is readable.",
+                title="⚠ Source Read Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+    except ProjectDocWriteError as e:
+        console.print(
+            Panel(
+                f"{str(e)}\n\nCheck that the docs directory is writable.",
+                title="⚠ Documentation Write Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+    except ProjectDocReadError as e:
+        console.print(
+            Panel(
+                f"{str(e)}\n\nCheck that the documentation file is readable.",
+                title="⚠ Documentation Read Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+    except ProjectDocBlockError as e:
+        console.print(
+            Panel(
+                f"{str(e)}\n\nFix or remove the generated block markers and run update again.",
+                title="⚠ Documentation Block Error",
                 border_style="red",
             )
         )
@@ -323,7 +352,7 @@ def update() -> None:
     except Exception as e:
         console.print(
             Panel(
-                f"An unexpected error occurred while updating docs: {str(e)}\n\n"
+                f"An unexpected error occurred while updating the project: {str(e)}\n\n"
                 "If this persists, please report it as an issue.",
                 title="⚠ Error",
                 border_style="red",

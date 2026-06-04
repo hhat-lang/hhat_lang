@@ -71,6 +71,7 @@ def test_create_new_project():
         assert "created successfully" in result.stdout
         assert (Path() / tp).exists()
         assert (Path() / tp / "src" / "main.hat").exists()
+        assert (Path() / tp / "docs" / "main.md").exists()
 
 
 def test_create_project_exists():
@@ -95,6 +96,7 @@ def test_create_file_in_project():
         assert result.exit_code == 0
         assert "created successfully" in result.stdout
         assert (Path() / "src" / "module" / "testfile.hat").exists()
+        assert (Path() / "docs" / "module" / "testfile.md").exists()
 
 
 def test_create_file_outside_project():
@@ -127,6 +129,7 @@ def test_create_type_file():
         assert result.exit_code == 0
         assert "created successfully" in result.stdout
         assert "customtype.hat" in result.stdout
+        assert (Path() / "docs" / "hat_types" / "customtype.md").exists()
 
 
 def test_run_project():

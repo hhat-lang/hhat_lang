@@ -10,12 +10,13 @@ from rich.console import Console
 from rich.panel import Panel
 
 from hhat_lang.toolchain.project.new import (
+    create_new_const_file,
     create_new_fn_file,
     create_new_project,
     create_new_type_file,
-    create_new_const_file,
 )
 from hhat_lang.toolchain.project.run import run_project
+from hhat_lang.toolchain.project.update import update_project
 from hhat_lang.toolchain.project.utils import get_proj_dir
 
 app = typer.Typer(
@@ -30,7 +31,9 @@ console = Console()
 
 def version_callback(value: bool) -> None:
     if value:
-        print("[bold royal_blue1]H-hat Language Toolchain[/] version [bold royal_blue1]0.1.0[/]")
+        print(
+            "[bold royal_blue1]H-hat Language Toolchain[/] version [bold royal_blue1]0.1.0[/]"
+        )
         raise typer.Exit()
 
 
@@ -54,7 +57,9 @@ def common(
 
 
 @app.command()
-def help(command: Optional[str] = typer.Argument(None, help="Command to get help for")) -> None:
+def help(
+    command: Optional[str] = typer.Argument(None, help="Command to get help for")
+) -> None:
     """
     Show help about commands.
 
@@ -70,6 +75,7 @@ def help(command: Optional[str] = typer.Argument(None, help="Command to get help
                 "[bold]Available commands:[/bold]\n"
                 "  [bold]new[/bold]     Create a new project, file, or type file\n"
                 "  [bold]run[/bold]     Run the current H-hat project\n"
+                "  [bold]update[/bold]  Refresh mirrored project documentation\n"
                 "  [bold]help[/bold]    Show this help message\n\n"
                 "Use [bold]hat help <command>[/bold] for detailed information about a command.",
                 title="hat - Command Line Interface",
@@ -87,10 +93,14 @@ def help(command: Optional[str] = typer.Argument(None, help="Command to get help
 
 @app.command()
 def new(
-    project_name: Optional[str] = typer.Argument(None, help="Name of the project to create"),
+    project_name: Optional[str] = typer.Argument(
+        None, help="Name of the project to create"
+    ),
     file_name: str = typer.Option(None, "--file", "-f", help="Create a new file"),
     type_file: str = typer.Option(None, "--type", "-t", help="Create a new type file"),
-    const_file: str = typer.Option(None, "--const", "-c", help="Create a new constant file"),
+    const_file: str = typer.Option(
+        None, "--const", "-c", help="Create a new constant file"
+    ),
 ) -> None:
     """
     Create a new project, file, constant, or type file.
@@ -132,7 +142,8 @@ def new(
             except ValueError as e:
                 console.print(
                     Panel(
-                        str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
+                        str(e)
+                        + "\n\nPlease make sure you're inside a H-hat project directory.",
                         title="⚠ Error",
                         border_style="red",
                     )
@@ -162,7 +173,8 @@ def new(
             except ValueError as e:
                 console.print(
                     Panel(
-                        str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
+                        str(e)
+                        + "\n\nPlease make sure you're inside a H-hat project directory.",
                         title="⚠ Error",
                         border_style="red",
                     )
@@ -183,7 +195,8 @@ def new(
             except ValueError as e:
                 console.print(
                     Panel(
-                        str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
+                        str(e)
+                        + "\n\nPlease make sure you're inside a H-hat project directory.",
                         title="⚠ Error",
                         border_style="red",
                     )
@@ -263,6 +276,55 @@ def run() -> None:
             Panel(
                 f"An error occurred while running the project: {str(e)}\n\n"
                 "Please check your code for errors.",
+                title="⚠ Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+
+
+@app.command()
+def update() -> None:
+    """
+    Refresh mirrored documentation for the current H-hat project.
+
+    This command scans .hat source files under src/, creates the matching
+    docs/*.md files when missing, and refreshes generated function/type
+    signature blocks.
+
+    Example:
+        hat update
+    """
+    try:
+        project_root = get_proj_dir()
+        result = update_project(project_root)
+        console.print(
+            Panel(
+                "Documentation updated successfully!\n\n"
+                f"Created docs: {len(result.created_docs)}\n"
+                f"Updated docs: {len(result.updated_docs)}\n"
+                f"Unchanged docs: {len(result.unchanged_docs)}\n"
+                f"Orphan docs: {len(result.orphan_docs)}\n"
+                f"Signatures found: {result.signature_count}",
+                title="✓ Success",
+                border_style="green",
+            )
+        )
+    except ValueError as e:
+        console.print(
+            Panel(
+                str(e)
+                + "\n\nPlease make sure you're inside a H-hat project directory.",
+                title="⚠ Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(
+            Panel(
+                f"An unexpected error occurred while updating docs: {str(e)}\n\n"
+                "If this persists, please report it as an issue.",
                 title="⚠ Error",
                 border_style="red",
             )

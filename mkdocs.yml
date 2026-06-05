@@ -1,0 +1,138 @@
+site_name: H-hat quantum programming language
+site_url: https://docs.hhat-lang.org/
+site_author: H-hat team
+site_description: H-hat is a rule system, compiler framework, and a statically typed, functional and distributed system inspired, quantum programming language.
+
+repo_url: "https://github.com/hhat-lang/hhat_lang/"
+repo_name: hhat-lang/hhat_lang
+
+nav:
+  - Home:
+      - H-hat language: index.md
+      - How to Contribute: how_contribute.md
+  - Getting Started:
+      - Getting Started: getting_started.md
+      - Guides:
+          - Python: python/python_guide.md
+          - Rust: rust/rust_guide.md
+      - Understanding H-hat:
+          - Rule System: rule_system.md
+          - Nomenclature: core/naming.md
+          - Language design: core/language_design.md
+          - Compiler framework: core/compiler_framework.md
+          - Documentation design: core/doc_design.md
+      - Tools:
+          - toolchain.md
+          - CLI: cli.md
+      - Running it:
+          - running_hhat.md
+  - Dialects:
+      - dialects/index.md
+      - Heather:
+        - dialects/heather/index.md
+        - Syntax: dialects/heather/syntax.md
+        - Grammar: dialects/heather/grammar.md
+  - Blog:
+      - blog/index.md
+
+markdown_extensions:
+  - abbr
+  - pymdownx.inlinehilite
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.snippets
+  - attr_list
+  - def_list
+  - admonition
+  - footnotes
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - overrides/.icons
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      linenums: true
+      linenums_style: pymdownx.inline
+      line_spans: __span
+      pygments_lang_class: true
+      noclasses: false
+  - pymdownx.superfences:
+      custom_fences:
+        - name: python
+          class: python
+          validator: "!!python/name:markdown_exec.validator"
+          format: "!!python/name:markdown_exec.formatter"
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - social
+  - blog:
+      blog_toc: true
+      post_date_format: full
+      post_excerpt: required
+      categories_allowed:
+        - Roadmap
+        - Technical
+        - Demo
+        - Use-cases
+        - Deepdive
+        - Special
+        - Announcement
+        - News
+        - Thoughts
+  - meta
+  - tags
+  #- privacy      #this plugin is breaking local build, need to investigate
+
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+extra_css:
+  - stylesheets/extra.css
+
+theme:
+  name: material
+  logo: assets/icon_light.svg  # Default svg icon for light theme
+  favicon: assets/favicon-32-c.ico # browser tab icon
+  font:
+    text: Lexend
+    code: Space Mono
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-2
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - content.tooltips
+    - content.code.annotate
+    - toc.follow
+    #- navigation.indexes          #unnecessary for UI
+    #- navigation.tabs.sticky      #not needed
+ 

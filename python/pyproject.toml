@@ -1,0 +1,121 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools_scm>=8", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hhat-lang"
+description = "H-hat quantum programming language core and rule system implemented in Python"
+dynamic = ["version"]
+authors = [
+    { name = "Eduardo Maschio", email = "eduardo.maschio@hhat-lang.org" },
+    { name = "Inho Choi", email = "inho.quantum@gmail.com" }
+]
+readme = "README"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Interpreters",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+dependencies = [
+    "rich>=14.0.0",
+    "typer>=0.16.0",
+]
+
+[project.optional-dependencies]
+heather = [
+    "arpeggio==2.0.3",
+    "pygments==2.19.2",
+]
+
+qiskit = [
+    "qiskit",
+    "qiskit-aer",
+    "qiskit-ibm-runtime",
+]
+
+netqasm = [
+    "netqasm",
+]
+
+openqasm2 = [
+    "hhat-lang[qiskit]",
+]
+
+all = [
+    "hhat-lang[heather,qiskit,openqasm2,netqasm]"
+]
+
+dev = [
+    "mypy",
+    "pytest",
+    "pytest-xdist",
+    "pytest-mypy",
+    "pytest-mock",
+    "ipython",
+    "isort",
+    "ruff",
+    "black",
+    "flaky",
+    "isort",
+    "pre-commit",
+    "mkdocs",
+    "mkdocs-material[imaging]",
+    "mkdocs-autoapi",
+    "mkdocstrings",
+    "markdown",
+    "mike",
+]
+
+[project.scripts]
+hat = "hhat_lang.toolchain.cli.cli:main"
+
+[project.entry-points."pygments.lexers"]
+hhat-heather = "hhat_lang.dialects.heather.toolchain.pygments.lexer:HhatLexer"
+
+[project.entry-points."pygments.styles"]
+hhat_heather_light = "hhat_lang.dialects.heather.toolchain.pygments.style:HhatLightStyle"
+hhat_heather_dark = "hhat_lang.dialects.heather.toolchain.pygments.style:HhatDarkStyle"
+
+[project.entry-points."mkdocs.plugins"]
+hhat-heather-pygments = "hhat_lang.dialects.heather.toolchain.pygments.mkdocs_plugin:HhatCssPlugin"
+
+[tool.setuptools_scm]
+root = ".."
+version_scheme = "no-guess-dev"
+local_scheme = "no-local-version"
+
+[project.urls]
+Homepage = "https://github.com/hhat-lang/hhat_lang"
+Issues = "https://github.com/hhat-lang/hhat_lang/issues"
+Documentation = "https://docs.hhat-lang.org"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
+[tool.ruff]
+lint.select = ["E", "F", "I", "Q"]
+lint.extend-ignore = ["F841", "F403", "F401"]
+line-length = 100
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "E402", "I002"]
+
+[tool.mypy]
+python_version = "3.12"
+disable_error_code = ["import-untyped", "override", "misc", "attr-defined"]
+pretty = true
+exclude = ["build", "tests"]

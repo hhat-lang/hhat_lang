@@ -1,0 +1,139 @@
+{
+  "project_root": "sandbox",
+  "current_settings": {
+    "dialect": {
+      "name": "Heather",
+      "version": "0.3E",
+      "dir": ["heather"]
+    },
+    "llq": [
+      {
+        "name": "OpenQASM",
+        "version": "2.0",
+        "dir": [
+          "openqasm",
+          "v2"
+        ]
+      }
+    ],
+    "backend": [
+      {
+        "name": "AerSimulator",
+        "version": "0.17",
+        "dir": [
+          "qiskit",
+          "aer_simulator"
+        ]
+      }
+    ]
+  },
+  "available_settings": {
+    "dialect": {
+      "heather": {
+        "name": "Heather",
+        "version": "0.3E",
+        "version_type": "experimental",
+        "package_name": null
+      }
+    },
+    "llq": {
+      "openqasm": {
+        "v2": {
+          "name": "OpenQASM",
+          "version": "2.0",
+          "package_name": null
+        },
+        "v3": {
+          "name": "OpenQASM",
+          "version": "3.0",
+          "package_name": null
+        }
+      },
+      "netqasm": {
+        "v2": {
+          "name": "NetQASM",
+          "version": "2.0.0",
+          "package_name": "netqasm"
+        }
+      }
+    },
+    "backend": {
+      "qiskit": {
+        "aer_simulator": {
+          "name": "AerSimulator",
+          "package_name": "qiskit-aer",
+          "version": "0.17",
+          "is_simulator": true,
+          "executor": {
+            "shots": {
+              "shots_per_qubit": {
+                "base": 200,
+                "min": 1024,
+                "max": null
+              },
+              "fixed_shots": {
+                "base": 4098,
+                "min": 4098,
+                "max": 4098
+              }
+            },
+            "pass_options": {},
+            "cast": {}
+          },
+          "device": {
+            "": {
+              "max_num_qubits": 29
+            }
+          }
+        }
+      },
+      "squidasm": {
+        "multithread": {
+          "name": "SquidASM Multithread",
+          "package_name": "squidasm",
+          "is_simulator": true,
+          "version": "0.13",
+          "executor": {
+            "max_num_qubits": 29,
+            "shots": {
+              "shots_per_qubit": {
+                "base": 50,
+                "min": 1024,
+                "max": null
+              },
+              "fixed_shots": {
+                "base": 2048,
+                "min": 2048,
+                "max": 2048
+              }
+            },
+            "pass_options": {}
+          },
+          "device": {}
+        },
+        "stack": {
+          "name": "SquidASM Stack",
+          "package_name": "squidasm",
+          "is_simulator": true,
+          "version": "0.13",
+          "executor": {
+            "max_num_qubits": 29,
+            "shots": {
+              "shots_per_qubit": {
+                "base": 50,
+                "min": 1024,
+                "max": null
+              },
+              "fixed_shots": {
+                "base": 2048,
+                "min": 2048,
+                "max": 2048
+              }
+            }
+          },
+          "device": {}
+        }
+      }
+    }
+  }
+}

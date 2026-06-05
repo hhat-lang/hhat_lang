@@ -9,13 +9,13 @@ from typing import Any
 from hhat_lang.toolchain.project import (
     DOCS_FOLDER_NAME,
     DOCS_TYPES_PATH,
+    IMPORTS_FOLDER_NAME,
+    IMPORTS_PATH,
     MAIN_DOC_FILE_NAME,
     MAIN_FILE_NAME,
     SOURCE_FOLDER_NAME,
     SOURCE_TYPES_PATH,
-    IMPORTS_FOLDER_NAME,
     TESTS_FOLDER_NAME,
-    IMPORTS_PATH,
 )
 from hhat_lang.toolchain.project.utils import str_to_path
 
@@ -68,7 +68,7 @@ def _create_template_files(project_name: Path) -> Any:
 
 def create_new_fn_file(project_root: Path, file_name: str | Path) -> Path:
     file_name = str(file_name) + ".hat"
-    doc_file = file_name + ".md"
+    doc_file = Path(file_name).with_suffix(".md")
     file_path: Path = project_root / SOURCE_FOLDER_NAME / file_name
 
     if file_path.is_file():
@@ -89,7 +89,7 @@ def create_new_fn_file(project_root: Path, file_name: str | Path) -> Path:
 
 def create_new_type_file(project_path: Path, file_name: str | Path) -> Path:
     file_name = str(file_name) + ".hat"
-    doc_file = file_name + ".md"
+    doc_file = Path(file_name).with_suffix(".md")
     file_path: Path = project_path / SOURCE_TYPES_PATH / file_name
 
     if file_path.is_file():
@@ -110,7 +110,7 @@ def create_new_type_file(project_path: Path, file_name: str | Path) -> Path:
 
 def create_new_const_file(project_path: Path, file_name: str | Path) -> Path:
     file_name = str(file_name) + ".hat"
-    doc_file = file_name + ".md"
+    doc_file = Path(file_name).with_suffix(".md")
     file_path: Path = project_path / SOURCE_FOLDER_NAME / file_name
 
     if file_path.is_file():

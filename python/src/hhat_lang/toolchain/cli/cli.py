@@ -10,12 +10,13 @@ from rich.console import Console
 from rich.panel import Panel
 
 from hhat_lang.toolchain.project.new import (
+    create_new_const_file,
     create_new_fn_file,
     create_new_project,
     create_new_type_file,
-    create_new_const_file,
 )
 from hhat_lang.toolchain.project.run import run_project
+from hhat_lang.toolchain.project.update import update_project
 from hhat_lang.toolchain.project.utils import get_proj_dir
 
 app = typer.Typer(
@@ -26,7 +27,6 @@ app = typer.Typer(
 )
 
 console = Console()
-
 
 def version_callback(value: bool) -> None:
     if value:
@@ -52,7 +52,6 @@ def common(
     """
     pass
 
-
 @app.command()
 def help(command: Optional[str] = typer.Argument(None, help="Command to get help for")) -> None:
     """
@@ -70,6 +69,7 @@ def help(command: Optional[str] = typer.Argument(None, help="Command to get help
                 "[bold]Available commands:[/bold]\n"
                 "  [bold]new[/bold]     Create a new project, file, or type file\n"
                 "  [bold]run[/bold]     Run the current H-hat project\n"
+                "  [bold]update[/bold]  Create missing documentation files\n"
                 "  [bold]help[/bold]    Show this help message\n\n"
                 "Use [bold]hat help <command>[/bold] for detailed information about a command.",
                 title="hat - Command Line Interface",
@@ -219,6 +219,100 @@ def new(
             Panel(
                 f"An unexpected error occurred: {str(e)}\n\n"
                 "If this persists, please report it as an issue.",
+                title="⚠ Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+
+
+@app.command()
+def update() -> None:
+    """
+    Update the current H-hat project.
+
+    This currently creates missing markdown documentation files under docs/
+    for every .hat source file under src/.
+
+    Example:
+        hat update    # Create missing documentation counterparts
+    """
+    try:
+        proj_dir = get_proj_dir()
+        update_result = update_project(proj_dir)
+        message_parts: list[str] = []
+        if update_result.created_doc_files:
+            created = "\n".join(
+                f"  {path.relative_to(proj_dir)}" for path in update_result.created_doc_files
+            )
+            message_parts.append(
+                f"Created {len(update_result.created_doc_files)} documentation file(s):\n{created}"
+            )
+        else:
+            message_parts.append("All source files already have documentation counterparts.")
+
+        if update_result.renamed_doc_files:
+            renamed = "\n".join(
+                f"  {rename.doc_file.relative_to(proj_dir)} -> "
+                f"{rename.orphan_doc_file.relative_to(proj_dir)} ({rename.reason})"
+                for rename in update_result.renamed_doc_files
+            )
+            message_parts.append(
+                f"Renamed {len(update_result.renamed_doc_files)} orphaned documentation file(s):\n"
+                f"{renamed}"
+            )
+
+        if update_result.updated_signatures:
+            updates = "\n".join(
+                f"  {signature_update.code_file.relative_to(proj_dir)} -> "
+                f"{signature_update.doc_file.relative_to(proj_dir)}: "
+                f"{signature_update.signature_name} ({signature_update.reason})"
+                for signature_update in update_result.updated_signatures
+            )
+            message_parts.append(
+                f"Updated {len(update_result.updated_signatures)} documented signature(s):\n"
+                f"{updates}"
+            )
+
+        if update_result.removed_signatures:
+            removals = "\n".join(
+                f"  {signature_removal.doc_file.relative_to(proj_dir)}: "
+                f"{signature_removal.signature_name} ({signature_removal.reason})"
+                for signature_removal in update_result.removed_signatures
+            )
+            message_parts.append(
+                f"Removed {len(update_result.removed_signatures)} stale documented signature(s):\n"
+                f"{removals}"
+            )
+
+        if update_result.signature_mismatches:
+            mismatches = "\n".join(
+                f"  {mismatch.code_file.relative_to(proj_dir)} -> "
+                f"{mismatch.doc_file.relative_to(proj_dir)}: "
+                f"{mismatch.signature_name} ({mismatch.reason})"
+                for mismatch in update_result.signature_mismatches
+            )
+            message_parts.append(
+                f"Signature mismatch(es) remaining: {len(update_result.signature_mismatches)}\n"
+                f"{mismatches}"
+            )
+        else:
+            message_parts.append("All documented signatures match source code.")
+
+        message = "\n\n".join(message_parts)
+
+        console.print(
+            Panel(
+                message,
+                title="✓ Success",
+                border_style="green",
+            )
+        )
+    except Exception as e:
+        console.print(
+            Panel(
+                f"An error occurred while updating the project: {str(e)}\n\n"
+                "Please make sure you're inside a H-hat project directory.",
                 title="⚠ Error",
                 border_style="red",
             )

@@ -25,6 +25,7 @@ pub enum PrimitiveKind {
 pub struct PrimitiveLayout {
     pub size: u32,
     pub align: u32,
+    pub qubits: u32,
     pub kind: PrimitiveKind,
 }
 
@@ -38,42 +39,50 @@ impl PrimitiveLayout {
             TyPrimitive::Bool => PrimitiveLayout {
                 size: 1,
                 align: 1,
+                qubits: 0,
                 kind: PrimitiveKind::Single(types::I8)
             },
             TyPrimitive::U32 | TyPrimitive::I32 => PrimitiveLayout {
                 size: 4,
                 align: 4,
+                qubits: 0,
                 kind: PrimitiveKind::Single(types::I32)
             },
             TyPrimitive::U64 | TyPrimitive::I64 => PrimitiveLayout {
                 size: 8,
                 align: 8,
+                qubits: 0,
                 kind: PrimitiveKind::Single(types::I64)
             },
             TyPrimitive::F32 => PrimitiveLayout {
                 size: 4,
                 align: 4,
+                qubits: 0,
                 kind: PrimitiveKind::Single(types::F32)
             },
             TyPrimitive::F64 => PrimitiveLayout {
                 size: 8,
                 align: 8,
+                qubits: 0,
                 kind: PrimitiveKind::Single(types::F64)
             },
             TyPrimitive::C64 => PrimitiveLayout {
                 size: 8,
                 align: 4,
+                qubits: 0,
                 kind: PrimitiveKind::Pair(types::F32, types::F32)
             },
             TyPrimitive::C128 => PrimitiveLayout {
                 size: 16,
                 align: 8,
+                qubits: 0,
                 kind: PrimitiveKind::Pair(types::F64, types::F64)
             },
             TyPrimitive::String => if let Some(a) = arch {
                 PrimitiveLayout {
                     size: a.pointer_size,
                     align: a.pointer_align,
+                    qubits: 0,
                     kind: PrimitiveKind::Pair(a.pointer_type, a.pointer_type),
                 }
             } else {
@@ -82,26 +91,31 @@ impl PrimitiveLayout {
             TyPrimitive::QBool => PrimitiveLayout {
                 size: 0,
                 align: 0,
+                qubits: 1,
                 kind: PrimitiveKind::None,
             },
             TyPrimitive::QU2 => PrimitiveLayout {
                 size: 0,
                 align: 0,
+                qubits: 2,
                 kind: PrimitiveKind::None,
             },
             TyPrimitive::QU3 => PrimitiveLayout {
                 size: 0,
                 align: 0,
+                qubits: 3,
                 kind: PrimitiveKind::None,
             },
             TyPrimitive::QU4 => PrimitiveLayout {
                 size: 0,
                 align: 0,
+                qubits: 4,
                 kind: PrimitiveKind::None,
             },
             TyPrimitive::QU8 => PrimitiveLayout {
                 size: 0,
                 align: 0,
+                qubits: 8,
                 kind: PrimitiveKind::None,
             },
         }

@@ -21,7 +21,7 @@ impl StructLayout {
         let mut struct_offset: u32 = 0;
         let mut prev_size: u32 = 0;
         let mut members: Vec<MemberLayout> = Vec::with_capacity(ty.members.len());
-        let _ = ty.iter().map(|(s, t)| {
+        for (s, t) in ty.iter() {
             let tmp_layout: TypeLayout = layout_cache.layout_of(t);
             let tmp_size: u32 = tmp_layout.size();
             let tmp_align: u32 = tmp_layout.align();
@@ -30,18 +30,17 @@ impl StructLayout {
                 struct_size += prev_size.abs_diff(tmp_size);  // add padding
             }
             prev_size = tmp_size;
-            // align should be 1, 4, 8, so it's safe to unwrap
-            struct_align = struct_align.checked_next_multiple_of(tmp_align).unwrap();
+            // Quantum members have no classical alignment.
+            if tmp_align > 0 {
+                struct_align = struct_align.checked_next_multiple_of(tmp_align).unwrap();
+            }
             struct_offset += struct_align;
-            members.push(
-                MemberLayout {
-                    name: s.clone(),
-                    offset: struct_offset,
-                    layout: tmp_layout,
-                }
-            )
-
-        }).collect::<Vec<()>>();  // I know for loop is more idiomatic, but I prefer map :>
+            members.push(MemberLayout {
+                name: s.clone(),
+                offset: struct_offset,
+                layout: tmp_layout,
+            })
+        }
 
         Self {
             size: struct_size,
@@ -156,6 +155,12 @@ pub struct VariantLayout {
     payload: Option<StructLayout>,
 }
 
+
+impl VariantLayout {
+    pub fn name(&self) -> &SymbolId {
+        &self.name
+    }
+}
 
 
 #[derive(Clone, Debug)]

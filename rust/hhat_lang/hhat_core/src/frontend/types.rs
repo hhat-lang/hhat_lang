@@ -42,7 +42,7 @@ pub enum TyPrimitive {
 /// Define struct type.
 ///
 /// Ex:
-/// ```
+/// ```text
 /// type smt { m1:ty1, m2:ty2 }
 /// type @smt { @m1:@ty1, @m2:@ty2, m3:ty3 }
 /// ```
@@ -161,6 +161,53 @@ impl TyVariants {
         match self {
             TyVariants::Named(a, _) => a,
             TyVariants::Tagged(a, _) => a,
+        }
+    }
+}
+
+impl TyPrimitive {
+    pub fn is_quantum(&self) -> bool {
+        matches!(
+            self,
+            TyPrimitive::QBool
+                | TyPrimitive::QU2
+                | TyPrimitive::QU3
+                | TyPrimitive::QU4
+                | TyPrimitive::QU8
+        )
+    }
+
+    pub fn quantum_width(&self) -> Option<u32> {
+        match self {
+            TyPrimitive::QBool => Some(1),
+            TyPrimitive::QU2 => Some(2),
+            TyPrimitive::QU3 => Some(3),
+            TyPrimitive::QU4 => Some(4),
+            TyPrimitive::QU8 => Some(8),
+            _ => None,
+        }
+    }
+}
+
+impl TyStruct {
+    pub fn is_quantum(&self) -> bool {
+        self.name.is_quantum()
+    }
+}
+
+impl TyEnum {
+    pub fn is_quantum(&self) -> bool {
+        self.name.is_quantum()
+    }
+}
+
+impl Ty {
+    pub fn is_quantum(&self) -> bool {
+        match self {
+            Ty::Primitive(p) => p.is_quantum(),
+            Ty::Struct(s) => s.is_quantum(),
+            Ty::Enum(e) => e.is_quantum(),
+            Ty::Array(a) => a.element.is_quantum(),
         }
     }
 }

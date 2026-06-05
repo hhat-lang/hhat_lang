@@ -104,7 +104,7 @@ impl LayoutCache {
                 )
             ),
             Ty::Struct(s) => {
-                let _ = s.iter().map(|(_sid, t)| {
+                s.iter().for_each(|(_sid, t)| {
                     if !self.has(t) {
                         match t {
                             Ty::Primitive(_)
@@ -131,7 +131,13 @@ impl LayoutCache {
     pub fn layout_of(&mut self, ty: &Ty) -> TypeLayout {
         match self.cache.get(&ty) {
             Some(t) => t.clone(),
-            None => panic!("layout of type {:?} not found.", ty),
+            None => {
+                let _ = self.insert_layout(ty, &Some(self.arch));
+                self.cache
+                    .get(ty)
+                    .cloned()
+                    .unwrap_or_else(|| panic!("layout of type {:?} not found.", ty))
+            }
         }
     }
 }

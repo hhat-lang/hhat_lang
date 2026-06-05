@@ -11,3 +11,4 @@ pub mod arch;
 pub mod primitives;
 mod adt;
 mod base;
+pub mod quantum;

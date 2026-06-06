@@ -1,0 +1,75 @@
+title = "H-hat Compiler Quantum Device Configuration"
+version = "0.1.0"
+available_devices = ["AerSimulator", "default.qubit"]
+
+[[devices]]
+name = "AerSimulator"
+is_active = true
+vendor = "IBM"
+device_kind = "simulator"
+device_platform = "superconducting"
+computation_paradigm = ["gate"]
+
+[devices.specs]
+max_n_qubits = 32
+qubit_topology = { kind = "all-to-all" }
+
+[devices.qll]
+name = "openqasm"
+package_name = "qiskit"
+package_version = "1.0.0"
+file_extension = "qasm"
+
+[[devices]]
+name = "default.qubit"
+is_active = true
+vendor = "Xanadu"
+device_kind = "simulator"
+device_platform = "statevector"
+computation_paradigm = ["gate"]
+
+[devices.specs]
+max_n_qubits = 16
+qubit_topology = { kind = "all-to-all" }
+
+[devices.qll]
+name = "pennylane"
+package_name = "pennylane"
+package_version = "0.40.0"
+file_extension = "py"
+
+[[devices]]
+name = "H1-1"
+is_active = false
+vendor = "Quantinuum"
+device_kind = "device"
+device_platform = "trapped ions"
+computation_paradigm = ["gate"]
+
+[devices.specs]
+max_n_qubits = 20
+qubit_topology = { kind = "vendor-defined" }
+
+[devices.qll]
+name = "openqasm"
+package_name = "pytket-quantinuum"
+package_version = "0.37.0"
+file_extension = "qasm"
+
+[[devices]]
+name = "Aquila"
+is_active = false
+vendor = "QuEra"
+device_kind = "device"
+device_platform = "neutral atoms"
+computation_paradigm = ["analog"]
+
+[devices.specs]
+max_n_qubits = 256
+qubit_topology = { kind = "rydberg-array" }
+
+[devices.qll]
+name = "bloqade"
+package_name = "bloqade"
+package_version = "0.18.0"
+file_extension = "json"

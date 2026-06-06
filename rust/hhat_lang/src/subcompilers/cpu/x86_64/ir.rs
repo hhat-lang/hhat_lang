@@ -1,3 +1,3 @@
-use cranelift::codegen::ir::{BlockArg, };
+use cranelift::codegen::ir::BlockArg;
 use cranelift_jit::{JITBuilder, JITModule};
-use cranelift_module::{Module};
+use cranelift_module::Module;

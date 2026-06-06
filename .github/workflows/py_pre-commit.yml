@@ -1,0 +1,49 @@
+name: py_pre-commit
+
+on:
+  pull_request:
+    branches: [main, dev/python]
+  push:
+    branches: [main, dev/python]
+
+jobs:
+  pre-commit:
+    name: pre-commit / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect Python project
+        id: python
+        shell: bash
+        run: |
+          if [[ -f python/pyproject.toml ]] && git ls-files 'python/**/*.py' | grep -q .; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Python
+        if: steps.python.outputs.present == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: python/pyproject.toml
+
+      - name: Run pre-commit
+        if: steps.python.outputs.present == 'true'
+        working-directory: python
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pre-commit
+          pre-commit run --all-files
+
+      - name: Skip Python checks
+        if: steps.python.outputs.present != 'true'
+        run: echo "No Python package was detected."

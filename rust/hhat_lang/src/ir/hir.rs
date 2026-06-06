@@ -2,11 +2,10 @@
 //! This is the first IR generated out of the raw text.
 //!
 
-use std::borrow::Borrow;
-use std::fmt::{Display, Formatter};
 use crate::ir::ids::{BackendKind, ExprId, Path};
 use itertools::Itertools;
-
+use std::borrow::Borrow;
+use std::fmt::{Display, Formatter};
 
 /// Identifier for HIR.
 ///
@@ -23,10 +22,12 @@ impl Display for Symbol {
 
 impl Symbol {
     pub fn new(value: String, backend_kind: BackendKind) -> Self {
-        Self { value, backend_kind }
+        Self {
+            value,
+            backend_kind,
+        }
     }
 }
-
 
 /// Composite identifier for HIR.
 ///
@@ -38,21 +39,22 @@ pub struct CompositeSymbol {
 
 impl Display for CompositeSymbol {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.value
-            .iter()
-            .map(|x| format!("{}{}", x.backend_kind.sugar_str(), x.value.as_str()))
-            .format(".")
+        write!(
+            f,
+            "{}",
+            self.value
+                .iter()
+                .map(|x| format!("{}{}", x.backend_kind.sugar_str(), x.value.as_str()))
+                .format(".")
         )
     }
 }
-
 
 impl CompositeSymbol {
     pub fn new(value: Vec<Symbol>) -> Self {
         Self { value }
     }
 }
-
 
 /// Symbols with path for importing purposes for HIR.
 ///
@@ -63,9 +65,7 @@ pub struct ImportPathSymbol {
 
 impl Display for ImportPathSymbol {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let glue_path_name: String = String::from(
-            if self.path.len() > 0 { "." } else { "" }
-        );
+        let glue_path_name: String = String::from(if self.path.len() > 0 { "." } else { "" });
         write!(f, "{}{}{}", self.path, glue_path_name, self.name)
     }
 }
@@ -75,7 +75,6 @@ impl ImportPathSymbol {
         Self { name, path }
     }
 }
-
 
 /// HIR imports.
 ///
@@ -92,7 +91,6 @@ pub enum Imports {
     MetaFns(Vec<ImportPathSymbol>),
 }
 
-
 /// Constant definition for HIR.
 ///
 /// It must exist in a constants-only file.
@@ -102,7 +100,6 @@ pub struct ConstDef {
     pub ty: TypeName,
     pub modifiers: Vec<Modifier>,
 }
-
 
 /// HIR literal object.
 ///
@@ -117,7 +114,6 @@ pub enum Literal {
     Float(f64, BackendKind),
     Str(String, BackendKind),
 }
-
 
 /// Expression for HIR.
 ///
@@ -141,7 +137,6 @@ pub enum Expr {
     /// Get value from struct/enum: `var.member1`, `var.{member1 member2}`, so on
     DataMemberAccess(CompositeSymbol),
 }
-
 
 /// Meta-function calls:
 /// - [`MetaCall::Optn`] (option/cases functions)
@@ -177,7 +172,6 @@ pub enum MetaCall {
     },
 }
 
-
 /// Option + body for HIR.
 ///
 /// Syntax: `opt:{body}`
@@ -186,7 +180,6 @@ pub struct OptionBody {
     pub opt: Expr,
     pub body: Block,
 }
-
 
 /// Modifiers calls for HIR.
 ///
@@ -204,12 +197,10 @@ pub struct StructDef {
     pub modifiers: Vec<Modifier>,
 }
 
-
 pub struct StructMember {
     pub name: Symbol,
-    pub ty: TypeName
+    pub ty: TypeName,
 }
-
 
 /// Type name for HIR.
 ///
@@ -220,7 +211,6 @@ pub struct TypeName {
     pub name: Symbol,
     pub modifiers: Modifier,
 }
-
 
 pub enum EnumMember {
     /// Enum member as a single value:
@@ -243,9 +233,8 @@ pub enum PrimitiveDef {
     I64,
     F32,
     F64,
-    STR
+    STR,
 }
-
 
 /// Type definition for HIR.
 ///
@@ -263,10 +252,9 @@ pub enum TypeDef {
     /// `optn_t`, `bdn_t`, `optbdn_t`), variable
     /// type (`var_t`), etc.
     NamedType {
-        name: Symbol
+        name: Symbol,
     },
 }
-
 
 /// Group of definitions for HIR.
 ///
@@ -280,7 +268,6 @@ pub enum GroupsDef {
     MetaFnDef(MetaFnDef),
 }
 
-
 /// Function definition for HIR.
 ///
 pub struct FnDef {
@@ -291,18 +278,15 @@ pub struct FnDef {
     pub body: Block,
 }
 
-
 pub struct Param {
     pub name: Symbol,
     pub ty: TypeName,
     pub modifiers: Vec<Modifier>,
 }
 
-
 /// Block of code for HIR.
 ///
 pub struct Block(Vec<Stmt>);
-
 
 pub enum Assign {
     Single {
@@ -322,27 +306,22 @@ pub enum Assign {
 
 pub struct DeclareAssign {
     name: Symbol,
-
 }
-
 
 pub struct StructMembersInit {
     name: Symbol,
     value: Expr,
 }
 
-
 pub enum EnumMembersInit {
     EnumMember(),
     StructMember(),
 }
 
-
 pub enum AssignDef {
     SingleMemberAssign,
     FullAssign,
 }
-
 
 /// Statements for HIR.
 ///
@@ -363,7 +342,6 @@ pub enum Stmt {
     Return(Expr),
 }
 
-
 /// Modifier definition for HIR.
 ///
 pub struct ModifierDef {
@@ -371,9 +349,7 @@ pub struct ModifierDef {
     pub params: [Option<Param>; 2],
     pub modifiers: Vec<Modifier>,
     pub body: Block,
-
 }
-
 
 /// Meta-function definition for HIR.
 ///
@@ -383,7 +359,6 @@ pub struct MetaFnDef {
     pub modifiers: Vec<Modifier>,
     pub body: Block,
 }
-
 
 /// File content for HIR.
 ///

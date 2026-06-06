@@ -1,0 +1,68 @@
+name: rs_check-audit
+
+on:
+  push:
+    branches: [main, dev/rust]
+  pull_request:
+    branches: [main, dev/rust]
+
+jobs:
+  check-audit:
+    name: rust / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect Rust crate
+        id: rust
+        shell: bash
+        run: |
+          if [[ -f rust/hhat_lang/Cargo.toml ]] && git ls-files 'rust/**/*.rs' | grep -q .; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Rust
+        if: steps.rust.outputs.present == 'true'
+        shell: bash
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup default stable
+
+      - name: Check formatting
+        if: steps.rust.outputs.present == 'true'
+        working-directory: rust/hhat_lang
+        run: cargo fmt --all -- --check
+
+      - name: Check crate
+        if: steps.rust.outputs.present == 'true'
+        working-directory: rust/hhat_lang
+        run: cargo check --all-targets --all-features
+
+      - name: Run tests
+        if: steps.rust.outputs.present == 'true'
+        working-directory: rust/hhat_lang
+        run: cargo test --all-targets --all-features
+
+      - name: Run clippy
+        if: steps.rust.outputs.present == 'true'
+        working-directory: rust/hhat_lang
+        run: cargo clippy --all-targets --all-features
+
+      - name: Audit dependencies
+        if: steps.rust.outputs.present == 'true'
+        working-directory: rust/hhat_lang
+        run: |
+          cargo generate-lockfile
+          cargo install cargo-audit --locked
+          cargo audit
+
+      - name: Skip Rust checks
+        if: steps.rust.outputs.present != 'true'
+        run: echo "No Rust crate was detected."

@@ -11,7 +11,6 @@ from pygments.token import (
     Punctuation,
     String,
     Whitespace,
-
 )
 
 from hhat_lang.dialects.heather.grammar import (
@@ -49,13 +48,7 @@ class HhatLexer(RegexLexer):
         "const",
         "self",
     )
-    symbolic_keywords = (
-        "::",
-        "*",
-        "&",
-        "<",
-        ">"
-    )
+    symbolic_keywords = ("::", "*", "&", "<", ">")
     operators = (
         ":",
         "=",
@@ -105,7 +98,7 @@ class HhatLexer(RegexLexer):
             (SINGLE_COMMENT, Comment.Single),
             (MULTILINE_COMMENT, Comment.Multiline),
             (words(keywords, suffix=r"\b"), Keyword.Declaration),
-            (words(symbolic_keywords), Keyword.Symbol),
+            (words(symbolic_keywords), Keyword.Declaration),
             (words(builtin_types, suffix=r"\b"), Name.Builtin),
             (rf"({ID})(\s*)(\()", bygroups(Name.Function, Whitespace, Punctuation.Marker)),
             (words(operators), Operator),

@@ -44,7 +44,6 @@ from hhat_lang.core.types.new_builtin_core import CoreTypeDef
 from hhat_lang.core.types.new_core import SingleTypeDef, StructTypeDef
 from hhat_lang.core.types.utils import BaseTypeEnum
 from hhat_lang.core.utils import HatOrderedDict
-from sandbox.var_again import T, types_dict
 
 T = TypeVar("T")
 D = TypeVar("D")
@@ -62,6 +61,12 @@ _data_kind_storage_dict: dict[DataKind, Callable[[], BaseDataStorage]] = dict()
 Dictionary to store ``BaseDataStorage`` callables as values based on ``DataKind``
 enum values as keys.
 """
+
+
+def get_types_dict() -> dict:
+    from hhat_lang.core.data.var_assignment import types_dict
+
+    return types_dict
 
 
 def get_data_type_collection(
@@ -541,6 +546,7 @@ class DataHeader:
 #         sys.exit()
 #
 
+
 class ContainerType(Enum):
     """
     Container enum class. Contain members to name a given container instance. Values:
@@ -960,6 +966,9 @@ class AbstractCollection(ABC, Generic[T]):
         raise NotImplementedError()
 
 
+BaseCollection = AbstractCollection
+
+
 class SingleCollection(AbstractCollection[Container | AbstractCollection | None]):
     def __init__(self, name: Symbol | AsArray):
         self._name = name
@@ -1108,7 +1117,7 @@ class StructCollection(
 
     def __repr__(self):
         _name = f"{self._name}" if isinstance(self._name, Symbol) else f"{self._name.value}"
-        return f"{self._name}[{' '.join(f"{k[0]}<{k[1]}>:{v}" for k, v in self._data.items())}]"
+        return f"{self._name}[{' '.join(f'{k[0]}<{k[1]}>:{v}' for k, v in self._data.items())}]"
 
 
 def expand_members(value: Any) -> AbstractCollection | Symbol | AsArray | TypeDef | tuple:
@@ -1134,6 +1143,7 @@ def expand_members(value: Any) -> AbstractCollection | Symbol | AsArray | TypeDe
             return value
 
         case Symbol():
+            types_dict = get_types_dict()
             for k in types_dict:
                 if value in types_dict[k]:
                     return expand_members(types_dict[k][value])
@@ -1141,6 +1151,7 @@ def expand_members(value: Any) -> AbstractCollection | Symbol | AsArray | TypeDe
             raise ValueError(f"symbol {value} not found")
 
         case AsArray():
+            types_dict = get_types_dict()
             for k in types_dict:
                 if value.value in types_dict[k]:
                     _res = expand_members(types_dict[k][value.value])

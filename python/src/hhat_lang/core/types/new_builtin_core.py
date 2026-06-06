@@ -11,7 +11,26 @@ from hhat_lang.core.types import BUILTIN_STD_TYPE_MODULE_PATH
 from hhat_lang.core.types.new_base_type import QSize, Size, TypeDef
 from hhat_lang.core.types.utils import BaseTypeEnum
 
-builtin_types: dict[Path, dict[Symbol | CompositeSymbol, TypeDef]] = dict()
+
+class BuiltinTypes(dict[Path, dict[Symbol | CompositeSymbol, TypeDef]]):
+    def __getitem__(self, key: Path | Symbol | CompositeSymbol) -> Any:
+        if isinstance(key, Path):
+            return super().__getitem__(key)
+
+        for types_by_name in self.values():
+            if key in types_by_name:
+                return types_by_name[key]
+
+        raise KeyError(key)
+
+    def get(self, key: Path | Symbol | CompositeSymbol, default: Any = None) -> Any:
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+
+builtin_types: BuiltinTypes = BuiltinTypes()
 """
 Built-in types path dictionary. Contains all the built-in types as values (its 
 name as key and its content as value) for a given path as key.

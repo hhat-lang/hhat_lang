@@ -8,6 +8,7 @@ from hhat_lang.core.code.base import FnHeader, FnHeaderDef
 from hhat_lang.core.data.core import CompositeSymbol, Symbol
 from hhat_lang.core.data.fn_def import BuiltinFnDef, FnDef, ModifierDef
 from hhat_lang.core.data.var_def import DataDef
+from hhat_lang.core.types.abstract_base import BaseTypeDef
 from hhat_lang.core.types.new_base_type import TypeDef
 
 K = TypeVar("K")
@@ -15,8 +16,8 @@ V = TypeVar("V")
 
 
 class BaseTable(ABC, Generic[K, V]):
-    @abstractmethod
     @property
+    @abstractmethod
     def table(self) -> OrderedDict[K, V]:
         raise NotImplementedError()
 
@@ -57,19 +58,19 @@ class BaseTable(ABC, Generic[K, V]):
         raise NotImplementedError()
 
 
-class TypeTable(BaseTable[Symbol | CompositeSymbol, TypeDef]):
-    _table: OrderedDict[Symbol | CompositeSymbol, TypeDef]
+class TypeTable(BaseTable[Symbol | CompositeSymbol, BaseTypeDef | TypeDef]):
+    _table: OrderedDict[Symbol | CompositeSymbol, BaseTypeDef | TypeDef]
     __slots__ = ("_table",)
 
     def __init__(self):
         self._table = OrderedDict()
 
     @property
-    def table(self) -> OrderedDict[Symbol | CompositeSymbol, TypeDef]:
+    def table(self) -> OrderedDict[Symbol | CompositeSymbol, BaseTypeDef | TypeDef]:
         return self._table
 
-    def add(self, name: Symbol | CompositeSymbol, data: TypeDef) -> None:
-        if isinstance(name, Symbol | CompositeSymbol) and isinstance(data, TypeDef):
+    def add(self, name: Symbol | CompositeSymbol, data: BaseTypeDef | TypeDef) -> None:
+        if isinstance(name, Symbol | CompositeSymbol) and isinstance(data, BaseTypeDef | TypeDef):
             if name not in self.table:
                 self.table[name] = data
 
@@ -113,9 +114,7 @@ class TypeTable(BaseTable[Symbol | CompositeSymbol, TypeDef]):
         return f"\n    - types:\n        {content}\n"
 
 
-class FnTable(
-    BaseTable[Symbol | CompositeSymbol, dict[FnHeader, FnDef | BuiltinFnDef]]
-):
+class FnTable(BaseTable[Symbol | CompositeSymbol, dict[FnHeader, FnDef | BuiltinFnDef]]):
     """
     This class holds functions definitions as ``BaseFnCheck`` for function
     entry (function name, type and argument types) and its body (content).
@@ -146,9 +145,7 @@ class FnTable(
                     self.table[fn_entry.name] = {fn_entry: data}
 
             elif isinstance(fn_entry, FnHeaderDef):
-                new_fn_entry = FnHeader(
-                    fn_name=fn_entry.name, args_types=fn_entry.args_types
-                )
+                new_fn_entry = FnHeader(fn_name=fn_entry.name, args_types=fn_entry.args_types)
                 if fn_entry.name in self.table:
                     self.table[fn_entry.name].update({new_fn_entry: data})
 
@@ -297,9 +294,7 @@ class MetaModTable(BaseTable[Symbol | CompositeSymbol, dict[FnHeader, FnDef]]):
                     self.table[fn_entry.name] = {fn_entry: data}
 
             elif isinstance(fn_entry, FnHeaderDef):
-                new_fn_entry = FnHeader(
-                    fn_name=fn_entry.name, args_types=fn_entry.args_types
-                )
+                new_fn_entry = FnHeader(fn_name=fn_entry.name, args_types=fn_entry.args_types)
                 if fn_entry.name in self.table:
                     self.table[fn_entry.name].update({new_fn_entry: data})
 
@@ -484,9 +479,7 @@ class SymbolTable:
         return self._modifiers
 
     def __hash__(self) -> int:
-        return hash(
-            (self._types, self._fns, self._consts, self._metamods, self._modifiers)
-        )
+        return hash((self._types, self._fns, self._consts, self._metamods, self._modifiers))
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, SymbolTable):

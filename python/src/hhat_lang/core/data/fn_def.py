@@ -91,9 +91,15 @@ class FnDef:
     def fn_check(self) -> FnHeader:
         return self._fn_check
 
+    @property
+    def fn_header(self) -> FnHeader:
+        return self._fn_check
+
     def __repr__(self) -> str:
         args = " ".join(str(k) for k in self.args)
-        fn_header = f"FN-DEF NAME[{self.name}] ARGS[{args}] {f'TYPE[{self.type}]' if self.type else ''}"
+        fn_header = (
+            f"FN-DEF NAME[{self.name}] ARGS[{args}] {f'TYPE[{self.type}]' if self.type else ''}"
+        )
         body = "\n            ".join(str(k) for k in self.body)
         return f"{fn_header}" + "\n            " + f"{body}" + "\n"
 

@@ -14,7 +14,6 @@ from hhat_lang.core.data.core import (
     AsArray,
 )
 from hhat_lang.core.data.utils import AbstractDataDef, DataKind, has_same_paradigm
-from hhat_lang.core.data.var_assignment import types_dict
 from hhat_lang.core.data.var_utils import (
     BaseCollection,
     DataHeader,
@@ -42,6 +41,12 @@ from hhat_lang.core.types.utils import BaseTypeEnum
 from hhat_lang.core.utils import HatOrderedDict
 
 # TODO: remove dependencies from types_dict and incluse IRGraph/IRNodes logic
+
+
+def get_types_dict() -> dict:
+    from hhat_lang.core.data.var_assignment import types_dict
+
+    return types_dict
 
 
 class DataDef(AbstractDataDef):
@@ -88,9 +93,7 @@ class DataDef(AbstractDataDef):
             if not self.is_quantum:
                 return None
 
-        sys_exit(
-            error_fn=QuantumDataNotAppendableError(self._header.name, self._header.kind)
-        )
+        sys_exit(error_fn=QuantumDataNotAppendableError(self._header.name, self._header.kind))
 
     def get_type_member(self, index: int) -> Symbol:
         return self.type[index][0]
@@ -226,11 +229,7 @@ class VarDef:
             case [
                 Container(),
                 Symbol(),
-                Literal()
-                | LiteralArray()
-                | BaseIRBlock()
-                | BaseIRInstr()
-                | HatOrderedDict(),
+                Literal() | LiteralArray() | BaseIRBlock() | BaseIRInstr() | HatOrderedDict(),
             ]:
                 data_container.add(values)
 
@@ -346,7 +345,7 @@ class VarDef:
 
 
 def get_type(type_name: Symbol | CompositeSymbol | AsArray) -> Any | None:
-    for k in types_dict.values():
+    for k in get_types_dict().values():
         for p, q in k.items():
             if type_name == p:
                 return q
@@ -421,6 +420,7 @@ def type_members_recursive(
 
 
 def get_data_type(value: Symbol | CompositeSymbol) -> BaseTypeEnum | ErrorHandler:
+    types_dict = get_types_dict()
     for t, q in types_dict.items():
         if value in q:
             return types_dict[t][value].type

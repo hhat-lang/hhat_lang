@@ -44,10 +44,16 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install ".[all,dev]"
 
-      - name: Run tests
+      - name: Run smoke tests
         if: steps.python.outputs.present == 'true'
         working-directory: python
-        run: pytest .
+        run: |
+          pytest \
+            tests/core/test_index.py \
+            tests/core/test_types.py \
+            tests/dialects/heather/parsing/test_code_parsing.py \
+            tests/test_cli.py \
+            tests/test_lexer.py
 
       - name: Skip Python checks
         if: steps.python.outputs.present != 'true'

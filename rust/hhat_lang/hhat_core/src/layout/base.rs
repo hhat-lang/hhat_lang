@@ -94,7 +94,7 @@ impl LayoutCache {
         self.cache.contains_key(ty)
     }
 
-    fn insert_layout(&mut self, ty: &Ty, arch: &Option<Arch>) -> Option<TypeLayout> {
+    pub fn insert_layout(&mut self, ty: &Ty, arch: &Option<Arch>) -> Option<TypeLayout> {
         match ty.clone() {
             Ty::Primitive(p) => self.cache.insert(
                 ty.clone(),

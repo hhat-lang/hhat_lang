@@ -16,6 +16,27 @@ pub enum Ty {
     Array(TyArray),
 }
 
+impl Ty {
+    pub fn is_quantum(&self) -> bool {
+        match self {
+            Ty::Primitive(p) => matches!(
+                p,
+                TyPrimitive::QBool
+                | TyPrimitive::QU2
+                | TyPrimitive::QU3
+                | TyPrimitive::QU4
+                | TyPrimitive::QU8
+            ),
+            Ty::Struct(s) => s.is_quantum(),
+            Ty::Enum(e) => e.is_quantum(),
+            Ty::Array(a) => unimplemented!(
+                "Check if type array is quantum is not implemented yet."
+            ),
+        }
+    }
+}
+
+
 /// Define primitive types.
 ///
 #[derive(Clone, Debug, PartialEq, Eq, Hash, EnumIter)]
@@ -93,6 +114,8 @@ impl TyStruct {
     pub fn iter(&'_ self) -> Iter<'_, (SymbolId, Ty)> {
         self.members.iter()
     }
+
+    pub fn is_quantum(&self) -> bool { self.name.is_quantum() }
 }
 
 /// Define enum type.
@@ -116,8 +139,10 @@ impl TyEnum {
     pub fn add_variant(&mut self, name: &SymbolId, member: Option<TyStruct>) {
         match (self.locked, member) {
             (false, Some(x)) => {
-                // tagged, struct
-                self.variants.push(TyVariants::Tagged(name.clone(), x))
+                if !(!self.name.is_quantum() && name.is_quantum()) {
+                    // tagged, struct
+                    self.variants.push(TyVariants::Tagged(name.clone(), x))
+                }
             }
             (false, None) => {
                 // named, labeled value
@@ -126,9 +151,11 @@ impl TyEnum {
                 //
                 // todo: rethink it, decide whether it's worth keeping
                 //  it small to enable logical operations or not.
-                let variant_value = 2u32.pow(self.variants.len() as u32);
-                self.variants
-                    .push(TyVariants::Named(name.clone(), variant_value))
+                if !(!self.name.is_quantum() && name.is_quantum()) {
+                    let variant_value = 2u32.pow(self.variants.len() as u32);
+                    self.variants
+                        .push(TyVariants::Named(name.clone(), variant_value))
+                }
             },
             (true, x) => panic!(
                 "cannot add more variants ({:?}, {:?}) to enum; it's already locked in",
@@ -145,9 +172,9 @@ impl TyEnum {
         self.locked
     }
 
-    pub fn iter(&'_ self) -> Iter<'_, TyVariants> {
-        self.variants.iter()
-    }
+    pub fn iter(&'_ self) -> Iter<'_, TyVariants> { self.variants.iter() }
+
+    pub fn is_quantum(&self) -> bool { self.name.is_quantum() }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]

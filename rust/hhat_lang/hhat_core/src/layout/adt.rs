@@ -20,34 +20,47 @@ impl StructLayout {
         let mut struct_size: u32 = 0;
         let mut struct_offset: u32 = 0;
         let mut prev_size: u32 = 0;
-        let mut members: Vec<MemberLayout> = Vec::with_capacity(ty.members.len());
+        let mut members: Vec<MemberLayout> = Vec::with_capacity(
+            ty.members.iter().filter(|(field_sid, _ty)| !field_sid.is_quantum()).count()
+        );
         let _ = ty.iter().map(|(s, t)| {
             let tmp_layout: TypeLayout = layout_cache.layout_of(t);
             let tmp_size: u32 = tmp_layout.size();
-            let tmp_align: u32 = tmp_layout.align();
 
-            if prev_size > 0 {
-                struct_size += prev_size.abs_diff(tmp_size);  // add padding
+            if tmp_size > 0 {  // quantum fields do not contribute for struct size
+                let tmp_align: u32 = tmp_layout.align();
+                struct_offset = StructLayout::align_layout(struct_offset, tmp_align);
+
+                //
+                // struct_size += prev_size.abs_diff(tmp_size);  // add padding
+                // prev_size = tmp_size;
+                // // align should be 1, 4, 8, so it's safe to unwrap
+                // struct_align = struct_align.checked_next_multiple_of(tmp_align).unwrap();
+                // struct_offset += struct_align;
+
+                members.push(
+                    MemberLayout {
+                        name: s.clone(),
+                        offset: struct_offset,
+                        layout: tmp_layout,
+                    }
+                );
+
+                struct_offset += tmp_size;
+                if tmp_align > struct_align { struct_align = tmp_align; }
             }
-            prev_size = tmp_size;
-            // align should be 1, 4, 8, so it's safe to unwrap
-            struct_align = struct_align.checked_next_multiple_of(tmp_align).unwrap();
-            struct_offset += struct_align;
-            members.push(
-                MemberLayout {
-                    name: s.clone(),
-                    offset: struct_offset,
-                    layout: tmp_layout,
-                }
-            )
 
         }).collect::<Vec<()>>();  // I know for loop is more idiomatic, but I prefer map :>
 
         Self {
-            size: struct_size,
+            size: StructLayout::align_layout(struct_offset, struct_align),
             align: struct_align,
             members,
         }
+    }
+
+    fn align_layout(offset: u32, align: u32) -> u32 {
+        (offset + align - 1) & !(align - 1)
     }
 
     pub fn member_offset(&self, member_name: &SymbolId) -> Option<u32> {
@@ -162,5 +175,80 @@ pub struct VariantLayout {
 pub struct ArrayLayout {
     pub size: u32,
     pub align: u32,
+
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+    use crate::frontend::types::{Ty, TyPrimitive, TyStruct};
+    use crate::layout::adt::StructLayout;
+    use crate::layout::arch::Arch;
+    use crate::layout::base::LayoutCache;
+    use crate::layout::primitives::PrimitiveLayout;
+    use crate::SymbolId;
+
+    #[test]
+    fn check_classical_struct_layout() {
+        let mut lcache = LayoutCache::new(Arch::get_arch64());
+        lcache.initialize(Some(Arch::get_arch64()));
+
+        // define struct1
+        let struct1_name = SymbolId(1, false);
+        let mut struct1_ty = TyStruct::new(&struct1_name);
+
+        let struct1_field1 = TyPrimitive::U32;
+        let struct1_field1_name = SymbolId(2, false);
+        let struct1_field1_layout = PrimitiveLayout::layout(&struct1_field1, Some(Arch::get_arch64()));
+
+        let struct1_field2 = TyPrimitive::F64;
+        let struct1_field2_name = SymbolId(3, false);
+        let struct1_field2_layout = PrimitiveLayout::layout(&struct1_field2, Some(Arch::get_arch64()));
+
+        struct1_ty.add_member(&struct1_field1_name, Ty::Primitive(struct1_field1));
+        struct1_ty.add_member(&struct1_field2_name, Ty::Primitive(struct1_field2));
+
+        lcache.insert_layout(&Ty::Struct(struct1_ty.clone()), &Some(Arch::get_arch64()));
+
+        let struct1_layout = lcache.layout_of(&Ty::Struct(struct1_ty));
+
+        println!("struct layout: {:?}", struct1_layout);
+        assert_eq!(struct1_layout.size(), 16);
+        assert_eq!(struct1_layout.align(), 8);
+
+        // define struct2
+        let struct2_name = SymbolId(4, false);
+        let mut struct2_ty = TyStruct::new(&struct2_name);
+
+        let struct2_field1 = TyPrimitive::U32;
+        let struct2_field1_name = SymbolId(5, false);
+        let struct2_field1_layout = PrimitiveLayout::layout(&struct2_field1, Some(Arch::get_arch64()));
+
+        let struct2_field2 = TyPrimitive::F64;
+        let struct2_field2_name = SymbolId(6, false);
+        let struct2_field2_layout = PrimitiveLayout::layout(&struct2_field2, Some(Arch::get_arch64()));
+
+        let struct2_field3 = TyPrimitive::Bool;
+        let struct2_field3_name = SymbolId(7, false);
+        let struct2_field3_layout = PrimitiveLayout::layout(&struct2_field3, Some(Arch::get_arch64()));
+
+        let struct2_field4 = TyPrimitive::Bool;
+        let struct2_field4_name = SymbolId(8, false);
+        let struct2_field4_layout = PrimitiveLayout::layout(&struct2_field4, Some(Arch::get_arch64()));
+
+        struct2_ty.add_member(&struct2_field1_name, Ty::Primitive(struct2_field1));
+        struct2_ty.add_member(&struct2_field2_name, Ty::Primitive(struct2_field2));
+        struct2_ty.add_member(&struct2_field2_name, Ty::Primitive(struct2_field3));
+        struct2_ty.add_member(&struct2_field2_name, Ty::Primitive(struct2_field4));
+
+        lcache.insert_layout(&Ty::Struct(struct2_ty.clone()), &Some(Arch::get_arch64()));
+
+        let struct2_layout = lcache.layout_of(&Ty::Struct(struct2_ty));
+        println!("struct layout: {:?}", struct2_layout);
+        assert_eq!(struct2_layout.size(), 24);
+        assert_eq!(struct2_layout.align(), 8);
+
+    }
+
 
 }

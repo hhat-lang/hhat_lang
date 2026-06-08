@@ -193,6 +193,7 @@ def test_update_is_noop_when_docs_already_exist():
         assert result.exit_code == 0
         assert "All source files already have documentation counterparts" in result.stdout
 
+
 def test_update_reports_matching_signatures():
     with temp_dir("testproject10") as tp:
         runner.invoke(app, ["new", tp])
@@ -221,6 +222,7 @@ def test_update_reports_matching_signatures():
         assert result.exit_code == 0
         assert "All documented signatures match source code" in result.stdout
         assert "Signature mismatch" not in result.stdout
+
 
 def test_update_reports_signature_mismatches():
     with temp_dir("testproject11") as tp:
@@ -253,6 +255,7 @@ def test_update_reports_signature_mismatches():
         assert "Signature mismatch" not in result.stdout
         assert "| x | u32 | classical |" in doc_file.read_text()
 
+
 def test_update_inserts_missing_signature_and_preserves_documentation():
     with temp_dir("testproject12") as tp:
         runner.invoke(app, ["new", tp])
@@ -275,6 +278,7 @@ def test_update_inserts_missing_signature_and_preserves_documentation():
         assert "| lhs | u32 | classical |" in updated_doc
         assert "### Documentation\n\nKeep this explanation." in updated_doc
 
+
 def test_update_creates_enum_signature_section():
     with temp_dir("testproject13") as tp:
         runner.invoke(app, ["new", tp])
@@ -292,6 +296,7 @@ def test_update_creates_enum_signature_section():
         assert "| Variant | Type | Paradigm |" in updated_doc
         assert "| named1 | Named | classical |" in updated_doc
         assert "| tagged1 | Tagged | classical |" in updated_doc
+
 
 def test_update_renames_docs_for_deleted_code_files():
     with temp_dir("testproject14") as tp:
@@ -355,6 +360,7 @@ def test_update_removes_stale_documented_signatures():
         assert "Keep this one." in updated_doc
         assert "## deleted" not in updated_doc
         assert "Remove this one." not in updated_doc
+
 
 def test_update_generates_issue_example_function_signature_doc():
     with temp_dir("testproject16") as tp:
@@ -424,3 +430,28 @@ def test_update_generates_issue_example_type_signature_doc():
         assert "| named1 | Named | classical |" in updated_doc
         assert "| tagged1 | Tagged | classical |" in updated_doc
         assert updated_doc.count("### Documentation") == 2
+
+
+def test_update_runs_in_src_without_main_file():
+    with temp_dir("testproject18") as tp:
+        project = Path(tp).resolve()
+        (project / "src").mkdir(parents=True)
+        (project / "src" / "module.hat").write_text("fn module () unit { }\n")
+        os.chdir(project / "src")
+
+        result = runner.invoke(app, ["update"])
+
+        assert result.exit_code == 0
+        assert (project / "docs" / "module.md").exists()
+
+
+def test_update_accepts_project_path_from_anywhere():
+    with temp_dir("testproject19") as tp:
+        project = Path(tp).resolve()
+        (project / "src").mkdir(parents=True)
+        (project / "src" / "standalone.hat").write_text("fn standalone () unit { }\n")
+
+        result = runner.invoke(app, ["update", str(project.resolve())])
+
+        assert result.exit_code == 0
+        assert (project / "docs" / "standalone.md").exists()

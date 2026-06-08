@@ -1,6 +1,8 @@
 """
 Update current project files.
+
 ``hat update`` currently performs documentation/code matching checks:
+
 * every H-hat source file under ``src/`` must have a markdown counterpart under
   ``docs/`` with the same relative path;
 * function and type signatures declared in source files must match the
@@ -13,39 +15,14 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from hhat_lang.dialects.heather.grammar.doc_signatures import (
+    CodeSignature,
+    ParameterSignature,
+    VariantSignature,
+    collect_code_signatures,
+)
 from hhat_lang.toolchain.project import DOCS_FOLDER_NAME, SOURCE_FOLDER_NAME
 from hhat_lang.toolchain.project.utils import str_to_path
-
-
-@dataclass(frozen=True)
-class ParameterSignature:
-    """Signature data for a function argument or type member."""
-
-    name: str
-    type: str
-    paradigm: str
-
-
-@dataclass(frozen=True)
-class VariantSignature:
-    """Signature data for an enum variant."""
-
-    name: str
-    type: str
-    paradigm: str
-
-
-@dataclass(frozen=True)
-class CodeSignature:
-    """A function or type signature found in code or documentation."""
-
-    name: str
-    kind: str
-    paradigm: str
-    type: str | None = None
-    arguments: tuple[ParameterSignature, ...] = ()
-    members: tuple[ParameterSignature, ...] = ()
-    variants: tuple[VariantSignature, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -100,88 +77,6 @@ class ProjectUpdateResult:
     @property
     def has_signature_mismatches(self) -> bool:
         return bool(self.signature_mismatches)
-
-
-def _paradigm(*values: str | None) -> str:
-    return (
-        "quantum"
-        if any(value and value.strip().startswith("@") for value in values)
-        else "classical"
-    )
-
-
-def _strip_comments(content: str) -> str:
-    return re.sub(r"//.*", "", content)
-
-
-def _split_signature_items(content: str) -> list[str]:
-    return [item.strip() for item in re.split(r"[\s,]+", content.strip()) if item.strip()]
-
-
-def _parse_parameters(content: str) -> tuple[ParameterSignature, ...]:
-    parameters: list[ParameterSignature] = []
-    for item in _split_signature_items(content):
-        if ":" not in item:
-            continue
-        name, type_name = [part.strip() for part in item.split(":", 1)]
-        parameters.append(ParameterSignature(name, type_name, _paradigm(name, type_name)))
-    return tuple(parameters)
-
-
-def _parse_variants(content: str) -> tuple[VariantSignature, ...]:
-    variants: list[VariantSignature] = []
-    remaining = content.strip()
-    while remaining:
-        remaining = remaining.lstrip()
-        match = re.match(r"(?P<name>@?[\w-]+)\s*(?:\{(?P<body>[^{}]*)\})?", remaining)
-        if not match:
-            break
-        name = match.group("name")
-        variant_type = "Tagged" if match.group("body") is not None else "Named"
-        variants.append(VariantSignature(name, variant_type, _paradigm(name)))
-        remaining = remaining[match.end() :]
-    return tuple(variants)
-
-
-def collect_code_signatures(code_file: str | Path) -> dict[str, CodeSignature]:
-    """Collect function and type signatures from an H-hat source file."""
-    code_file = str_to_path(code_file)
-    content = _strip_comments(code_file.read_text(encoding="utf-8"))
-    signatures: dict[str, CodeSignature] = {}
-
-    for match in re.finditer(
-        r"\bfn\s+(?P<name>@?[\w-]+)\s*\((?P<args>[^)]*)\)\s*(?P<type>@?[\w-]+)",
-        content,
-        flags=re.MULTILINE | re.DOTALL,
-    ):
-        name = match.group("name")
-        type_name = match.group("type")
-        signatures[name] = CodeSignature(
-            name=name,
-            kind="function",
-            type=type_name,
-            paradigm=_paradigm(name, type_name),
-            arguments=_parse_parameters(match.group("args")),
-        )
-
-    for match in re.finditer(
-        r"\btype\s+(?P<name>@?[\w-]+)\s*\{(?P<body>[^{}]*(?:\{[^{}]*\}[^{}]*)*)\}",
-        content,
-        flags=re.MULTILINE | re.DOTALL,
-    ):
-        name = match.group("name")
-        body = match.group("body")
-        body_items = _split_signature_items(re.sub(r"\{[^{}]*\}", "", body))
-        kind = "enum" if "{" in body or any(":" not in item for item in body_items) else "struct"
-        signatures[name] = CodeSignature(
-            name=name,
-            kind=kind,
-            paradigm=_paradigm(name),
-            members=_parse_parameters(body) if kind == "struct" else (),
-            variants=_parse_variants(body) if kind == "enum" else (),
-        )
-
-    return signatures
 
 
 def _parse_doc_table(

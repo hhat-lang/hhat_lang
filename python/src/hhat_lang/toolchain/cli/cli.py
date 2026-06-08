@@ -17,7 +17,7 @@ from hhat_lang.toolchain.project.new import (
 )
 from hhat_lang.toolchain.project.run import run_project
 from hhat_lang.toolchain.project.update import update_project
-from hhat_lang.toolchain.project.utils import get_proj_dir
+from hhat_lang.toolchain.project.utils import get_proj_dir, get_update_dir
 
 app = typer.Typer(
     name="hat",
@@ -227,18 +227,23 @@ def new(
 
 
 @app.command()
-def update() -> None:
+def update(
+    project_path: Optional[Path] = typer.Argument(
+        None, help="Project directory to update. Defaults to the current directory."
+    ),
+) -> None:
     """
-    Update the current H-hat project.
+    Update a H-hat project.
 
     This currently creates missing markdown documentation files under docs/
     for every .hat source file under src/.
 
     Example:
-        hat update    # Create missing documentation counterparts
+        hat update              # Update the current directory/project
+        hat update path/to/proj # Update a project from anywhere
     """
     try:
-        proj_dir = get_proj_dir()
+        proj_dir = get_update_dir(project_path)
         update_result = update_project(proj_dir)
         message_parts: list[str] = []
         if update_result.created_doc_files:

@@ -41,5 +41,3 @@ Code tests:
   <!-- If the above field is selected, please place the percentage it was done by you below: -->
   - **X%** performed by the author(s)
 - [ ] The code tests are fully written by generative AI/LLM
-
-

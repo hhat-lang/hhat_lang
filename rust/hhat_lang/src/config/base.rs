@@ -42,7 +42,7 @@ mod inner {
         pub device_specs: DeviceSpecs,
         pub qll: DeviceQuantumLowLevel,
         pub extra: Option<HashMap<String, toml::Value>>,
-        priority: isize
+        priority: isize,
     }
 
     impl Device {
@@ -83,9 +83,7 @@ mod inner {
             version: String,
             mut devices: Vec<Device>,
         ) -> Result<Self, String> {
-            devices.sort_by(|device_a, device_b| {
-                device_b.priority.cmp(&device_a.priority)
-            });
+            devices.sort_by(|device_a, device_b| device_b.priority.cmp(&device_a.priority));
             Ok(Self {
                 title,
                 version,
@@ -101,9 +99,9 @@ mod inner {
         pub fn from_file(path: &str) -> Result<Self, String> {
             let toml_string = fs::read_to_string(path).map_err(|e| e.to_string())?;
             let mut config: Config = toml::from_str(&toml_string).map_err(|e| e.to_string())?;
-            config.devices.sort_by(|device_a, device_b| {
-                device_b.priority.cmp(&device_a.priority)
-            });
+            config
+                .devices
+                .sort_by(|device_a, device_b| device_b.priority.cmp(&device_a.priority));
             Ok(config)
         }
 
@@ -123,7 +121,9 @@ mod inner {
 
         pub fn add_device(&mut self, new_device: Device) {
             // We want to shift as few elements as possible, so we find the first inactive device and insert to its left
-            let insert_index = self.devices.partition_point(|device| device.priority > new_device.priority);
+            let insert_index = self
+                .devices
+                .partition_point(|device| device.priority > new_device.priority);
             self.devices.insert(insert_index, new_device);
         }
 
@@ -183,7 +183,11 @@ mod tests {
             name,
             is_active,
             "IBM".to_string(),
-            if is_active { DeviceKind::Simulator } else { DeviceKind::Device },
+            if is_active {
+                DeviceKind::Simulator
+            } else {
+                DeviceKind::Device
+            },
             "superconducting".to_string(),
             vec!["gate".to_string()],
             DeviceSpecs {
@@ -205,8 +209,12 @@ mod tests {
                 package_version: "0.47.0".to_string(),
                 file_extension: "qasm".to_string(),
             },
-            if is_active { None } else { Some(HashMap::from([("retired".to_string(), true.into())])) },
-            priority
+            if is_active {
+                None
+            } else {
+                Some(HashMap::from([("retired".to_string(), true.into())]))
+            },
+            priority,
         )
     }
 
@@ -334,7 +342,7 @@ retired = true
                 "0.1.0".to_string(),
                 vec![
                     get_ibm_device("ManilaV2".to_string(), false, -2),
-                    get_ibm_device("FakeManilaV2".to_string(), true, 5)
+                    get_ibm_device("FakeManilaV2".to_string(), true, 5),
                 ],
             )
             .unwrap();
@@ -353,7 +361,7 @@ retired = true
             vec![
                 get_ibm_device("ManilaV2".to_string(), false, 0),
                 get_ibm_device("FakeManilaV2".to_string(), true, 1),
-                get_ibm_device("ManilaV3".to_string(), false, 2)
+                get_ibm_device("ManilaV3".to_string(), false, 2),
             ],
         )
         .unwrap();

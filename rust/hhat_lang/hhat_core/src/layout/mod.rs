@@ -5,9 +5,8 @@
 //! Here you may find information regarding architecture (32 and 64 bits), primitives 
 //! and algebraic data types, as well as base layout definitions for those types. 
 //! 
-
-
 pub mod arch;
 pub mod primitives;
+pub mod quantum;
 mod adt;
 mod base;

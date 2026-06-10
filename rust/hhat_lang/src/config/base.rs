@@ -42,6 +42,10 @@ mod inner {
         pub device_specs: DeviceSpecs,
         pub qll: DeviceQuantumLowLevel,
         pub extra: Option<HashMap<String, toml::Value>>,
+        /// The priority of a device controls the order in which they appear when serialized in a configuration file.
+        /// For instance, the device with the highest priority will be the first to appear in the configuration file.
+        /// If two devices have the same priority, then they are ordered according to the order they had when they were added
+        /// to the `Config` object, with the oldest appearing first.
         priority: isize,
     }
 

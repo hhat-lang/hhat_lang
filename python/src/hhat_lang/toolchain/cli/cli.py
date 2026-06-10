@@ -10,12 +10,13 @@ from rich.console import Console
 from rich.panel import Panel
 
 from hhat_lang.toolchain.project.new import (
+    create_new_const_file,
     create_new_fn_file,
     create_new_project,
     create_new_type_file,
-    create_new_const_file,
 )
 from hhat_lang.toolchain.project.run import run_project
+from hhat_lang.toolchain.project.update import update_project
 from hhat_lang.toolchain.project.utils import get_proj_dir
 
 app = typer.Typer(
@@ -70,6 +71,7 @@ def help(command: Optional[str] = typer.Argument(None, help="Command to get help
                 "[bold]Available commands:[/bold]\n"
                 "  [bold]new[/bold]     Create a new project, file, or type file\n"
                 "  [bold]run[/bold]     Run the current H-hat project\n"
+                "  [bold]update[/bold]  Synchronize project documentation\n"
                 "  [bold]help[/bold]    Show this help message\n\n"
                 "Use [bold]hat help <command>[/bold] for detailed information about a command.",
                 title="hat - Command Line Interface",
@@ -263,6 +265,52 @@ def run() -> None:
             Panel(
                 f"An error occurred while running the project: {str(e)}\n\n"
                 "Please check your code for errors.",
+                title="⚠ Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+
+
+@app.command()
+def update() -> None:
+    """
+    Synchronize documentation for the current H-hat project.
+
+    This command mirrors .hat files from src/ into markdown files under docs/
+    and updates generated signature information while preserving handwritten
+    documentation sections.
+
+    Example:
+        hat update
+    """
+    try:
+        proj_dir = get_proj_dir()
+        result = update_project(proj_dir)
+        console.print(
+            Panel(
+                "Documentation synchronized successfully!\n\n"
+                f"Source files scanned: {result['source_files']}\n"
+                f"Docs written: {result['docs_written']}\n"
+                f"Orphan docs removed: {result['docs_removed']}",
+                title="✓ Success",
+                border_style="green",
+            )
+        )
+    except ValueError as e:
+        console.print(
+            Panel(
+                str(e) + "\n\nPlease make sure you're inside a H-hat project directory.",
+                title="⚠ Error",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(
+            Panel(
+                f"An unexpected error occurred: {str(e)}\n\n"
+                "If this persists, please report it as an issue.",
                 title="⚠ Error",
                 border_style="red",
             )

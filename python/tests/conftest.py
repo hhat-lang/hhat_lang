@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import pytest
+import sys
+from pathlib import Path
 
-
-@pytest.fixture
-def MAX_ATOL_STATES_GATE() -> float:
-    return 0.08
+_SRC_PATH = Path(__file__).resolve().parents[1] / "src"
+if str(_SRC_PATH) not in sys.path:
+    sys.path.insert(0, str(_SRC_PATH))

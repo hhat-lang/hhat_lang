@@ -10,7 +10,7 @@ from pygments.token import (
     Punctuation,
     String,
     Literal,
-    Number
+    Number,
 )
 
 

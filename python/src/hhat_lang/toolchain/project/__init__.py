@@ -10,7 +10,8 @@ PROOFS_FOLDER_NAME = "proofs"  # future use
 
 # files
 MAIN_FILE_NAME = "main.hat"
-MAIN_DOC_FILE_NAME = "main.md"
+
+MAIN_DOC_FILE_NAME = f"{MAIN_FILE_NAME}.md"
 
 # paths
 MAIN_PATH = f"{SOURCE_FOLDER_NAME}/{MAIN_DOC_FILE_NAME}"

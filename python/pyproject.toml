@@ -28,31 +28,11 @@ classifiers = [
 dependencies = [
     "rich>=14.0.0",
     "typer>=0.16.0",
-]
-
-[project.optional-dependencies]
-heather = [
     "arpeggio==2.0.3",
     "pygments==2.19.2",
 ]
 
-qiskit = [
-    "qiskit",
-    "qiskit-aer",
-    "qiskit-ibm-runtime",
-]
-
-netqasm = [
-    "netqasm",
-]
-
-openqasm2 = [
-    "hhat-lang[qiskit]",
-]
-
-all = [
-    "hhat-lang[heather,qiskit,openqasm2,netqasm]"
-]
+[project.optional-dependencies]
 
 dev = [
     "mypy",

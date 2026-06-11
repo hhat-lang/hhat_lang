@@ -9,4 +9,3 @@ pub struct FieldId {
 pub struct VariantId {
 
 }
-

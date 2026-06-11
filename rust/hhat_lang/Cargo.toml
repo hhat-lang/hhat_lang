@@ -14,3 +14,5 @@ cranelift = "0.128.3"
 cranelift-module = "0.128.3"
 cranelift-jit = "0.128.3"
 strum = "0.28.0"
+toml = { version = "1.1.2", features = ["preserve_order", "serde"] }
+serde = { version = "1.0.228", features = ["derive"] }

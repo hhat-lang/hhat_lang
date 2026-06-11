@@ -3,19 +3,40 @@ Project documentation update implementation.
 
 For now, this module checks whether each H-hat code file under ``src/`` has a
 matching Markdown documentation file under ``docs/``, delegates dialect-specific
-signature synchronization to Heather helpers, renames stale documentation files
+code parsing to the selected dialect module, renames stale documentation files
 as orphans, and removes stale documented signatures.
 """
 
 from __future__ import annotations
 
+import importlib
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Protocol, cast
 
-from hhat_lang.dialects.heather.grammar import doc_signatures as heather_doc_signatures
-from hhat_lang.toolchain.project import DOCS_FOLDER_NAME, IMPORTS_FOLDER_NAME, SOURCE_FOLDER_NAME
+from hhat_lang.toolchain.project import (
+    DOCS_FOLDER_NAME,
+    IMPORTS_FOLDER_NAME,
+    SOURCE_FOLDER_NAME,
+    doc_signatures,
+)
 from hhat_lang.toolchain.project.utils import str_to_path
+
+
+class SignatureParser(Protocol):
+    """Dialect-specific parser used by the dialect-independent update flow."""
+
+    def parse_code_signatures(self, code_file: Path) -> tuple[doc_signatures.CodeSignature, ...]:
+        """Parse code signatures from a dialect source file."""
+
+
+def _load_signature_parser(dialect: str) -> SignatureParser:
+    module_name = f"hhat_lang.dialects.{dialect}.grammar.doc_signatures"
+    module = importlib.import_module(module_name)
+    if not hasattr(module, "parse_code_signatures"):
+        raise ValueError(f"Dialect '{dialect}' does not provide parse_code_signatures")
+    return cast(SignatureParser, module)
 
 
 @dataclass(frozen=True)
@@ -24,7 +45,7 @@ class SignatureMismatch:
 
     code_file: Path
     doc_file: Path
-    signature: heather_doc_signatures.CodeSignature
+    signature: doc_signatures.CodeSignature
     reason: str
 
 
@@ -50,7 +71,7 @@ class DocumentationUpdateResult:
 
     created_docs: tuple[Path, ...]
     orphaned_docs: tuple[OrphanedDoc, ...]
-    checked_signatures: tuple[heather_doc_signatures.CodeSignature, ...]
+    checked_signatures: tuple[doc_signatures.CodeSignature, ...]
     removed_signatures: tuple[RemovedSignature, ...]
     updated_signatures: tuple[SignatureMismatch, ...]
     signature_mismatches: tuple[SignatureMismatch, ...]
@@ -141,28 +162,26 @@ def _update_documented_signatures(
 ) -> None:
     markdown = doc_file.read_text(encoding="utf-8")
     for mismatch in mismatches:
-        markdown = heather_doc_signatures.upsert_signature(markdown, mismatch.signature)
+        markdown = doc_signatures.upsert_signature(markdown, mismatch.signature)
     doc_file.write_text(markdown, encoding="utf-8")
 
 
 def _remove_stale_documented_signatures(
     doc_file: Path,
-    signatures: tuple[heather_doc_signatures.CodeSignature, ...],
+    signatures: tuple[doc_signatures.CodeSignature, ...],
 ) -> tuple[RemovedSignature, ...]:
     markdown = doc_file.read_text(encoding="utf-8")
-    sections = heather_doc_signatures.split_doc_sections(markdown)
+    sections = doc_signatures.split_doc_sections(markdown)
     signature_names = {signature.name for signature in signatures}
     removed_signatures = tuple(
         RemovedSignature(doc_file=doc_file, name=name)
         for name, section in sections.items()
         if name not in signature_names
-        and heather_doc_signatures.parse_documented_signature(section) is not None
+        and doc_signatures.parse_documented_signature(section) is not None
     )
 
     for removed_signature in removed_signatures:
-        markdown = heather_doc_signatures.remove_documented_signature(
-            markdown, removed_signature.name
-        )
+        markdown = doc_signatures.remove_documented_signature(markdown, removed_signature.name)
 
     if removed_signatures:
         doc_file.write_text(markdown, encoding="utf-8")
@@ -203,7 +222,7 @@ def _orphan_stale_doc_files(
 def _check_signature_matches(
     code_file: Path,
     doc_file: Path,
-    signatures: tuple[heather_doc_signatures.CodeSignature, ...],
+    signatures: tuple[doc_signatures.CodeSignature, ...],
 ) -> tuple[SignatureMismatch, ...]:
     if not doc_file.exists():
         return tuple(
@@ -216,7 +235,7 @@ def _check_signature_matches(
             for signature in signatures
         )
 
-    sections = heather_doc_signatures.split_doc_sections(doc_file.read_text(encoding="utf-8"))
+    sections = doc_signatures.split_doc_sections(doc_file.read_text(encoding="utf-8"))
     mismatches: list[SignatureMismatch] = []
     for signature in signatures:
         section = sections.get(signature.name)
@@ -231,7 +250,7 @@ def _check_signature_matches(
             )
             continue
 
-        documented = heather_doc_signatures.parse_documented_signature(section)
+        documented = doc_signatures.parse_documented_signature(section)
         if documented is None:
             mismatches.append(
                 SignatureMismatch(
@@ -243,7 +262,7 @@ def _check_signature_matches(
             )
             continue
 
-        mismatch_reason = heather_doc_signatures.signature_mismatch_reason(signature, documented)
+        mismatch_reason = doc_signatures.signature_mismatch_reason(signature, documented)
         if mismatch_reason:
             mismatches.append(
                 SignatureMismatch(
@@ -257,8 +276,11 @@ def _check_signature_matches(
     return tuple(mismatches)
 
 
-def update_project(project_name: str | Path) -> DocumentationUpdateResult:
+def update_project(project_name: str | Path, dialect: str = "heather") -> DocumentationUpdateResult:
     """Create missing docs and check documented signatures against code signatures.
+
+    ``dialect`` selects ``hhat_lang.dialects.<dialect>.grammar.doc_signatures``
+    dynamically so the toolchain update flow does not import a concrete dialect.
 
     The documentation tree mirrors the ``src/`` tree under ``docs/`` and uses
     ``.md`` as the documentation suffix. For example, ``src/foo/bar.hat`` maps
@@ -266,6 +288,7 @@ def update_project(project_name: str | Path) -> DocumentationUpdateResult:
     """
 
     project_root = str_to_path(project_name)
+    signature_parser = _load_signature_parser(dialect)
     source_root = project_root / SOURCE_FOLDER_NAME
     docs_root = project_root / DOCS_FOLDER_NAME
 
@@ -278,7 +301,7 @@ def update_project(project_name: str | Path) -> DocumentationUpdateResult:
     orphaned_docs = _orphan_stale_doc_files(project_root, docs_root, code_files)
 
     created_docs: list[Path] = []
-    checked_signatures: list[heather_doc_signatures.CodeSignature] = []
+    checked_signatures: list[doc_signatures.CodeSignature] = []
     removed_signatures: list[RemovedSignature] = []
     updated_signatures: list[SignatureMismatch] = []
     signature_mismatches: list[SignatureMismatch] = []
@@ -290,7 +313,7 @@ def update_project(project_name: str | Path) -> DocumentationUpdateResult:
             doc_file.write_text(f"# {doc_file.stem}\n\n", encoding="utf-8")
             created_docs.append(doc_file)
 
-        signatures = heather_doc_signatures.parse_code_signatures(code_file)
+        signatures = signature_parser.parse_code_signatures(code_file)
         checked_signatures.extend(signatures)
         removed_signatures.extend(_remove_stale_documented_signatures(doc_file, signatures))
 

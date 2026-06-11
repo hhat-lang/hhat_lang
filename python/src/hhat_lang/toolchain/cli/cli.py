@@ -238,21 +238,29 @@ def new(
 
 
 @app.command()
-def update() -> None:
+def update(
+    dialect: str = typer.Option(
+        "heather",
+        "--dialect",
+        "-d",
+        help="Dialect parser to use for code signatures.",
+    ),
+) -> None:
     """
     Update the current H-hat project metadata and documentation files.
 
-    This command must be executed from within a H-hat project directory. It
-    currently checks whether every .hat code file under src/ has a matching .md
+    This command can be executed from a H-hat project directory or one of its
+    subdirectories. It checks whether every .hat code file under src/ has a matching .md
     documentation file under docs/, creating missing documentation files while
     preserving the source directory layout.
 
     Example:
-        hat update    # Create missing docs for src/*.hat files
+        hat update                 # Create missing docs for src/*.hat files
+        hat update --dialect foo   # Use hhat_lang.dialects.foo grammar parser
     """
     try:
         proj_dir = _get_update_dir()
-        result = update_project(proj_dir)
+        result = update_project(proj_dir, dialect=dialect)
 
         messages: list[str] = []
         if result.created_docs:

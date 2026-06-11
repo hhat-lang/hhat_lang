@@ -316,3 +316,40 @@ def test_cli_update_uses_parent_with_src_from_nested_directory(
     assert result.exit_code == 0, result.output
     assert (tmp_path / "docs" / "module.md").is_file()
     assert not (nested_dir / "docs").exists()
+
+
+def test_update_loads_selected_dialect_without_importing_heather(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    project_root = tmp_path / "project_with_custom_dialect"
+    (project_root / "src").mkdir(parents=True)
+    (project_root / "src" / "module.hat").write_text("custom signature source\n", encoding="utf-8")
+
+    import hhat_lang.dialects
+
+    fake_dialects_root = tmp_path / "fake_dialects"
+    dialect_root = fake_dialects_root / "custom"
+    grammar_root = dialect_root / "grammar"
+    grammar_root.mkdir(parents=True)
+    (dialect_root / "__init__.py").write_text("", encoding="utf-8")
+    (grammar_root / "__init__.py").write_text("", encoding="utf-8")
+    (grammar_root / "doc_signatures.py").write_text(
+        "from pathlib import Path\n"
+        "from hhat_lang.toolchain.project.doc_signatures import CodeSignature\n\n"
+        "def parse_code_signatures(code_file: Path) -> tuple[CodeSignature, ...]:\n"
+        "    return (CodeSignature(name='custom-fn', kind='function', paradigm='classical'),)\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        hhat_lang.dialects,
+        "__path__",
+        [*hhat_lang.dialects.__path__, str(fake_dialects_root)],
+    )
+
+    result = update_project(project_root, dialect="custom")
+
+    doc_file = project_root / "docs" / "module.md"
+    assert result.checked_signature_count == 1
+    assert result.signature_mismatch_count == 0
+    assert "## custom-fn" in doc_file.read_text(encoding="utf-8")

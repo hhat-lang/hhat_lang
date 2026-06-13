@@ -10,5 +10,6 @@
 pub mod arch;
 pub mod primitives;
 pub mod quantum;
+pub mod quantum_cache;
 mod adt;
 mod base;

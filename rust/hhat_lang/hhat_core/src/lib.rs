@@ -4,11 +4,14 @@ pub mod frontend;
 pub mod backend;
 mod core;
 pub mod layout;
+pub mod program;
 
 pub use frontend::base::IRInfra;
 pub use backend::base::BackendCompiler;
 pub use core::{CoreCompiler, Literal, SymbolId};
-pub use layout::quantum::{QuantumInstruction, QuantumLayout, QuantumLayoutCache, QuantumProgram};
+pub use layout::quantum::QuantumLayout;
+pub use layout::quantum_cache::QuantumLayoutCache;
+pub use program::{QuantumInstruction, QuantumProgram};
 
 
 #[cfg(test)]

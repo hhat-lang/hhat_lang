@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from hhat_lang.dialects.heather.grammar.comment_grammar import strip_comments
 from hhat_lang.toolchain.project.doc_signatures import CodeSignature, SignatureRow
 
 _IDENTIFIER = r"@?[a-zA-Z][a-zA-Z0-9\-_]*"
@@ -17,11 +18,6 @@ _FUNCTION_RE = re.compile(
 _TYPE_RE = re.compile(rf"(?<![\w-])type\s+(?P<name>{_IDENTIFIER})", re.MULTILINE)
 _ARG_RE = re.compile(rf"(?P<name>{_IDENTIFIER})\s*:\s*(?P<type>{_TYPE_VALUE})")
 _FIELD_RE = _ARG_RE
-
-
-def strip_comments(code: str) -> str:
-    code = re.sub(r"/\*.*?\*/", "", code, flags=re.DOTALL)
-    return re.sub(r"//.*", "", code)
 
 
 def paradigm(*values: str | None) -> str:

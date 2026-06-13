@@ -318,6 +318,25 @@ def test_cli_update_uses_parent_with_src_from_nested_directory(
     assert not (nested_dir / "docs").exists()
 
 
+def test_heather_comment_syntax_is_stripped_before_signature_parsing(tmp_path: Path) -> None:
+    project_root = tmp_path / "project_with_commented_signatures"
+    (project_root / "src").mkdir(parents=True)
+    (project_root / "src" / "module.hat").write_text(
+        "// fn ignored-line () wrong { }\n"
+        "/* fn ignored-block () wrong { } */\n"
+        "fn visible () result { }\n",
+        encoding="utf-8",
+    )
+
+    result = update_project(project_root)
+
+    doc_text = (project_root / "docs" / "module.md").read_text(encoding="utf-8")
+    assert result.checked_signature_count == 1
+    assert "## visible" in doc_text
+    assert "ignored-line" not in doc_text
+    assert "ignored-block" not in doc_text
+
+
 def test_update_loads_selected_dialect_without_importing_heather(
     tmp_path: Path,
     monkeypatch,

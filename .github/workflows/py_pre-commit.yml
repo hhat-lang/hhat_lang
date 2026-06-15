@@ -20,7 +20,7 @@ jobs:
     outputs:
       has_python: ${{ steps.check.outputs.has_python }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: check
         run: |
           if [ -d "python" ] && find python -name "*.py" | grep -q .; then
@@ -39,7 +39,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"

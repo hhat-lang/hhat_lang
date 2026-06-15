@@ -1,0 +1,56 @@
+name: rs_audit
+
+on:
+  push:
+    paths:
+      - "rust/**"
+      - ".github/workflows/rs_audit.yml"
+  pull_request:
+    paths:
+      - "rust/**"
+      - ".github/workflows/rs_audit.yml"
+  schedule:
+    - cron: "0 6 * * 1"  # Weekly, Monday 06:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Detect Rust code
+    runs-on: ubuntu-latest
+    outputs:
+      has_rust: ${{ steps.check.outputs.has_rust }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check
+        run: |
+          if [ -d "rust" ] && find rust -name "*.rs" | grep -q .; then
+            echo "has_rust=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_rust=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  audit:
+    name: cargo audit (${{ matrix.os }})
+    needs: detect
+    if: needs.detect.outputs.has_rust == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Rust toolchain
+        working-directory: rust/hhat_lang
+        run: rustup show
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+      - name: Generate lockfile if missing
+        working-directory: rust/hhat_lang
+        run: |
+          [ -f Cargo.lock ] || cargo generate-lockfile
+      - name: cargo audit
+        working-directory: rust/hhat_lang
+        run: cargo audit

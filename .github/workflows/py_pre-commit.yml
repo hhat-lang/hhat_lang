@@ -1,0 +1,49 @@
+name: py_pre-commit
+
+on:
+  push:
+    paths:
+      - "python/**"
+      - ".github/workflows/py_pre-commit.yml"
+  pull_request:
+    paths:
+      - "python/**"
+      - ".github/workflows/py_pre-commit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Detect Python code
+    runs-on: ubuntu-latest
+    outputs:
+      has_python: ${{ steps.check.outputs.has_python }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check
+        run: |
+          if [ -d "python" ] && find python -name "*.py" | grep -q .; then
+            echo "has_python=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_python=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  pre-commit:
+    name: pre-commit (${{ matrix.os }})
+    needs: detect
+    if: needs.detect.outputs.has_python == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Run pre-commit
+        run: |
+          pip install pre-commit
+          pre-commit run --config python/.pre-commit-config.yaml --all-files

@@ -1,0 +1,51 @@
+name: rs_test
+
+on:
+  push:
+    paths:
+      - "rust/**"
+      - ".github/workflows/rs_test.yml"
+  pull_request:
+    paths:
+      - "rust/**"
+      - ".github/workflows/rs_test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Detect Rust code
+    runs-on: ubuntu-latest
+    outputs:
+      has_rust: ${{ steps.check.outputs.has_rust }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check
+        run: |
+          if [ -d "rust" ] && find rust -name "*.rs" | grep -q .; then
+            echo "has_rust=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_rust=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-test:
+    name: cargo build+test (${{ matrix.os }})
+    needs: detect
+    if: needs.detect.outputs.has_rust == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Rust toolchain
+        working-directory: rust/hhat_lang
+        run: rustup show
+      - name: cargo build
+        working-directory: rust/hhat_lang
+        run: cargo build --all-targets --locked
+      - name: cargo test
+        working-directory: rust/hhat_lang
+        run: cargo test --all-targets --locked

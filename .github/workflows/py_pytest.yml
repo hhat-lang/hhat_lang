@@ -1,0 +1,59 @@
+name: py_pytest
+
+on:
+  push:
+    paths:
+      - "python/**"
+      - ".github/workflows/py_pytest.yml"
+  pull_request:
+    paths:
+      - "python/**"
+      - ".github/workflows/py_pytest.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Detect Python code
+    runs-on: ubuntu-latest
+    outputs:
+      has_python: ${{ steps.check.outputs.has_python }}
+      has_tests: ${{ steps.check.outputs.has_tests }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check
+        run: |
+          if [ -d "python" ] && find python -name "*.py" | grep -q .; then
+            echo "has_python=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_python=false" >> "$GITHUB_OUTPUT"
+          fi
+          if find python \( -path '*/tests/*.py' -o -name 'test_*.py' -o -name '*_test.py' \) | grep -q .; then
+            echo "has_tests=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_tests=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  pytest:
+    name: pytest (${{ matrix.os }}, py${{ matrix.python-version }})
+    needs: detect
+    if: needs.detect.outputs.has_python == 'true' && needs.detect.outputs.has_tests == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install dependencies
+        working-directory: python
+        run: pip install ".[dev]"
+      - name: Run pytest
+        working-directory: python
+        run: pytest

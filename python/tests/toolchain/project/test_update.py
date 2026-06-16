@@ -323,7 +323,7 @@ def test_heather_comment_syntax_is_stripped_before_signature_parsing(tmp_path: P
     (project_root / "src").mkdir(parents=True)
     (project_root / "src" / "module.hat").write_text(
         "// fn ignored-line () wrong { }\n"
-        "/* fn ignored-block () wrong { } */\n"
+        "/- fn ignored-block () wrong { } -/\n"
         "fn visible () result { }\n",
         encoding="utf-8",
     )

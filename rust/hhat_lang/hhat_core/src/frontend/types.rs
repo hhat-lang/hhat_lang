@@ -63,7 +63,7 @@ pub enum TyPrimitive {
 /// Define struct type.
 ///
 /// Ex:
-/// ```
+/// ```text
 /// type smt { m1:ty1, m2:ty2 }
 /// type @smt { @m1:@ty1, @m2:@ty2, m3:ty3 }
 /// ```

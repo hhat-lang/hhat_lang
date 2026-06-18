@@ -1,23 +1,12 @@
 //!
-//! Quantum memory layout for quantum data.
+//! Quantum layout definitions: the qubit-only layout of a type.
 //!
-//! Kept fully apart from the classical layout (`base`, `adt`, `primitives`):
-//! the classical side lays data out in bytes (size, alignment, memory region),
-//! while here we only count qubits. The quantum layout is derived straight from
-//! the frontend type [`Ty`], so the classical layout never carries quantum
-//! information.
-//!   - no alignment and no padding; we cannot afford to waste qubits;
+//! No alignment and no padding; we cannot afford to waste qubits.
 //!   - primitive qubit counts: `@bool`=1, `@u2`=2, `@u3`=3, `@u4`=4, `@u8`=8;
 //!   - a struct stacks its quantum fields back-to-back (recursive);
 //!   - a quantum enum (2-variant, for now) takes a single qubit (`|0>`/`|1>`).
 //!
-//! A [`QuantumProgram`] is built whenever a quantum variable completes its
-//! cycle (declaration, assignment, cast). It holds the variable's quantum
-//! layout, the primitive quantum instructions applied to it (each may append
-//! ancilla qubits), and the cast attributes that define the classical register.
-//!
 
-use std::collections::HashMap;
 use crate::core::{Arenable, ArenaIndexHolder};
 use crate::frontend::types::{Ty, TyEnum, TyPrimitive, TyStruct};
 use crate::SymbolId;
@@ -165,139 +154,12 @@ impl QuantumEnumLayout {
 impl Arenable for QuantumEnumLayout {}
 
 
-/// Permanent store for quantum type layouts so each quantum type is laid out
-/// once and reused across every quantum variable in the program.
-///
-pub struct QuantumLayoutCache {
-    cache: HashMap<Ty, QuantumLayout>,
-}
-
-#[allow(clippy::new_without_default)]
-impl QuantumLayoutCache {
-    pub fn new() -> Self {
-        Self { cache: HashMap::new() }
-    }
-
-    pub fn has(&self, ty: &Ty) -> bool {
-        self.cache.contains_key(ty)
-    }
-
-    /// Quantum layout for a type, building it on a miss and storing it.
-    ///
-    pub fn layout_of(&mut self, ty: &Ty) -> QuantumLayout {
-        match self.cache.get(ty) {
-            Some(q) => q.clone(),
-            None => {
-                let q = QuantumLayout::layout(ty);
-                self.cache.insert(ty.clone(), q.clone());
-                q
-            }
-        }
-    }
-}
-
-
-/// A primitive quantum instruction. Besides its identity it may append ancilla
-/// qubits when lowered to the Q3L code.
-///
-#[derive(Clone, Debug)]
-pub struct QuantumInstr {
-    pub name: SymbolId,
-    pub ancilla: u32,
-}
-
-impl QuantumInstr {
-    pub fn new(name: &SymbolId, ancilla: u32) -> Self {
-        Self { name: name.clone(), ancilla }
-    }
-}
-
-
-/// Everything that happens under a single quantum variable.
-///
-/// Built when the variable is cast, it holds the variable's quantum layout, the
-/// primitive quantum instructions applied to it (each carrying ancilla qubits),
-/// and the cast attributes that define the classical register.
-///
-#[derive(Clone, Debug)]
-pub struct QuantumProgram {
-    pub var: SymbolId,
-    pub layout: QuantumLayout,
-    pub instrs: Vec<QuantumInstr>,
-    pub cast: Vec<SymbolId>,
-}
-
-impl QuantumProgram {
-    pub fn new(var: &SymbolId, layout: QuantumLayout) -> Self {
-        Self {
-            var: var.clone(),
-            layout,
-            instrs: Vec::new(),
-            cast: Vec::new(),
-        }
-    }
-
-    /// Build the program for a quantum variable from its type, using and
-    /// populating the permanent quantum layout cache.
-    ///
-    pub fn from_variable(var: &SymbolId, ty: &Ty, qlayouts: &mut QuantumLayoutCache) -> Self {
-        let layout = qlayouts.layout_of(ty);
-        Self::new(var, layout)
-    }
-
-    pub fn add_instr(&mut self, instr: QuantumInstr) {
-        self.instrs.push(instr)
-    }
-
-    pub fn add_cast(&mut self, attr: &SymbolId) {
-        self.cast.push(attr.clone())
-    }
-
-    /// Qubits used by the variable's quantum data.
-    ///
-    pub fn qsize(&self) -> u32 {
-        self.layout.qubits()
-    }
-
-    /// Ancilla qubits required by the quantum instructions.
-    ///
-    pub fn ancilla(&self) -> u32 {
-        self.instrs.iter().map(|i| i.ancilla).sum()
-    }
-
-    /// Total quantum memory size: data qubits plus instruction ancillas.
-    ///
-    pub fn qmem_size(&self) -> u32 {
-        self.qsize() + self.ancilla()
-    }
-
-    /// Classical register size: the qubits of the cast attributes, since
-    /// measuring an attribute yields that many classical bits.
-    ///
-    pub fn csize(&self) -> u32 {
-        // casting the whole variable measures the whole register
-        if self.cast.contains(&self.var) {
-            return self.qsize();
-        }
-        match &self.layout {
-            QuantumLayout::Struct(s) => s.members.iter()
-                .filter(|m| self.cast.contains(&m.name))
-                .map(|m| m.layout.qubits())
-                .sum(),
-            _ => 0,
-        }
-    }
-}
-
-
 #[cfg(test)]
 mod tests {
     use crate::frontend::types::{Ty, TyEnum, TyPrimitive, TyStruct};
     use crate::layout::arch::Arch;
     use crate::layout::base::LayoutCache;
-    use crate::layout::quantum::{
-        QuantumInstr, QuantumLayout, QuantumLayoutCache, QuantumProgram,
-    };
+    use crate::layout::quantum::QuantumLayout;
     use crate::SymbolId;
 
     /// Check the qubit count for every primitive quantum type.
@@ -496,117 +358,5 @@ mod tests {
         // the quantum layout is derived separately, from the type
         let quantum = QuantumLayout::layout(&Ty::Struct(bell_ty));
         assert_eq!(quantum.qubits(), 2);
-    }
-
-    /// Check the quantum layout cache stores layouts permanently and reuses them.
-    ///
-    #[test]
-    fn check_quantum_layout_cache() {
-        let bell_name = SymbolId(1, true);
-        let mut bell_ty = TyStruct::new(&bell_name);
-        bell_ty.add_member(&SymbolId(2, true), Ty::Primitive(TyPrimitive::QBool));
-        bell_ty.add_member(&SymbolId(3, true), Ty::Primitive(TyPrimitive::QBool));
-        bell_ty.done();
-
-        let mut qcache = QuantumLayoutCache::new();
-        assert!(!qcache.has(&Ty::Struct(bell_ty.clone())));
-
-        let first = qcache.layout_of(&Ty::Struct(bell_ty.clone()));
-        assert_eq!(first.qubits(), 2);
-        assert!(qcache.has(&Ty::Struct(bell_ty.clone())));
-
-        // second lookup is served from the cache and matches
-        let second = qcache.layout_of(&Ty::Struct(bell_ty));
-        assert_eq!(second.qubits(), 2);
-    }
-
-    /// Check the logic from a quantum type (a struct) and a dummy quantum
-    /// instruction (ancilla 0 to 3) into a QuantumProgram with the full quantum
-    /// memory mapped out, including the ancillas.
-    ///
-    #[test]
-    fn check_quantum_program() {
-        // type @bell_t { @s:@bool, @t:@bool }
-        let bell_name = SymbolId(1, true);
-        let s_name = SymbolId(2, true);
-        let t_name = SymbolId(3, true);
-        let mut bell_ty = TyStruct::new(&bell_name);
-        bell_ty.add_member(&s_name, Ty::Primitive(TyPrimitive::QBool));
-        bell_ty.add_member(&t_name, Ty::Primitive(TyPrimitive::QBool));
-        bell_ty.done();
-
-        let mut qcache = QuantumLayoutCache::new();
-        let v_name = SymbolId(4, true);
-        let sync_name = SymbolId(5, true);
-
-        let _ = (0u32..=3).map(|ancilla| {
-            let mut prog = QuantumProgram::from_variable(
-                &v_name, &Ty::Struct(bell_ty.clone()), &mut qcache,
-            );
-            prog.add_instr(QuantumInstr::new(&sync_name, ancilla));
-            prog.add_cast(&t_name);  // only @v.@t is cast => creg res[1]
-            println!("quantum program: {:?}", prog);
-
-            assert_eq!(prog.qsize(), 2);
-            assert_eq!(prog.ancilla(), ancilla);
-            assert_eq!(prog.qmem_size(), 2 + ancilla);
-            assert_eq!(prog.csize(), 1);
-        }).collect::<Vec<()>>();
-    }
-
-    /// Check a primitive quantum variable @q:@u8 and a dummy quantum instruction
-    /// (ancilla 0 to 3) build a whole-variable program.
-    ///
-    #[test]
-    fn check_quantum_program_primitive_variable() {
-        let mut qcache = QuantumLayoutCache::new();
-        let q_name = SymbolId(1, true);
-        let instr_name = SymbolId(2, true);
-
-        let _ = (0u32..=3).map(|ancilla| {
-            let mut prog = QuantumProgram::from_variable(
-                &q_name, &Ty::Primitive(TyPrimitive::QU8), &mut qcache,
-            );
-            prog.add_instr(QuantumInstr::new(&instr_name, ancilla));
-            prog.add_cast(&q_name);
-            println!("quantum program (primitive): {:?}", prog);
-
-            assert_eq!(prog.qsize(), 8);
-            assert_eq!(prog.ancilla(), ancilla);
-            assert_eq!(prog.qmem_size(), 8 + ancilla);
-            assert_eq!(prog.csize(), 8);  // whole @u8 cast => 8 classical bits
-        }).collect::<Vec<()>>();
-    }
-
-    /// Check the classical register reflects the qubit width of the cast
-    /// attributes: nothing cast gives 0, a @u8 attribute gives 8, both give 9.
-    ///
-    #[test]
-    fn check_quantum_program_classical_register() {
-        // type @reg { @a:@bool, @b:@u8 }
-        let reg_name = SymbolId(1, true);
-        let a_name = SymbolId(2, true);
-        let b_name = SymbolId(3, true);
-        let mut reg_ty = TyStruct::new(&reg_name);
-        reg_ty.add_member(&a_name, Ty::Primitive(TyPrimitive::QBool));
-        reg_ty.add_member(&b_name, Ty::Primitive(TyPrimitive::QU8));
-        reg_ty.done();
-
-        let mut qcache = QuantumLayoutCache::new();
-        let v_name = SymbolId(4, true);
-
-        // nothing cast
-        let prog = QuantumProgram::from_variable(&v_name, &Ty::Struct(reg_ty.clone()), &mut qcache);
-        assert_eq!(prog.qsize(), 9);
-        assert_eq!(prog.csize(), 0);
-
-        // only @b:@u8 cast => 8 classical bits (not 1)
-        let mut prog = QuantumProgram::from_variable(&v_name, &Ty::Struct(reg_ty.clone()), &mut qcache);
-        prog.add_cast(&b_name);
-        assert_eq!(prog.csize(), 8);
-
-        // both cast => 1 + 8 = 9 classical bits
-        prog.add_cast(&a_name);
-        assert_eq!(prog.csize(), 9);
     }
 }

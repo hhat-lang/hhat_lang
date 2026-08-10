@@ -27,7 +27,7 @@ classifiers = [
 
 dependencies = [
     "rich>=15.0.0",
-    "typer>=0.26.8",
+    "typer>=0.27.1",
     "arpeggio==2.0.3",
     "pygments>=2.20.0",
 ]

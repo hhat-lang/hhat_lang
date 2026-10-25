@@ -2,17 +2,18 @@
 name = "hhat_lang"
 version = "0.3.0-alpha.1"
 edition = "2024"
+rust-version = "1.99.1"
 
 [workspace]
-members = ["hhat_core", "hhat_dialects/hhat_heather"]
+members = ["hhat_core", "hhat_dialects/heather"]
 
 [dependencies]
 peg = "0.8.5"
 walkdir = "2.5.0"
-itertools = "0.14.0"
-cranelift = "0.128.3"
-cranelift-module = "0.128.3"
-cranelift-jit = "0.128.3"
+itertools = "0.15.0"
+cranelift = "0.137.0"
+cranelift-module = "0.137.0"
+cranelift-jit = "0.137.0"
 strum = "0.28.0"
 toml = { version = "1.1.2", features = ["preserve_order", "serde"] }
 serde = { version = "1.0.228", features = ["derive"] }

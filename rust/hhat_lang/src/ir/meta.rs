@@ -1,11 +1,5 @@
-pub struct MetaFn {
+pub struct MetaFn {}
 
-}
+pub struct MetaCall {}
 
-pub struct MetaCall {
-
-}
-
-pub struct IrFragment {
-
-}
+pub struct IrFragment {}

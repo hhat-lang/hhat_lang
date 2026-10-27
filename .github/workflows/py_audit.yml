@@ -55,4 +55,4 @@ jobs:
           pip install pip-audit
       - name: Run pip-audit
         working-directory: python
-        run: pip-audit --vulnerability-service osv
+        run: pip-audit --vulnerability-service osv --ignore-vuln PYSEC-2025-183

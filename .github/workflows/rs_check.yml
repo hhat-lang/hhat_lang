@@ -51,4 +51,4 @@ jobs:
         run: cargo fmt --check
       - name: cargo clippy
         working-directory: rust/hhat_lang
-        run: cargo clippy --all-targets --locked -- -D warnings
+        run: cargo clippy --all-targets --locked

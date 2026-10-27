@@ -1,8 +1,3 @@
-pub struct LayoutIr {
+pub struct LayoutIr {}
 
-}
-
-
-pub struct LayoutReprId {
-
-}
+pub struct LayoutReprId {}

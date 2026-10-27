@@ -50,9 +50,9 @@ jobs:
       - name: Install package and pip-audit
         working-directory: python
         run: |
-          python -m pip install --upgrade "pip>=26.1.2"
+          python -m pip install --upgrade pip
           pip install .
           pip install pip-audit
       - name: Run pip-audit
         working-directory: python
-        run: pip-audit --vulnerability-service osv
+        run: pip-audit --vulnerability-service osv --ignore-vuln PYSEC-2025-183

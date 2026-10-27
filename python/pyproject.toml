@@ -30,6 +30,9 @@ dependencies = [
     "typer>=0.26.8",
     "arpeggio==2.0.3",
     "pygments>=2.20.0",
+    # fixed to prevent vulnerabilities
+    "certifi>=2026.10.19",
+    "pyjwt>=2.15.1",
 ]
 
 [project.optional-dependencies]

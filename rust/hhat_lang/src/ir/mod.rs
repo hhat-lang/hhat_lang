@@ -1,10 +1,10 @@
-mod project;
+mod hir;
+mod ids;
+mod layout_ir;
 mod lazy;
 mod meta;
-mod modifier;
-mod layout_ir;
-mod types;
-mod ids;
-mod hir;
-mod modules;
 mod mir;
+mod modifier;
+mod modules;
+mod project;
+mod types;

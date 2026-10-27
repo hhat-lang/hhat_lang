@@ -227,21 +227,5 @@ pub struct MappedModule {
 /// Tests for some sanity checks
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-    use crate::ir::project::SourceProject;
-
-    /// TODO: replace the python path for an independent place to retrieve
-    ///  hat code for debugging and checking purposes.
-    ///
-    /// Common path containing hat files for test purposes.
-    const PATH: &str = "../../python/tests/dialects/heather/parsing/parse-test/";
-
-    #[test]
-    fn check_project_source() {
-        assert!(PathBuf::from(PATH).exists());
-        let ps = SourceProject::new(PATH);
-        println!("{}", ps);
-        assert!(!ps.is_empty());
-
-    }
+    // no tests for now. This code will be replaced.
 }

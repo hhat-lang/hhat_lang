@@ -1,0 +1,11 @@
+[package]
+name = "hhat-heather"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hhat-core = { path = "../../core" }
+cranelift-codegen = "0.137.0"
+logos = "0.16.1"
+lasso = "0.7.3"
+chumsky = "0.13"

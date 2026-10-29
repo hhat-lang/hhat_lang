@@ -2,10 +2,10 @@
 name = "hhat_lang"
 version = "0.3.0-alpha.1"
 edition = "2024"
-rust-version = "1.99.1"
+rust-version = "1.99"
 
 [workspace]
-members = ["hhat_core", "hhat_dialects/heather"]
+members = ["core", "dialects/heather"]
 
 [dependencies]
 peg = "0.8.5"

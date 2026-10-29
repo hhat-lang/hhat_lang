@@ -61,7 +61,7 @@ fn str_t<'t>() -> impl Rule<'t, LiteralT> {
                 StrToken::Ident(p) => StrSeq::Var(SimpleId(p, s)),
                 StrToken::EndQuote => unreachable!("lexer should not store quotes."),
             }).collect::<Vec<StrSeq>>(),
-            e.span()
+        e.span()
     )}.labelled("str_t")
 }
 
@@ -327,7 +327,7 @@ fn cast<'t>() -> impl Rule<'t, Cast> {
         .then_ignore(just(Token::Star))
         .then(modifier().or_not())
         .then(type_id())
-        .map_with(|((value, m), ty), e| 
+        .map_with(|((value, m), ty), e|
             Cast { value, ty, modifier: m, span: e.span() }
         )
         .labelled("cast")

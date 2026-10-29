@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "setuptools_scm>=8", "wheel"]
+requires = ["setuptools>=84.2.1", "setuptools_scm>=10.3.4", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -26,33 +26,16 @@ classifiers = [
 ]
 
 dependencies = [
-    "rich>=14.0.0",
-    "typer>=0.16.0",
+    "rich>=15.0.0",
+    "typer>=0.27.3",
+    "arpeggio==2.0.3",
+    "pygments>=2.21.0",
+    # fixed to prevent vulnerabilities
+    "certifi>=2026.10.19",
+    "pyjwt>=2.15.1",
 ]
 
 [project.optional-dependencies]
-heather = [
-    "arpeggio==2.0.3",
-    "pygments==2.19.2",
-]
-
-qiskit = [
-    "qiskit",
-    "qiskit-aer",
-    "qiskit-ibm-runtime",
-]
-
-netqasm = [
-    "netqasm",
-]
-
-openqasm2 = [
-    "hhat-lang[qiskit]",
-]
-
-all = [
-    "hhat-lang[heather,qiskit,openqasm2,netqasm]"
-]
 
 dev = [
     "mypy",

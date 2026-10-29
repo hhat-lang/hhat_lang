@@ -134,7 +134,7 @@ h1, h2, h3 {
 .highlight {
     border: var(--stroke-width) solid #000 !important;
     box-shadow: var(--hard-shadow);
-    border-radius: 0px !important;
+    border-radius: 0 !important;
 }
 
 code {

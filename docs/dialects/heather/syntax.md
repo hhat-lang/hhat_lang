@@ -301,4 +301,3 @@ Types are defined inside custom files located on `src/hat_types/` path. There ar
         @sync(@q)
         res:hashmap = @q * hashmap  // evaluate lazy data from @q and convert its result as hashmap, storing at res
         ```
-

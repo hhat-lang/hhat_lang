@@ -1,4 +1,1 @@
-pub struct Modifier {
-
-}
-
+pub struct Modifier {}

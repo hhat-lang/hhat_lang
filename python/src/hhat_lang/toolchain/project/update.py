@@ -1,17 +1,25 @@
-"""
-Update current files; It can be to create respective doc files for
-the existing files.
+# mypy: ignore-errors
+"""Public project-update API.
+
+The implementation lives in :mod:`hhat_lang.toolchain.project.doc_update` so
+``hhat_lang.toolchain.project.update`` stays as a small compatibility module for
+callers that already import ``update_project`` from this path.
 """
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
-from typing import Any
+from hhat_lang.toolchain.project.doc_update import (
+    DocumentationUpdateResult,
+    OrphanedDoc,
+    RemovedSignature,
+    SignatureMismatch,
+    update_project,
+)
 
-from hhat_lang.toolchain.project.utils import str_to_path
-
-
-def update_project(project_name: str | Path) -> Any:
-    project_name = str_to_path(project_name)
-    # TODO: implement it
+__all__ = [
+    "DocumentationUpdateResult",
+    "OrphanedDoc",
+    "RemovedSignature",
+    "SignatureMismatch",
+    "update_project",
+]

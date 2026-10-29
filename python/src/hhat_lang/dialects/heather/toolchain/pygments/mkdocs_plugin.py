@@ -22,15 +22,15 @@ class HhatCssPlugin(BasePlugin):
         out_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Scope each generated stylesheet to Material's scheme attribute selector:
-        light_sel = f'[data-md-color-scheme="{self.config["light_scheme"]}"] {self.config["selector"]}'
-        dark_sel = f'[data-md-color-scheme="{self.config["dark_scheme"]}"] {self.config["selector"]}'
+        light_sel = (
+            f'[data-md-color-scheme="{self.config["light_scheme"]}"] {self.config["selector"]}'
+        )
+        dark_sel = (
+            f'[data-md-color-scheme="{self.config["dark_scheme"]}"] {self.config["selector"]}'
+        )
 
-        light_css = HtmlFormatter(style=self.config["light_style"]).get_style_defs(
-            light_sel
-        )
-        dark_css = HtmlFormatter(style=self.config["dark_style"]).get_style_defs(
-            dark_sel
-        )
+        light_css = HtmlFormatter(style=self.config["light_style"]).get_style_defs(light_sel)
+        dark_css = HtmlFormatter(style=self.config["dark_style"]).get_style_defs(dark_sel)
 
         out_path.write_text(light_css + "\n\n" + dark_css + "\n", encoding="utf-8")
 

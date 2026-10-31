@@ -5,4 +5,4 @@ The Proofs HIR is part of Heather compiler's first pass, transforming source cod
 
 ## Grammar
 
-The grammar reference is found below, as a [PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) description. The [lex](lex.rs) and [parse](parse.rs) files are developed using this grammar as reference, and should reflect it accordingly.
+The grammar reference is under development, as a [PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) description. The [lex](lex.rs) and [parse](parse.rs) files are developed using this grammar as reference, and should reflect it accordingly.

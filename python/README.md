@@ -2,10 +2,10 @@
 
 Python implementation of H-hat includes the toolchain for the H-hat CLI (`hat` CLI command and subcommands), and the Heather dialect pygments for the documentation's code syntax highlighting.
 
-### Note:
 
-H-hat rule system, compiler framework and extra toolchain features are now only at the [Rust implementation](../rust).  
-
+> [!note]
+> H-hat rule system, compiler framework and extra toolchain features are now only at the [Rust implementation](../rust).  
+>
 
 ## Contributing with code & Installation
 
@@ -13,7 +13,7 @@ H-hat rule system, compiler framework and extra toolchain features are now only 
 > Installation is only for contributing on the items above. For H-hat usage, check the [documentation website](https://docs.hhat-lang.org). 
 > 
 
-Should you choose to contributing with this part of the code, there are a few options to do so. Do not forget to check the [CONTRIBUTING](../CONTRIBUTING.md) page. Choose **one** of the options below to install it.
+Should you choose to contribute with this part of the code, there are a few options to do so. Do not forget to check the [CONTRIBUTING](../CONTRIBUTING.md) page. Choose **one** of the options below to install it.
 
 ### 1. From source
 

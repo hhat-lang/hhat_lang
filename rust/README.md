@@ -7,12 +7,15 @@ Most of its development is built in [Rust](https://rust-lang.org/).
 
 The folders organization is as follows:
 
-- [`core`](hhat_lang/core) for the H-hat core elements: rule system and compiler framework for dialect building
-- [`dialects`](hhat_lang/dialects) for the dialects shipped with H-hat
-- [`q3l`](hhat_lang/q3l) for the quantum low-level languages implementations, which are responsible for bridging H-hat to quantum languages such as OpenQASM
-- [`rules`](hhat_lang/rules) for the procedural macros and macros used to create H-hat's rule system
-- [`rulesystem`](hhat_lang/rulesystem) for the rule system logic and nicer packaging of the rules
-- [`src`](hhat_lang/src) for the H-hat ecosystem structure and logic; the one used to generate the CLI and tooling (toolchain framework included)
+- [`core`](hhat_lang/core)`***` for the H-hat core elements: rule system and compiler framework for dialect building
+- [`dialects`](hhat_lang/dialects)`***` for the dialects shipped with H-hat
+- [`q3l`](hhat_lang/q3l)`*` for the quantum low-level languages implementations, which are responsible for bridging H-hat to quantum languages such as OpenQASM
+- [`rules`](hhat_lang/rules)`**` for the procedural macros and macros used to create H-hat's rule system
+- [`rulesystem`](hhat_lang/rulesystem)`**` for the rule system logic and nicer packaging of the rules
+- [`src`](hhat_lang/src)`*` for the H-hat ecosystem structure and logic. The one used to generate the CLI and tooling (toolchain framework included) so dialect builders can utilize to include their own dialects. Users will download its binary for project management, compilation, debugging, checks and execution
+
+
+Items marked with `*` are under planning, with `**` are in queue for development, and with `***` are currently being implemented.
 
 
 ## Rule system development

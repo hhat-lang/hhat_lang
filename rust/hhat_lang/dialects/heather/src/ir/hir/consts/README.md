@@ -8,7 +8,7 @@ The Constants HIR is part of Heather compiler's first pass, transforming source 
 The grammar reference is found below, as a [PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) description. The [lex](lex.rs) and [parse](parse.rs) files are developed using this grammar as reference, and should reflect it accordingly.
 
 ```peg
-rogram                     = imports* group_fns* main? EOF
+program                     = imports* consts* EOF
 imports                     = "use" "(" ( type_import | fn_import | metafn_import | modifier_import | supertype_import | const_import )+ ")"
 type_import                 = "type" ":" ( single_import | many_imports )
 fn_import                   = "fn" ":" ( single_import | many_imports )
@@ -35,6 +35,7 @@ float_t                     = r"(\@)?(-)?(0|[1-9][0-9]*)\.[0-9]+"
 str_t                       = "\"" ( str_char | "{" simple_id "}" )* "\""
 str_char                    = r"[^\"\\{}\n]" | r"\\."
 consts                      = "const" simple_id ":" type_id "=" expr
+body                        = "{" ( declareassign | declareassign_ds | declare | assign | assign_ds | expr )* "}"
 expr                        = cast | literal | array | access | call_optn | call_optbdn | call_bdn | call | full_id
 cast                        = ( access | call | literal | full_id ) "*" modifier? type_id
 access                      = callable member+
@@ -42,13 +43,10 @@ callable                    = call_optn | call_optbdn | call_bdn | call
 member                      = "." ( simple_id | int_t | ( "(" args* ")" ) )
 call_optn                   = full_id "(" option+ ")"
 call_optbdn                 = full_id "(" args* ")" "{" option+ "}" modifier?
-call_bdn                    = full_id "(" args* ")" fn_body modifier?
-option                      = expr ":" ( fn_return | fn_body )
+call_bdn                    = full_id "(" args* ")" body modifier?
+option                      = expr ":" body
 call                        = full_id "(" args* ")" modifier?
 args                        = ( cast | literal | array | access | call | valonly )
-group_fns                   = fn_def | metafn_def | modifier_def | supertype_def
-fn_def                      = "fn" simple_id fn_args type_id? fn_body
-fn_args                     = "(" argtype* ")"
-argtype                     = simple_id modifier? ":" type_id
 type_id                     = ( "[" full_id "]" ) | full_id
+return                      = "::" expr
 ```

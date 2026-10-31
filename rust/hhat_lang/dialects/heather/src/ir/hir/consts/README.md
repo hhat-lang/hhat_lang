@@ -34,8 +34,13 @@ int_t                       = r"(\@)?(-)?(0|[1-9][0-9]*)"
 float_t                     = r"(\@)?(-)?(0|[1-9][0-9]*)\.[0-9]+"
 str_t                       = "\"" ( str_char | "{" simple_id "}" )* "\""
 str_char                    = r"[^\"\\{}\n]" | r"\\."
-consts                      = "const" simple_id ":" type_id "=" expr
-body                        = "{" ( declareassign | declareassign_ds | declare | assign | assign_ds | expr )* "}"
+consts                      = "const" simple_id ":" type_id "=" ( ( "." "{" ( assign+ | expr+ ) "}" ) | expr )
+body                        = "{" ( declareassign | declareassign_ds | declare | assign | assign_ds | return | expr )* "}"
+declareassign               = simple_id modifier? ":" type_id "=" expr
+declareassign_ds            = simple_id modifier? ":" type_id "=" "." "{" ( assign+ | expr+ ) "}"
+declare                     = simple_id modifier? ":" type_id
+assign                      = full_id "=" expr
+assign_ds                   = full_id "." "{" ( assign+ | expr+ ) "}"
 expr                        = cast | literal | array | access | call_optn | call_optbdn | call_bdn | call | full_id
 cast                        = ( access | call | literal | full_id ) "*" modifier? type_id
 access                      = callable member+

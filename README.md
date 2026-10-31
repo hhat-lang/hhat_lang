@@ -4,7 +4,10 @@
 >    This is project under development. Until version `0.3` is released, this repository will be unstable. Previous versions of the language are deprecated and not fully functioning.
 >
 
-![h-hat](docs/assets/logo_dark.png)
+<p style="text-align: center">
+<img src="docs/assets/logo.svg" alt="hhat" width="30%">
+</p>
+
 
 # H-hat
 

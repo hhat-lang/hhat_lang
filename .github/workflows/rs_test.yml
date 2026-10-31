@@ -48,4 +48,4 @@ jobs:
         run: cargo build --all-targets --locked
       - name: cargo test
         working-directory: rust/hhat_lang
-        run: cargo test --all-targets --locked
+        run: cargo test --all-targets --all-features --locked

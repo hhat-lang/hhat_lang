@@ -5,7 +5,7 @@ The Behavioral HIR is part of Heather compiler's first pass, transforming source
 
 ## Grammar
 
-The grammar reference is found below, as a [PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) description. The [lex](lex.rs) and [parse](parse.rs) files were developed using this grammar and should reflect it accordingly.
+The grammar reference is found below, as a [PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) description. The [lex](lex.rs) and [parse](parse.rs) files were developed using this grammar as reference, and should reflect it accordingly.
 
 ```peg
 

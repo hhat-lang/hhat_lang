@@ -407,6 +407,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "hhat_q3l"
+version = "0.1.0"
+
+[[package]]
 name = "hhat_rules"
 version = "0.0.0"
 dependencies = [

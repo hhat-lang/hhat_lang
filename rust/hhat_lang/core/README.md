@@ -16,7 +16,7 @@ H-hat relies on its rule system to define expected behavior when compiling and e
 ## Building a dialect
 
 > [!warning]
-> As a dialect builder you should only import tooling from this crate, not from `hhat-rulesystem` or `hhat-rules`.
+> As a dialect builder you should only import tooling from this crate, not from [`rulesystem` crate](../rulesystem) or [`rules` crate](../rules).
 > 
 
 More information to be placed here.

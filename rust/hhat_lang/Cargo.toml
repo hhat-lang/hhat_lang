@@ -28,6 +28,6 @@ features = [
 members = [
     "core",
     "dialects/heather",
-    "hhat-rules",
-    "hhat-rulesystem",
+    "rules",
+    "rulesystem", "q3l",
 ]

@@ -1,15 +1,21 @@
-# Rust Implementation of H-hat
 
-Rust implementation of H-hat. It includes the rule system and key features for development of the language, and a reference dialect ([Heather](hhat_lang/src/hhat_dialects/src/hhat-heather/README.md)) to evaluate H-hat code.
+# H-hat implementation in Rust
 
-This implementation is currently in early development and may not be usable. You can clone and check it out for yourself, though:
 
-```bash
-git clone https://github.com/hhat-lang/hhat_lang.git
-```
+H-hat consists of a rule system, compiler and toolchain framework, and a language family.
+Most of its development is built in [Rust](https://rust-lang.org/).
 
-There you can find this very code and also other language implementations.
+The folders organization is as follows:
 
-## Documentation
+- [`core`](hhat_lang/core) for the H-hat core elements: rule system and compiler framework for dialect building
+- [`dialects`](hhat_lang/dialects) for the dialects shipped with H-hat
+- [`q3l`](hhat_lang/q3l) for the quantum low-level languages implementations, which are responsible for bridging H-hat to quantum languages such as OpenQASM
+- [`rules`](hhat_lang/rules) for the procedural macros and macros used to create H-hat's rule system
+- [`rulesystem`](hhat_lang/rulesystem) for the rule system logic and nicer packaging of the rules
+- [`src`](hhat_lang/src) for the H-hat ecosystem structure and logic; the one used to generate the CLI and tooling (toolchain framework included)
 
-Check out more at [H-hat's documentation](https://docs.hhat-lang.org).
+
+## Rule system development
+
+The rule system is the core feature that enables a language to be considered a H-hat dialect, with a future possibility to be interoperable with other dialects. Every language must adopt the rule system's rules and adhere to its template so to be compliant. More on that at [`rulesystem` README](hhat_lang/rulesystem/README.md) and [`hhat-core` README](hhat_lang/core/README.md).
+

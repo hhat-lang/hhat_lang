@@ -9,7 +9,7 @@
 </p>
 
 
-<h1><p alin="center">
+<h1><p align="center">
 H-hat
 </p>
 </h1>

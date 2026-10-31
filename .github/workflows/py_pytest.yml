@@ -1,10 +1,6 @@
 name: py_pytest
 
 on:
-  push:
-    paths:
-      - "python/**"
-      - ".github/workflows/py_pytest.yml"
   pull_request:
     paths:
       - "python/**"

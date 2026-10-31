@@ -1,10 +1,6 @@
 name: py_audit
 
 on:
-  push:
-    paths:
-      - "python/**"
-      - ".github/workflows/py_audit.yml"
   pull_request:
     paths:
       - "python/**"

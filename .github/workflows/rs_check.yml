@@ -1,10 +1,6 @@
 name: rs_check
 
 on:
-  push:
-    paths:
-      - "rust/**"
-      - ".github/workflows/rs_check.yml"
   pull_request:
     paths:
       - "rust/**"

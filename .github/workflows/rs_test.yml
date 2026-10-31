@@ -1,10 +1,6 @@
 name: rs_test
 
 on:
-  push:
-    paths:
-      - "rust/**"
-      - ".github/workflows/rs_test.yml"
   pull_request:
     paths:
       - "rust/**"

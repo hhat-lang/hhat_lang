@@ -66,7 +66,7 @@ You can import constants in functions kinds and other constants files.
 
 #### 2. Types
 
-Types are defined inside custom files located on `src/hat_types/` path. There are basically two types of user types: structs and enums. A quantum type can contain classical types as its members/named values, but the opposite is not valid.
+Types are defined inside custom files located on `src/hat!types/` path. There are basically two types of user types: structs and enums. A quantum type can contain classical types as its members/named values, but the opposite is not valid.
 
 ##### Structs
 

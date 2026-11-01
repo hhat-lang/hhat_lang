@@ -2,7 +2,7 @@ from __future__ import annotations
 
 # base folder names
 SOURCE_FOLDER_NAME = "src"
-TYPES_FOLDER_NAME = "hat_types"
+TYPES_FOLDER_NAME = "hat!types"
 IMPORTS_FOLDER_NAME = ".hat_imports"  # must be a hidden folder
 DOCS_FOLDER_NAME = "docs"
 TESTS_FOLDER_NAME = "tests"  # future use

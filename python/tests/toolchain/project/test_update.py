@@ -7,7 +7,7 @@ from hhat_lang.toolchain.project.update import update_project
 
 def _make_project(tmp_path: Path) -> Path:
     project_root = tmp_path / "example_project"
-    (project_root / "src" / "hat_types").mkdir(parents=True)
+    (project_root / "src" / "hat!types").mkdir(parents=True)
     (project_root / "docs").mkdir()
     return project_root
 
@@ -53,7 +53,7 @@ def test_update_creates_function_signature_doc_like_issue_example(tmp_path: Path
 
 def test_update_creates_type_signature_doc_like_issue_example(tmp_path: Path) -> None:
     project_root = _make_project(tmp_path)
-    (project_root / "src" / "hat_types" / "some-file.hat").write_text(
+    (project_root / "src" / "hat!types" / "some-file.hat").write_text(
         "type @some-struct-ty {\n"
         "    m1:ty1\n"
         "    @m2:@ty2\n"
@@ -68,7 +68,7 @@ def test_update_creates_type_signature_doc_like_issue_example(tmp_path: Path) ->
 
     result = update_project(project_root)
 
-    doc_file = project_root / "docs" / "hat_types" / "some-file.md"
+    doc_file = project_root / "docs" / "hat!types" / "some-file.md"
     assert doc_file.is_file()
     assert result.created_docs == (doc_file,)
     assert result.checked_signature_count == 2
@@ -143,7 +143,7 @@ def test_update_mirrors_src_tree_into_docs_for_missing_doc_files(tmp_path: Path)
         "fn op () op-ty { }\n",
         encoding="utf-8",
     )
-    (project_root / "src" / "hat_types" / "state.hat").write_text(
+    (project_root / "src" / "hat!types" / "state.hat").write_text(
         "type state: int\n",
         encoding="utf-8",
     )
@@ -154,11 +154,11 @@ def test_update_mirrors_src_tree_into_docs_for_missing_doc_files(tmp_path: Path)
     assert created_docs == {
         "docs/main.md",
         "docs/nested/ops.md",
-        "docs/hat_types/state.md",
+        "docs/hat!types/state.md",
     }
     assert (project_root / "docs" / "main.md").is_file()
     assert (project_root / "docs" / "nested" / "ops.md").is_file()
-    assert (project_root / "docs" / "hat_types" / "state.md").is_file()
+    assert (project_root / "docs" / "hat!types" / "state.md").is_file()
     assert result.orphaned_doc_count == 0
     assert result.signature_mismatch_count == 0
 

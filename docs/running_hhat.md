@@ -8,10 +8,10 @@ The project file organization is created as follows:
 ```sh
 project_name/
 ├─ src/
-│  ├─ hat_types/
+│  ├─ hat!types/
 │  └─ main.hat
 └─ docs/
-   ├─ hat_types/
+   ├─ hat!types/
    └─ main.md
 ```
 

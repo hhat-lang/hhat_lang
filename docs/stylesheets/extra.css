@@ -1,5 +1,5 @@
 /* import fonts */
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;800&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;800&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
     --stroke-width: 3px;
@@ -14,7 +14,7 @@
     --md-default-bg-color: #efeded;
     --md-default-fg-color: #000000e3;
     --md-accent-fg-color: #202020; 
-    --md-code-bg-color: #dcdcdc;
+    --md-code-bg-color: #fbf8f1;
     --heading-color: #202020; 
     --grid-color: rgba(0, 0, 0, 0.07);
 }
@@ -156,7 +156,7 @@ code {
 
 /* Switches to icon_dark.svg when the user activates Dark Mode (slate) */
 [data-md-color-scheme="slate"] .md-header__button.md-logo img {
-  content: url("../assets/icon_dark.svg");
+  content: url("../assets/logo_dark.svg");
 }
 
 /* IMAGE DEFAULT & SLATE */

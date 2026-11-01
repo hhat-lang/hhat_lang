@@ -9,7 +9,7 @@ H-hat's rule system is the set of rules to define expected behavior for core fea
     - (3) functions, meta-functions, super-types and modifiers, with a `main` closure in the `main.hat` file only.
     - Those numbered definitions above must have their own files in a way that they do not mix with other. Importing from one to another is possible and expected. Further explanation:
         - The `main.hat` file lives on `<project-name>/src/` folder.
-        - Types must be placed inside the type folder, `<project-name>/src/hat_types/`; they can exist inside nested folders (as long as they exist inside the `<project-name>/src/hat_types/` folder)
+        - Types must be placed inside the type folder, `<project-name>/src/hat!types/`; they can exist inside nested folders (as long as they exist inside the `<project-name>/src/hat!types/` folder)
         - Constants must exist inside a `consts.hat` file and can be defined anywhere inside the `<project-name>/src/` folder (except the reserved folders). Nested folders are allowed.
         - Group functions can exist anywhere inside the `<project-name>/src/` folder (except the reserved folders). Nested folders are allowed.
         - Built-in types, constants and group functions must exist inside a separated  `<project-name>/src/.core/` folder, not accessible for user defined files and instances.

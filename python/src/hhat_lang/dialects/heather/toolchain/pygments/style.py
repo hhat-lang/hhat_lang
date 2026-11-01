@@ -14,28 +14,39 @@ from pygments.token import (
 )
 
 
+QUANTUM_LIGHT = "bold #b45309"
+QUANTUM_DARK = "bold #f0b23a"
+
 class HhatLightStyle(Style):
     """Heather dialect light theme style syntax highlighting."""
 
     styles = {
+        # no root Token colour: it would cascade into Generic.* (e.g. diff
+        # colours) of other languages sharing the site-wide `.highlight` scope
         Token: "",
-        Comment: "",
-        Name: "",
-        Name.Variable: "#3d85c6",
-        Name.Function: "#2986cc",
-        Name.Builtin: "#f6251e",
-        Operator: "bold #6a329f",
-        Punctuation: "",
-        Punctuation.Marker: "bold #16537e",
-        Keyword: "",
-        Keyword.Declaration: "",
-        Keyword.Symbol: "bold #6a329f",
-        String: "",
-        Literal: "",
-        Literal.Boolean: "",
-        Number: "",
-        Number.Integer: "",
-        Number.Float: "",
+        Comment: "italic #6b665c",
+        Name: "#1f2328",
+        Name.Variable: "#1f2328",
+        Name.Function: "#1d4ed8",
+        Name.Builtin: "#0f766e",
+        Operator: "#57534e",
+        Punctuation: "#57534e",
+        Punctuation.Marker: "#57534e",
+        Keyword: "bold #5b21b6",
+        Keyword.Declaration: "bold #5b21b6",
+        Keyword.Symbol: "bold #5b21b6",
+        String: "#166534",
+        Literal: "#9d174d",
+        Literal.Boolean: "#9d174d",
+        Number: "#9d174d",
+        Number.Integer: "#9d174d",
+        Number.Float: "#9d174d",
+        # quantum (``@``) counterparts
+        Name.Variable.Quantum: QUANTUM_LIGHT,
+        Name.Function.Quantum: QUANTUM_LIGHT,
+        Name.Builtin.Quantum: QUANTUM_LIGHT,
+        Literal.Boolean.Quantum: QUANTUM_LIGHT,
+        Number.Integer.Quantum: QUANTUM_LIGHT,
     }
 
 
@@ -61,4 +72,10 @@ class HhatDarkStyle(Style):
         Number: "",
         Number.Integer: "",
         Number.Float: "",
+        # quantum (``@``) counterparts
+        Name.Variable.Quantum: QUANTUM_DARK,
+        Name.Function.Quantum: QUANTUM_DARK,
+        Name.Builtin.Quantum: QUANTUM_DARK,
+        Literal.Boolean.Quantum: QUANTUM_DARK,
+        Number.Integer.Quantum: QUANTUM_DARK,
     }

@@ -27,6 +27,9 @@ from hhat_lang.dialects.heather.grammar import (
 __all__ = ["HhatLexer"]
 
 
+QID = ID.replace('@?', '@', 1)
+
+
 class HhatLexer(RegexLexer):
     """
     Pygments lexer for Heather dialect syntax.
@@ -99,15 +102,34 @@ class HhatLexer(RegexLexer):
             (MULTILINE_COMMENT, Comment.Multiline),
             (words(keywords, suffix=r"\b"), Keyword.Declaration),
             (words(symbolic_keywords), Keyword.Symbol),
-            (words(builtin_types, suffix=r"\b"), Name.Builtin),
+            (
+                words(tuple(t for t in builtin_types if t.startswith("@")), suffix=r"\b"),
+                Name.Builtin.Quantum,
+            ),
+            (
+                words(tuple(t for t in builtin_types if not t.startswith("@")), suffix=r"\b"),
+                Name.Builtin,
+            ),
+            (
+                rf"({QID})(\s*)(\()",
+                bygroups(Name.Function.Quantum, Whitespace, Punctuation.Marker),
+            ),
             (rf"({ID})(\s*)(\()", bygroups(Name.Function, Whitespace, Punctuation.Marker)),
             (words(operators), Operator),
             (words(punctuation), Punctuation.Marker),
             (FLOAT, Number.Float),
-            (QINT, Number.Integer),
+            (QINT, Number.Integer.Quantum),
             (INT, Number.Integer),
             (STRING, String),
-            (words(bool_literals), Literal.Boolean),
+            (
+                words(tuple(b for b in bool_literals if b.startswith("@")), suffix=r"\b"),
+                Literal.Boolean.Quantum,
+            ),
+            (
+                words(tuple(b for b in bool_literals if not b.startswith("@")), suffix=r"\b"),
+                Literal.Boolean,
+            ),
+            (QID, Name.Variable.Quantum),
             (ID, Name.Variable),
         ],
     }

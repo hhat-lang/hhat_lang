@@ -73,6 +73,7 @@ hhat-heather-pygments = "hhat_lang.dialects.heather.toolchain.pygments.mkdocs_pl
 
 [tool.setuptools_scm]
 root = ".."
+tag_regex = '^(?:[\w-]+-)?(?:pre|[vV])?(?P<version>\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$'
 version_scheme = "no-guess-dev"
 local_scheme = "no-local-version"
 

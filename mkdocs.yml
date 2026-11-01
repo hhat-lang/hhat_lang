@@ -1,7 +1,7 @@
-site_name: H-hat quantum programming language
+site_name: H-hat hybrid quantum--classical programming language
 site_url: https://docs.hhat-lang.org/
 site_author: H-hat team
-site_description: H-hat is a rule system, compiler framework, and a statically typed, functional and distributed system inspired, quantum programming language.
+site_description: H-hat is a rule system, compiler and toolchain framework, and hybrid quantum--classical programming language family.
 
 repo_url: "https://github.com/hhat-lang/hhat_lang/"
 repo_name: hhat-lang/hhat_lang
@@ -9,6 +9,7 @@ repo_name: hhat-lang/hhat_lang
 nav:
   - Home:
       - H-hat language: index.md
+      - About H-hat: about.md
       - How to Contribute: how_contribute.md
   - Getting Started:
       - Getting Started: getting_started.md
@@ -68,6 +69,9 @@ markdown_extensions:
           class: python
           validator: "!!python/name:markdown_exec.validator"
           format: "!!python/name:markdown_exec.formatter"
+  - pymdownx.blocks.html
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.mark
   - pymdownx.smartsymbols
   - pymdownx.tasklist:
@@ -95,6 +99,7 @@ plugins:
         - Thoughts
   - meta
   - tags
+  - hhat-heather-pygments
   #- privacy      #this plugin is breaking local build, need to investigate
 
 
@@ -103,14 +108,15 @@ extra_javascript:
 
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/home.css
 
 theme:
   name: material
-  logo: assets/icon_light.svg  # Default svg icon for light theme
-  favicon: assets/favicon-32-c.ico # browser tab icon
+  logo: assets/logo_light.svg  # Default svg icon for light theme
+  favicon: assets/favicon.ico # browser tab icon
   font:
     text: Lexend
-    code: Space Mono
+    code: JetBrains Mono
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -132,6 +138,7 @@ theme:
     - content.code.copy
     - content.tooltips
     - content.code.annotate
+    - content.tabs.link
     - toc.follow
     #- navigation.indexes          #unnecessary for UI
     #- navigation.tabs.sticky      #not needed

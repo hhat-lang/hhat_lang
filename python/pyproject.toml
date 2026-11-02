@@ -31,7 +31,7 @@ dependencies = [
     "arpeggio==2.0.3",
     "pygments>=2.21.0",
     # fixed to prevent vulnerabilities
-    "certifi>=2026.10.19",
+    "certifi>=2026.10.23",
     "pyjwt>=2.15.1",
 ]
 

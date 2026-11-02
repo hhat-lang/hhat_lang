@@ -5,7 +5,12 @@ use chumsky::input::{MappedInput, ValueInput};
 use chumsky::prelude::recursive;
 use chumsky::primitive::{just, choice, todo};
 use lasso::Spur;
-use crate::ir::hir::behavioral::base::{Access, ArgType, Array, Assign, AssignDS, Call, CallArgs, CallBdn, CallOptBdn, CallOptn, Cast, CastValue, Declare, DeclareAssign, DeclareAssignDS, Expr, FnArgs, FnBody, FnDef, FullId, IdField, Literal, LiteralT, Modifier, ModifierValue, SimpleId, StrSeq, TyId, ValOnly};
+use crate::ir::hir::behavioral::base::unresolved::{
+    Access, ArgType, Array, Assign, AssignDS, Call, CallArgs, CallBdn, CallOptBdn,
+    CallOptn, Cast, CastValue, Declare, DeclareAssign, DeclareAssignDS, Expr,
+    FnArgs, FnBody, FnDef, FullId, IdField, Literal, LiteralT, Modifier, ModifierValue,
+    SimpleId, StrSeq, TyId, ValOnly
+};
 use crate::ir::hir::behavioral::lex::{Span, StrToken, Token};
 
 
@@ -231,8 +236,8 @@ fn fn_def<'t>() -> impl Rule<'t, FnDef> {
     just(Token::Fn).ignore_then(simple_id())
         .then(fn_args().then(type_id().or_not()))
         .then(fn_body())
-        .map_with(|((name, (args, ty)), body), _|
-            FnDef { name, args: FnArgs { args }, ty, body }
+        .map_with(|((name, (args, ty)), body), e|
+            FnDef { name, args: FnArgs { args }, ty, body, span: e.span() }
         ).labelled("fn_def")
 }
 

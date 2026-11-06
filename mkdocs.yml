@@ -1,17 +1,16 @@
-site_name: H-hat quantum programming language
+site_name: H-hat
 site_url: https://docs.hhat-lang.org/
 site_author: H-hat team
 site_description: H-hat is a rule system, compiler framework, and a statically typed, functional and distributed system inspired, quantum programming language.
 
-repo_url: "https://github.com/hhat-lang/hhat_lang/"
+repo_url: https://github.com/hhat-lang/hhat_lang/
 repo_name: hhat-lang/hhat_lang
 
 nav:
-  - Home:
-      - H-hat language: index.md
-      - How to Contribute: how_contribute.md
+  - Home: index.md
   - Getting Started:
-      - Getting Started: getting_started.md
+      - start/index.md
+      - How to Contribute: how_contribute.md
       - Guides:
           - Python: python/python_guide.md
           - Rust: rust/rust_guide.md
@@ -95,6 +94,7 @@ plugins:
         - Thoughts
   - meta
   - tags
+  - hhat-heather-pygments
   #- privacy      #this plugin is breaking local build, need to investigate
 
 
@@ -106,8 +106,10 @@ extra_css:
 
 theme:
   name: material
-  logo: assets/icon_light.svg  # Default svg icon for light theme
-  favicon: assets/favicon-32-c.ico # browser tab icon
+  icon:
+    repo: fontawesome/brands/github
+  logo: assets/logo_light.png
+  favicon: assets/favicon.ico
   font:
     text: Lexend
     code: Space Mono
@@ -129,10 +131,11 @@ theme:
   features:
     - navigation.sections
     - navigation.top
+    - navigation.indexes
+    - navigation.tabs
+    - navigation.footer
     - content.code.copy
     - content.tooltips
     - content.code.annotate
     - toc.follow
-    #- navigation.indexes          #unnecessary for UI
-    #- navigation.tabs.sticky      #not needed
  

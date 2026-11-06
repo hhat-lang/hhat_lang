@@ -86,6 +86,33 @@ pub mod unresolved {
     }
 
 
+    ///
+    /// todo: to be implemented in a further release
+    ///
+    #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct MetaFnDef {
+
+    }
+
+
+    ///
+    /// todo: to be implemented in a further release
+    ///
+    #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct SuperTypeDef {
+
+    }
+
+
+    ///
+    /// todo: to be implemented in a further release
+    ///
+    #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct ModifierDef {
+
+    }
+
+
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct CallArgs {
         pub name: SimpleId,

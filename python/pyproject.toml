@@ -12,10 +12,9 @@ authors = [
 ]
 readme = "README"
 requires-python = ">=3.12"
-license = { text = "MIT" }
+license = "MIT"
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "License :: OSI Approved :: MIT License",
     "Topic :: Software Development",
     "Topic :: Software Development :: Interpreters",
     "Intended Audience :: Developers",
@@ -50,7 +49,7 @@ dev = [
     "flaky",
     "isort",
     "pre-commit",
-    "mkdocs",
+    "mkdocs<2",
     "mkdocs-material[imaging]",
     "mkdocs-autoapi",
     "mkdocstrings",

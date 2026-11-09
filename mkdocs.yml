@@ -8,31 +8,33 @@ repo_name: hhat-lang/hhat_lang
 
 nav:
   - Home: index.md
-  - Getting Started:
+  - Start:
       - start/index.md
-      - How to Contribute: how_contribute.md
-      - Guides:
-          - Python: python/python_guide.md
-          - Rust: rust/rust_guide.md
-      - Understanding H-hat:
-          - Rule System: rule_system.md
-          - Nomenclature: core/naming.md
-          - Language design: core/language_design.md
-          - Compiler framework: core/compiler_framework.md
-          - Documentation design: core/doc_design.md
-      - Tools:
-          - toolchain.md
-          - CLI: cli.md
-      - Running it:
-          - running_hhat.md
-  - Dialects:
-      - dialects/index.md
-      - Heather:
-        - dialects/heather/index.md
-        - Syntax: dialects/heather/syntax.md
-        - Grammar: dialects/heather/grammar.md
+      - Status & Roadmap:
+          - start/status_roadmap/index.md
+          - Roadmap: start/status_roadmap/roadmap.md
+      - What, Why, How H-hat: start/what_why_how.md
+  - Guides:
+      - guides/index.md
+  - Reference:
+      - reference/index.md
+      - Glossary: reference/glossary.md
+      - Heather dialect:
+          - reference/dialects/heather/index.md
+          - Syntax: reference/dialects/heather/syntax.md
+          - Grammar: reference/dialects/heather/grammar.md
+      - Rule System: reference/rulesystem/index.md
+      - H-hat Dialects: reference/dialects/index.md
+      - Compiler framework: reference/compiler/index.md
+      - Toolchain framework: reference/toolchain/index.md
+      - Building a Dialect: reference/dialects/build_your_own_dialect.md
+  - Tutorials:
+      - tutorials/index.md
+  - Research:
+      - research/index.md
   - Blog:
       - blog/index.md
+  - Contributing: how_to_contribute.md
 
 markdown_extensions:
   - abbr

@@ -16,7 +16,7 @@
     <a href="https://unitary.foundation">
         <img src="https://img.shields.io/badge/Supported%20By-Unitary%20Foundation-FFFF00.svg" alt="UnitaryFoundation"/>
     </a>
-    <a href="http://discord.unitary.foundation">
+    <a href="https://discord.gg/J8udsUNRnk">
         <img src="https://img.shields.io/badge/dynamic/json?color=blue&label=Discord&query=approximate_presence_count&suffix=%20online.&url=https%3A%2F%2Fdiscord.com%2Fapi%2Finvites%2FJqVGmpkP96%3Fwith_counts%3Dtrue"/>
     </a>
     <a>
@@ -31,7 +31,7 @@
 
 **Targeted at _software developers_.** This ecosystem requires _<u>no prior knowledge on quantum physics</u>_. For quantum technologies to become widely available, they must _interoperate with existing software_, and must be easier for software developers to reason about the quantum paradigm without a PhD in quantum information or quantum computing. Most of the features are intuitive, both classical and quantum can exist in the same code, and the quantum side is as easy to code as in the classical one.
 
-**Ships with _Heather dialect_.** A simple but reasonable programming language, Heather aims to demonstrate the capabilities of the H-hat ecosystem. Check it out at the [`hhat-heather` crate](rust/hhat_lang/dialects/heather).
+**Ships with _Heather dialect_.** A simple but reasonable programming language, Heather aims to demonstrate the capabilities of the H-hat ecosystem. Check it out at the [`hhat-heather` crate](https://github.com/hhat-lang/hhat_lang/tree/main/rust/hhat_lang/dialects/heather/).
 
 **State-of-the-art software concepts.** Latest software paradigms and cutting-edge features are presented for both classical and quantum sides, enabling a seamless coding experience, with smart compilation. The features and capabilities H-hat aims to accomplish and delivery are briefly described at the paper
 ["Toward Declarative Platform-Independent Modeling of Hybrid Quantum--Classical Software"](https://dl.acm.org/doi/10.1145/3837062.3839078).
@@ -54,13 +54,16 @@ H-hat rule system defines how each dialect should behave in specific contexts. B
 ## Getting Started
 
 <div class="grid cards" markdown>
-- __[Rule system]__ - learn how H-hat keeps code in check
-- __[User guide]__ - learn how to use H-hat
-- __[Heather]__ - learn about Heather, the first H-hat dialect
+- __[Start]__: learn what is H-hat, why H-hat, and how to use H-hat
+- __[Rule system]__: learn how H-hat keeps code compliant
+- __[Heather]__: learn about Heather, the first H-hat dialect
+- __[Tutorials]__: check tutorials to get familiarized with Heather
 </div>
 
-[Rule system]: rule_system.md
-[User guide]: 
+[Rule system]: reference/rulesystem/index.md
+[Start]: start/index.md
+[Heather]: reference/dialects/heather/index.md
+[Tutorials]: tutorials/index.md
 
 
 ## License
@@ -70,7 +73,7 @@ MIT
 
 ## Contributing
 
-Read the [CONTRIBUTING](how_contribute.md) file for more information.
+Read the [CONTRIBUTING](how_to_contribute.md) file for more information.
 
 
 ## Code of Conduct

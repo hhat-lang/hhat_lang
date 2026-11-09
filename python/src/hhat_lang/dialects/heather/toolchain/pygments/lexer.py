@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pygments.lexer import RegexLexer, bygroups, words, include
+from pygments.lexer import RegexLexer, bygroups, include, words
 from pygments.token import (
     Comment,
     Keyword,
@@ -13,22 +13,15 @@ from pygments.token import (
     Whitespace,
 )
 
-from hhat_lang.dialects.heather.grammar import (
-    MULTILINE_COMMENT,
-    SINGLE_COMMENT,
-)
-
 __all__ = ["HhatLexer"]
 
-WS = "\n\t ,;"
+WS = r"[\n\t ,;]"
 ID = r"[a-zA-Z][a-zA-Z0-9\-_]*"
 STRING = r'"[^"]*"'
 INT = r"-?\d*"
 FLOAT = r"-?\d+\.\d+"
 QS = Operator.Quantum
 END = r"(?![a-zA-Z0-9\-_])"
-
-QID = ID.replace('@?', '@', 1)
 
 
 class HhatLexer(RegexLexer):
@@ -75,8 +68,125 @@ class HhatLexer(RegexLexer):
             include("qid"),
             (rf"(%)(@)({ID})", bygroups(Operator, QS, Keyword.Symbol)),
             (rf"(%)({ID})", bygroups(Operator, Keyword.Symbol)),
-            (r"",),
-        ]
-
+            (rf"({ID})(?={WS}*\()", Name.Attribute),
+            (r"[()]", Punctuation),
+            (ID, Name.Attribute),
+        ],
+        "imports": [
+            include("whitespace"),
+            include("comments"),
+            (r"\)", Punctuation, "#pop"),
+            (
+                rf"(type|fn|metafn|modifier|super-type|const){END}(?={WS}*:)",
+                Keyword.Namespace
+            ),
+            (r":", Operator),
+            (r"[\[\]{}]", Punctuation),
+            (r"\.", Operator),
+            (r"<", Punctuation, "modifier"),
+            (rf"(@)({ID})", bygroups(QS, Name.Namespace)),
+            (ID, Name.Namespace),
+        ],
+        "root": [
+            include("whitespace"),
+            include("comments"),
+            (
+                rf"(use)({WS}*)(\()",
+                bygroups(Keyword.Namespace, Whitespace, Punctuation),
+                "imports",
+            ),
+            (rf"#(?:ct|rt)_(?:init|read|write|drop){END}", Keyword.Pseudo),
+            (rf"(\$)(@)({ID})", bygroups(Operator, QS, Name)),
+            (rf"(\$)({ID})", bygroups(Operator, Name)),
+            (
+                rf"(fn|metafn)({WS}+)(@)({ID})",
+                bygroups(Keyword.Declaration, Whitespace, QS, Name.Entity),
+            ),
+            (
+                rf"(fn|metafn)({WS}+)({ID})",
+                bygroups(Keyword.Declaration, Whitespace, Name.Entity),
+            ),
+            (
+                rf"(type)({WS}+)(@)({ID})",
+                bygroups(Keyword.Declaration, Whitespace, QS, Name.Class),
+            ),
+            (
+                rf"(type)({WS}+)({ID})",
+                bygroups(Keyword.Declaration, Whitespace, Name.Class),
+            ),
+            (
+                rf"(const)({WS}+)(@)({ID})",
+                bygroups(Keyword.Declaration, Whitespace, QS, Name.Constant),
+            ),
+            (
+                rf"(modifier)({WS}+)(&|\*|\.\.\.|{ID})",
+                bygroups(Keyword.Declaration, Whitespace, Name.Entity),
+            ),
+            (
+                rf"(super-type)({WS}+)({ID})",
+                bygroups(Keyword.Declaration, Whitespace, Name.Class),
+            ),
+            (
+                words(
+                    ("fn", "metafn", "modifier", "super-type", "type", "const"),
+                    suffix=END
+                ),
+                Keyword.Declaration
+            ),
+            # (rf"(main|self){END}", Keyword.Pseudo),
+            (r"main", Keyword),
+            (r"self", Keyword),
+            (r"::", Keyword),
+            include("literals"),
+            (rf"(@)(?:bool|i4|i8{END})", bygroups(QS, Keyword.Type)),
+            (
+                words(
+                    ("bool", "u32", "u64", "i32", "i64", "f64", "str"),
+                    suffix=END
+                ),
+                Keyword.Type,
+            ),
+            (
+                rf"(:)({WS}*)(\[)?(@)({ID}){END}(?!{WS}*\()",
+                bygroups(Operator, Whitespace, Punctuation, QS, Keyword.Type),
+            ),
+            (
+                rf"(:)({WS}*)(\[)?(\?)(@)({ID}){END}(?!{WS}*\()",
+                bygroups(Operator, Whitespace, Punctuation, Keyword.Type, QS, Keyword.Type),
+            ),
+            (
+                rf"(:)({WS}*)(\[)?(\?{ID}){END}(?!{WS}*\()",
+                bygroups(Operator, Whitespace, Punctuation, Keyword.Type),
+            ),
+            (
+                rf"(:)({WS}*)(\[)?({ID}){END}(?!{WS}*\()",
+                bygroups(Operator, Whitespace, Punctuation, Keyword.Type),
+            ),
+            (
+                rf"(\*)({WS}*)(\[)?(@)({ID}){END}",
+                bygroups(Operator, Whitespace, Punctuation, QS, Keyword.Type),
+            ),
+            (
+                rf"(\*)({WS}*)(\[)?(\?)(@)({ID}){END}",
+                bygroups(Operator, Whitespace, Punctuation, Keyword.Type, QS, Keyword.Type),
+            ),
+            (
+                rf"(\*)({WS}*)(\[)?(\?{ID}){END}",
+                bygroups(Operator, Whitespace, Punctuation, Keyword.Type),
+            ),
+            (
+                rf"(\*)({WS}*)(\[)?(\?{ID}){END}",
+                bygroups(Operator, Whitespace, Punctuation, Keyword.Type),
+            ),
+            (rf"(?<![a-zA-Z0-9\-_@?%$])_{END}", Keyword.Type),
+            (rf"(@)({ID})(?={WS}*\()", bygroups(QS, Name.Function)),
+            (rf"({ID})(?={WS}*\()", Name.Function),
+            (rf"(@)({ID})", bygroups(QS, Name)),
+            (ID, Name),
+            (r"<", Punctuation, "modifier"),
+            (r"[(){}\[\]]", Punctuation),
+            (r"[.:=]", Operator),
+            (r"\*|& ", Operator),
+        ],
     }
 

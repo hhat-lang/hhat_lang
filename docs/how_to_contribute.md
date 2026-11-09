@@ -2,10 +2,14 @@
 # Contributing to H-hat
 
 You can check the issues in the [H-hat issue's page](https://github.com/hhat-lang/hhat_lang/issues) and try contributing on the issues with [good first issue](https://github.com/hhat-lang/hhat_lang/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22) label. Depending on the programming language you are using, some formatting styles and checks are required. For instance:
+
 - Python:
-  - Pull Request (PR) code should follow formatting from [pre-commit configuration](python/.pre-commit-config.yaml) and [pyproject](python/pyproject.toml).
+
+    - Pull Request (PR) code should follow formatting from [pre-commit configuration](https://github.com/hhat-lang/hhat_lang/blob/main/python/.pre-commit-config.yaml) and [pyproject](https://github.com/hhat-lang/hhat_lang/blob/main/python/pyproject.toml).
+
 - Rust:
-  - Besides from rust formatter and analyzer, `cargo clippy`, `cargo check` and `cargo audit` are recommended to run, because they are checked during GitHub Actions.
+
+    - Besides from rust formatter and analyzer, `cargo clippy`, `cargo check` and `cargo audit` are recommended to run, because they are checked during GitHub Actions.
 
 
 Additionally to code contribution, you are encourage to make part of discussions involving how H-hat can handle some language features or concepts. Reach us out at the [Discord](http://discord.unitary.foundation)'s `#h-hat` channel to learn more on how to contribute on that and also to chill and chat, if you feel like doing so.

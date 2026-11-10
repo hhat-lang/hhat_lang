@@ -1,3 +1,3 @@
+mod base;
 mod lex;
 mod parse;
-mod base;

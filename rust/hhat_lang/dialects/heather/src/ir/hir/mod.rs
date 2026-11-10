@@ -1,4 +1,4 @@
-mod types;
+pub mod behavioral;
 mod consts;
 mod proofs;
-pub mod behavioral;
+mod types;

@@ -4,7 +4,4 @@ mod config;
 mod toolchain;
 mod utils;
 
-fn main() {
-
-}
-
+fn main() {}

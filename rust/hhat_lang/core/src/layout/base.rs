@@ -2,14 +2,13 @@
 //! Base layouts for types to be used for MIR.
 //!
 
-use strum::IntoEnumIterator;
-use std::collections::HashMap;
 use crate::core::Arenable;
 use crate::frontend::types::{Ty, TyArrayKind, TyPrimitive};
 use crate::layout::adt::{ArrayLayout, EnumLayout, StructLayout};
 use crate::layout::arch::Arch;
 use crate::layout::primitives::PrimitiveLayout;
-
+use std::collections::HashMap;
+use strum::IntoEnumIterator;
 
 #[derive(Clone, Debug)]
 pub enum TypeLayout {
@@ -43,13 +42,12 @@ impl TypeLayout {
             TypeLayout::Primitive(_, mr)
             | TypeLayout::Struct(_, mr)
             | TypeLayout::Enum(_, mr)
-            | TypeLayout::Array(_, mr) => *mr = mem_region
+            | TypeLayout::Array(_, mr) => *mr = mem_region,
         }
     }
 }
 
 impl Arenable for TypeLayout {}
-
 
 /// Where to store data: global scope, stack or heap.
 ///
@@ -69,10 +67,9 @@ impl MemoryRegion {
     }
 }
 
-
 pub struct LayoutCache {
     arch: Arch,
-    cache: HashMap<Ty, TypeLayout>
+    cache: HashMap<Ty, TypeLayout>,
 }
 
 impl LayoutCache {
@@ -87,7 +84,8 @@ impl LayoutCache {
         let _ = TyPrimitive::iter()
             .map(|v| {
                 let _ = self.insert_layout(&Ty::Primitive(v), &arch);
-            }).collect::<Vec<()>>();
+            })
+            .collect::<Vec<()>>();
     }
 
     pub fn has(&self, ty: &Ty) -> bool {
@@ -100,31 +98,31 @@ impl LayoutCache {
                 ty.clone(),
                 TypeLayout::Primitive(
                     PrimitiveLayout::layout(&p, arch.clone()),
-                    MemoryRegion::default(&ty)
-                )
+                    MemoryRegion::default(&ty),
+                ),
             ),
             Ty::Struct(s) => {
                 let _ = s.iter().map(|(_sid, t)| {
                     if !self.has(t) {
                         match t {
-                            Ty::Primitive(_)
-                            | Ty::Struct(_)
-                            | Ty::Enum(_)
-                            | Ty::Array(_) => self.insert_layout(&t, &arch),
+                            Ty::Primitive(_) | Ty::Struct(_) | Ty::Enum(_) | Ty::Array(_) => {
+                                self.insert_layout(&t, &arch)
+                            }
                         };
                     }
                 });
                 let struct_layout = StructLayout::layout(&s, self);
                 self.cache.insert(
                     ty.clone(),
-                    TypeLayout::Struct(
-                        struct_layout,
-                        MemoryRegion::default(&ty),
-                    )
+                    TypeLayout::Struct(struct_layout, MemoryRegion::default(&ty)),
                 )
-            },
-            Ty::Enum(_e) => { todo!() },
-            Ty::Array(_a) => { todo!() },
+            }
+            Ty::Enum(_e) => {
+                todo!()
+            }
+            Ty::Array(_a) => {
+                todo!()
+            }
         }
     }
 

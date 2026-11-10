@@ -1,10 +1,6 @@
-
 /// An instance that can be inside an arena.
 ///
-pub trait Arenable {
-
-}
-
+pub trait Arenable {}
 
 /// An instance that can be used as an arena index holder.
 ///
@@ -13,7 +9,6 @@ pub trait ArenaIndexHolder {
 
     fn is_quantum(&self) -> bool;
 }
-
 
 /// SymbolId is used to store symbols from parsing to easily access them on
 /// later steps in the compilation process.
@@ -25,19 +20,22 @@ pub trait ArenaIndexHolder {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SymbolId(
     pub u32,  // position in arena
-    pub bool  // is quantum?
+    pub bool, // is quantum?
 );
 
 impl ArenaIndexHolder for SymbolId {
     /// Get symbols' integer (`u32`) position in arena.
     ///
-    fn read(&self) -> u32 { self.0 }
+    fn read(&self) -> u32 {
+        self.0
+    }
 
     /// Easily access to whether symbol is quantum.
     ///
-    fn is_quantum(&self) -> bool { self.1 }
+    fn is_quantum(&self) -> bool {
+        self.1
+    }
 }
-
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Literal {
@@ -85,23 +83,24 @@ impl Literal {
     }
 }
 
-
 /// TypeId is used to refer to type definition stored in an arena.
 ///
 #[repr(C)]
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct TypeId(
-    pub u32,   // position in arena
-    pub bool   // is quantum?
+    pub u32,  // position in arena
+    pub bool, // is quantum?
 );
 
-
 impl ArenaIndexHolder for TypeId {
-    fn read(&self) -> u32 { self.0 }
+    fn read(&self) -> u32 {
+        self.0
+    }
 
-    fn is_quantum(&self) -> bool { self.1 }
+    fn is_quantum(&self) -> bool {
+        self.1
+    }
 }
-
 
 /// Arena to store relevant data such as variables, types, functions, etc.
 ///
@@ -114,7 +113,9 @@ where
     T: Arenable + Clone,
 {
     pub fn new() -> Self {
-        Self { data: Vec::<T>::new() }
+        Self {
+            data: Vec::<T>::new(),
+        }
     }
 
     pub fn push(&mut self, data: T) {
@@ -129,7 +130,6 @@ where
         self.data.get(index)
     }
 }
-
 
 pub trait CoreCompiler {
     type MachineCode;

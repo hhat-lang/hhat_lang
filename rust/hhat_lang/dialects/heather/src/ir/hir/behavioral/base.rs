@@ -1,18 +1,14 @@
-use lasso::Spur;
 use crate::ir::hir::behavioral::lex::Span;
+use lasso::Spur;
 
+pub struct Module {}
 
-pub struct Module {
-
-}
-
-
-/// For the unresolved HIR. Contains the lowest 
+/// For the unresolved HIR. Contains the lowest
 /// representation of a code after the source is tokenized.
-/// 
+///
 pub mod unresolved {
-    use lasso::Spur;
     use crate::ir::hir::behavioral::lex::Span;
+    use lasso::Spur;
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct Program {
@@ -20,7 +16,6 @@ pub mod unresolved {
         pub behavioral: Vec<Behavioral>,
         pub main: Option<Main>,
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum Import {
@@ -32,7 +27,6 @@ pub mod unresolved {
         Const(ImportEntity),
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct ImportEntity {
         path: Vec<SimpleId>,
@@ -40,9 +34,8 @@ pub mod unresolved {
         span: Span,
     }
 
-
     /// Behavioral is either function, metafunction, modifier, super-type.
-    /// 
+    ///
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum Behavioral {
         Fn(FnDef),
@@ -51,13 +44,11 @@ pub mod unresolved {
         SuperType(SuperTypeDef),
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct Main {
         pub body: Vec<Body>,
         pub span: Span,
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum Body {
@@ -69,7 +60,6 @@ pub mod unresolved {
         Expr(Expr),
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct FnDef {
         pub name: SimpleId,
@@ -79,39 +69,28 @@ pub mod unresolved {
         pub span: Span,
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct FnArgs {
         pub args: Vec<ArgType>,
     }
 
+    ///
+    /// todo: to be implemented in a further release
+    ///
+    #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct MetaFnDef {}
 
     ///
     /// todo: to be implemented in a further release
     ///
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-    pub struct MetaFnDef {
-
-    }
-
+    pub struct SuperTypeDef {}
 
     ///
     /// todo: to be implemented in a further release
     ///
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-    pub struct SuperTypeDef {
-
-    }
-
-
-    ///
-    /// todo: to be implemented in a further release
-    ///
-    #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-    pub struct ModifierDef {
-
-    }
-
+    pub struct ModifierDef {}
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct CallArgs {
@@ -120,7 +99,6 @@ pub mod unresolved {
         pub span: Span,
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum ValOnly {
         Array(),
@@ -128,13 +106,11 @@ pub mod unresolved {
         FullId(FullId),
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct Modifier {
         pub values: Vec<(ModifierValue, Option<Modifier>)>,
         pub span: Span,
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum ModifierValue {
@@ -145,7 +121,6 @@ pub mod unresolved {
         Id(SimpleId),
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct SimpleId(pub Spur, pub Span);
 
@@ -154,7 +129,6 @@ pub mod unresolved {
         ArrayId(FullId),
         Id(FullId),
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum FnBody {
@@ -166,7 +140,6 @@ pub mod unresolved {
         AssignDS(AssignDS),
         Expr(Expr),
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum Expr {
@@ -181,13 +154,11 @@ pub mod unresolved {
         FullId(FullId),
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum DSInit {
         Named(Vec<Assign>),
         Positional(Vec<Expr>),
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct DeclareAssign {
@@ -198,7 +169,6 @@ pub mod unresolved {
         pub span: Span,
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct DeclareAssignDS {
         pub name: SimpleId,
@@ -208,7 +178,6 @@ pub mod unresolved {
         pub span: Span,
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct Declare {
         pub name: SimpleId,
@@ -217,7 +186,6 @@ pub mod unresolved {
         pub span: Span,
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct Assign {
         pub name: FullId,
@@ -225,14 +193,12 @@ pub mod unresolved {
         pub span: Span,
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct AssignDS {
         pub name: FullId,
         pub init: DSInit,
         pub span: Span,
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct Cast {
@@ -242,7 +208,6 @@ pub mod unresolved {
         pub span: Span,
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum CastValue {
         Access(Access),
@@ -251,13 +216,11 @@ pub mod unresolved {
         FullId(FullId),
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct Array {
         pub value: Vec<ValOnly>,
         pub span: Span,
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct Access {
@@ -265,7 +228,6 @@ pub mod unresolved {
         pub member: Vec<Member>,
         pub span: Span,
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum Callable {
@@ -275,7 +237,6 @@ pub mod unresolved {
         Call(Call),
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum Member {
         SimpleId(SimpleId),
@@ -283,18 +244,14 @@ pub mod unresolved {
         Args(Vec<Args>),
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct CallOptn {}
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct CallOptBdn {}
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct CallBdn {}
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct Call {
@@ -303,7 +260,6 @@ pub mod unresolved {
         pub modifier: Option<Modifier>,
         pub span: Span,
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum Args {
@@ -315,7 +271,6 @@ pub mod unresolved {
         ValOnly(ValOnly),
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct Literal {
         pub value: LiteralT,
@@ -323,12 +278,15 @@ pub mod unresolved {
         pub span: Span,
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum LiteralT {
         Bool(Spur, Span),
         Int(Spur, Span),
-        Float { whole: (Spur, Span), mantissa: (Spur, Span), span: Span },
+        Float {
+            whole: (Spur, Span),
+            mantissa: (Spur, Span),
+            span: Span,
+        },
         Str(Vec<StrSeq>, Span),
     }
 
@@ -341,13 +299,11 @@ pub mod unresolved {
         }
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum StrSeq {
         Text(Spur, Span),
         Var(SimpleId),
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct FullId {
@@ -357,13 +313,11 @@ pub mod unresolved {
         pub span: Span,
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum IdField {
         Name(SimpleId),
         Index(Spur, Span),
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub struct ArgType {
@@ -372,6 +326,4 @@ pub mod unresolved {
         pub modifier: Option<Modifier>,
         pub span: Span,
     }
-
-
 }

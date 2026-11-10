@@ -3,7 +3,6 @@
 //!
 //!
 
-
 /// Common trait for IR implementations.
 ///
 /// Ideally, any kind of representation should have this trait implemented
@@ -13,8 +12,6 @@ pub trait IRInfra {
     // TODO: place all the relevant functions later
 }
 
-
-
 pub trait FrontendCompiler {
     type ParsedCode;
     type IRCode;
@@ -23,4 +20,3 @@ pub trait FrontendCompiler {
 
     fn compile_to_ir(&mut self, parsed_code: Self::ParsedCode) -> Self::IRCode;
 }
-

@@ -1,13 +1,11 @@
 use cranelift_codegen::ir::{Type, types};
 
-
 #[derive(Clone, Copy, Debug)]
 pub struct Arch {
     pub pointer_size: u32,
     pub pointer_align: u32,
     pub pointer_type: Type,
 }
-
 
 impl Arch {
     pub fn get_arch32() -> Self {
@@ -25,5 +23,4 @@ impl Arch {
             pointer_type: types::I64,
         }
     }
-
 }

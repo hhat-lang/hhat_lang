@@ -1,10 +1,9 @@
+use crate::SymbolId;
 use crate::core::ArenaIndexHolder;
 use std::fmt::Debug;
 use std::slice::Iter;
-use crate::SymbolId;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
-
 
 /// Define all available types.
 ///
@@ -22,20 +21,19 @@ impl Ty {
             Ty::Primitive(p) => matches!(
                 p,
                 TyPrimitive::QBool
-                | TyPrimitive::QU2
-                | TyPrimitive::QU3
-                | TyPrimitive::QU4
-                | TyPrimitive::QU8
+                    | TyPrimitive::QU2
+                    | TyPrimitive::QU3
+                    | TyPrimitive::QU4
+                    | TyPrimitive::QU8
             ),
             Ty::Struct(s) => s.is_quantum(),
             Ty::Enum(e) => e.is_quantum(),
-            Ty::Array(a) => unimplemented!(
-                "Check if type array is quantum is not implemented yet."
-            ),
+            Ty::Array(a) => {
+                unimplemented!("Check if type array is quantum is not implemented yet.")
+            }
         }
     }
 }
-
 
 /// Define primitive types.
 ///
@@ -95,7 +93,7 @@ impl TyStruct {
                 } else {
                     self.members.push((name.clone(), ty))
                 }
-            },
+            }
             true => panic!(
                 "cannot add more members ({:?}, {:?}) to struct; it's already locked in",
                 name, ty
@@ -115,7 +113,9 @@ impl TyStruct {
         self.members.iter()
     }
 
-    pub fn is_quantum(&self) -> bool { self.name.is_quantum() }
+    pub fn is_quantum(&self) -> bool {
+        self.name.is_quantum()
+    }
 }
 
 /// Define enum type.
@@ -156,7 +156,7 @@ impl TyEnum {
                     self.variants
                         .push(TyVariants::Named(name.clone(), variant_value))
                 }
-            },
+            }
             (true, x) => panic!(
                 "cannot add more variants ({:?}, {:?}) to enum; it's already locked in",
                 name, x
@@ -172,9 +172,13 @@ impl TyEnum {
         self.locked
     }
 
-    pub fn iter(&'_ self) -> Iter<'_, TyVariants> { self.variants.iter() }
+    pub fn iter(&'_ self) -> Iter<'_, TyVariants> {
+        self.variants.iter()
+    }
 
-    pub fn is_quantum(&self) -> bool { self.name.is_quantum() }
+    pub fn is_quantum(&self) -> bool {
+        self.name.is_quantum()
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]

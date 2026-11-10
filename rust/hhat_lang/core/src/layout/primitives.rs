@@ -2,11 +2,10 @@
 //! Composing primitives for Cranelift framework form.
 //!
 
-use cranelift_codegen::ir::{types, Type};
 use crate::core::Arenable;
 use crate::frontend::types::TyPrimitive;
 use crate::layout::arch::Arch;
-
+use cranelift_codegen::ir::{Type, types};
 
 /// Primitive kinds: single and pair.
 ///
@@ -20,7 +19,6 @@ pub enum PrimitiveKind {
     Pair(Type, Type),
 }
 
-
 #[derive(Clone, Debug)]
 pub struct PrimitiveLayout {
     pub size: u32,
@@ -28,9 +26,7 @@ pub struct PrimitiveLayout {
     pub kind: PrimitiveKind,
 }
 
-
 impl PrimitiveLayout {
-
     /// Get a layout for primitive types.
     ///
     pub fn layout(ty: &TyPrimitive, arch: Option<Arch>) -> Self {
@@ -38,46 +34,48 @@ impl PrimitiveLayout {
             TyPrimitive::Bool => PrimitiveLayout {
                 size: 1,
                 align: 1,
-                kind: PrimitiveKind::Single(types::I8)
+                kind: PrimitiveKind::Single(types::I8),
             },
             TyPrimitive::U32 | TyPrimitive::I32 => PrimitiveLayout {
                 size: 4,
                 align: 4,
-                kind: PrimitiveKind::Single(types::I32)
+                kind: PrimitiveKind::Single(types::I32),
             },
             TyPrimitive::U64 | TyPrimitive::I64 => PrimitiveLayout {
                 size: 8,
                 align: 8,
-                kind: PrimitiveKind::Single(types::I64)
+                kind: PrimitiveKind::Single(types::I64),
             },
             TyPrimitive::F32 => PrimitiveLayout {
                 size: 4,
                 align: 4,
-                kind: PrimitiveKind::Single(types::F32)
+                kind: PrimitiveKind::Single(types::F32),
             },
             TyPrimitive::F64 => PrimitiveLayout {
                 size: 8,
                 align: 8,
-                kind: PrimitiveKind::Single(types::F64)
+                kind: PrimitiveKind::Single(types::F64),
             },
             TyPrimitive::C64 => PrimitiveLayout {
                 size: 8,
                 align: 4,
-                kind: PrimitiveKind::Pair(types::F32, types::F32)
+                kind: PrimitiveKind::Pair(types::F32, types::F32),
             },
             TyPrimitive::C128 => PrimitiveLayout {
                 size: 16,
                 align: 8,
-                kind: PrimitiveKind::Pair(types::F64, types::F64)
+                kind: PrimitiveKind::Pair(types::F64, types::F64),
             },
-            TyPrimitive::String => if let Some(a) = arch {
-                PrimitiveLayout {
-                    size: a.pointer_size,
-                    align: a.pointer_align,
-                    kind: PrimitiveKind::Pair(a.pointer_type, a.pointer_type),
+            TyPrimitive::String => {
+                if let Some(a) = arch {
+                    PrimitiveLayout {
+                        size: a.pointer_size,
+                        align: a.pointer_align,
+                        kind: PrimitiveKind::Pair(a.pointer_type, a.pointer_type),
+                    }
+                } else {
+                    panic!("string must have Arch definition (32 or 64 bits)")
                 }
-            } else {
-                panic!("string must have Arch definition (32 or 64 bits)")
             }
             TyPrimitive::QBool => PrimitiveLayout {
                 size: 0,

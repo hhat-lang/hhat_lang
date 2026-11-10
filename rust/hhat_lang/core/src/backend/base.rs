@@ -1,5 +1,3 @@
-
-
 pub trait BackendCompiler {
     type IRCode;
     type MachineCode;

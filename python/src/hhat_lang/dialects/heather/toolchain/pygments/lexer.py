@@ -53,7 +53,9 @@ class HhatLexer(RegexLexer):
             (words(("@true", "@false")), Literal.Boolean.Quantum),
             (words(("true", "false")), Literal.Boolean),
         ],
-        "qid":[(rf"(@)({ID})", bygroups(QS, Name)),],
+        "qid": [
+            (rf"(@)({ID})", bygroups(QS, Name)),
+        ],
         "generics": [
             (rf"(\?)(@)({ID})", bygroups(Keyword.Symbol, QS, Keyword.Symbol)),
             (rf"\?{ID}", Keyword.Symbol),
@@ -76,10 +78,7 @@ class HhatLexer(RegexLexer):
             include("whitespace"),
             include("comments"),
             (r"\)", Punctuation, "#pop"),
-            (
-                rf"(type|fn|metafn|modifier|super-type|const){END}(?={WS}*:)",
-                Keyword.Namespace
-            ),
+            (rf"(type|fn|metafn|modifier|super-type|const){END}(?={WS}*:)", Keyword.Namespace),
             (r":", Operator),
             (r"[\[\]{}]", Punctuation),
             (r"\.", Operator),
@@ -127,11 +126,8 @@ class HhatLexer(RegexLexer):
                 bygroups(Keyword.Declaration, Whitespace, Name.Class),
             ),
             (
-                words(
-                    ("fn", "metafn", "modifier", "super-type", "type", "const"),
-                    suffix=END
-                ),
-                Keyword.Declaration
+                words(("fn", "metafn", "modifier", "super-type", "type", "const"), suffix=END),
+                Keyword.Declaration,
             ),
             # (rf"(main|self){END}", Keyword.Pseudo),
             (r"main", Keyword),
@@ -140,10 +136,7 @@ class HhatLexer(RegexLexer):
             include("literals"),
             (rf"(@)(?:bool|i4|i8{END})", bygroups(QS, Keyword.Type)),
             (
-                words(
-                    ("bool", "u32", "u64", "i32", "i64", "f64", "str"),
-                    suffix=END
-                ),
+                words(("bool", "u32", "u64", "i32", "i64", "f64", "str"), suffix=END),
                 Keyword.Type,
             ),
             (
@@ -189,4 +182,3 @@ class HhatLexer(RegexLexer):
             (r"\*|& ", Operator),
         ],
     }
-

@@ -38,4 +38,3 @@ pip install .
 > [!note]
 >
 > This method should not be used for now. The code contained in the `hhat-lang` package is outdated.
-

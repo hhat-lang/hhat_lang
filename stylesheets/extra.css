@@ -1,5 +1,5 @@
 /* import fonts */
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;800&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;800&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
     --stroke-width: 3px;
@@ -13,8 +13,9 @@
     --md-primary-fg-color--dark: #202020;
     --md-default-bg-color: #efeded;
     --md-default-fg-color: #000000e3;
-    --md-accent-fg-color: #202020; 
-    --md-code-bg-color: #dcdcdc;
+    --md-accent-fg-color: #202020;
+    --md-typeset-a-color: var(--md-accent-fg-color);
+    --md-code-bg-color: #fbf8f1;
     --heading-color: #202020; 
     --grid-color: rgba(0, 0, 0, 0.07);
 }
@@ -26,14 +27,12 @@
     --md-default-bg-color: #1e1e1e; 
     --md-accent-fg-color: #de9905;
     --md-default-fg-color: #e0e0e0;
+    --md-typeset-a-color: var(--md-accent-fg-color);
     --md-code-bg-color: #2b2b2b;
-    
-    /* MODIFIED: Changed RGBA to Solid Hex for the theme-colored shadow */
-    --hard-shadow-color: #0a0a0a; 
+    --hard-shadow-color: #0a0a0a;
     --hard-shadow: 6px 6px 0px 0px var(--hard-shadow-color);
-    
     --heading-color: var(--md-accent-fg-color);
-    --grid-color: rgba(255, 255, 255, 0.03); /* Subtle white grid */
+    --grid-color: rgba(255, 255, 255, 0.03);
 }
 
 /* --- GRID BACKGROUND IMPLEMENTATION --- */
@@ -126,6 +125,10 @@ h1, h2, h3 {
     transition: color 0.2s ease;
 }
 
+.md-typeset a code {
+    color: inherit;
+}
+
 .md-typeset a:hover {
     color: #FF9100 !important;
 }
@@ -134,11 +137,11 @@ h1, h2, h3 {
 .highlight {
     border: var(--stroke-width) solid #000 !important;
     box-shadow: var(--hard-shadow);
-    border-radius: 0px !important;
+    border-radius: 0 !important;
 }
 
 code {
-    font-family: 'Space Mono', monospace !important;
+    font-family: 'JetBrains Mono', monospace !important;
     font-weight: 700;
 }
 
@@ -148,32 +151,14 @@ code {
     font-weight: 800 !important;
 }
 
-
-[data-md-color-scheme="default"] .md-tabs__link:hover {
-    color: #000000e3;
+.md-nav__link:hover {
+    color: #FF9100 !important;
 }
-
-[data-md-color-scheme="default"] .md-tabs__item--active .md-tabs__link {
-    color: #000000e3 !important;
-    font-weight: 600 !important;
-}
-
-
-[data-md-color-scheme="slate"] .md-tabs__link:hover {
-    color: #FF9100;
-}
-
-[data-md-color-scheme="slate"] .md-tabs__item--active .md-tabs__link {
-    color: #de9905 !important;
-    font-weight: 600 !important;
-}
-
 
 /* --- THEME-SPECIFIC Icon SWAP --- */
 
-/* Switches to icon_dark.svg when the user activates Dark Mode (slate) */
 [data-md-color-scheme="slate"] .md-header__button.md-logo img {
-  content: url("../assets/icon_dark.svg");
+  content: url("../assets/logo_dark.png");
 }
 
 /* IMAGE DEFAULT & SLATE */
@@ -185,4 +170,41 @@ code {
 [data-md-color-scheme="slate"] img[src$="#only-light"],
 [data-md-color-scheme="slate"] img[src$="#gh-light-mode-only"] {
   display: none; /* Hide light images in dark mode */
+}
+
+.md-typeset p:not([align]),
+.md-typeset li {
+    text-align: justify;
+    hyphens: auto;
+}
+
+@media (min-width: 60em) {
+    .md-typeset p:not([align]),
+    .md-typeset li {
+        text-align: justify;
+        hyphens: auto;
+    }
+}
+
+.md-typeset h1.no-title {
+    display: none;
+}
+
+/*.md-typeset .grid.cards > ul > li,*/
+/*.md-typeset .grid > .card {*/
+/*    background-color: var(--md-default-bg-color);*/
+/*}*/
+
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid > .card {
+    background-color: var(--md-default-bg-color);
+    border: var(--stroke-width) solid #000;
+    border-radius: 0;
+    box-shadow: var(--hard-shadow);
+}
+
+.md-typeset .grid.cards > ul > li:hover,
+.md-typeset .grid > .card:hover {
+    box-shadow: var(--hard-shadow-hover);
+    transform: translate(3px, 3px);   /* shadow-shrinking hover effect */
 }

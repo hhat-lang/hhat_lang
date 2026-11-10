@@ -67,8 +67,8 @@ markdown_extensions:
       custom_fences:
         - name: python
           class: python
-          validator: "!!python/name:markdown_exec.validator"
-          format: "!!python/name:markdown_exec.formatter"
+          validator: !!python/name:markdown_exec.validator
+          format: !!python/name:markdown_exec.formatter
   - pymdownx.mark
   - pymdownx.smartsymbols
   - pymdownx.tasklist:
@@ -114,7 +114,7 @@ theme:
   favicon: assets/favicon.ico
   font:
     text: Lexend
-    code: Space Mono
+    code: JetBrains Mono
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default

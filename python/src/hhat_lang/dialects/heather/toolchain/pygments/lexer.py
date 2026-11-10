@@ -18,7 +18,7 @@ __all__ = ["HhatLexer"]
 WS = r"[\n\t ,;]"
 ID = r"[a-zA-Z][a-zA-Z0-9\-_]*"
 STRING = r'"[^"]*"'
-INT = r"-?\d*"
+INT = r"-?\d+"
 FLOAT = r"-?\d+\.\d+"
 QS = Operator.Quantum
 END = r"(?![a-zA-Z0-9\-_])"
@@ -36,13 +36,13 @@ class HhatLexer(RegexLexer):
     tokens = {
         "whitespace": [(rf"{WS}+", Whitespace)],
         "comments": [
-            (r"//[^\n]*", Comment.Singleline),
-            (r"/-", Comment.Multiline, "block-comment"),
+            (r"//[^\n]*", Comment),
+            (r"/-", Comment, "block-comment"),
         ],
         "block-comment": [
-            (r"[^-]*", Comment.Multiline),
-            (r"-/", Comment.Multiline, "#pop"),
-            (r"-", Comment.Multiline),
+            (r"[^-]+", Comment),
+            (r"-/", Comment, "#pop"),
+            (r"-", Comment),
         ],
         "literals": [
             (r'"[^"]*"', String.Double),
@@ -60,14 +60,14 @@ class HhatLexer(RegexLexer):
         ],
         "modifier": [
             include("whitespace"),
-            (r">", Keyword, "#pop"),
+            (r">", Punctuation.Marker, "#pop"),
             (r"&|\*|\.\.\.", Keyword.Symbol),
             (r"=", Operator),
             include("literals"),
             include("generics"),
             include("qid"),
-            (rf"(%)(@)({ID})", bygroups(Operator, QS, Keyword.Symbol)),
-            (rf"(%)({ID})", bygroups(Operator, Keyword.Symbol)),
+            (rf"(%)(@)({ID})", bygroups(Operator, QS, Keyword.Type)),
+            (rf"(%)({ID})", bygroups(Operator, Keyword.Type)),
             (rf"({ID})(?={WS}*\()", Name.Attribute),
             (r"[()]", Punctuation),
             (ID, Name.Attribute),
@@ -83,7 +83,7 @@ class HhatLexer(RegexLexer):
             (r":", Operator),
             (r"[\[\]{}]", Punctuation),
             (r"\.", Operator),
-            (r"<", Punctuation, "modifier"),
+            (r"<", Punctuation.Marker, "modifier"),
             (rf"(@)({ID})", bygroups(QS, Name.Namespace)),
             (ID, Name.Namespace),
         ],
@@ -183,7 +183,7 @@ class HhatLexer(RegexLexer):
             (rf"({ID})(?={WS}*\()", Name.Function),
             (rf"(@)({ID})", bygroups(QS, Name)),
             (ID, Name),
-            (r"<", Punctuation, "modifier"),
+            (r"<", Punctuation.Marker, "modifier"),
             (r"[(){}\[\]]", Punctuation),
             (r"[.:=]", Operator),
             (r"\*|& ", Operator),

@@ -63,8 +63,8 @@ For multiple imports:
 ```hhat-heather
 
 use(
-const:math.e
-const:math.phi
+    const:math.e
+    const:math.phi
 )
 
 ```
@@ -74,10 +74,10 @@ For multiple imports inside a single `const`:
 ```hhat-heather
 
 use(
-const:[
-  math.{pi e phi}
-  io.localhost
-]
+    const:[
+      math.{pi e phi}
+      io.localhost
+    ]
 )
 
 ```
@@ -143,8 +143,8 @@ use(type:math.geometry.point)
 
 // multiple imports:
 use(
-type:math.geometry.point3d
-type:math.trigonometry.rad
+    type:math.geometry.point3d
+    type:math.trigonometry.rad
 )
 
 ```
@@ -153,13 +153,13 @@ type:math.trigonometry.rad
 
 // multiple imports, single call:
 use(
-type:[
-  math.{
-    geometry.{point point3d} 
-    trigonometry.rad
-  }
-  status.status_t
-]
+    type:[
+      math.{
+        geometry.{point point3d} 
+        trigonometry.rad
+      }
+      status.status_t
+    ]
 )
 
 ```
@@ -186,10 +186,10 @@ Defining enum type:
 type status_t { ON OFF }
 
 type result_t {
-data{
-value:sample_t
-}
-NONE
+    data{
+        value:sample_t
+    }
+    NONE
 }
 
 ```
@@ -239,10 +239,10 @@ fn sum(a:i64 b:i64) i64 { ::add(a b) }
 ```hhat-heather
 
 fn print-gt(a:u64 b:u64) {
-if(
-  gt(a b): print(a)
-  true: print(b)
-)
+    if(
+      gt(a b): print(a)
+      true: print(b)
+    )
 }
 
 ```
@@ -346,7 +346,7 @@ modifier &(self) status_t { ... }  // for status_t type
 
 ```hhat-heather
 
-// usage
+// setting a variable `var` of type "reference of status_t"
 var:status_t<&>
 
 ```
@@ -370,7 +370,8 @@ Casting strict data:
 ```hhat-heather
 
 v1:u32 = 42
-v2:u64 = v1 * u64  // now v1 data is cast into u64 and stored in v2
+// now v1 data is cast into u64 and stored in v2
+v2:u64 = v1 * u64
 
 ```
 
@@ -380,7 +381,10 @@ Casting lazy data:
 
 @q:@bell_t =.{@s=@false @t=@false}
 @sync(@q)
-res:hashmap = @q * hashmap  // evaluate lazy data from @q and convert its result as hashmap, storing at res
+// evaluate lazy data from @q and convert
+//   its result as hashmap with key u64 
+//   and value bool, storing at res
+res:hashmap<%u64 %bool> = @q * hashmap<%u64 %bool>  
 
 ```
 

@@ -1,13 +1,33 @@
 [package]
+edition = "2024"
+rust-version = "1.99"
 name = "hhat_lang"
 version = "0.3.0-alpha.1"
-edition = "2024"
 
 [dependencies]
-peg = "0.8.5"
-walkdir = "2.5.0"
+cranelift = "0.137.0"
+cranelift-jit = "0.137.0"
+cranelift-module = "0.137.0"
 itertools = "0.15.0"
-cranelift = "0.128.3"
-cranelift-module = "0.128.3"
-cranelift-jit = "0.128.3"
-thin-vec = "0.2.20"
+peg = "0.8.5"
+strum = "0.28.0"
+walkdir = "2.5.0"
+
+[dependencies.serde]
+version = "1.0.228"
+features = ["derive"]
+
+[dependencies.toml]
+version = "1.1.2"
+features = [
+    "preserve_order",
+    "serde",
+]
+
+[workspace]
+members = [
+    "core",
+    "dialects/heather",
+    "rules",
+    "rulesystem", "q3l",
+]

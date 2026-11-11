@@ -1,10 +1,6 @@
 name: py_pre-commit
 
 on:
-  push:
-    paths:
-      - "python/**"
-      - ".github/workflows/py_pre-commit.yml"
   pull_request:
     paths:
       - "python/**"
